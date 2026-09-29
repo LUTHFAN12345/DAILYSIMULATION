@@ -6121,6 +6121,26 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 $ev[$r . '#' . strtoupper($u)] = ['reasons' => array_values(array_unique($why)), 'valid_alternative' => $alt, 'not_evaluated' => $open];
             }
         }
+        /* V11: bukti counterfactual 48 row dari himpunan kandidat valid comparator (pool V11) untuk setiap (row, unit GTG)
+         * pemenang yang belum punya alasan — mis. unit yang baru running karena pemenang band/sapuan konsolidasi. Kandidat
+         * valid lain yang mematikan unit itu pada row tsb. adalah bukti: CP-nya lebih tinggi, atau (di dalam band 0,2 %)
+         * kalah tie-break Heat Rate/start/prioritas. Hanya audit — dispatch dan pemenang tidak berubah. */
+        if (pp_v11_on() && !empty($poolV11) && is_array($W['data'] ?? null)) {
+            try {
+                $mW = pp_v8_masks((array)$W['data']); $sgW = pp_v6_gtg_sig((array)$W['data']); $hrF = (float)($aW['key']['hr'] ?? 0); $altV = []; $seenA = [];
+                foreach ($poolV11 as $pv) { $a = $pv['a'] ?? null; if (!is_array($a) || empty($a['valid']) || !is_array($a['output']['data'] ?? null) || !isset($a['key']['cp'])) continue;
+                    $sgA = pp_v6_gtg_sig((array)$a['output']['data']); if ($sgA === $sgW || isset($seenA[$sgA])) continue; $seenA[$sgA] = true;
+                    $altV[] = [(string)$pv['id'], (float)$a['key']['cp'], (float)($a['key']['hr'] ?? 0), pp_v8_masks((array)$a['output']['data'])]; }
+                foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u);
+                    for ($r = 1; $r <= 48; $r++) { if (empty($mW[$u][$r])) continue; $k = $r . '#' . $U; if (!empty($ev[$k]['reasons'])) continue;
+                        $bx = null; foreach ($altV as $x) if (empty($x[3][$u][$r]) && ($bx === null || $x[1] < $bx[1] || ($x[1] == $bx[1] && strcmp($x[0], $bx[0]) < 0))) $bx = $x;
+                        if ($bx === null) continue; $dcp = $bx[1] - $cpF;
+                        $why = $dcp > 1e-9 ? sprintf('CP_LEBIH_RENDAH_DARI_KANDIDAT_VALID %s (CP %.4f, +%.4f)', $bx[0], $bx[1], $dcp)
+                            : sprintf('BAND_V11_TIE_BREAK: kandidat valid %s tanpa %s pada row ini (CP %.4f, %+.4f di dalam band 0,2 %%, Heat Rate %.2f vs %.2f)', $bx[0], $U, $bx[1], $dcp, $bx[2], $hrF);
+                        $ev[$k] = ['reasons' => [$why], 'valid_alternative' => ['candidate' => $bx[0], 'cp' => $bx[1], 'delta_cp' => round($dcp, 6), 'heat_rate' => $bx[2]], 'not_evaluated' => [], 'basis' => 'V11_POOL_COUNTERFACTUAL_48_ROW'];
+                    } }
+            } catch (Throwable $e) {}
+        }
         if ($delta !== null && $applied) $delta = null;                         // V10: pemenang berubah -> bukti dari putaran ini
         if ($delta !== null) { $final = ['relevant' => (array)($delta['relevant_intervals'] ?? []), 'results' => []];
             foreach ((array)$delta['row_evidence'] as $k => $e) $ev[$k] = (array)$e + ['basis' => 'FINAL_JANGKAR_' . $delta['base_file']]; }
