@@ -1196,6 +1196,45 @@ function pp_tl_eligible_units(array $orig): array {
     }
     return $el;
 }
+/* V11 PREFETCH SPEKULATIF KELUARGA COMMITMENT. Keluarga sering berupa rantai (off:[] -> off:g5 -> off:g2,g5 -> ...): setiap
+ * tingkat menunggu hasil induknya sehingga pekerja pembantu menganggur. Selagi menunggu, proses ini mendaratkan (tanpa
+ * menyentuh registri) anak yang paling mungkin dari node pending: P + u untuk u = unit eligible yang running pada induk P
+ * (urutan perluasan yang sama), lalu unit eligible lain menurut prioritas. Hasilnya hanya masuk cache kandidat-state
+ * berkunci input identik (pp_tl_eval), sehingga saat node itu benar-benar dicapai, pendaratannya cache hit dengan hasil
+ * bit-identik. Pengamat Target Selesai/penghitung dimatikan selama prefetch (kandidat spekulatif bukan kandidat ruang
+ * exact). Satu pendaratan per panggilan; penanda eksklusif lintas proses mencegah kerja ganda. PP_V11_FAMILY_SPEC=0 mematikan. */
+function pp_v11_family_spec(array $orig, array $pending, $reg, array $el, float $dl, ?array $refRows): bool {
+    if ((string)getenv('PP_V11_FAMILY_SPEC') === '0' || !function_exists('pp_cs_file') || microtime(true) > $dl - 8.0) return false;
+    if (empty($GLOBALS['ppTlHook']['helper'])) return false;     // hanya pekerja pembantu: pemilik tidak boleh tertahan oleh prefetch
+    $m = (array)($orig['data3']['modeling'] ?? []); $rank = function_exists('pp_priority_rank') ? pp_priority_rank($m) : [];
+    $lds = (array)($m['unit_last_data_status'] ?? []); $st = substr(md5(json_encode(pp_tl_key($orig))), 0, 12);
+    foreach ($pending as $p) {
+        [$off, $seed] = $p; if ($seed) continue; sort($off);
+        /* unit running pada induk yang sudah selesai (P tanpa satu unit) -> urutan perluasan engine */
+        $guess = [];
+        foreach ($off as $x) { $par = array_values(array_diff($off, [$x])); $ps = $reg->get(pp_tl_node_key($par));
+            if (!is_array($ps)) continue; $ord = [];
+            foreach ((array)($ps['running'] ?? []) as $u => $n) { if (empty($el[$u]) || in_array($u, $off, true)) continue;
+                $wasOn = strtolower((string)($lds[strtoupper($u)] ?? $lds[$u] ?? '')) === 'running'; $ord[$u] = [$wasOn ? 1 : 0, $wasOn ? $n : -$n, $u]; }
+            uasort($ord, function ($a, $b) { return $a <=> $b; }); foreach (array_keys($ord) as $u) $guess[$u] = true; break; }
+        $rest = array_values(array_diff(array_keys($el), $off, array_keys($guess)));
+        usort($rest, function ($a, $b) use ($rank) { return [(int)($rank[$a] ?? 99), $a] <=> [(int)($rank[$b] ?? 99), $b]; });
+        foreach (array_slice(array_merge(array_keys($guess), $rest), 0, 2) as $u) {   // dua tebakan teratas per node pending
+            $n2 = array_merge($off, [$u]); sort($n2); $k2 = pp_tl_node_key($n2);
+            if ($reg->get($k2) !== null || $reg->claimedByOther($k2)) continue;
+            if ($refRows !== null && function_exists('pp_v10_export_capacity_proof') && function_exists('pp_v3_commitment_stops')
+                && pp_v10_export_capacity_proof($orig, $refRows, pp_v3_commitment_stops(['off' => $n2, 'seed' => []])) !== null) continue;
+            $mk = pp_cs_file('spec_' . $st . '_' . md5($k2), '.mark'); $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
+            $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true;   // abort Target Selesai tetap dipantau
+            $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+            try { pp_tl_land_commitment($orig, $n2, [], $dl, 5, true); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+            finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+            if (function_exists('pp_v10_scr')) pp_v10_scr('family', 'v11_spec_prefetch');
+            return true;
+        }
+    }
+    return false;
+}
 /* Ringkasan node yang disimpan di registri (tanpa dispatch). */
 function pp_tl_node_summary(array $a, int $evals, float $wall): array {
     return ['valid' => (bool)$a['valid'], 'key' => $a['key'], 'dev' => $a['dev'], 'gas_only' => $a['gas_only'],
@@ -1255,7 +1294,10 @@ function pp_tl_family_search(array $orig, float $deadlineTs, $reg, array $opt = 
                 if ($s !== null || !$reg->claimedByOther($nk)) { $queue[] = $p; unset($pending[$i]); $moved = true; }
             }
             $pending = array_values($pending);
-            if (!$moved) usleep(200000);
+            /* V11: selagi menunggu node yang dihitung proses lain, proses ini memanaskan cache kandidat-state (kunci identik)
+             * untuk anak node yang paling mungkin (prefetch spekulatif). Registri, himpunan node, urutan, dan pemenang tidak
+             * berubah — hanya pendaratan node berikutnya yang menjadi cache hit. */
+            if (!$moved && !(function_exists('pp_v11_family_spec') && pp_v11_family_spec($orig, $pending, $reg, $el, $deadlineTs, $refRows))) usleep(200000);
             continue;
         }
         [$off, $seed] = array_shift($queue); $nk = pp_tl_node_key($off, $seed);

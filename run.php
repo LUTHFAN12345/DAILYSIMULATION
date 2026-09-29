@@ -1398,6 +1398,7 @@ function pp_tl_pool_offer(string $key, array $a, string $source, string $owner):
  * tidak ada nilai engine yang dibaca balik, sehingga hasil exact tidak berubah sedikit pun. */
 function pp_tl_exact_observe(array $out, bool $pass): void {
     $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h)) return;
+    if (!empty($h['spec'])) return;                         // V11: prefetch spekulatif keluarga bukan kandidat ruang exact
     $h['n']++;
     $sgO = count((array)($out['data'] ?? [])) === 48 ? pp_v6_gtg_sig((array)$out['data']) : null;
     if ($sgO !== null && function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)$h['key'], (string)$h['job'], 'c', $sgO, (array)$out['data']);
