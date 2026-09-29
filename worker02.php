@@ -1206,6 +1206,7 @@ function pp_tl_eligible_units(array $orig): array {
 function pp_v11_family_spec(array $orig, array $pending, $reg, array $el, float $dl, ?array $refRows): bool {
     if ((string)getenv('PP_V11_FAMILY_SPEC') === '0' || !function_exists('pp_cs_file') || microtime(true) > $dl - 8.0) return false;
     if (empty($GLOBALS['ppTlHook']['helper'])) return false;     // hanya pekerja pembantu: pemilik tidak boleh tertahan oleh prefetch
+    if ((int)($GLOBALS['ppTlHook']['slot'] ?? 1) < 2) return false; // pembantu slot 1 selalu siap mengambil node nyata berikutnya
     $m = (array)($orig['data3']['modeling'] ?? []); $rank = function_exists('pp_priority_rank') ? pp_priority_rank($m) : [];
     $lds = (array)($m['unit_last_data_status'] ?? []); $st = substr(md5(json_encode(pp_tl_key($orig))), 0, 12);
     foreach ($pending as $p) {
@@ -1219,7 +1220,7 @@ function pp_v11_family_spec(array $orig, array $pending, $reg, array $el, float 
             uasort($ord, function ($a, $b) { return $a <=> $b; }); foreach (array_keys($ord) as $u) $guess[$u] = true; break; }
         $rest = array_values(array_diff(array_keys($el), $off, array_keys($guess)));
         usort($rest, function ($a, $b) use ($rank) { return [(int)($rank[$a] ?? 99), $a] <=> [(int)($rank[$b] ?? 99), $b]; });
-        foreach (array_slice(array_merge(array_keys($guess), $rest), 0, 2) as $u) {   // dua tebakan teratas per node pending
+        foreach (array_merge(array_keys($guess), $rest) as $u) {   // seluruh tebakan berurutan (hanya pembantu slot >= 2)
             $n2 = array_merge($off, [$u]); sort($n2); $k2 = pp_tl_node_key($n2);
             if ($reg->get($k2) !== null || $reg->claimedByOther($k2)) continue;
             if ($refRows !== null && function_exists('pp_v10_export_capacity_proof') && function_exists('pp_v3_commitment_stops')

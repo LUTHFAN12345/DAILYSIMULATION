@@ -4868,7 +4868,7 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
   let tanpaHasil=0;
   for(let n=0;n<3600;n++){
     /* V10: interval baca status 250 ms selama 60 detik pertama (FINAL tampil <= 0,25 s sesudah job selesai), lalu 1 s. */
-    await new Promise(r=>setTimeout(r,n<240?250:1000));
+    await new Promise(r=>setTimeout(r,n<400?150:1000));   // V11: 150 ms selama 60 detik pertama
     const live=ASYNC_REVIEW[branch];
     if(token!==RUN_SEQ[branch]||!live||live.id!==id||live.request_id!==expectedRequest)return true;
     const sr=await fetch('run.php?mode=job_poll&job='+encodeURIComponent(id)
@@ -4943,7 +4943,7 @@ async function startAsyncEconomicReview(payload,branch,token){
   }
   let tanpaHasil2=0;
   for(let n=0;n<3600;n++){
-    await new Promise(r=>setTimeout(r,n<240?250:1000));
+    await new Promise(r=>setTimeout(r,n<400?150:1000));   // V11: 150 ms selama 60 detik pertama
     /* ANTI HASIL BASI: run yang lebih baru atau identitas job yang berubah membatalkan polling
      * ini tanpa menyentuh UI. */
     const live=ASYNC_REVIEW[branch];

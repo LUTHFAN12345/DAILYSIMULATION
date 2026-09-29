@@ -2654,7 +2654,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
     $slk = @fopen(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v4_help_' . $slot . '.lock', 'c');
     if (!$slk || !@flock($slk, LOCK_EX | LOCK_NB)) return ['ok' => true, 'already' => true];
     $t0 = microtime(true); $rev = 0; $done = 0; $idle = 0.0; $lastBeat = 0.0;
-    $GLOBALS['ppTlHook'] = ['job' => $jobId, 'key' => '', 'orig' => null, 'n' => 0, 'v' => 0, 'flush' => 0.0, 'cchk' => 0.0, 'helper' => true];
+    $GLOBALS['ppTlHook'] = ['job' => $jobId, 'key' => '', 'orig' => null, 'n' => 0, 'v' => 0, 'flush' => 0.0, 'cchk' => 0.0, 'helper' => true, 'slot' => $slot];
     try {
         while (microtime(true) - $t0 < 1800.0) {
             if (microtime(true) - $lastBeat > 0.5) { @file_put_contents($beat, (string)microtime(true)); $lastBeat = microtime(true); }
