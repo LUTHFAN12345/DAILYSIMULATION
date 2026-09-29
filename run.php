@@ -2526,7 +2526,12 @@ function pp_v5_stop_cover(array $m): array {
     return $c;
 }
 function pp_v5_stopless_key(array $in): ?string {
-    if ((string)getenv('PP_V5_ALIAS') === '0') return null;
+    /* V11: alias "stop tambahan tidak mengikat" DIMATIKAN secara bawaan (PP_V5_ALIAS=1 menyalakan kembali untuk investigasi).
+     * Terbukti tidak sahih untuk engine heuristik ini: pada jangkar PGN 30, commitment 'pipeline' (stop lebih banyak) dihitung
+     * penuh = CP 64,6656 valid, tetapi alias memakai hasil 'off:g3' (stop lebih sedikit, stop tambahan tidak mengikat) = 64,6671.
+     * Karena isi cache bergantung urutan evaluasi (pemilik vs pembantu, CLI vs HTTP), alias membuat FINAL bergantung jalur
+     * (ACT_PGN_UP: direct 64,6622 vs rantai HTTP 64,6801). Cache kunci-identik (input numerik sama persis) tetap aktif. */
+    if ((string)getenv('PP_V5_ALIAS') !== '1') return null;
     $m = (array)($in['data3']['modeling'] ?? []); unset($m['unit_stop_time'], $m['unit_stop']); $in['data3']['modeling'] = $m;
     $k = pp_cs_key($in); return $k === null ? null : 's' . substr($k, 0, 39);
 }
