@@ -5539,7 +5539,7 @@ function gsdProvisionalBanner(data){
   tlBanner('VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS','amber',st,
     (fam?'Kandidat valid terbaik ruang kandidat exact yang sudah dievaluasi':'Commitment hasil final terakhir dipakai ulang')+'; seluruh hard constraint, '
     +'PLN Export 48/48, gas window, reserve dan Bus Flow valid. Total Cost '+fmt(c,2)+' USD <u>belum</u> dibuktikan terendah. '
-    +'Publish Final dibuka setelah optimasi exact selesai.'+v11AuditExtra(data));
+    +'Publish Final dibuka setelah optimasi exact selesai.'+v11AuditExtra(data),'prov-banner');
 }
 /* Perbandingan provisional -> exact: commitment, dispatch, dan biaya. */
 function gsdProvisionalDiff(prov,fin){
@@ -5664,10 +5664,10 @@ function v11Norm(st){
 function v11TargetLabel(t){ return (t==null||t==='max')?'Maximum Review':'&lt; '+t+' detik'; }
 function tlSummaryHtml(st){
   const s=v11Norm(st);
-  return 'Target '+v11TargetLabel(s.target)+' | Aktual '+tlFmtS(s.elapsed)+' detik | Diperiksa '+s.evaluated+' | Valid '+s.valid+' | CP '+(s.cp!=null?fmt(s.cp,4)+' USD/MWh':'—');
+  return 'Target waktu '+v11TargetLabel(s.target)+' | Waktu aktual '+tlFmtS(s.elapsed)+' detik | Kandidat diperiksa '+s.evaluated+' | Kandidat valid '+s.valid+' | Cost Production '+(s.cp!=null?fmt(s.cp,4)+' USD/MWh':'—');
 }
 /* SUMMARY kuning: tepat lima field. Status dan uraian teknis ada di panel "Detail audit" terpisah. */
-function tlBanner(title,color,st,detailHtml){
+function tlBanner(title,color,st,detailHtml,wrapId){
   const rs=document.getElementById('result-summary'); if(!rs) return;
   ['tl-banner','tl-audit','prov-banner'].forEach(id=>{ const old=document.getElementById(id); if(old) old.remove(); });
   const s=v11Norm(st);
@@ -5679,7 +5679,8 @@ function tlBanner(title,color,st,detailHtml){
   const aud='<details id="tl-audit" class="v11-audit" data-status="'+gsfEsc(String(color||''))+'"><summary>Detail audit — '+gsfEsc(String(title||''))+'</summary><div class="v11-audit-b">'
     +'Status constraints: <b>'+(st&&st.checks_ok==null?'—':(st&&st.checks_ok?'PASS':'FAIL'))+'</b> · Global optimum proven: <b>'+(st&&st.proven?'YES':'NO')+'</b>'
     +(detailHtml?'<br>'+detailHtml:'')+'</div></details>';
-  rs.insertAdjacentHTML('afterbegin',sum+aud);
+  /* wrapId: penanda status (mis. 'prov-banner' selama VALID PROVISIONAL) membungkus SUMMARY + panel audit. */
+  rs.insertAdjacentHTML('afterbegin',wrapId?'<div id="'+gsfEsc(String(wrapId))+'">'+sum+aud+'</div>':sum+aud);
 }
 function v11Counters(out){ const c=((out||{}).info||{})['V11 Candidate Counters']; return (c&&typeof c==='object')?c:null; }
 /* V11 panel audit (bukan SUMMARY): ringkasan lima audit V11 yang dilampirkan engine pada hasil akhir.

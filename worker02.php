@@ -1276,7 +1276,7 @@ function pp_tl_family_search(array $orig, float $deadlineTs, $reg, array $opt = 
                     if ($seed) $sum['seed'] = $seed;
                     $reg->put($nk, $sum, null); $reg->release($nk); $computed++; $nodes++;
                     if (function_exists('pp_v10_scr')) pp_v10_scr('family', 'pruned_capacity');
-                    if (function_exists('pp_v11_cnt')) pp_v11_cnt('s', 'family:' . $nk);
+                    if (function_exists('pp_v11_cnt_screen')) pp_v11_cnt_screen(pp_v3_commitment_stops(['off' => $off, 'seed' => $seed]));
                     if ($tick !== null) $tick($nodes, $va, $ev);
                     continue;
                 }
@@ -1502,7 +1502,7 @@ function pp_global_commitment_review(array $input, array $out): array {
         try { $elG = pp_tl_eligible_units((array)$GLOBALS['ppExactTrack']['orig']); } catch (Throwable $e) { $elG = []; }
         $keepC = [];
         foreach ($cands as $u) { if (!empty($elG[$u])) $screened[] = $u; else $keepC[] = $u; }
-        if (function_exists('pp_v11_cnt')) foreach ($screened as $uS) pp_v11_cnt('s', 'gcr:off:' . $uS);
+        /* V11: unit ini DICAKUP node keluarga off:{u} (alias) — tidak dihitung ulang sebagai kandidat. */
         $cands = $keepC;
     }
     $GLOBALS['__pp_gcmp_busy'] = true;

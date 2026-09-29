@@ -1378,7 +1378,7 @@ function pp_tl_read(string $f): ?array {
 function pp_tl_pool_offer(string $key, array $a, string $source, string $owner): bool {
     if (empty($a['valid']) || !is_array($a['key'] ?? null) || !is_array($a['output'] ?? null)) return false;
     $sgP = pp_v6_gtg_sig((array)($a['output']['data'] ?? []));
-    if (function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)preg_replace('~_[xq]$~', '', $key), $owner, 'v', $sgP);
+    if (function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)preg_replace('~_[xq]$~', '', $key), $owner, 'v', $sgP, (array)($a['output']['data'] ?? []));
     $lk = @fopen(pp_tl_file($key . '.lock'), 'c'); if ($lk) @flock($lk, LOCK_EX);
     $bf = pp_tl_file($key . '_best.json');
     $meta = pp_tl_read(pp_tl_file($key . '_meta.json'));
@@ -1400,11 +1400,11 @@ function pp_tl_exact_observe(array $out, bool $pass): void {
     $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h)) return;
     $h['n']++;
     $sgO = count((array)($out['data'] ?? [])) === 48 ? pp_v6_gtg_sig((array)$out['data']) : null;
-    if ($sgO !== null && function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)$h['key'], (string)$h['job'], 'c', $sgO);
+    if ($sgO !== null && function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)$h['key'], (string)$h['job'], 'c', $sgO, (array)$out['data']);
     if ($pass) {
         try {
             $a = pp_tl_assess($h['orig'], $out);
-            if (!empty($a['valid'])) { $h['v']++; if ($sgO !== null && function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)$h['key'], (string)$h['job'], 'v', $sgO); $a['output'] = $out; $a['off'] = []; pp_tl_pool_offer($h['key'] . '_x', $a, 'exact_search', $h['job']); }
+            if (!empty($a['valid'])) { $h['v']++; if ($sgO !== null && function_exists('pp_v11_cnt_at')) pp_v11_cnt_at((string)$h['key'], (string)$h['job'], 'v', $sgO, (array)$out['data']); $a['output'] = $out; $a['off'] = []; pp_tl_pool_offer($h['key'] . '_x', $a, 'exact_search', $h['job']); }
         } catch (Throwable $e) {}
     }
     if ($pass || microtime(true) - $h['flush'] > 1.5) {
@@ -4474,6 +4474,17 @@ function pp_simulation_acceptance_review(array $input, array $output): array {
         }
         $econPass=is_finite($selectedCp)&&is_finite($minCp)&&$selectedCp<=$minCp+1e-6;
         $evidence=['units_dropped'=>(array)($g['units_dropped']??[]),'comparator_order'=>(array)($g['comparator_order']??[])];
+        /* V11: objektif = CP minimum dengan band 0,2 % (tie-break Heat Rate di dalam band). Pemenang band sah bila
+         * comparator V11 melihat CP minimum seluruh kandidat yang dievaluasi (tidak ada kandidat ladder di bawah
+         * cp_min band) dan CP terpilih = CP pemenang band <= batas atas band. Kandidat > 0,2 % tetap ditolak. */
+        if(!$econPass&&is_finite($selectedCp)&&is_finite($minCp)&&function_exists('pp_v11_on')&&pp_v11_on()){
+            $bc=(array)($info['V11 Candidate Comparison']??[]);
+            if(isset($bc['cp_min'],$bc['band_upper'],$bc['winner_cp'])&&abs((float)$bc['winner_cp']-$selectedCp)<=1e-4
+               &&$minCp>=(float)$bc['cp_min']-1e-4&&$selectedCp<=(float)$bc['band_upper']+1e-6){
+                $econPass=true;$evidence['v11_band']=['cp_min'=>$bc['cp_min'],'band_upper'=>$bc['band_upper'],'selected_cp'=>$selectedCp,'ladder_min_cp'=>$minCp,
+                    'winner'=>$bc['winner']??null,'winner_heat_rate'=>$bc['winner_heat_rate']??null,'rule'=>'CP terpilih <= CP_min x (1 + '.(function_exists('pp_v11_band_pct')?pp_v11_band_pct():0.2).' %) dan Heat Rate terendah di dalam band'];
+            }
+        }
     }
     /* GATE KONVERGENSI: dibaca dari info['Run Status'] (sumber yang sama dengan UI), bukan dihitung
        ulang. Hanya memengaruhi status publikasi; hard_validation dan economic_review di bawah tetap
@@ -5057,7 +5068,7 @@ function pp_v10_fz(array $orig, array $bd, ?float $pipeT, float $dl, ?array $geF
         foreach (['PGN Pipe Quota (BBTUD)', 'Total Gas Quota (BBTUD)', 'Gas Available (BBTUD)', 'Base Gas Quota (BBTUD)', 'Effective Gas Quota (BBTUD)'] as $k) if (isset($o['info'][$k])) $o['info'][$k] = round((float)$o['info'][$k] + $dq, 4); }
     $clean = $orig; unset($clean['data3']['modeling']['__v10_sup_secant'], $clean['data3']['modeling']['__v9_nopolish']);
     $a = pp_tl_assess($clean, $o); pp_tl_clean_globals(); $a['output'] = $o; $a['off'] = []; $a['adj'] = 0.0; $a['supplier_target'] = $useT ? $pipeT : pp_tl_supplier_target($o);
-    if (function_exists('pp_v11_cnt') && count((array)($o['data'] ?? [])) === 48) pp_v11_cnt(!empty($a['valid']) ? 'v' : 'c', pp_v6_gtg_sig((array)$o['data']));
+    if (function_exists('pp_v11_cnt') && count((array)($o['data'] ?? [])) === 48) pp_v11_cnt(!empty($a['valid']) ? 'v' : 'c', pp_v6_gtg_sig((array)$o['data']), (array)$o['data']);
     return $a;
 }
 /* Pendaratan dispatch tetap ke window gas total (efektif) dan window supplier PGN: beban unit GTG berjalan pada row
@@ -5341,7 +5352,7 @@ function pp_v11_consolidation_sweep(array $orig, array $W, array $hist, float $d
             if ($kind !== 'SWAP' && (int)$c['off_rows'][1] >= (int)$c['off_rows'][0]) $pr = pp_v8_export_prescreen($orig, (array)$W['data'], $u, range((int)$c['off_rows'][0], (int)$c['off_rows'][1]));
             if ($pr === null) $pr = pp_v9_legal_prescreen($orig, $c) ?? pp_v9_swap_hr_prescreen($orig, (array)$W['data'], $c);
             if ($pr === null && function_exists('pp_v10_export_capacity_proof')) $pr = pp_v10_export_capacity_proof($orig, (array)$W['data'], (array)$c['stops']);
-            if ($pr !== null) { $R['screened_tier1']++; $rec['tier'] = 1; $rec['result'] = 'DIPANGKAS_TIER1:' . (string)($pr['code'] ?? ($pr['method'] ?? 'EXPORT')); $rec['proof'] = $pr; pp_v11_cnt('s', 'sweep:' . $c['id']); $R['candidates'][] = $rec; continue; }
+            if ($pr !== null) { $R['screened_tier1']++; $rec['tier'] = 1; $rec['result'] = 'DIPANGKAS_TIER1:' . (string)($pr['code'] ?? ($pr['method'] ?? 'EXPORT')); $rec['proof'] = $pr; pp_v11_cnt_screen((array)($c['stops'] ?? [])); $R['candidates'][] = $rec; continue; }
             if ($n >= $cap) { $rec['result'] = 'TIDAK_DIEVALUASI:BATAS_SAPUAN'; $R['candidates'][] = $rec; continue; }
             if (microtime(true) > $dl - 2.0) { $rec['result'] = 'TIDAK_DIEVALUASI:BATAS_WAKTU'; $R['candidates'][] = $rec; continue; }
             $n++;
@@ -5364,22 +5375,33 @@ function pp_v11_consolidation_sweep(array $orig, array $W, array $hist, float $d
  *   c_<sig> = kandidat diperiksa dengan simulasi penuh (dispatch 48 row unik), v_<sig> = kandidat valid (hard + provenance PASS),
  *   s_<id>  = kandidat gugur Tier 1 (screening). Proses pemilik & pembantu menulis ke folder yang sama (idempoten). */
 function pp_v11_cnt_dir(string $stateKey, string $job): string { return pp_tl_file(preg_replace('~[^A-Za-z0-9]~', '', $stateKey) . '_cnt_' . preg_replace('~[^A-Za-z0-9_\-]~', '', $job)); }
-function pp_v11_cnt_at(string $stateKey, string $job, string $kind, string $id): void {
+/* Kunci kanonik: dispatch fisik 48 row (c_/v_ = pp_v6_gtg_sig) dan commitment fisik (k_/s_ = pp_v3_sig atas interval OFF
+ * setiap GTG). Kandidat gugur Tier 1 dicatat dengan kunci commitment-nya; bila commitment yang sama juga di-full-run (oleh
+ * pemilik, pembantu, kolam _q/_x, review, atau keluarga exact), ia TIDAK dihitung lagi sebagai screened-out. Alias
+ * (nama/ID kandidat berbeda, state fisik sama) tidak pernah dihitung ulang karena kuncinya sama. */
+function pp_v11_csig(array $stops): string { return 'k:' . pp_v3_sig($stops); }
+function pp_v11_cnt_at(string $stateKey, string $job, string $kind, string $id, ?array $data = null): void {
     if ($stateKey === '' || $job === '' || (string)getenv('PP_V11') === '0') return;
     static $mk = [];
     $d = pp_v11_cnt_dir($stateKey, $job); if (!isset($mk[$d])) { if (!is_dir($d)) @mkdir($d, 0777, true); $mk[$d] = true; }
     $h = substr(md5($id), 0, 20);
     if ($kind === 'v') { @touch($d . DIRECTORY_SEPARATOR . 'v_' . $h); @touch($d . DIRECTORY_SEPARATOR . 'c_' . $h); }
     else @touch($d . DIRECTORY_SEPARATOR . $kind . '_' . $h);
+    if (($kind === 'v' || $kind === 'c') && is_array($data) && count($data) === 48) {
+        @touch($d . DIRECTORY_SEPARATOR . 'k_' . substr(md5(pp_v11_csig(pp_v8_stops(pp_v8_masks(array_values($data))))), 0, 20)); }
 }
-function pp_v11_cnt(string $kind, string $id): void { $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h)) return; pp_v11_cnt_at((string)($h['key'] ?? ''), (string)($h['job'] ?? ''), $kind, $id); }
+function pp_v11_cnt(string $kind, string $id, ?array $data = null): void { $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h)) return; pp_v11_cnt_at((string)($h['key'] ?? ''), (string)($h['job'] ?? ''), $kind, $id, $data); }
+/* Kandidat gugur Tier 1 (tanpa simulasi): kunci = commitment fisik kanonik. */
+function pp_v11_cnt_screen(array $stops): void { pp_v11_cnt('s', pp_v11_csig($stops)); }
 function pp_v11_cnt_read(string $stateKey, string $job, array $forceValid = []): array {
-    $d = pp_v11_cnt_dir($stateKey, $job); $c = []; $v = []; $s = [];
-    if (is_dir($d)) foreach ((array)@scandir($d) as $f) { if (strlen($f) < 3) continue; $k = $f[0]; $x = substr($f, 2);
-        if ($k === 'c') $c[$x] = true; elseif ($k === 'v') $v[$x] = true; elseif ($k === 's') $s[$x] = true; }
+    $d = pp_v11_cnt_dir($stateKey, $job); $c = []; $v = []; $s = []; $k = [];
+    if (is_dir($d)) foreach ((array)@scandir($d) as $f) { if (strlen($f) < 3) continue; $t = $f[0]; $x = substr($f, 2);
+        if ($t === 'c') $c[$x] = true; elseif ($t === 'v') $v[$x] = true; elseif ($t === 's') $s[$x] = true; elseif ($t === 'k') $k[$x] = true; }
     foreach ($forceValid as $sg) { $x = substr(md5($sg), 0, 20); $v[$x] = true; $c[$x] = true; }
+    $dup = count(array_intersect_key($s, $k)); $s = array_diff_key($s, $k);
     $full = count($c); $valid = count($v); $scr = count($s);
-    return ['candidates_checked' => $full + $scr, 'candidates_screened_out' => $scr, 'candidates_full_run' => $full, 'candidates_valid' => $valid];
+    return ['candidates_checked' => $full + $scr, 'candidates_screened_out' => $scr, 'candidates_full_run' => $full, 'candidates_valid' => $valid,
+            'screened_also_full_run_excluded' => $dup, 'key' => 'canonical physical dispatch (48 row GTG MW) untuk full-run/valid; commitment fisik kanonik (interval OFF GTG) untuk screened-out'];
 }
 /* V11 AUDIT LOW_LOAD_FRAGMENTATION pada hasil akhir: setiap (row, unit prioritas rendah) wajib punya alasan sah
  * berbasis bukti — status paksa (Required / Cannot Stop / Last Data Running / Fixed Load), minimum runtime sejak start,
@@ -5485,16 +5507,16 @@ function pp_v10_fast_incremental(string $jobId, array $input): array {
             $spl = (string)getenv('PP_V10_SPLICE'); $vars = ($spl === '1' || ($spl !== '0' && $far)) ? ['n', 's'] : ['n'];
             foreach ($vars as $var) { $gen++;
                 $rows = $e['rows'];
-                if ($var === 's') { if ($fr === null || !$AR) { $pr[] = ['node' => $e['k'] . '@' . $e['p'] . '+S', 'reason' => 'TIDAK_ADA_DISPATCH_ACTUAL_S']; continue; }
+                if ($var === 's') { if ($fr === null || !$AR) { $pr[] = ['node' => $e['k'] . '@' . $e['p'] . '+S', 'reason' => 'TIDAK_ADA_DISPATCH_ACTUAL_S', 'stops' => pp_v3_stops($rows)]; continue; }
                     $same = true; foreach ($AR as $r => $_) foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u); if ((((float)($rows[$r - 1][$U] ?? 0)) > 0.01) !== (((float)($fr[$r - 1][$U] ?? 0)) > 0.01)) { $same = false; break 2; } }
-                    if (!$same) { $pr[] = ['node' => $e['k'] . '@' . $e['p'] . '+S', 'reason' => 'POLA_ON_OFF_ROW_ACTUAL_BERBEDA']; continue; }
+                    if (!$same) { $pr[] = ['node' => $e['k'] . '@' . $e['p'] . '+S', 'reason' => 'POLA_ON_OFF_ROW_ACTUAL_BERBEDA', 'stops' => pp_v3_stops($rows)]; continue; }
                     foreach ($AR as $r => $_) foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u); $rows[$r - 1][$U] = round((float)($fr[$r - 1][$U] ?? 0), 4); } }
                 $sg = md5(json_encode($rows)); if (isset($seen[$sg])) { $pr[] = ['node' => $e['k'] . '@' . $e['p'] . ($var === 's' ? '+S' : ''), 'reason' => 'DUPLIKAT_STATE_FISIK', 'same_as' => $seen[$sg]]; continue; }
                 $cpf = pp_v10_export_capacity_proof($S0, $fr ?? array_values((array)$base['data']), pp_v3_stops($rows));
-                if ($cpf !== null) { $pr[] = ['node' => $e['k'] . '@' . $e['p'], 'reason' => 'INFEASIBLE_KAPASITAS_EXPORT', 'proof' => $cpf]; continue; }
+                if ($cpf !== null) { $pr[] = ['node' => $e['k'] . '@' . $e['p'], 'reason' => 'INFEASIBLE_KAPASITAS_EXPORT', 'proof' => $cpf, 'stops' => pp_v3_stops($rows)]; continue; }
                 $id = $e['sig'] . ':' . $var . ':' . sprintf('%.6f', (float)$TS); $seen[$sg] = $e['k'] . '@' . $e['p'] . ($var === 's' ? '+S' : '');
                 $tasks[] = ['type' => 'v10land', 'id' => $id, 'rows' => $rows, 'T' => $TS, 'max' => 6, 'label' => $seen[$sg]]; } }
-        foreach ($pr as $pX) pp_v11_cnt('s', 'fast:' . ($pX['node'] ?? '?') . ':' . ($pX['reason'] ?? ''));
+        foreach ($pr as $pX) if (($pX['reason'] ?? '') !== 'DUPLIKAT_STATE_FISIK' && is_array($pX['stops'] ?? null)) pp_v11_cnt_screen($pX['stops']);   // alias state fisik sama tidak dihitung
         pp_job_progress($jobId, 'V10_TIER2A_PENDARATAN_PUSTAKA', 30.0, ['tasks' => count($tasks)]);
         /* satu daftar tugas (orig yang sama): pembantu melanjutkan tier 2b lalu pustaka, pemilik mengerjakan pustaka lalu sisa tier 2b */
         if ($par) pp_v4_work_publish($jobId, $SE, ['kind' => 'tasks', 'tasks' => array_merge($t2b, $tasks), 'dl' => $dl]);
@@ -5934,7 +5956,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 $rec = function (int $i, array $a) use (&$final, &$all, &$nSim, &$nPre, &$truncated, $C, $round, &$poolV11) {
                     $c = $C[$i]; $pre = $a['prescreen'] ?? null; $skp = $a['skipped'] ?? null; $ev = $pre === null && $skp === null;
                     if ($ev && !empty($a['valid']) && is_array($a['output'] ?? null) && is_array($a['key'] ?? null)) $poolV11[] = ['id' => $c['id'], 'a' => $a];
-                    if ($pre !== null && function_exists('pp_v11_cnt')) pp_v11_cnt('s', 'review:' . $c['id']);
+                    if ($pre !== null && function_exists('pp_v11_cnt_screen')) pp_v11_cnt_screen((array)($c['stops'] ?? []));
                     if ($skp !== null && strpos((string)$skp, 'BATAS_WAKTU') === 0) $truncated = true; if ($pre !== null) $nPre++; if ($ev && empty($a['v10_dedup'])) $nSim++;
                     $viol = $pre !== null ? [(string)($pre['code'] ?? 'EXPORT')] : array_values(array_unique(array_map('pp_v8_viol_code', (array)($a['violations'] ?? []))));
                     $sum = ['id' => $c['id'], 'kind' => $c['kind'], 'unit' => strtoupper($c['unit']), 'rows' => $c['iv'], 'off_rows' => $c['off_rows'],

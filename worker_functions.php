@@ -634,10 +634,30 @@ function pp_normalize_unit_stop_time(array &$model, array &$errors = []): array 
 
 function pp_is_unit_stopped(array $d3, array $model, string $unit, int $row1): bool {
     if(!pp_effective_unit_available($d3,$model,$unit,$row1))return true;
-    if (in_array($unit, $model['unit_stop'] ?? [], true)) return true;
-    foreach (($model['unit_stop_time'] ?? []) as $r) {
-        if (($r['unit'] ?? '') === $unit && $row1 >= ($r['start'] ?? 1) && $row1 <= ($r['stop'] ?? 48)) return true;
+    /* V11 OPT-US1 — INDEKS unit_stop / unit_stop_time per unit (hasil identik, bukan penyederhanaan rumus).
+     * Terukur ~10 % waktu inklusif pada jalur kuota: setiap panggilan memindai seluruh daftar stop untuk setiap
+     * (unit,row). Indeks dibangun ulang hanya bila daftar berubah; pembanding === pada array PHP memakai jalur
+     * cepat identitas (hashtable yang sama) sehingga O(1) selama array input tidak diganti. Perbandingan per
+     * record SAMA PERSIS dengan badan lama ((unit ===), $row1 >= start ?? 1, $row1 <= stop ?? 48, nilai mentah).
+     * PP_V11_US_INDEX=0 mengembalikan pemindaian lama. */
+    static $on = null; if ($on === null) $on = ((string)getenv('PP_V11_US_INDEX') !== '0');
+    $us = $model['unit_stop'] ?? []; $ust = $model['unit_stop_time'] ?? [];
+    if (!$on || !is_array($us) || !is_array($ust)) {
+        if (in_array($unit, $us, true)) return true;
+        foreach ($ust as $r) {
+            if (($r['unit'] ?? '') === $unit && $row1 >= ($r['start'] ?? 1) && $row1 <= ($r['stop'] ?? 48)) return true;
+        }
+        return false;
     }
+    static $cUs = null, $cUst = null, $ix = [], $ixAll = [];
+    if ($cUs !== $us || $cUst !== $ust) {
+        $ix = []; $ixAll = [];
+        foreach ($us as $x) if (is_string($x)) $ixAll[$x] = true;
+        foreach ($ust as $r) { $k = $r['unit'] ?? ''; if (!is_string($k)) continue; $ix[$k][] = [$r['start'] ?? 1, $r['stop'] ?? 48]; }
+        $cUs = $us; $cUst = $ust;
+    }
+    if (isset($ixAll[$unit])) return true;
+    if (isset($ix[$unit])) foreach ($ix[$unit] as $iv) if ($row1 >= $iv[0] && $row1 <= $iv[1]) return true;
     return false;
 }
 /* ==============================================================================================
