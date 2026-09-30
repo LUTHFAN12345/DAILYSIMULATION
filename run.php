@@ -2663,7 +2663,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
             $w = pp_tl_read(pp_v4_work_file($jobId));
             /* Job yang tidak pernah mulai (QUEUED > 60 s) tidak ditunggu tanpa akhir. */
             if (!is_array($w) && (string)($j['status'] ?? '') === 'QUEUED' && microtime(true) - $t0 > 60.0) break;
-            if (function_exists('pp_v12_side_run_one') && pp_v12_side_run_one($jobId)) continue;   // V12: tugas samping pemilik lebih dulu
+            if (function_exists('pp_v12_side_drain') && pp_v12_side_drain($jobId) > 0) continue;   // V12: tugas samping pemilik lebih dulu
             if (!is_array($w) || (int)($w['rev'] ?? 0) === $rev) { usleep(60000); $idle += 0.06; continue; }
             $rev = (int)$w['rev'];
             $orig = pp_tl_read(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . basename((string)($w['orig'] ?? '')));
@@ -2677,7 +2677,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
                 $reg = pp_tl_registry_open($orig);
                 pp_tl_family_search($orig, $dl, $reg, ['seeds' => (array)($w['seeds'] ?? []), 'max_nodes' => (int)($w['max_nodes'] ?? 64),
                     'offer' => function (array $a) use ($poolKey, $jobId) { try { pp_tl_pool_offer($poolKey, $a, 'v4_helper_family', $jobId); } catch (Throwable $e) {} },
-                    'stop' => function () use ($jobId, $rev) { static $c = 0.0; if (function_exists('pp_v12_side_run_one')) pp_v12_side_run_one($jobId);
+                    'stop' => function () use ($jobId, $rev) { static $c = 0.0; if (function_exists('pp_v12_side_drain')) pp_v12_side_drain($jobId);
                         if (microtime(true) - $c < 0.5) return false; $c = microtime(true);
                         $j = pp_job_read($jobId); $w2 = pp_tl_read(pp_v4_work_file($jobId));
                         return !is_array($j) || in_array((string)($j['status'] ?? ''), ['DONE', 'FAILED', 'CANCELLED'], true) || (int)($w2['rev'] ?? 0) !== $rev; }]);
@@ -2687,7 +2687,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
     } catch (PpJobAborted $e) { }
     catch (Throwable $e) { @file_put_contents(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v4_help_' . $slot . '.err', $e->getMessage()); }
     @unlink($beat); @flock($slk, LOCK_UN); @fclose($slk);
-    return ['ok' => true, 'slot' => $slot, 'tasks_done' => $done, 'wall_s' => round(microtime(true) - $t0, 2), 'stats' => pp_v4_stats()];
+    return ['ok' => true, 'slot' => $slot, 'tasks_done' => $done, 'wall_s' => round(microtime(true) - $t0, 2), 'idle_s' => round($idle, 2), 'idle_family_s' => round((float)($GLOBALS['__ppv12_idle_family'] ?? 0), 2), 'side_done' => (int)($GLOBALS['__ppv12_side_done'] ?? 0), 'stats' => pp_v4_stats()];
 }
 
 /* Menjawab request sinkron dengan job economic_review sebagai satu-satunya pemilik perhitungan.

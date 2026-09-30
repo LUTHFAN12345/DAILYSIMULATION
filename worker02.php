@@ -123,7 +123,21 @@ function pp_v12_iso_core(array $in, float $dl, bool $owner = true): array {
     $k = pp_v12_iso_key($in); $lk = null; $hit = null;
     if ($k !== null) {
         $hit = pp_cs_get($k);
-        if ($hit === null) { $cl = pp_cs_claim($k, $dl); if (is_array($cl['hit'] ?? null)) $hit = $cl['hit']; else $lk = $cl['lock'] ?? null; }
+        /* V12 work stealing: kandidat ini sedang dihitung proses lain -> pemilik mengerjakan tugas samping lain yang masih
+         * terbuka (bukan menunggu), lalu memakai hasil kandidat ini begitu tersedia. */
+        if ($hit === null && $owner && (string)getenv('PP_V12_STEAL') !== '0') {
+            $job = pp_v12_side_job();
+            while (true) {
+                $h = @fopen(pp_cs_file($k, '.lock'), 'c');
+                if ($h && @flock($h, LOCK_EX | LOCK_NB)) { $hit = pp_cs_get($k); if ($hit !== null) pp_cs_release($h); else $lk = $h; break; }
+                if ($h) @fclose($h);
+                $hit = pp_cs_get($k); if ($hit !== null) break;
+                if (microtime(true) > $dl - 0.5) break;
+                if (!($job !== '' && pp_v12_side_run_one($job))) usleep(20000);
+                $hit = pp_cs_get($k); if ($hit !== null) break;
+            }
+        }
+        if ($hit === null && $lk === null) { $cl = pp_cs_claim($k, $dl); if (is_array($cl['hit'] ?? null)) $hit = $cl['hit']; else $lk = $cl['lock'] ?? null; }
     }
     if (is_array($hit) && is_array($hit['output'] ?? null)) {
         $o = $hit['output'];
@@ -175,18 +189,66 @@ function pp_v12_side_publish(array $inputs, float $dl): void {
     if ((string)getenv('PP_V12_SIDE') === '0' || !$inputs || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
     $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
     $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side.json';
-    $cur = pp_tl_read($lf); $list = is_array($cur) ? (array)($cur['t'] ?? []) : []; $have = [];
-    foreach ($list as $e) $have[(string)($e['k'] ?? '')] = true;
+    $list = []; $have = [];                                        // daftar diganti per pass (tugas pass lama dipensiunkan)
     foreach ($inputs as $in) { $k = pp_v12_iso_key($in); if ($k === null || isset($have[$k]) || pp_cs_get($k) !== null) continue;
         $f = 'v12_side_' . $k . '.json'; pp_tl_write($dir . DIRECTORY_SEPARATOR . $f, $in); $list[] = ['k' => $k, 'f' => $f, 'dl' => $dl]; $have[$k] = true; }
     pp_tl_write($lf, ['t' => $list, 'at' => microtime(true)]);
+    @unlink($dir . DIRECTORY_SEPARATOR . 'v12_side_pos.json');
+}
+/* Posisi pemilik pada daftar tugas samping (pembantu hanya mengambil tugas dalam jarak pandang ke depan). */
+function pp_v12_side_mark(array $in): void {
+    if ((string)getenv('PP_V12_SIDE') === '0') return; $job = pp_v12_side_job(); if ($job === '') return;
+    $k = pp_v12_iso_key($in); if ($k !== null) @file_put_contents(pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_side_pos.json', $k);
+}
+function pp_v12_side_clear(): void {
+    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir')) return;
+    $f = pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_side.json'; if (is_file($f)) pp_tl_write($f, ['t' => [], 'at' => microtime(true)]);
+}
+function pp_v12_side_drain(string $job): int {
+    static $busy = false; if ($busy || $job === '') return 0; $busy = true; $n = 0;
+    try { while ($n < 16 && (pp_v12_side_run_one($job) || pp_v12_land_run_one($job))) $n++; } finally { $busy = false; }
+    return $n;
+}
+/* Tugas samping pendaratan (satu berkas per tugas; klaim eksklusif lintas proses dengan berkas penanda). */
+function pp_v12_land_publish(array $orig, array $off, array $seed, int $maxEvals, float $dl): void {
+    if ((string)getenv('PP_V12_SIDE') === '0' || (string)getenv('PP_V12_LAND') !== '1' || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
+    if (!empty($GLOBALS['__ppv12_in_side'])) return;
+    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $k = substr(md5(json_encode([pp_tl_key($orig), $off, $seed, $maxEvals])), 0, 20);
+    $f = pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_land_' . $k . '.task';
+    if (is_file($f)) return;
+    pp_tl_write($f, ['orig' => $orig, 'off' => $off, 'seed' => $seed, 'max' => $maxEvals, 'dl' => $dl, 'at' => microtime(true), 'pid' => getmypid()]);
+}
+function pp_v12_land_run_one(string $job): bool {
+    if ((string)getenv('PP_V12_SIDE') === '0' || $job === '') return false;
+    $fs = glob(pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_land_*.task') ?: []; if (!$fs) return false;
+    sort($fs);
+    foreach ($fs as $f) {
+        $mk = substr($f, 0, -5) . '.claim'; if (is_file($mk)) continue;
+        $t = pp_tl_read($f); if (!is_array($t) || (int)($t['pid'] ?? 0) === getmypid() || microtime(true) > (float)($t['dl'] ?? 0) - 2.0) continue;   // tugas terbitan sendiri tidak diambil
+        $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
+        $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+        $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true;
+        $GLOBALS['__ppv12_in_side'] = true;
+        try { pp_tl_land_commitment_one((array)$t['orig'], (array)$t['off'], (array)$t['seed'], (float)$t['dl'], (int)$t['max']); }
+        catch (PpJobAborted $x) { throw $x; } catch (Throwable $x) {}
+        finally { unset($GLOBALS['__ppv12_in_side']); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
+            if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+        $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
+        return true;
+    }
+    return false;
 }
 /* Satu tugas samping (dipanggil pekerja pembantu). true bila satu core run dikerjakan. */
 function pp_v12_side_run_one(string $job): bool {
     if ((string)getenv('PP_V12_SIDE') === '0' || $job === '') return false;
     $dir = pp_job_dir($job); $cur = @is_file($dir . DIRECTORY_SEPARATOR . 'v12_side.json') ? pp_tl_read($dir . DIRECTORY_SEPARATOR . 'v12_side.json') : null;
-    if (!is_array($cur)) return false;
-    foreach ((array)($cur['t'] ?? []) as $e) {
+    if (!is_array($cur) || empty($cur['t'])) return false;
+    $posK = (string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'v12_side_pos.json'); $pos = -1;
+    foreach ((array)$cur['t'] as $i => $e) if ((string)($e['k'] ?? '') === $posK) { $pos = $i; break; }
+    $look = max(1, (int)(getenv('PP_V12_SIDE_LOOK') ?: 3));
+    foreach ((array)$cur['t'] as $i => $e) {
+        if ($i > $pos + $look) break;
         $k = (string)($e['k'] ?? ''); $dl = (float)($e['dl'] ?? 0); if ($k === '' || microtime(true) > $dl - 2.0 || is_file(pp_cs_file($k))) continue;
         $h = @fopen(pp_cs_file($k, '.lock'), 'c'); if (!$h) continue;
         if (!@flock($h, LOCK_EX | LOCK_NB)) { @fclose($h); continue; }
@@ -1158,6 +1220,8 @@ function pp_tl_supplier_target(array $o): ?float {
 }
 function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, array $seedStops = [], ?float $hint = null): ?array {
     if (microtime(true) >= $deadlineTs - 0.2) return null;
+    /* V12: pekerja pembantu mendahulukan tugas samping pemilik (jalur kritis) sebelum kandidat keluarga berikutnya */
+    if (!empty($GLOBALS['ppTlHook']['helper']) && function_exists('pp_v12_side_drain')) pp_v12_side_drain((string)($GLOBALS['ppTlHook']['job'] ?? ''));
     $in = json_decode(json_encode($orig), true);
     $m = &$in['data3']['modeling'];
     $m['unit_stop_time'] = (array)($m['unit_stop_time'] ?? []);
@@ -1207,6 +1271,11 @@ function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, arra
  * Dipakai tahap VALID PROVISIONAL (commitment hasil final terakhir). Mengembalikan penilaian
  * terakhir (valid atau tidak) beserta jumlah evaluasi. */
 function pp_tl_land_commitment(array $orig, array $off, array $seedStops, float $deadlineTs, int $maxEvals = 5, bool $dual = false): array {
+    /* V12: pendaratan V4 (mode trim lama) node yang sama diterbitkan lebih dulu sebagai tugas samping, sehingga pembantu
+     * yang bebas mendaratkannya BERSAMAAN dengan pendaratan V5 di bawah; bila dual diperlukan, evaluasinya cache hit
+     * (kunci input identik, urutan bisection deterministik). Definisi node dan pemenangnya tidak berubah. */
+    if ($dual && (string)getenv('PP_V5_TRIM_DUAL') !== '0' && (string)getenv('PP_V5_TRIM_FIX') !== '0' && function_exists('pp_v12_land_publish')) {
+        $origQ = $orig; $origQ['data3']['modeling']['__v5_trim_legacy'] = true; pp_v12_land_publish($origQ, $off, $seedStops, $maxEvals, $deadlineTs); }
     $R = pp_tl_land_commitment_one($orig, $off, $seedStops, $deadlineTs, $maxEvals);
     /* V5 DOMINANSI TRIM: node keluarga commitment didefinisikan sebagai pendaratan TERMURAH dari dua mode trim
      * sisa window supplier (trim pada state penghasil sisa = V5, trim pada input kontrak = V4). Bila pendaratan
@@ -1393,7 +1462,7 @@ function pp_tl_family_search(array $orig, float $deadlineTs, $reg, array $opt = 
             /* V11: selagi menunggu node yang dihitung proses lain, proses ini memanaskan cache kandidat-state (kunci identik)
              * untuk anak node yang paling mungkin (prefetch spekulatif). Registri, himpunan node, urutan, dan pemenang tidak
              * berubah — hanya pendaratan node berikutnya yang menjadi cache hit. */
-            if (!$moved && !(function_exists('pp_v11_family_spec') && pp_v11_family_spec($orig, $pending, $reg, $el, $deadlineTs, $refRows))) usleep(200000);
+            if (!$moved && !(function_exists('pp_v11_family_spec') && pp_v11_family_spec($orig, $pending, $reg, $el, $deadlineTs, $refRows))) { usleep(200000); $GLOBALS['__ppv12_idle_family'] = (float)($GLOBALS['__ppv12_idle_family'] ?? 0) + 0.2; }
             continue;
         }
         [$off, $seed] = array_shift($queue); $nk = pp_tl_node_key($off, $seed);
@@ -2970,6 +3039,7 @@ function pp_run_simulation_pipeline(array $input): array {
         $inCur = $step['input']; $out = $step['output']; $stopped[] = $step['unit'];
     }
     if ($stopped) $out['info']['Decommitted Units'] = array_map('strtoupper', $stopped);
+    if (function_exists('pp_v12_side_clear')) pp_v12_side_clear();
     pp_phase_mark('decommit_screening');
     /* GAS CORRECTION BUDGET RESERVATION.
      * The corrector below is bounded and time-guarded, but pp_run_simulation_once() also has a core-run
@@ -3267,6 +3337,7 @@ function pp_export_minimization_two_phase(array $inCur, array $out): array {
         if ($step === null) break;                             // konvergen: tidak ada kandidat lagi
         $inB = $step['input']; $outB = $step['output']; $droppedB[] = strtoupper((string)$step['unit']); $iterB++;
     }
+    if (function_exists('pp_v12_side_clear')) pp_v12_side_clear();
     pp_phase_mark('export_min_phase_b_decommit');
     /* GERBANG WAKTU COMPARATOR GLOBAL.
      * pp_global_commitment_review() menjalankan SATU PIPELINE PENUH bersarang per kandidat.
@@ -3614,12 +3685,17 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
          * di bawah); pemilik mengevaluasi berurutan seperti biasa dan memakai hasil yang sudah selesai. */
         $isoDl = (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 900.0));
         if (!$auditOnly && function_exists('pp_v12_iso_on') && pp_v12_iso_on() && function_exists('pp_v12_side_publish')) {
-            $pre = []; $nU = 0;
-            foreach ($order as $uuP) { if (!isset($lowCands[$uuP]) || $nU >= 3) continue; $nU++;
-                $wins = $baseOK ? [['00:00', '24:00']] : [['00:00', '24:00'], ['04:00', '24:00']];
-                foreach ($wins as $swP) { $inP = json_decode(json_encode($input), true);
-                    $inP['data3']['modeling']['unit_stop'] = array_values(array_unique(array_merge((array)($inP['data3']['modeling']['unit_stop'] ?? []), [$uuP])));
-                    $inP['data3']['modeling']['unit_stop_time'][$uuP] = $swP; $pre[] = $inP; } }
+            $pre = []; $nU = 0; $uList = [];
+            $winsP = $baseOK ? [['00:00', '24:00']] : [['00:00', '24:00'], ['04:00', '24:00'], ['06:00', '24:00'], ['08:00', '24:00'], ['10:00', '24:00'], ['12:00', '24:00']];
+            $addStop = function (array $in, string $u, array $w): array { $in['data3']['modeling']['unit_stop'] = array_values(array_unique(array_merge((array)($in['data3']['modeling']['unit_stop'] ?? []), [$u])));
+                $in['data3']['modeling']['unit_stop_time'][$u] = $w; return $in; };
+            foreach ($order as $uuP) { if (!isset($lowCands[$uuP]) || $nU >= 3) continue; $nU++; $uList[] = $uuP; }
+            /* urutan terbitan = urutan kemungkinan dipakai pemilik: seluruh window kandidat pertama, full-day kandidat lain,
+             * iterasi decommit berikutnya (spekulatif: X full-day diterima -> Y full-day di atasnya), lalu window trim sisanya */
+            foreach ($uList as $i => $uuP) foreach ($winsP as $j => $swP) if ($i === 0 || $j === 0) $pre[] = $addStop(json_decode(json_encode($input), true), $uuP, $swP);
+            foreach ($uList as $xP) foreach ($uList as $yP) if ($xP !== $yP)
+                $pre[] = $addStop($addStop(json_decode(json_encode($input), true), $xP, ['00:00', '24:00']), $yP, ['00:00', '24:00']);
+            foreach ($uList as $i => $uuP) foreach ($winsP as $j => $swP) if ($i > 0 && $j > 0) $pre[] = $addStop(json_decode(json_encode($input), true), $uuP, $swP);
             try { pp_v12_side_publish($pre, $isoDl); } catch (Throwable $e) {}
         }
         foreach ($order as $uu) {
@@ -3665,7 +3741,12 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                 if ((int)($GLOBALS['__pp_core_runs'] ?? 0) >= (int)($GLOBALS['__pp_core_budget'] ?? 100)) {
                     $GLOBALS['__pp_core_budget_hit'] = true; break;
                 }
+                $__tD = microtime(true); $__h0 = (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0);
+                if (!$auditOnly && function_exists('pp_v12_side_mark')) pp_v12_side_mark($in2);
                 $o2 = (function_exists('pp_v12_iso_on') && pp_v12_iso_on()) ? pp_v12_iso_core($in2, $isoDl) : pp_run_simulation_core($in2);
+                if (($__dl = getenv('PP_V12_DECLOG')) !== false && $__dl !== '') @file_put_contents($__dl, json_encode(['pid' => getmypid(), 't' => round(microtime(true), 3), 'unit' => $uu, 'win' => $sw, 'wall' => round(microtime(true) - $__tD, 3),
+                    'hit' => (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0) > $__h0, 'baseOK' => $baseOK, 'cands' => array_keys($lowCands), 'nest' => (int)($GLOBALS['__pp_sim_nest'] ?? 0), 'cost' => [$costA, (float)($o2['info']['Total Cost (USD)'] ?? INF)],
+                    'sup' => $o2['info']['PGN Supplier Repair Review']['attempts'] ?? null]) . "\n", FILE_APPEND);
                 $V2 = pp_validate_hard_constraints($in2, $o2);
                 $okV = (strtoupper((string)($V2['status'] ?? '')) === 'PASS');
                 $q2 = (float)($o2['info']['Total Gas Quota (BBTUD)'] ?? 0);
