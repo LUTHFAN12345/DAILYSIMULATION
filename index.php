@@ -5779,11 +5779,20 @@ async function runTimeLimited(payload, T){
   /* V3: tidak ada pencarian Target Selesai paralel; kandidat valid berasal dari job pemilik. */
   const bestUrl='run.php?mode=tl_best&job='+encodeURIComponent(job.job_id)+'&rid='+encodeURIComponent(reqId);
   let b=null;
+  /* V12: output kandidat valid terbaik diambil lebih awal setiap kali Cost Production terbaik berubah, sehingga
+   * pembacaan akhir pada batas waktu yang lambat (server sibuk, output besar) tidak menghilangkan hasil valid. */
+  let bOut=null, bOutCp=null, bLast=null;
   while(true){
     await new Promise(r=>setTimeout(r,350));
     if(stale()){ stopQuick(); return; }
     try{ b=await tlJson(bestUrl,null,Math.max(200,Math.min(1200,(T-1.2-el())*1000)),1); }catch(e){ b=null; }
     if(stale()){ stopQuick(); return; }
+    if(b&&b.ok) bLast=b;
+    if(b&&b.ok&&b.best&&b.best.cost_production!=null&&b.best.cost_production!==bOutCp&&!b.exact_final&&T-1.2-el()>0.4){
+      let r=null; try{ r=await tlJson(bestUrl+'&with_output=1',null,Math.max(300,Math.min(2500,(T-1.2-el())*1000)),1); }catch(e){ r=null; }
+      if(stale()){ stopQuick(); return; }
+      if(r&&r.ok&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48){ bOut=r; bOutCp=r.best?r.best.cost_production:b.best.cost_production; }
+    }
     if(b&&b.ok){
       if(rm) rm.innerHTML='<span style="color:#1763d6">Target &lt; '+T+' detik — '+tlFmtS(el())+' s · kandidat diperiksa '
         +(b.evaluated_total||0)+' · valid '+(b.valid_total||0)
@@ -5819,11 +5828,15 @@ async function runTimeLimited(payload, T){
   stopQuick();
   /* Pembacaan akhir dibatasi sisa waktu sampai batas: tiap percobaan memakai koneksi baru. */
   b=null;
-  while(el()<T-0.25){
-    const toMs=Math.max(150,Math.min(700,(T-0.25-el())*1000));
+  /* V12: dengan output cadangan, pembacaan akhir berhenti lebih awal agar render tetap sebelum batas. */
+  const tEnd=bOut?T-0.9:T-0.25;
+  while(el()<tEnd){
+    const toMs=Math.max(150,(tEnd-el())*1000);
     let r=null; try{ r=await tlJson(bestUrl+'&with_output=1',null,toMs,1); }catch(e){ r=null; }
     if(r&&r.ok){ b=r; break; }
   }
+  /* V12: pembacaan akhir gagal/tanpa output -> kandidat valid terbaik yang sudah diambil (counter dari poll terakhir). */
+  if(!(b&&b.ok&&b.output)&&bOut){ b=Object.assign({},bOut,{evaluated_total:(bLast||bOut).evaluated_total,valid_total:(bLast||bOut).valid_total,counters:(bLast||bOut).counters}); }
   if(stale()){ stopQuick(); return; }
   stopQuick();
   const elapsed=el();

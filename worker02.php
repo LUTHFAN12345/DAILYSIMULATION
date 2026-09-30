@@ -1315,7 +1315,7 @@ function pp_tl_supplier_target(array $o): ?float {
 function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, array $seedStops = [], ?float $hint = null): ?array {
     if (microtime(true) >= $deadlineTs - 0.2) return null;
     /* V12: pekerja pembantu mendahulukan tugas samping pemilik (jalur kritis) sebelum kandidat keluarga berikutnya */
-    if (!empty($GLOBALS['ppTlHook']['helper']) && function_exists('pp_v12_side_drain')) pp_v12_side_drain((string)($GLOBALS['ppTlHook']['job'] ?? ''));
+    if (!empty($GLOBALS['ppTlHook']['helper']) && empty($GLOBALS['ppTlHook']['noside']) && function_exists('pp_v12_side_drain')) pp_v12_side_drain((string)($GLOBALS['ppTlHook']['job'] ?? ''));
     $in = json_decode(json_encode($orig), true);
     $m = &$in['data3']['modeling'];
     $m['unit_stop_time'] = (array)($m['unit_stop_time'] ?? []);

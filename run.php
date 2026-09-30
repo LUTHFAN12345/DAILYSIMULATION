@@ -1738,6 +1738,8 @@ function pp_v3_handoff_respond(array $input, $rid, $rev, array $autosave, array 
         pp_fail(500, 'Job perhitungan tidak dapat dibuat: ' . (string)($stF['error'] ?? '?'),
             ['code' => 'JOB_START_FAILED', 'request_id' => $rid, 'state_revision' => $rev, 'autosave' => $autosave]);
     $jF = (array)$stF['job'];
+    /* V12: job Target Selesai — satu pembantu tetap pada spekulasi keluarga (kandidat valid pertama secepat V11). */
+    if (!empty($_GET['tl'])) @touch(pp_job_dir((string)$jF['job_id']) . DIRECTORY_SEPARATOR . 'v12_tl.flag');
     $asyncF = ['required' => true, 'kind' => 'economic_review', 'reason' => 'Satu pemilik perhitungan per state (V3).',
         'ok' => true, 'job_id' => $jF['job_id'], 'exec_token' => $jF['exec_token'] ?? null,
         'status' => $jF['status'] ?? null, 'reused' => (bool)($stF['reused'] ?? false),
@@ -2691,6 +2693,9 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
     if (!$slk || !@flock($slk, LOCK_EX | LOCK_NB)) return ['ok' => true, 'already' => true];
     $t0 = microtime(true); $rev = 0; $done = 0; $idle = 0.0; $lastBeat = 0.0;
     $GLOBALS['ppTlHook'] = ['job' => $jobId, 'key' => '', 'orig' => null, 'n' => 0, 'v' => 0, 'flush' => 0.0, 'cchk' => 0.0, 'helper' => true, 'slot' => $slot];
+    /* V12: pada job Target Selesai pembantu slot 1 tidak mengambil tugas samping (hanya waktu; hasil identik). */
+    $side = !($slot === 1 && is_file(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v12_tl.flag'));
+    $GLOBALS['ppTlHook']['noside'] = !$side;
     try {
         while (microtime(true) - $t0 < 1800.0) {
             if (microtime(true) - $lastBeat > 0.5) { @file_put_contents($beat, (string)microtime(true)); $lastBeat = microtime(true); }
@@ -2699,7 +2704,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
             $w = pp_tl_read(pp_v4_work_file($jobId));
             /* Job yang tidak pernah mulai (QUEUED > 60 s) tidak ditunggu tanpa akhir. */
             if (!is_array($w) && (string)($j['status'] ?? '') === 'QUEUED' && microtime(true) - $t0 > 60.0) break;
-            if (function_exists('pp_v12_side_drain') && pp_v12_side_drain($jobId) > 0) continue;   // V12: tugas samping pemilik lebih dulu
+            if ($side && function_exists('pp_v12_side_drain') && pp_v12_side_drain($jobId) > 0) continue;   // V12: tugas samping pemilik lebih dulu
             if (!is_array($w) || (int)($w['rev'] ?? 0) === $rev) { usleep(60000); $idle += 0.06; continue; }
             $rev = (int)$w['rev'];
             $orig = pp_tl_read(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . basename((string)($w['orig'] ?? '')));
@@ -2713,7 +2718,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
                 $reg = pp_tl_registry_open($orig);
                 pp_tl_family_search($orig, $dl, $reg, ['seeds' => (array)($w['seeds'] ?? []), 'max_nodes' => (int)($w['max_nodes'] ?? 64),
                     'offer' => function (array $a) use ($poolKey, $jobId) { try { pp_tl_pool_offer($poolKey, $a, 'v4_helper_family', $jobId); } catch (Throwable $e) {} },
-                    'stop' => function () use ($jobId, $rev) { static $c = 0.0; if (function_exists('pp_v12_side_drain')) pp_v12_side_drain($jobId);
+                    'stop' => function () use ($jobId, $rev, $side) { static $c = 0.0; if ($side && function_exists('pp_v12_side_drain')) pp_v12_side_drain($jobId);
                         if (microtime(true) - $c < 0.5) return false; $c = microtime(true);
                         $j = pp_job_read($jobId); $w2 = pp_tl_read(pp_v4_work_file($jobId));
                         return !is_array($j) || in_array((string)($j['status'] ?? ''), ['DONE', 'FAILED', 'CANCELLED'], true) || (int)($w2['rev'] ?? 0) !== $rev; }]);
@@ -2733,6 +2738,8 @@ function pp_sync_handoff_respond(array $input, $rid, $rev, string $reason, strin
     $stF = pp_job_start($input, 'economic_review', is_string($rid) ? $rid : null, false);
     if (empty($stF['ok']) || empty($stF['job']['job_id'])) return;
     $jF = (array)$stF['job'];
+    /* V12: job Target Selesai — satu pembantu tetap pada spekulasi keluarga (kandidat valid pertama secepat V11). */
+    if ($reason === 'TIME_LIMITED_TARGET') @touch(pp_job_dir((string)$jF['job_id']) . DIRECTORY_SEPARATOR . 'v12_tl.flag');
     $asyncF = ['required' => true, 'kind' => 'economic_review', 'reason' => $note,
         'ok' => true, 'job_id' => $jF['job_id'], 'exec_token' => $jF['exec_token'] ?? null,
         'status' => $jF['status'] ?? null, 'reused' => (bool)($stF['reused'] ?? false),
