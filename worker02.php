@@ -117,6 +117,21 @@ function pp_v12_exact_track(array $input, array $out): void {
  * Pekerja pembantu dapat menghitungnya lebih dulu (pp_v12_side_*); pemilik lalu memakai hasil identik bit-per-bit.
  * Pada cache hit, efek samping yang sama direplay: pengamat Target Selesai, pelacak exact, dan penghitung core run.
  * Hasil yang terpotong anggaran/waktu tidak di-cache. PP_V12_ISO_CORE=0 mengembalikan core run dalam konteks pipeline. */
+/* V12: fase pemilik untuk penjadwalan pembantu. Selama core run baseline pipeline pemilik (kandidat decommit segera menyusul),
+ * pembantu menahan node keluarga BARU agar bebas mengerjakan kandidat decommit begitu diterbitkan. Hanya urutan kerja. */
+function pp_v12_phase(string $ph): bool {
+    if ((string)getenv('PP_V12_FAMHOLD') !== '1') return false; $h = $GLOBALS['ppTlHook'] ?? null;
+    if (!is_array($h) || !empty($h['helper']) || empty($h['job']) || !function_exists('pp_job_dir')) return false;
+    @file_put_contents(pp_job_dir((string)$h['job']) . DIRECTORY_SEPARATOR . 'v12_phase', $ph . ' ' . microtime(true)); return true;
+}
+function pp_v12_family_hold(): bool {
+    $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h) || empty($h['helper']) || empty($h['job'])) return false;
+    $x = (string)@file_get_contents(pp_job_dir((string)$h['job']) . DIRECTORY_SEPARATOR . 'v12_phase'); if (strpos($x, 'baseline ') !== 0) return false;
+    return microtime(true) - (float)substr($x, 9) < 4.0;
+}
+/* Penanda tahap (progres job pemilik) untuk profil jalur kritis; tidak memengaruhi hasil. */
+function pp_v12_step(string $step): void { $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h) || !empty($h['helper']) || !function_exists('pp_job_progress') || empty($h['job'])) return;
+    try { pp_job_progress((string)$h['job'], $step, 60.0); } catch (Throwable $e) {} }
 function pp_v12_iso_on(): bool { return (string)getenv('PP_V12_ISO_CORE') !== '0' && function_exists('pp_cs_key'); }
 function pp_v12_iso_key(array $in): ?string { $k = pp_cs_key($in); return $k === null ? null : 'iso' . substr($k, 0, 37); }
 function pp_v12_iso_core(array $in, float $dl, bool $owner = true): array {
@@ -1523,6 +1538,7 @@ function pp_tl_family_search(array $orig, float $deadlineTs, $reg, array $opt = 
             if (!$moved && !(function_exists('pp_v11_family_spec') && pp_v11_family_spec($orig, $pending, $reg, $el, $deadlineTs, $refRows))) { usleep(200000); $GLOBALS['__ppv12_idle_family'] = (float)($GLOBALS['__ppv12_idle_family'] ?? 0) + 0.2; }
             continue;
         }
+        if (function_exists('pp_v12_family_hold') && pp_v12_family_hold()) { usleep(40000); continue; }   // V12: pemilik sedang core run baseline
         [$off, $seed] = array_shift($queue); $nk = pp_tl_node_key($off, $seed);
         $sum = $reg->get($nk);
         if ($sum === null) {
@@ -2144,7 +2160,9 @@ function pp_run_simulation(array $input): array {
             if (!in_array($msg, $out['info']['Warnings'], true)) $out['info']['Warnings'][] = $msg;
             $out['info']['Malformed Input Fields'] = $__ppFixed;
         }
+        if ($__ppOuter && function_exists('pp_v12_step')) pp_v12_step('V12_PIPELINE_SELESAI');
         if ($__ppOuter && function_exists('pp_exact_family_stage')) $out = pp_exact_family_stage($input, $out);   // ruang kandidat exact lengkap
+        if ($__ppOuter && function_exists('pp_v12_step')) pp_v12_step('V12_KELUARGA_SELESAI');
         if ($__ppOuter && function_exists('pp_v6_priority_polish') && empty($input['data3']['modeling']['change_over']['enabled']) && empty($input['data3']['modeling']['__tl_no_auto_start'])
             && ($GLOBALS['__pp_econ_review_skipped'] ?? null) === null && empty($GLOBALS['__pp_budget_aborts'])) {
             $oP = $input; foreach (array_keys((array)$oP['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($oP['data3']['modeling'][$mk]);
@@ -2154,6 +2172,7 @@ function pp_run_simulation(array $input): array {
         /* V8: review Unit Priority / headroom berbasis kandidat pembanding (row-local, validasi 48 row). */
         if ($__ppOuter && function_exists('pp_v8_priority_review') && empty($input['data3']['modeling']['__tl_no_auto_start'])
             && ($GLOBALS['__pp_econ_review_skipped'] ?? null) === null && empty($GLOBALS['__pp_budget_aborts'])) $out = pp_v8_priority_review($input, $out);
+        if ($__ppOuter && function_exists('pp_v12_step')) pp_v12_step('V12_REVIEW_SELESAI');
         if ($__ppOuter) $out['info']['Run Status'] = pp_run_status_block($out);
         return $out;
     } finally {
@@ -2893,7 +2912,9 @@ function pp_run_simulation_pipeline(array $input): array {
         $GLOBALS['__pp_best_feasible_output']=null;
     }
     $__tBase0 = microtime(true);
+    $__v12ph = ((int)$GLOBALS['__pp_sim_depth'] === 1 && function_exists('pp_v12_phase')) ? pp_v12_phase('baseline') : false;
     $inCur = $input; $out = pp_run_simulation_core($inCur); $stopped = [];
+    if ($__v12ph) pp_v12_phase('post');
     /* Biaya SATU core run pada konfigurasi ini, terukur. Dipakai sebagai perkiraan awal biaya satu
      * iterasi decommit (yang menjalankan beberapa pipeline bersarang) sebelum ada pengukuran nyata. */
     $__baseCoreCost = max(0.05, microtime(true) - $__tBase0);
@@ -4214,7 +4235,10 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         $candSig = md5(json_encode($cand['data'] ?? []));
         $supRun = (isset($supSigPrev) && $candSig === $supSigPrev && abs($candPu - (float)$supPuPrev) < 1e-12) ? ($supRun ?? 0) + 1 : 0;
         /* Hanya lintasan datar PANJANG (8 dispatch identik berturut-turut) yang dipercepat. */
-        $supFlat = $supRun >= ($hA > 0 ? 2 : 7) && empty($supFlatDone) && ($underTarget === null || $overTarget === null)
+        /* V12: lintasan datar dikenali sesudah 2 dispatch identik juga tanpa hint (mekanisme lookahead yang sama: hanya titik yang
+         * terbukti datar dipakai ulang; lintasan sesudah titik perubahan dievaluasi berurutan). PP_V12_SUPFLAT_MIN mengatur ambang. */
+        $supFlatMin = ($hA > 0) ? 2 : (int)((getenv('PP_V12_SUPFLAT_MIN') !== false && getenv('PP_V12_SUPFLAT_MIN') !== '') ? getenv('PP_V12_SUPFLAT_MIN') : 4);
+        $supFlat = $supRun >= $supFlatMin && empty($supFlatDone) && ($underTarget === null || $overTarget === null)
             && (string)getenv('PP_SUP_FLATJUMP') !== '0';
         if ($supFlat) $supFlatDone = true;
         /* GUARD PRIORITAS (C3.7/C4.7 — Constraint First): kandidat redispatch WAJIB DITOLAK bila
