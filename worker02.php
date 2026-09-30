@@ -229,7 +229,7 @@ function pp_v12_side_drain(string $job): int {
 /* Sisipan tugas samping dari dalam evaluasi pembantu yang sedang berjalan (maks. tiap 50 ms): seluruh global __pp* (termasuk __ppx_*)
  * disimpan dan dipulihkan persis, kunci baru dihapus. PP_V12_NESTED=0 mematikan. */
 function pp_v12_side_drain_nested(): void {
-    static $last = 0.0; if ((string)getenv('PP_V12_NESTED') === '0') return;
+    static $last = 0.0; if ((string)getenv('PP_V12_NESTED') !== '1') return;
     $now = microtime(true); if ($now - $last < 0.05) return; $last = $now;
     $job = pp_v12_side_job(); if ($job === '') return;
     $dir = pp_job_dir($job); $any = false;
@@ -4261,7 +4261,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         /* Hanya lintasan datar PANJANG (8 dispatch identik berturut-turut) yang dipercepat. */
         /* V12: lintasan datar dikenali sesudah 2 dispatch identik juga tanpa hint (mekanisme lookahead yang sama: hanya titik yang
          * terbukti datar dipakai ulang; lintasan sesudah titik perubahan dievaluasi berurutan). PP_V12_SUPFLAT_MIN mengatur ambang. */
-        $supFlatMin = ($hA > 0) ? 2 : (int)((getenv('PP_V12_SUPFLAT_MIN') !== false && getenv('PP_V12_SUPFLAT_MIN') !== '') ? getenv('PP_V12_SUPFLAT_MIN') : 4);
+        $supFlatMin = ($hA > 0) ? 2 : (int)((getenv('PP_V12_SUPFLAT_MIN') !== false && getenv('PP_V12_SUPFLAT_MIN') !== '') ? getenv('PP_V12_SUPFLAT_MIN') : 7);
         $supFlat = $supRun >= $supFlatMin && empty($supFlatDone) && ($underTarget === null || $overTarget === null)
             && (string)getenv('PP_SUP_FLATJUMP') !== '0';
         if ($supFlat) $supFlatDone = true;
