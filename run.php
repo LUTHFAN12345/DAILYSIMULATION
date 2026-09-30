@@ -2232,7 +2232,7 @@ function pp_v3_incremental(string $jobId, array $input): array {
             $tHelp = array_merge(array_slice($tEv, 1, 1), $tL, array_slice($tEv, 0, 1), array_slice($tEv, 2));
             $landOf = function (array $c) { return ['type' => 'land', 'off' => array_values((array)($c['off'] ?? [])), 'seed' => array_merge(array_values((array)($c['stops'] ?? [])), array_values((array)($c['seed'] ?? []))), 'max' => 5]; };
             $wave2 = function () use ($jobId, $orig, $tEv, $tL, $wc, $a0, $h0, $dl, $fzDev, $exitDev, $fz, $W, $v, $diff, $reg, $saved, $landOf) {
-                foreach ($tEv as $t) if (!pp_v4_task_done($jobId, $t)) return null;
+                foreach ($tEv as $t) if (!pp_v4_task_done($jobId, $t, $orig)) return null;
                 $e2 = 0; $md2 = INF;
                 $bw2 = pp_v3_scan_winner($orig, $wc, $a0, $h0, $dl, $e2, function (array $a) {}, $fzDev, $md2, $exitDev);
                 pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
@@ -2246,7 +2246,7 @@ function pp_v3_incremental(string $jobId, array $input): array {
                     if ($reg !== null) { $s0 = $reg->get($nk); if (is_array($s0) && (empty($s0['valid']) || is_array($reg->output($nk)))) continue; }
                     $add[] = $landOf($c);
                 }
-                if ($add) { $rest = []; foreach (array_merge($tL, $add) as $t) if (!pp_v4_task_done($jobId, $t)) $rest[] = $t;
+                if ($add) { $rest = []; foreach (array_merge($tL, $add) as $t) if (!pp_v4_task_done($jobId, $t, $orig)) $rest[] = $t;
                     pp_v4_work_publish($jobId, $orig, ['kind' => 'tasks', 'tasks' => $rest, 'dl' => $dl]); }
                 return $add;
             };
@@ -2643,11 +2643,15 @@ function pp_v4_task_exec(array $orig, array $t, float $dl, ?string $jobId = null
 /* Mengerjakan daftar tugas bersama-sama (pemilik atau pembantu). Tugas yang sedang dikerjakan
  * proses lain dilewati dulu, lalu ditunggu sampai selesai (atau diambil alih bila pemegangnya
  * berhenti). Mengembalikan jumlah tugas yang dikerjakan proses ini. */
-function pp_v4_task_done(string $jobId, array $t): bool { return is_file(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v4t_' . pp_v4_task_key($t) . '.done'); }
+function pp_v4_task_done(string $jobId, array $t, ?array $orig = null): bool { $tag = ($orig !== null && (string)getenv('PP_V12_TASKTAG') !== '0') ? substr(md5(json_encode(pp_tl_key($orig))), 0, 8) : '';
+    return is_file(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v4t_' . $tag . pp_v4_task_key($t) . '.done'); }
 /* $more (opsional, pemilik): dipanggil di antara tugas; mengembalikan null bila belum siap, atau
  * daftar tugas tambahan (gelombang berikutnya) yang digabung ke antrean yang sedang berjalan. */
 function pp_v4_cooperate(string $jobId, array $orig, array $tasks, float $dl, bool $wait = true, ?callable $more = null): int {
     $dir = pp_job_dir($jobId); $mine = 0;
+    /* V12: penanda tugas berkunci state (orig) + tugas. Tanpa identitas state, tugas yang tampak sama untuk state lain dalam job
+     * yang sama (mis. grid pustaka jangkar vs Tier 2b state baru) dianggap selesai, sehingga pembantu melewatinya. */
+    $otag = (string)getenv('PP_V12_TASKTAG') === '0' ? '' : substr(md5(json_encode(pp_tl_key($orig))), 0, 8);
     $pending = $tasks;
     $pull = function () use (&$more, &$pending) {
         if ($more === null) return;
@@ -2661,7 +2665,7 @@ function pp_v4_cooperate(string $jobId, array $orig, array $tasks, float $dl, bo
         $left = [];
         foreach ($pending as $t) {
             if (microtime(true) > $dl - 1.0) return $mine;
-            $tk = pp_v4_task_key($t);
+            $tk = $otag . pp_v4_task_key($t);
             $done = $dir . DIRECTORY_SEPARATOR . 'v4t_' . $tk . '.done';
             if (is_file($done)) continue;
             $h = @fopen($dir . DIRECTORY_SEPARATOR . 'v4t_' . $tk . '.lock', 'c');
@@ -2774,12 +2778,14 @@ function pp_v9_ensure_anchor(string $id, array $inputAsli): void {
                 pp_v4_helpers_wait($id, 1.5); } catch (Throwable $e) {} }
         $sim = pp_econ_job_sim_input($anc, (float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0));
         $outA = pp_sim_memo_run($sim);
+        pp_job_progress($id, 'V9_JANGKAR_EXACT_SELESAI', 8.0);
         if (count((array)($outA['data'] ?? [])) !== 48) return;
         /* Tahap yang SAMA dengan job exact untuk state D(S): pool guard (kanonik: tidak berlaku), review generik V9,
          * gerbang rilis, simpan FINAL. Dengan begitu FINAL jangkar identik dengan FINAL bila D(S) dijalankan langsung. */
         if (($outA['info']['Run Status']['economic_review_completed'] ?? null) === true) {
             $outA = pp_v3_pool_guard($anc, $outA);
             if (function_exists('pp_v8_priority_review')) { $GLOBALS['__pp_v8_job'] = $id; $outA = pp_v8_priority_review($anc, $outA); unset($GLOBALS['__pp_v8_job']); }
+            pp_job_progress($id, 'V9_JANGKAR_REVIEW_SELESAI', 9.0);
         }
         $revA = pp_attach_or_reject_acceptance($anc, $outA);
         pp_final_save($anc, $outA, null);
@@ -5102,13 +5108,38 @@ function pp_v10_fz(array $orig, array $bd, ?float $pipeT, float $dl, ?array $geF
     $m['__tl_no_auto_start'] = true; $m['time_budget_seconds'] = 60.0; $m['time_budget_max_seconds'] = 60.0;
     $origPipe = (float)($m['gas_quota']['pgn_pipe'] ?? 0); $useT = $pipeT !== null && $pipeT > 0 && $origPipe > 0; if ($useT) $m['gas_quota']['pgn_pipe'] = $pipeT;
     unset($m);
+    /* V12: dispatch tersusun dievaluasi di konteks global bersih -> fungsi (input tersusun, orig) saja; dibagi lintas proses
+     * (kunci input lengkap + orig), efek samping penghitung kandidat direplay pada cache hit. */
+    $vk = null; $vlk = null;
+    if (function_exists('pp_v12_iso_on') && pp_v12_iso_on()) { $ck = pp_cs_key($in); if ($ck !== null) $vk = 'vz' . substr(md5($ck . '|' . json_encode(pp_tl_key($orig)) . '|' . ($useT ? '1' : '0')), 0, 38); }
+    if ($vk !== null) {
+        $job = function_exists('pp_v12_side_job') ? pp_v12_side_job() : '';
+        while (true) {
+            $hit = pp_v12_vz_get($vk); if ($hit !== null) return $hit;
+            $h = @fopen(pp_cs_file($vk, '.lock'), 'c');
+            if ($h && @flock($h, LOCK_EX | LOCK_NB)) { $hit = pp_v12_vz_get($vk); if ($hit !== null) { pp_cs_release($h); return $hit; } $vlk = $h; break; }
+            if ($h) @fclose($h);
+            if (microtime(true) > $dl - 0.5) break;
+            if (!($job !== '' && empty($GLOBALS['__ppv12_in_side']) && function_exists('pp_v12_side_run_one') && pp_v12_side_run_one($job))) usleep(15000);
+        }
+    }
+    try {
     pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $GLOBALS['__pp_budget_deadline'] = $dl;
     try { $o = pp_run_simulation_once($in); } catch (Throwable $e) { pp_tl_clean_globals(); return null; }
     if ($useT) { $dq = $origPipe - (float)($o['info']['PGN Pipe Quota (BBTUD)'] ?? $origPipe);
         foreach (['PGN Pipe Quota (BBTUD)', 'Total Gas Quota (BBTUD)', 'Gas Available (BBTUD)', 'Base Gas Quota (BBTUD)', 'Effective Gas Quota (BBTUD)'] as $k) if (isset($o['info'][$k])) $o['info'][$k] = round((float)$o['info'][$k] + $dq, 4); }
     $clean = $orig; unset($clean['data3']['modeling']['__v10_sup_secant'], $clean['data3']['modeling']['__v9_nopolish']);
     $a = pp_tl_assess($clean, $o); pp_tl_clean_globals(); $a['output'] = $o; $a['off'] = []; $a['adj'] = 0.0; $a['supplier_target'] = $useT ? $pipeT : pp_tl_supplier_target($o);
-    if (function_exists('pp_v11_cnt') && count((array)($o['data'] ?? [])) === 48) pp_v11_cnt(!empty($a['valid']) ? 'v' : 'c', pp_v6_gtg_sig((array)$o['data']), (array)$o['data']);
+    if ($vk !== null && !empty($a['checks']['not_truncated'])) { $sum = $a; unset($sum['output']); pp_tl_write(pp_cs_file($vk), ['k' => $vk, 'a' => $sum, 'out' => $o, 'at' => microtime(true), 'by' => getmypid()]); }
+    } finally { if ($vlk !== null) pp_cs_release($vlk); }
+    if (empty($GLOBALS['ppTlHook']['spec']) && function_exists('pp_v11_cnt') && count((array)($o['data'] ?? [])) === 48) pp_v11_cnt(!empty($a['valid']) ? 'v' : 'c', pp_v6_gtg_sig((array)$o['data']), (array)$o['data']);
+    return $a;
+}
+function pp_v12_vz_get(string $k): ?array {
+    $r = pp_tl_read(pp_cs_file($k)); if (!is_array($r) || ($r['k'] ?? null) !== $k || !is_array($r['a'] ?? null) || !is_array($r['out'] ?? null)) return null;
+    $a = $r['a']; $a['output'] = $r['out']; $n = (int)($GLOBALS['__pp_v12_vz_hits'] ?? 0) + 1;
+    pp_tl_clean_globals(); $GLOBALS['__pp_v12_vz_hits'] = $n;
+    if (empty($GLOBALS['ppTlHook']['spec']) && function_exists('pp_v11_cnt') && count((array)($a['output']['data'] ?? [])) === 48) pp_v11_cnt(!empty($a['valid']) ? 'v' : 'c', pp_v6_gtg_sig((array)$a['output']['data']), (array)$a['output']['data']);
     return $a;
 }
 /* Pendaratan dispatch tetap ke window gas total (efektif) dan window supplier PGN: beban unit GTG berjalan pada row
@@ -5517,6 +5548,7 @@ function pp_v12_merit_audit(array $input, array $out): array {
         foreach ($UN as $u) { if (!isset($d3[$u])) continue; $x = $mw($k, $u); $c = $cls($u);
             $mn = function_exists('pp_effective_min_load') ? pp_effective_min_load($d3, $m, $u, $r) : 0.0; $mx = function_exists('pp_effective_max_load') ? pp_effective_max_load($d3, $m, $u, $r) : (float)($d3[$u]['max_load'] ?? 0);
             if ($mn <= 0.01) $mn = (float)($d3[$u]['min_ccload'] ?? $d3[$u]['min_scload'] ?? $d3[$u]['min_load'] ?? 0);
+            if ($c !== 'GTG') $mx = max($mx, (float)($d3[$u]['max_load'] ?? 0), $x);       // STG / GE / BBLN: kapasitas unit (bukan batas GTG)
             $fix = pp_get_fixed_load($m, $u, $r) >= 0; $running = $x > 0.01;
             $rampCap = ($u === 'b1' || $u === 'b2') ? pp_babelan_ramp_limit($m) : 30.0;
             $pv = $k > 0 ? $mw($k - 1, $u) : $x; $nx = $k < $n - 1 ? $mw($k + 1, $u) : $x;
@@ -5532,6 +5564,7 @@ function pp_v12_merit_audit(array $input, array $out): array {
                 'ramp_allowance_mw' => $rampUp === null ? null : round($rampUp, 3), 'status' => $st, 'earliest_legal_stop_row' => $earliest[$u][$r] ?? null];
             if ($running || $st) $U8[] = $rec;
             if ($running && $c === 'GTG') $sumHead += $legal; }
+        if ($resMin > 0 && function_exists('pp_spinning_reserve')) { $gen = []; foreach ($UN as $uu) $gen[$uu] = $mw($k, $uu); $spin = pp_spinning_reserve($gen, $d3, $m, $r); }   // helper validator yang sama
         $R[] = ['row' => $r, 'time' => $row['Time'] ?? null, 'export_mw' => round($exp, 3), 'export_allowance_up_mw' => $hi > 0 ? round($hi - $exp, 3) : null, 'export_allowance_down_mw' => round($exp - $lo, 3),
             'reserve_allowance_mw' => round($spin - $resMin, 3), 'busflow_allowance_mw' => round($bus - $busMin, 3), 'units' => $U8];
         /* C1 / C2 atas GTG dispatchable (bukan MM2100) */
@@ -6047,6 +6080,7 @@ function pp_v8_eval_all(array $orig, array $W, array $C, float $dl, int $cap, bo
     /* V10 rute cepat: kandidat review dievaluasi sebagai dispatch tersusun (lihat pp_v10_review_eval); kandidat yang
      * tidak dapat disusun dievaluasi penuh seperti V9. */
     if (!$force && !empty($GLOBALS['ppV10ReviewFast'])) { $simF = [];
+        if (count($sim) > 1 && function_exists('pp_v12_side_publish_rv')) { $cs = []; foreach ($sim as $i) $cs[] = $C[$i]; pp_v12_side_publish_rv($origA, $W, $cs, isset($GLOBALS['ppV10Inc']['T']) ? (float)$GLOBALS['ppV10Inc']['T'] : null, $dl); }
         foreach ($sim as $i) { $a = pp_v10_review_eval($origA, $W, $C[$i], $dl); pp_tl_clean_globals();
             if (!is_array($a)) { $simF[] = $i; continue; }
             if (empty($a['valid']) && is_array($a['output'] ?? null)) $a['deficit'] = pp_v8_deficit_rows($orig, $a['output'], $C[$i]['unit']);

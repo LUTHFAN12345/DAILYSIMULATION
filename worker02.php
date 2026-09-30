@@ -249,9 +249,37 @@ function pp_v12_side_publish_fz(array $orig, array $bds, float $dl): void {
         $f = 'v12_fzbd_' . $k . '.json'; pp_tl_write($dir . DIRECTORY_SEPARATOR . $f, $bd); $list[] = ['k' => $k, 'f' => $f, 'o' => $of, 'dl' => $dl]; }
     pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_side_fz.json', ['t' => $list, 'at' => microtime(true)]);
 }
+/* Tugas samping kandidat review (dispatch tersusun V10): pembantu menjalankan pp_v10_review_eval yang sama; seluruh evaluasi
+ * tersusun di dalamnya masuk kolam berkunci input, sehingga pemilik mendapat cache hit bit-identik. */
+function pp_v12_side_publish_rv(array $orig, array $W, array $cands, ?float $T, float $dl): void {
+    if ((string)getenv('PP_V12_SIDE') === '0' || !$cands || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
+    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $dir = pp_job_dir($job); $tag = substr(md5(json_encode([pp_tl_key($orig), pp_v6_gtg_sig((array)($W['data'] ?? [])), $T])), 0, 12);
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_rv_' . $tag . '.ctx.json', ['orig' => $orig, 'W' => $W, 'T' => $T]);
+    $list = []; foreach ($cands as $i => $c) $list[] = ['id' => $tag . '_' . substr(md5(json_encode($c['stops'] ?? $c)), 0, 12), 'ctx' => 'v12_rv_' . $tag . '.ctx.json', 'c' => $c, 'dl' => $dl];
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_side_rv.json', ['t' => $list, 'at' => microtime(true), 'pid' => getmypid()]);
+}
+function pp_v12_side_run_rv(string $job): bool {
+    $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side_rv.json'; if (!is_file($lf)) return false;
+    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t']) || (int)($cur['pid'] ?? 0) === getmypid()) return false;
+    foreach ((array)$cur['t'] as $e) {
+        if (microtime(true) > (float)($e['dl'] ?? 0) - 2.0) continue;
+        $mk = $dir . DIRECTORY_SEPARATOR . 'v12_rvdone_' . preg_replace('~[^a-z0-9_]~', '', (string)$e['id']); $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
+        $ctx = pp_tl_read($dir . DIRECTORY_SEPARATOR . basename((string)$e['ctx'])); if (!is_array($ctx)) continue;
+        $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+        $svInc = $GLOBALS['ppV10Inc'] ?? null; $GLOBALS['ppV10Inc'] = ['T' => $ctx['T'], 'evaluated' => [], 'pruned' => []];
+        $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true; $GLOBALS['__ppv12_in_side'] = true;
+        try { pp_v10_review_eval((array)$ctx['orig'], (array)$ctx['W'], (array)$e['c'], (float)$e['dl']); } catch (PpJobAborted $x) { throw $x; } catch (Throwable $x) {}
+        finally { unset($GLOBALS['__ppv12_in_side']); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
+            if ($svInc === null) unset($GLOBALS['ppV10Inc']); else $GLOBALS['ppV10Inc'] = $svInc; if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+        $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
+        return true;
+    }
+    return false;
+}
 function pp_v12_side_run_fz(string $job): bool {
-    $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side_fz.json'; if (!is_file($lf)) return false;
-    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t'])) return false;
+    $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side_fz.json'; if (!is_file($lf)) return pp_v12_side_run_rv($job);
+    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t'])) return pp_v12_side_run_rv($job);
     foreach ((array)$cur['t'] as $e) {
         $k = (string)($e['k'] ?? ''); $dl = (float)($e['dl'] ?? 0); if ($k === '' || microtime(true) > $dl - 2.0 || is_file(pp_cs_file($k))) continue;
         $h = @fopen(pp_cs_file($k, '.lock'), 'c'); if (!$h) continue;
@@ -267,7 +295,7 @@ function pp_v12_side_run_fz(string $job): bool {
         $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
         return true;
     }
-    return false;
+    return pp_v12_side_run_rv($job);
 }
 /* Satu tugas samping (dipanggil pekerja pembantu). true bila satu core run dikerjakan. */
 function pp_v12_side_run_one(string $job): bool {
