@@ -1,0 +1,13 @@
+{"sc":"ACT_FFJ_UP","md5":"d80b4fe08a","cp":64.6309,"wall":10.41,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"ACT_FFM_DOWN","md5":"688200238e","cp":64.6214,"wall":10.58,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"ACT_PGN_2SLOT_C","md5":"99496b3a7d","cp":64.6987,"wall":7.94,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"ACT_PGN_DOWN","md5":"e0e437e57f","cp":64.5676,"wall":36.53,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"ACT_PGN_UP","md5":"bf94dc3fe3","cp":64.6801,"wall":9.49,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"BASE_ACT10","md5":"73f88465fc","cp":64.6214,"wall":9.91,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"BASE_PGN30","md5":"93ada6bad9","cp":64.6644,"wall":32.62,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}
+{"sc":"KP72_DOWN","md5":"73f88465fc","cp":64.6214,"wall":9.63,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"QA_pep_-1","md5":"f038709283","cp":65.6235,"wall":0.9,"mode":"DELTA_CERTIFICATE","final":false,"v9":"SKIPPED","inc":null,"base":null}
+{"sc":"QA_pgn_pipe_1","md5":"2d8ea565fc","cp":63.8609,"wall":37.38,"mode":"INCREMENTAL","final":true,"v9":"DELTA_REVIEW_BASIS","inc":"INC","base":"b4acaa5d779809dfb3fcbbb03790d336.json"}
+{"sc":"WB09","md5":"550095db8c","cp":64.3644,"wall":21.26,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}
+{"sc":"WB09_3","md5":"2b5270f108","cp":63.4469,"wall":22.55,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}
+{"sc":"WB09_KP72","md5":"17ec197523","cp":64.1989,"wall":21.84,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}

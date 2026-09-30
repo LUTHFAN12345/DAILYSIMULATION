@@ -1,0 +1,90 @@
+=== LINT PHP 7.4 ===
+No syntax errors detected in v12freeze2/run.php
+No syntax errors detected in v12freeze2/worker02.php
+No syntax errors detected in v12freeze2/worker_functions.php
+No syntax errors detected in v12freeze2/index.php
+=== SNAPSHOT BASIS ACTUAL (FINAL jangkar PGN 30 + pustaka dispatch + BASE_ACT10, engine SRC) — SEBELUM suite yang memakainya ===
+{"wall":37.56,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+66a01430c400b17a90a358eebe7449bc.json
+8f81c3736a529d97166f277b598caca3.json
+8f81c3736a529d97166f277b598caca3.v10lib.json
+=== V11: REPRODUCER WB09_3 + AUDIT V11 + BAND CP/HEAT RATE + COUNTER ===
+PASS  R01 WB09_3 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang  -- mode EXACT, CP 63.4469 (ref 63.4469), HR 8109.13 (ref 8109.13), 24.2 s CLI, audit hilang []
+PASS  R02 WB09_3 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS  -- CP audit PASS [], akun 4 (tanpa harga 0), fuel PASS, MM2100 PASS
+PASS  R03 WB09_3 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang  -- CP_min 63.4469 (bukti 63.4469, 12 kandidat), band s.d. 63.5738, FINAL 63.4469, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8109.13, HR t
+PASS  R04 WB09_3 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid  -- {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":14,"screened_also_full_run_excluded
+PASS  R05 WB09_3 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja)  -- PASS_WITH_REASON, row 5, temuan 10, tanpa alasan 0, unit_rows {"G1":[33,34,35,37,38],"G5":[33,34,35,37,38]}, kandidat konsolidasi {"generated":5,"
+PASS  R06 WB09_3 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai  -- HPA PASS_WITH_REASON/0 row 48, review APPLIED (63.7144 -> 63.4469)
+PASS  R01 WB09 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang  -- mode EXACT, CP 64.3644 (ref 64.3644), HR 8319.17, 25.2 s CLI, audit hilang []
+PASS  R02 WB09 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS  -- CP audit PASS [], akun 3 (tanpa harga 0), fuel PASS, MM2100 PASS
+PASS  R03 WB09 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang  -- CP_min 64.3644 (bukti 64.3644, 12 kandidat), band s.d. 64.4931, FINAL 64.3644, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8319.17, HR ter
+PASS  R04 WB09 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid  -- {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":11,"screened_also_full_run_excluded":
+PASS  R05 WB09 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja)  -- PASS_WITH_REASON, row 9, temuan 18, tanpa alasan 0, unit_rows {"G1":[10,11,32,33,34,35,36,37,38],"G9":[10,11],"G5":[32,33,34,35,36,37,38]}, kandidat
+PASS  R06 WB09 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai  -- HPA PASS_WITH_REASON/0 row 48, review APPLIED (64.5788 -> 64.3644)
+PASS  R07 logika konsolidasi / fragmentation generik (tanpa hardcode G5/G1/unit tertentu)  -- panjang badan 17380 byte
+PASS  R08 unit prioritas rendah yang di-start diuji stop dan berhenti pada row legal pertama setelah minimum runtime  -- G5 start 27 stop row 39 (legal pertama 39)
+PASS  R09 WB09_3 determinisme (akar baru kedua): dispatch 48 row, CP, Heat Rate, pemenang band identik  -- md5 49da493b56 / 49da493b56, CP 63.4469 / 63.4469
+PASS  R10 PP_V11=0: engine tetap FINAL valid (audit V11 tidak dilampirkan), V11 aktif tidak lebih mahal di luar band  -- V11 off CP 63.4469 HR 8109.13 / V11 on CP 63.4469 HR 8109.13
+=== V10 (versi V11): RUTE CEPAT, SERTIFIKAT, SCREENING DUA TINGKAT ===
+PASS  V01 ACT_PGN_UP FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:pipeline@-0.16, CP 64.6801
+PASS  V02 ACT_PGN_UP sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_PGN_UP invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6801, kandidat valid termurah 64.6587 (12 kandidat valid)
+PASS  V01 KP72_DOWN FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6214
+PASS  V02 KP72_DOWN sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 KP72_DOWN invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6214, kandidat valid termurah 64.6214 (17 kandidat valid)
+PASS  V01 ACT_PGN_2SLOT_C FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6987
+PASS  V02 ACT_PGN_2SLOT_C sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_PGN_2SLOT_C invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6987, kandidat valid termurah 64.6987 (12 kandidat valid)
+PASS  V01 ACT_FFM_DOWN FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6214
+PASS  V02 ACT_FFM_DOWN sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_FFM_DOWN invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6214, kandidat valid termurah 64.6214 (17 kandidat valid)
+PASS  V04 pustaka dispatch jangkar dibangun ulang (akar tanpa pustaka) vs dipakai ulang: dispatch 48 row & CP identik  -- md5 fa80b4e938 / fa80b4e938, CP 64.6309 / 64.6309, pustaka dibangun 29.9 s
+PASS  V05 rute cepat tanpa kandidat valid (window total dan supplier tidak dapat dipenuhi bersama) -> jalur kanonik V9 / exact, bukan FINAL palsu  -- mode EXACT, alasan rute cepat V10_TIDAK_ADA_KANDIDAT_VALID, status USER_ACTION_REQUIRED
+PASS  V06 Q_pgn_pipe_1 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas ["G5"], cakupan LENGKAP, keluarga 9 node, CP 64.5424 (V9 64.5450), 31.9 s CLI
+PASS  V06 Q_lng_1 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas ["G5"], cakupan LENGKAP, keluarga 9 node, CP 64.8581 (V9 64.8608), 31.6 s CLI
+PASS  V06 WB09 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas [], cakupan -, keluarga 7 node, CP 64.3644 (V9 64.3644), 23.6 s CLI
+PASS  V07 bukti kapasitas Export: seluruh GTG dimatikan -> terbukti infeasible; commitment pemenang jangkar (Export valid 48 row) -> tidak dipangkas (batas atas sah)  -- semua off: "Export maks row 1 = -246.6 MW < Range Min 20.0 MW (seluruh unit tersedia pada Effective Max)"; pemenang: null
+PASS  V08 KP72_DOWN lewat rantai (sesudah ACT_PGN_DOWN) vs langsung (akar baru): dispatch & CP identik; state ulang = cache FINAL  -- rantai 9bc52c0f57 CP 64.6214 / langsung 9bc52c0f57 CP 64.6214; ulang 0.27 s
+=== V9 (versi V11): UNIT PRIORITY GENERIK (10 konfigurasi) + PROVENANCE BAHAN BAKAR ===
+PASS  P01 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 5.98 s, CP 63.9057, kandidat valid termurah -, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P01 headroom penuh (Export Range Min 10 MW sepanjang hari; row puncak Export maks tanpa start 14 MW): headroom G1/G8/G9 cukup -> tidak ada start GTG prioritas rendah  -- start GTG 0; running: G1:48 G2:0 G3:0 G4:0 G5:0 G6:0 G7:0 G8:48 G9:48 G10:0
+PASS  P02 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 37.58 s, CP 64.9301, kandidat valid termurah 64.9301, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P02 headroom parsial karena ramp: alasan RAMP per row  -- RAMP_LIMIT_TETANGGA
+PASS  P03 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 127.59 s, CP 64.7133, kandidat valid termurah -, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P03 reserve mengikat (Spinning Reserve Min 20 MW; V8 gagal hard reserve row 17-23): REPAIR START unit prioritas tertinggi yang tersedia, alasan RESERVE per row  -- repair EXTEND:G2:14-27; DELAY:RESERVE | STOP:RESERVE
+PASS  P04 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 24.46 s, CP 64.3644, kandidat valid termurah 64.3703, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P04 headroom terhalang Export (Range Min 25 MW row 17-32): bukti kapasitas + alasan EXPORT  -- DELAY:G5:27-38:@28: simulasi 48 row
+PASS  P08 minimum runtime menahan unit prioritas rendah: G5 running row 27-38 dengan alasan MIN_RUNTIME  -- MIN_RUNTIME_COMBINED_CYCLE_SEJAK_START_ROW_27
+PASS  P09 unit berhenti pada row legal pertama sesudah minimum runtime (G5 12 row = 6 jam), G2 tidak running  -- G5 12 row, G2 0 row
+PASS  P10 beberapa unit eligible: kandidat SWAP/STOP/DELAY/DECOMMIT dibandingkan, pemenang = CP terendah kandidat valid  -- kandidat valid 5, jenis SWAP,STOP,DELAY,DECOMMIT,EARLY_STOP, CP 64.3644, termurah 64.3703
+PASS  P05 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 71.33 s, CP 64.3725, kandidat valid termurah 64.3784, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P05 headroom terhalang Bus Flow (Bus Flow Min 180 MW; BBLN/G1 di Bus B): alasan BUS_FLOW / bukti Bus Flow tanpa unit  -- BUS_FLOW(Bus Flow 180.0 MW, min 180.0 MW: BB1 di Bus B tidak dapat dinaikkan) | BUS_FLOW(Bus Flow 180.0 MW, min 180.0 MW: BB2 di Bus B tidak dapat dinaikkan)
+PASS  P06 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 37.88 s, CP 64.6644, kandidat valid termurah 64.7173, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P06 headroom/kandidat terhalang window gas (PGN 30): kandidat yang hanya gagal window gas tercatat dan tidak dipilih  -- SWAP:G5>G2:26-37 CP 64.6719 -> GAS_WINDOW
+PASS  P06b FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 20.99 s, CP 65.2141, kandidat valid termurah 65.2149, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P06b Gas Shortage (PGN Pipe 26) + Add LNG 1,6: aksi bahan bakar ikut review kandidat Unit Priority (tidak dibekukan), akun LNG berbiaya  -- review NO_BETTER_VALID_CANDIDATE, disimulasikan 3, LNG 1.6 BBTUD, CP 65.2141
+PASS  P07 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 65.36 s, CP 64.5005, kandidat valid termurah 64.5078, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P07 headroom terhalang kopling STG/blok (G1 stop 10:00): alasan STG/blok per row  -- SWAP:FORCED_STATUS(LAST_DATA_RUNNING_G1_WAJIB_BERBEBAN_ROW_1) | SWAP:BLOCK_STG(S2_CONTINUOUS_TANPA_PEMASOK_GTG_ROW_21)
+PASS  F1 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 26.38 s, CP 64.1989, kandidat valid termurah 64.2047, audit PASS_WITH_REASON/0, provenance PASS
+PASS  F1 kuota KP72 2,2 (GE berbeban): setiap unit berbahan bakar punya sumber sah, akun biaya, heat rate, biaya per row  -- status PASS, unit-row GE 48, unit-row ber-heat-rate & biaya 204, sumber MM2100 KP72_QUOTA, identitas 0
+PASS  F2 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 38.16 s, CP 64.3653, kandidat valid termurah 64.3655, audit PASS_WITH_REASON/0, provenance PASS
+PASS  F2 fixed flow manual MM2100 (kuota 0): setiap unit berbahan bakar punya sumber sah, akun biaya, heat rate, biaya per row  -- status PASS, unit-row GE 1, unit-row ber-heat-rate & biaya 157, sumber MM2100 MANUAL_FIXED_FLOW_MM2100, identitas -0.0133
+=== V11: PATH INDEPENDENCE (13 state) ===
+**13/13 state identik di seluruh jalur yang dijalankan** (47 perbandingan terhadap direct).
+| QA_pep_-1 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | IDENTIK (6 jalur) |
+| WB09_3 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | IDENTIK (6 jalur) |
+**13/13 state identik di seluruh jalur yang dijalankan** (47 perbandingan terhadap direct).
+=== V8: REPRODUCER + GAS GE + UNIT PRIORITY (jalur job) ===
+PASS  T1 reproducer Daily_Plan_09_Jul_26_Baru: FINAL 48 row, hard PASS, Export 48/48, residual 0  -- wall 25.5 s, CP 64.3644
+PASS  T2 kuota MM2100 0 + fixed/actual MM2100 0: GE1-GE4 = 0 MW, provenance PASS (sumber NONE), MM2100 Daily Used 0  -- GE rows 0, sumber NONE, used 0
+PASS  T2b dispatch V7 (GE1 3 MW row 1, kuota KP72 0) ditolak validator V8: mm2100_gas_source  -- status FAIL pelanggaran fuel_account,mm2100_gas_source
+PASS  T4 unit prioritas rendah start lalu kebutuhan turun: stop pada row legal pertama (G5 = minimum runtime 12 row, G2 tidak running)  -- G2 0 row; G5 row 27-38 (V7: G2 row 26-48 = 23 row)
+PASS  T5 headroom G1/G8/G9 dipakai sebelum unit prioritas rendah: tanpa G5, G1/G8/G9/BBLN di Effective Max pun Export di bawah Range Min (bukti kapasitas)  -- DECOMMIT:G5:27-38: row 28 Export maks 14.00 < Range Min 25.0 MW
+PASS  T5b CP lebih rendah dari incumbent V7 dan kandidat pembanding tercatat (incumbent, G2 off/trunc, G5 swap, delay)  -- CP V7 64.5741 -> V8 64.3644; diterapkan SWAP:G2>G5:26-37, DELAY:G5:26-37:@27, POLISH_UNIT_PRIORITY_LANJUTAN
+PASS  T7 alasan terhalang Export (reserve/Export/Bus Flow) tercatat per row; Headroom/Unit Priority PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, alasan EXPORT=YA
+PASS  T3 kuota MM2100 0 + fixed flow manual MM2100 sah (row 1-2): GE hanya pada row bersumber, provenance jelas, gas tidak melebihi sumber, biaya gas dihitung  -- GE row [1], sumber MANUAL_FIXED_FLOW_MM2100, row gagal 0, biaya gas MM2100 100.2 USD, Heat Rate MM2100 17813.33
+PASS  T3b kuota KP72 2,2 sah: GE berbeban, heat rate dan cost MM2100 dihitung, provenance KP72 PASS  -- GE1 48 row, HR MM2100 7537.38, CP MM2100 56.5303, used 2.199/2.2
+PASS  T6 headroom terhalang ramp (Fixed Load G8/G9 76 MW row 24-27): alasan RAMP per row, FINAL, PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, contoh RAMP_LIMIT_TETANGGA | RAMP_LIMIT_TETANGGA, CP 64.9301
+PASS  T8 kopling blok STG (G1 stop 10:00, S2 continuous): alasan STG/blok per row, FINAL, PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, contoh SWAP:FORCED_STATUS(LAST_DATA_RUNNING_G1_WAJIB_BERBEBAN_ROW_1) | SWAP:FORCED_STATUS(PEER_G1_TIDAK_TERSEDIA_ROW_26), CP 64.5005
+PASS  T9 deterministik: reproducer dijalankan ulang di akar baru -> 48 row identik  -- cfe07f3de3494b5caf1e6f805f8e4fc0 / cfe07f3de3494b5caf1e6f805f8e4fc0
+=== V8 UI: REPRODUCER Daily_Plan_09_Jul_26_Baru ===

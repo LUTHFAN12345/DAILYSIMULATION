@@ -1,0 +1,704 @@
+[
+ {
+  "sc": "FUEL_SHORTAGE_PGN25",
+  "cat": "Gas Shortage tervalidasi",
+  "limit": 20.0,
+  "v11": [
+   9.87,
+   9.66,
+   10.45
+  ],
+  "v12": [
+   6.02,
+   5.85,
+   6.05
+  ],
+  "ok": true,
+  "cp_v11": 61.6371,
+  "cp_v12": 61.6371,
+  "same_dispatch": true,
+  "cnt_v12": [
+   11,
+   0
+  ],
+  "core_v12": 13,
+  "helper_idle_v12": 4.9799999999999995,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "OPS_F1_STOP_G1_1000",
+  "cat": "commitment berubah (perintah stop G1)",
+  "limit": 15.0,
+  "v11": [
+   20.82,
+   20.73,
+   22.34
+  ],
+  "v12": [
+   21.02,
+   20.5,
+   21.36
+  ],
+  "ok": false,
+  "cp_v11": 64.1378,
+  "cp_v12": 64.1378,
+  "same_dispatch": true,
+  "cnt_v12": [
+   69,
+   6
+  ],
+  "core_v12": 80,
+  "helper_idle_v12": 12.6,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "OPS_F2_STOP_G1_SLOTS",
+  "cat": "commitment berubah (perintah stop G1)",
+  "limit": 15.0,
+  "v11": [
+   20.89,
+   20.87,
+   21.85
+  ],
+  "v12": [
+   21.78,
+   20.63,
+   23.79
+  ],
+  "ok": false,
+  "cp_v11": 64.1378,
+  "cp_v12": 64.1378,
+  "same_dispatch": true,
+  "cnt_v12": [
+   69,
+   6
+  ],
+  "core_v12": 66,
+  "helper_idle_v12": 12.24,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "BASE_ACT10_DARI_NOL",
+  "cat": "exact berat",
+  "limit": 40.0,
+  "v11": [
+   35.1,
+   34.97,
+   35.96
+  ],
+  "v12": [
+   27.56,
+   26.38,
+   27.8
+  ],
+  "ok": true,
+  "cp_v11": 64.6214,
+  "cp_v12": 64.6214,
+  "same_dispatch": true,
+  "cnt_v12": [
+   50,
+   16
+  ],
+  "core_v12": 105,
+  "helper_idle_v12": 13.14,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "BASE_PGN30_DARI_NOL",
+  "cat": "exact berat",
+  "limit": 40.0,
+  "v11": [
+   19.04,
+   18.83,
+   20.43
+  ],
+  "v12": [
+   14.79,
+   13.24,
+   15.02
+  ],
+  "ok": true,
+  "cp_v11": 64.6644,
+  "cp_v12": 64.6644,
+  "same_dispatch": true,
+  "cnt_v12": [
+   24,
+   5
+  ],
+  "core_v12": 78,
+  "helper_idle_v12": 6.840000000000001,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_pep_kp72_1",
+  "cat": "exact berat",
+  "limit": 40.0,
+  "v11": [
+   31.53,
+   28.32,
+   32.19
+  ],
+  "v12": [
+   17.5,
+   16.88,
+   19.44
+  ],
+  "ok": true,
+  "cp_v11": 64.631,
+  "cp_v12": 64.631,
+  "same_dispatch": true,
+  "cnt_v12": [
+   25,
+   5
+  ],
+  "core_v12": 108,
+  "helper_idle_v12": 8.46,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "QA_lng_1",
+  "cat": "kuota basis Actual (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   17.69,
+   17.29,
+   19.69
+  ],
+  "v12": [
+   14.99,
+   14.3,
+   16.37
+  ],
+  "ok": true,
+  "cp_v11": 64.1733,
+  "cp_v12": 64.1733,
+  "same_dispatch": true,
+  "cnt_v12": [
+   51,
+   23
+  ],
+  "core_v12": 31,
+  "helper_idle_v12": 6.48,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "QA_pgn_pipe_1",
+  "cat": "kuota basis Actual (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   18.39,
+   18.2,
+   18.88
+  ],
+  "v12": [
+   15.01,
+   14.31,
+   15.42
+  ],
+  "ok": false,
+  "cp_v11": 63.8609,
+  "cp_v12": 63.8609,
+  "same_dispatch": true,
+  "cnt_v12": [
+   51,
+   23
+  ],
+  "core_v12": 30,
+  "helper_idle_v12": 6.78,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "QA_pgn_pipe_4",
+  "cat": "kuota basis Actual (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   22.75,
+   21.19,
+   23.35
+  ],
+  "v12": [
+   18.55,
+   18.52,
+   19.43
+  ],
+  "ok": false,
+  "cp_v11": 60.277,
+  "cp_v12": 60.277,
+  "same_dispatch": true,
+  "cnt_v12": [
+   72,
+   24
+  ],
+  "core_v12": 51,
+  "helper_idle_v12": 22.68,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "Q_akasia_1",
+  "cat": "kuota basis PGN 30 (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   14.97,
+   14.28,
+   15.47
+  ],
+  "v12": [
+   13.3,
+   13.2,
+   14.24
+  ],
+  "ok": true,
+  "cp_v11": 64.6661,
+  "cp_v12": 64.6661,
+  "same_dispatch": true,
+  "cnt_v12": [
+   30,
+   9
+  ],
+  "core_v12": 77,
+  "helper_idle_v12": 7.56,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_pep_1",
+  "cat": "kuota basis PGN 30 (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   14.48,
+   14.23,
+   15.48
+  ],
+  "v12": [
+   12.29,
+   12.21,
+   12.94
+  ],
+  "ok": true,
+  "cp_v11": 64.4253,
+  "cp_v12": 64.4253,
+  "same_dispatch": true,
+  "cnt_v12": [
+   30,
+   9
+  ],
+  "core_v12": 76,
+  "helper_idle_v12": 7.2,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_pgn_pipe_4",
+  "cat": "kuota basis PGN 30 (commitment berubah)",
+  "limit": 15.0,
+  "v11": [
+   10.41,
+   9.55,
+   11
+  ],
+  "v12": [
+   10.41,
+   10.33,
+   11.22
+  ],
+  "ok": true,
+  "cp_v11": 64.1256,
+  "cp_v12": 64.1256,
+  "same_dispatch": true,
+  "cnt_v12": [
+   28,
+   13
+  ],
+  "core_v12": 57,
+  "helper_idle_v12": 11.219999999999999,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_lng_1",
+  "cat": "kuota basis PGN 30 (commitment tetap)",
+  "limit": 10.0,
+  "v11": [
+   13.21,
+   12.81,
+   14.14
+  ],
+  "v12": [
+   12.29,
+   11.24,
+   12.67
+  ],
+  "ok": false,
+  "cp_v11": 64.8581,
+  "cp_v12": 64.8581,
+  "same_dispatch": true,
+  "cnt_v12": [
+   25,
+   7
+  ],
+  "core_v12": 57,
+  "helper_idle_v12": 4.02,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_pgn_pipe_1",
+  "cat": "kuota basis PGN 30 (commitment tetap)",
+  "limit": 10.0,
+  "v11": [
+   13.11,
+   12.93,
+   13.63
+  ],
+  "v12": [
+   11.14,
+   10.82,
+   12.53
+  ],
+  "ok": false,
+  "cp_v11": 64.5424,
+  "cp_v12": 64.5424,
+  "same_dispatch": true,
+  "cnt_v12": [
+   25,
+   7
+  ],
+  "core_v12": 41,
+  "helper_idle_v12": 4.08,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "Q_pgn_pipe_2",
+  "cat": "kuota basis PGN 30 (commitment tetap)",
+  "limit": 10.0,
+  "v11": [
+   13.96,
+   10.63,
+   14.04
+  ],
+  "v12": [
+   14.98,
+   12,
+   15.84
+  ],
+  "ok": false,
+  "cp_v11": 64.4029,
+  "cp_v12": 64.4029,
+  "same_dispatch": true,
+  "cnt_v12": [
+   22,
+   12
+  ],
+  "core_v12": 51,
+  "helper_idle_v12": 2.4,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "WB09",
+  "cat": "reproducer (HTTP)",
+  "limit": 15.5,
+  "v11": [
+   12.84,
+   9.74,
+   13.83
+  ],
+  "v12": [
+   12.18,
+   11.44,
+   12.47
+  ],
+  "ok": true,
+  "cp_v11": 64.3644,
+  "cp_v12": 64.3644,
+  "same_dispatch": true,
+  "cnt_v12": [
+   25,
+   11
+  ],
+  "core_v12": 80,
+  "helper_idle_v12": 4.68,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "WB09_3",
+  "cat": "reproducer (HTTP)",
+  "limit": 15.5,
+  "v11": [
+   11.21,
+   10.7,
+   11.21
+  ],
+  "v12": [
+   11.44,
+   11.03,
+   12.23
+  ],
+  "ok": true,
+  "cp_v11": 63.4469,
+  "cp_v12": 63.4469,
+  "same_dispatch": true,
+  "cnt_v12": [
+   29,
+   14
+  ],
+  "core_v12": 50,
+  "helper_idle_v12": 8.28,
+  "computation": "EXACT"
+ },
+ {
+  "sc": "FUEL_DISTILLATE",
+  "cat": "rerun bahan bakar",
+  "limit": 10.0,
+  "v11": [
+   6.56,
+   5.94,
+   7.09
+  ],
+  "v12": [
+   2.74,
+   2.59,
+   2.89
+  ],
+  "ok": true,
+  "cp_v11": 77.3295,
+  "cp_v12": 77.3295,
+  "same_dispatch": true,
+  "cnt_v12": [
+   31,
+   3
+  ],
+  "core_v12": 1,
+  "helper_idle_v12": 2.76,
+  "computation": "DELTA_FUEL"
+ },
+ {
+  "sc": "FUEL_LNG_LEBIH",
+  "cat": "rerun bahan bakar",
+  "limit": 10.0,
+  "v11": [
+   22.66,
+   22.48,
+   23.57
+  ],
+  "v12": [
+   2.44,
+   2.43,
+   2.6
+  ],
+  "ok": true,
+  "cp_v11": 66.5411,
+  "cp_v12": 66.5411,
+  "same_dispatch": true,
+  "cnt_v12": [
+   12,
+   3
+  ],
+  "core_v12": 1,
+  "helper_idle_v12": 5.76,
+  "computation": "DELTA_FUEL"
+ },
+ {
+  "sc": "FUEL_LNG_REKOMENDASI",
+  "cat": "rerun bahan bakar",
+  "limit": 10.0,
+  "v11": [
+   6.43,
+   6.12,
+   8.08
+  ],
+  "v12": [
+   4,
+   3.69,
+   4.15
+  ],
+  "ok": true,
+  "cp_v11": 66.2242,
+  "cp_v12": 66.2242,
+  "same_dispatch": true,
+  "cnt_v12": [
+   19,
+   4
+  ],
+  "core_v12": 1,
+  "helper_idle_v12": 1.38,
+  "computation": "DELTA_FUEL"
+ },
+ {
+  "sc": "ACT_FFJ_UP",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   5.6,
+   5.59,
+   5.78
+  ],
+  "v12": [
+   5.28,
+   5.21,
+   5.33
+  ],
+  "ok": false,
+  "cp_v11": 64.6309,
+  "cp_v12": 64.6309,
+  "same_dispatch": true,
+  "cnt_v12": [
+   64,
+   15
+  ],
+  "core_v12": 35,
+  "helper_idle_v12": 6.8999999999999995,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "ACT_FFM_UP",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   5.42,
+   5.22,
+   5.43
+  ],
+  "v12": [
+   5.31,
+   4.86,
+   5.59
+  ],
+  "ok": false,
+  "cp_v11": 64.6216,
+  "cp_v12": 64.6216,
+  "same_dispatch": true,
+  "cnt_v12": [
+   50,
+   16
+  ],
+  "core_v12": 30,
+  "helper_idle_v12": 6.96,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "ACT_PGN_2SLOT_C",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   3.86,
+   3.85,
+   3.9
+  ],
+  "v12": [
+   4.11,
+   3.94,
+   4.27
+  ],
+  "ok": true,
+  "cp_v11": 64.6987,
+  "cp_v12": 64.6987,
+  "same_dispatch": true,
+  "cnt_v12": [
+   66,
+   13
+  ],
+  "core_v12": 28,
+  "helper_idle_v12": 4.920000000000001,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "ACT_PGN_DOWN",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   4.55,
+   4.34,
+   4.7
+  ],
+  "v12": [
+   4.79,
+   4.37,
+   5.42
+  ],
+  "ok": true,
+  "cp_v11": 64.5676,
+  "cp_v12": 64.5676,
+  "same_dispatch": true,
+  "cnt_v12": [
+   45,
+   16
+  ],
+  "core_v12": 25,
+  "helper_idle_v12": 5.04,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "ACT_PGN_UP",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   4.82,
+   4.81,
+   5.27
+  ],
+  "v12": [
+   4.72,
+   4.63,
+   4.82
+  ],
+  "ok": true,
+  "cp_v11": 64.6801,
+  "cp_v12": 64.6801,
+  "same_dispatch": true,
+  "cnt_v12": [
+   54,
+   13
+  ],
+  "core_v12": 23,
+  "helper_idle_v12": 5.3999999999999995,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "KP72_UP",
+  "cat": "update slot Actual/Fixed Flow",
+  "limit": 5.0,
+  "v11": [
+   4.93,
+   4.8,
+   5.13
+  ],
+  "v12": [
+   4.82,
+   4.69,
+   4.89
+  ],
+  "ok": true,
+  "cp_v11": 64.6214,
+  "cp_v12": 64.6214,
+  "same_dispatch": true,
+  "cnt_v12": [
+   48,
+   16
+  ],
+  "core_v12": 33,
+  "helper_idle_v12": 6.119999999999999,
+  "computation": "INCREMENTAL"
+ },
+ {
+  "sc": "FUEL_LNG_KURANG",
+  "cat": null,
+  "limit": null,
+  "v11": [
+   9.83,
+   8.89,
+   9.85
+  ],
+  "v12": [
+   7.36,
+   6.71,
+   7.69
+  ],
+  "ok": false,
+  "cp_v11": 63.9333,
+  "cp_v12": 63.9333,
+  "same_dispatch": true,
+  "cnt_v12": [
+   10,
+   0
+  ],
+  "core_v12": 12,
+  "helper_idle_v12": 9.6,
+  "computation": "EXACT"
+ }
+]

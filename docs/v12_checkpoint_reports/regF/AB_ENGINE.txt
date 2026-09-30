@@ -1,0 +1,15 @@
+rows:SAMA info:beda pgn_pipe=30                                   old    33.2s new    15.0s  x2.21  cp 64.6658/64.6658
+rows:SAMA info:beda pgn_pipe=40                                   old    19.1s new    12.8s  x1.49  cp 63.4669/63.4669
+rows:BEDA info:beda pep=40                                        old   242.6s new    83.5s  x2.90  cp 63.7424/63.771
+rows:SAMA info:beda pgn_pipe=25                                   old    31.4s new    12.7s  x2.48  cp 61.6371/61.6371
+rows:BEDA info:beda pgn_pipe=31                                   old   262.5s new    33.2s  x7.90  cp 64.6852/64.7867
+rows:BEDA info:beda pgn_pipe=30;pep=31                            old   237.9s new    19.1s  x12.46  cp 65.4818/64.6782
+rows:SAMA info:beda pgn_pipe=20                                   old    31.9s new    13.0s  x2.46  cp 58.3941/58.3941
+rows:SAMA info:beda pgn_pipe=27                                   old    31.2s new    13.3s  x2.35  cp 62.9343/62.9343
+rows:SAMA info:beda skip=g9:100:107                               old    26.3s new    10.2s  x2.57  cp 58.3751/58.3751
+rows:SAMA info:beda stop=g2:20:32                                 old    29.0s new     9.6s  x3.02  cp 58.4161/58.4161
+rows:BEDA info:beda pgn_pipe=30;pep_kp72=0                        old    32.7s new    14.2s  x2.31  cp 64.8387/64.8461
+rows:SAMA info:beda act=add_lng;lng=4.7385                        old    31.6s new    12.7s  x2.49  cp 62.9865/62.9865
+rows:SAMA info:beda fix=g9:80:10:20                               old    63.7s new    14.2s  x4.49  cp 58.0672/58.0672
+rows:BEDA info:beda pgn_pipe=29;pep=32                            old   289.6s new    32.8s  x8.84  cp 65.3987/64.5693
+DONE

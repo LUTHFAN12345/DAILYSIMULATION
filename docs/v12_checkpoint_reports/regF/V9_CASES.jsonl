@@ -1,0 +1,10 @@
+{"id":"P01","wall":5.26,"cp":63.9057,"min_valid_candidate_cp":null,"valid_candidates":0,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":[]}
+{"id":"P02","wall":36.74,"cp":64.9301,"min_valid_candidate_cp":64.9301,"valid_candidates":1,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["DELAY:G2:22-48:@25"]}
+{"id":"P03","wall":122.5,"cp":64.7133,"min_valid_candidate_cp":null,"valid_candidates":0,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["EXTEND:G2:14-27"]}
+{"id":"P04","wall":24.87,"cp":64.3644,"min_valid_candidate_cp":64.3703,"valid_candidates":5,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["SWAP:G2>G5:26-37","DELAY:G5:26-37:@27","POLISH_UNIT_PRIORITY_LANJUTAN"]}
+{"id":"P05","wall":70.55,"cp":64.3725,"min_valid_candidate_cp":64.3784,"valid_candidates":3,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["DELAY:G5:26-37:@27","POLISH_UNIT_PRIORITY_LANJUTAN"]}
+{"id":"P06","wall":37.25,"cp":64.6644,"min_valid_candidate_cp":64.7173,"valid_candidates":2,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["V11_BAND_HEAT_RATE:V11_SUSUN:SWAP:G5>G2:26-37"]}
+{"id":"P06b","wall":19.47,"cp":65.2141,"min_valid_candidate_cp":65.2149,"valid_candidates":4,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":[]}
+{"id":"P07","wall":69.09,"cp":64.5005,"min_valid_candidate_cp":64.5078,"valid_candidates":3,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["STOP:G3:21-48:@40","SWAP:G3>G2:21-39","POLISH_UNIT_PRIORITY_LANJUTAN"]}
+{"id":"WB09_KP72","wall":25.51,"cp":64.1989,"min_valid_candidate_cp":64.2047,"valid_candidates":5,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":["SWAP:G2>G5:26-37","DELAY:G5:26-37:@27","POLISH_UNIT_PRIORITY_LANJUTAN"]}
+{"id":"WB09_MANFF","wall":39.47,"cp":64.3653,"min_valid_candidate_cp":64.3655,"valid_candidates":3,"hpa":"PASS_WITH_REASON","unresolved":0,"fuel_provenance":"PASS","v9":[]}

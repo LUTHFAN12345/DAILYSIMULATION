@@ -1,0 +1,4 @@
+{"sc":"ACT_FFJ_UP","mode":"cold","save_ms":1.2,"resp":0.04,"valid":0.52,"final":27.15,"job":{"job_started_s":0.05},"comp":"INCREMENTAL","cp":64.6309,"md5":"d80b4fe08a","release":true,"sims":88,"fb":null,"h":3}
+{"sc":"QA_pep_-1","mode":"cold","save_ms":1.8,"resp":0.041,"valid":null,"final":1.03,"job":{"job_started_s":0.05},"comp":"DELTA_CERTIFICATE","cp":65.6235,"md5":"f038709283","release":false,"sims":1,"fb":null,"h":3}
+{"sc":"WB09","mode":"cold","save_ms":2.7,"resp":0.045,"valid":0.51,"final":8.15,"job":{"job_started_s":0.05},"comp":"EXACT","cp":64.3644,"md5":"550095db8c","release":true,"sims":58,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"WB09_3","mode":"cold","save_ms":2.6,"resp":0.045,"valid":0.48,"final":8.62,"job":{"job_started_s":0.05},"comp":"EXACT","cp":63.4469,"md5":"2b5270f108","release":true,"sims":48,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}

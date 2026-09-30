@@ -1,0 +1,12 @@
+BASE_PGN30
+WB09_3
+WB09
+Q_pep_kp72_1
+OPS:pgn_pipe=33;mj=spinning_reserve_min:5
+OPS:pgn_pipe=30;mj=busflow_min:22
+OPS:pgn_pipe=33;mj=pln_export_priority:{"range":{"min":26,"max":155,"required":true},"daily_target":{"value":1800,"required":false},"dispatch_dev_rules":[],"range_rules":[{"min":27,"max":155,"start":17,"stop":32}],"dispatch_dev_mode":"same_as_quota","dispatch_dev":{"min":0,"max":0,"start":1,"stop":1,"required":false}}
+OPS:pgn_pipe=33;mj=pln_export_priority:{"range":{"min":20,"max":155,"required":true},"daily_target":{"value":1800,"required":false},"dispatch_dev_rules":[{"min":63,"max":60,"start":23,"stop":26,"required":true}],"range_rules":[{"min":25,"max":155,"start":17,"stop":32}],"dispatch_dev_mode":"same_as_quota","dispatch_dev":{"min":0,"max":0,"start":1,"stop":1,"required":false}}
+OPS:pgn_pipe=30;mj=required_mode:{"g1":{"mode":"continuous"},"g8":{"mode":"continuous"},"g9":{"mode":"continuous"},"s2":{"mode":"continuous"},"s3":{"mode":"continuous"},"b1":{"mode":"continuous"},"b2":{"mode":"continuous"},"g5":{"mode":"start_at","at":"10:00"}}
+Q_pgn_pipe_4
+Q_pep_1
+ACT_PGN_UP

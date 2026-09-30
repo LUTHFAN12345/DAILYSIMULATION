@@ -1,0 +1,6 @@
+== 1 DIRECT (CLI, akar baru per state, cache dingin, tanpa pembantu)
+== 2 CHAIN A (CLI, satu akar, urutan UI: data Actual lalu kuota)
+== 3 CHAIN B (CLI, satu akar, urutan terbalik + state ulang = cache hangat)
+== 4 HTTP CHAIN (pembantu aktif, urutan UI)
+== 5 HTTP TARGET SELESAI LEBIH DULU (cold per state, tl_search 25 s sebelum Run)
+PATHIND_SELESAI

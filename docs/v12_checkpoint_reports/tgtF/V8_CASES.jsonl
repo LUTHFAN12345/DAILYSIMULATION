@@ -1,0 +1,5 @@
+{"sc":"WB09","wall":24.36,"cp":64.3644,"cp_v7":64.5741,"v8":[{"round":1,"candidate":"SWAP:G2>G5:26-37","cp_before":64.5788,"cp_after":64.3776,"replaced_stops":[{"unit":"g2","start":1,"stop":25},{"unit":"g3","start":1,"stop":48},{"unit":"g4","start":1,"stop":48},{"unit":"g5","start":1,"stop":48},{"unit":"g6","start":1,"stop":48},{"unit":"g7","start":1,"stop":48},{"unit":"g10","start":1,"stop":48}]},{"round":2,"candidate":"DELAY:G5:26-37:@27","cp_before":64.3776,"cp_after":64.3703,"replaced_stops":[{"unit":"g2","start":1,"stop":48},{"unit":"g3","start":1,"stop":48},{"unit":"g4","start":1,"stop":48},{"unit":"g5","start":1,"stop":25},{"unit":"g5","start":38,"stop":48},{"unit":"g6","start":1,"stop":48},{"unit":"g7","start":1,"stop":48},{"unit":"g10","start":1,"stop":48}]},{"round":3,"candidate":"POLISH_UNIT_PRIORITY_LANJUTAN","cp_before":64.3703,"cp_after":64.3644}]}
+{"sc":"WB09_MANFF","wall":38.77,"cp":64.3653,"cp_v7":64.5741}
+{"sc":"WB09_KP72","wall":26.7,"cp":64.1989,"cp_v7":64.4083}
+{"sc":"WB09_G8FIX","wall":32.81,"cp":64.9301,"cp_v7":65.3725}
+{"sc":"WB09_G1STOP","wall":65.85,"cp":64.5005,"cp_v7":65.5636}
