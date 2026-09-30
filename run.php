@@ -2663,6 +2663,7 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
             $w = pp_tl_read(pp_v4_work_file($jobId));
             /* Job yang tidak pernah mulai (QUEUED > 60 s) tidak ditunggu tanpa akhir. */
             if (!is_array($w) && (string)($j['status'] ?? '') === 'QUEUED' && microtime(true) - $t0 > 60.0) break;
+            if (function_exists('pp_v12_side_run_one') && pp_v12_side_run_one($jobId)) continue;   // V12: tugas samping pemilik lebih dulu
             if (!is_array($w) || (int)($w['rev'] ?? 0) === $rev) { usleep(60000); $idle += 0.06; continue; }
             $rev = (int)$w['rev'];
             $orig = pp_tl_read(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . basename((string)($w['orig'] ?? '')));
@@ -2676,7 +2677,8 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
                 $reg = pp_tl_registry_open($orig);
                 pp_tl_family_search($orig, $dl, $reg, ['seeds' => (array)($w['seeds'] ?? []), 'max_nodes' => (int)($w['max_nodes'] ?? 64),
                     'offer' => function (array $a) use ($poolKey, $jobId) { try { pp_tl_pool_offer($poolKey, $a, 'v4_helper_family', $jobId); } catch (Throwable $e) {} },
-                    'stop' => function () use ($jobId, $rev) { static $c = 0.0; if (microtime(true) - $c < 0.5) return false; $c = microtime(true);
+                    'stop' => function () use ($jobId, $rev) { static $c = 0.0; if (function_exists('pp_v12_side_run_one')) pp_v12_side_run_one($jobId);
+                        if (microtime(true) - $c < 0.5) return false; $c = microtime(true);
                         $j = pp_job_read($jobId); $w2 = pp_tl_read(pp_v4_work_file($jobId));
                         return !is_array($j) || in_array((string)($j['status'] ?? ''), ['DONE', 'FAILED', 'CANCELLED'], true) || (int)($w2['rev'] ?? 0) !== $rev; }]);
                 pp_tl_clean_globals();
@@ -6506,6 +6508,7 @@ function pp_v7_route_certificate(string $jobId, array $input): ?array {
  * engine menghitung ulang penuh state dengan aksi itu, validator 48 row menilai, lalu keluarga
  * commitment dilengkapi seperti pada pemakaian ulang hasil tersimpan. Tidak valid (mis. LNG jauh di
  * atas kebutuhan sehingga total jatuh di bawah lantai window) -> jalur V6. PP_V7_FUEL_RERUN=0 mematikan. */
+function pp_v12_fuel_on(): bool { return (string)getenv('PP_V12_FUEL') !== '0'; }
 function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
     if ((string)getenv('PP_V7_FUEL_RERUN') === '0') return null;
     $m = (array)($input['data3']['modeling'] ?? []);
@@ -6543,15 +6546,28 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
     pp_job_progress($jobId, 'V7_RERUN_BAHAN_BAKAR_DARI_RENCANA_EXACT_BASIS', 15.0);
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; };
+    $orig = pp_normalize_copy($input);
+    foreach (array_keys((array)$orig['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($orig['data3']['modeling'][$mk]);
+    /* V12: keluarga commitment state bahan bakar dikerjakan pekerja pembantu SEJAK AWAL (sama seperti jalur exact),
+     * sehingga tahap keluarga di bawah memakai ulang node yang sudah selesai alih-alih menghitungnya berurutan. */
     try {
-        $orig = pp_normalize_copy($input);
-        foreach (array_keys((array)$orig['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($orig['data3']['modeling'][$mk]);
         $fz = pp_v3_frozen_eval($orig, (array)$base['data'], microtime(true) + 60.0);
     } catch (Throwable $e) { $fz = null; }
     $restore();
+    if (pp_v12_fuel_on() && is_array($fz) && !empty($fz['valid']) && pp_v4_helper_slots() > 0 && (string)getenv('PP_EXACT_FAMILY') !== '0') {
+        try { pp_v4_work_publish($jobId, $orig, ['kind' => 'family', 'seeds' => [], 'max_nodes' => 64, 'dl' => (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 1500.0)) - 4.0]); } catch (Throwable $e) {}
+    }
+    $surplus = false;
     if (!is_array($fz) || empty($fz['valid']) || !is_array($fz['output'] ?? null)) {
-        $GLOBALS['ppV7FuelRerun'] = ['applied' => false, 'reason' => 'DISPATCH_BASIS_TIDAK_VALID_UNTUK_AKSI_INI', 'violations' => $fz['violations'] ?? null];
-        return null;
+        /* V12 LNG DI ATAS KEBUTUHAN: dispatch basis tidak lagi masuk window gas (total kuota naik, pemakaian tetap).
+         * Kebutuhan dispatch baru dijawab ruang kandidat state bahan bakar itu sendiri: keluarga commitment
+         * (node akar = input apa adanya, redispatch + pendaratan window gas; anak = unit GTG berjalan dimatikan),
+         * dikerjakan paralel oleh pembantu. Tidak ada node valid -> jalur exact penuh seperti sebelumnya. */
+        if (!pp_v12_fuel_on() || $act === 'use_distillate' || !is_array($fz['output'] ?? null)) {
+            $GLOBALS['ppV7FuelRerun'] = ['applied' => false, 'reason' => 'DISPATCH_BASIS_TIDAK_VALID_UNTUK_AKSI_INI', 'violations' => $fz['violations'] ?? null];
+            return null;
+        }
+        $surplus = true;
     }
     $out = $fz['output'];
     $out['info']['Run Status'] = array_merge((array)($out['info']['Run Status'] ?? []), ['completed' => true, 'deadline_reached' => false, 'budget_truncated' => false,
@@ -6559,10 +6575,43 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
         'mode' => 'V7_FUEL_RERUN_DELTA', 'core_runs' => 1, 'core_simulations' => 1]);
     $out['info']['V7 Fuel Delta Validation'] = ['kind' => $act, 'reused' => 'baseline, commitment, dispatch, Export, headroom, bukti gas rencana exact basis',
         'basis_state_key' => substr((string)$baseKey, 0, 16), 'basis_cost_production' => $bi['Cost Production (USD/MWh)'] ?? null, 'cost_production' => $fz['key']['cp'] ?? null];
+    /* V12 LNG DI ATAS KEBUTUHAN (rute cepat): commitment rencana basis Gas Shortage dipakai ulang sebagai seed dan
+     * didaratkan ulang pada state bahan bakar (redispatch 48 row + pendaratan window gas dengan lever engine sendiri);
+     * review Unit Priority/headroom generik berjalan sesudahnya di job seperti semua rute. Keluarga penuh tidak
+     * dijalankan (instruksi V12 §8); pendaratan tidak valid -> keluarga state, lalu exact penuh. */
+    $landed = false;
+    if ($surplus && (string)getenv('PP_V12_SURPLUS_MODE') !== 'family') {
+        try { $LS = pp_tl_land_commitment($orig, [], pp_tl_stops_of((array)$base['data']), (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 600.0)) - 4.0, 5, true); }
+        catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $LS = null; }
+        $restore();
+        $aL = is_array($LS) ? ($LS['a'] ?? null) : null;
+        if (is_array($aL) && !empty($aL['valid']) && is_array($aL['output'] ?? null) && count((array)($aL['output']['data'] ?? [])) === 48) {
+            $keepRS = $out['info']['Run Status']; $keepFV = $out['info']['V7 Fuel Delta Validation'];
+            $out = $aL['output']; $out['info']['Run Status'] = array_merge((array)($out['info']['Run Status'] ?? []), $keepRS, ['core_runs' => (int)($LS['evals'] ?? 1), 'core_simulations' => (int)($LS['evals'] ?? 1)]);
+            $out['info']['V7 Fuel Delta Validation'] = $keepFV + ['landing_evaluations' => (int)($LS['evals'] ?? 0), 'trim_mode' => $aL['trim_mode'] ?? null];
+            $landed = true;
+        }
+    }
+    if (!$landed && pp_v12_fuel_on() && $surplus && pp_v4_helper_slots() > 0 && (string)getenv('PP_EXACT_FAMILY') !== '0') {
+        try { pp_v4_work_publish($jobId, $orig, ['kind' => 'family', 'seeds' => [], 'max_nodes' => 64, 'dl' => (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 1500.0)) - 4.0]); } catch (Throwable $e) {}
+    }
     /* keluarga commitment dilengkapi (kandidat valid lebih murah menggantikan) */
-    try { $out = pp_memo_apply_family(pp_econ_job_sim_input($input, $ceil), $out); } catch (Throwable $e) {}
+    if (!$landed) { try { $out = pp_memo_apply_family(pp_econ_job_sim_input($input, $ceil), $out); } catch (Throwable $e) {} }
     $restore();
-    $rep = ['schema' => 'co12-v7-delta-route-v1', 'route' => 'RERUN_BAHAN_BAKAR_DARI_RENCANA_EXACT_BASIS', 'action' => $act,
+    if ($surplus && $landed) {
+        $out['info']['V7 Fuel Delta Validation']['route_v12'] = 'LNG_DI_ATAS_KEBUTUHAN: commitment basis Gas Shortage didaratkan ulang pada state bahan bakar (redispatch + window gas), review Unit Priority generik sesudahnya';
+        $out['info']['V7 Fuel Delta Validation']['cost_production'] = $out['info']['Cost Production (USD/MWh)'] ?? null;
+    } elseif ($surplus) {
+        $aS = pp_tl_assess($orig, $out); pp_tl_clean_globals(); $restore();
+        $spS = (array)($out['info']['Exact Candidate Space'] ?? []);
+        if (empty($aS['valid']) || empty($spS['family_complete'])) {
+            $GLOBALS['ppV7FuelRerun'] = ['applied' => false, 'reason' => 'V12_SURPLUS_KELUARGA_TANPA_NODE_VALID', 'violations' => $fz['violations'] ?? null];
+            return null;
+        }
+        $out['info']['V7 Fuel Delta Validation']['route_v12'] = 'LNG_DI_ATAS_KEBUTUHAN: dispatch basis keluar window gas -> pemenang keluarga commitment state bahan bakar (redispatch)';
+        $out['info']['V7 Fuel Delta Validation']['cost_production'] = $out['info']['Cost Production (USD/MWh)'] ?? null;
+    }
+    $rep = ['schema' => 'co12-v7-delta-route-v1', 'route' => $surplus ? ($landed ? 'V12_RERUN_BAHAN_BAKAR_SURPLUS_PENDARATAN_COMMITMENT_BASIS' : 'V12_RERUN_BAHAN_BAKAR_SURPLUS_KELUARGA_STATE') : 'RERUN_BAHAN_BAKAR_DARI_RENCANA_EXACT_BASIS', 'action' => $act,
             'basis_cost_production' => $bi['Cost Production (USD/MWh)'] ?? null, 'cost_production' => $out['info']['Cost Production (USD/MWh)'] ?? null,
             'wall_s' => round(microtime(true) - $t0, 3)];
     $out['info']['V7 Delta Route'] = $rep;
