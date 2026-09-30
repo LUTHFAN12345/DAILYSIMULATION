@@ -129,6 +129,8 @@ function pp_v12_family_hold(): bool {
     $x = (string)@file_get_contents(pp_job_dir((string)$h['job']) . DIRECTORY_SEPARATOR . 'v12_phase'); if (strpos($x, 'baseline ') !== 0) return false;
     return microtime(true) - (float)substr($x, 9) < 4.0;
 }
+/* Statistik runtime V12 per proses (tidak ikut dibersihkan pp_tl_clean_globals; tidak memengaruhi hasil). */
+function pp_v12_stat(string $k, $inc = 1): void { $GLOBALS['ppV12Stat'][$k] = ($GLOBALS['ppV12Stat'][$k] ?? 0) + $inc; }
 /* Penanda tahap (progres job pemilik) untuk profil jalur kritis; tidak memengaruhi hasil. */
 function pp_v12_step(string $step): void { $h = $GLOBALS['ppTlHook'] ?? null; if (!is_array($h) || !empty($h['helper']) || !function_exists('pp_job_progress') || empty($h['job'])) return;
     try { pp_job_progress((string)$h['job'], $step, 60.0); } catch (Throwable $e) {} }
@@ -159,7 +161,7 @@ function pp_v12_iso_core(array $in, float $dl, bool $owner = true): array {
         if ($owner) {
             $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + (int)($hit['iso_runs'] ?? 1);
             $GLOBALS['__pp_core_runs_total'] = (int)($GLOBALS['__pp_core_runs_total'] ?? 0) + 1;
-            $GLOBALS['__pp_v12_iso_hits'] = (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0) + 1;
+            $GLOBALS['__pp_v12_iso_hits'] = (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0) + 1; pp_v12_stat('iso_cache_hit');
             $GLOBALS['__pp_last_core_output'] = $o;
             $vv = pp_validate_hard_constraints($in, $o); $pass = strtoupper((string)($vv['status'] ?? '')) === 'PASS';
             if ($pass) $GLOBALS['__pp_best_feasible_output'] = $o;
@@ -185,7 +187,7 @@ function pp_v12_iso_compute(array $in, float $dl, ?string $k, $lk): array {
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $o = null; $runs = 1; $trunc = true;
     try {
-        pp_tl_clean_globals(); pp_budget_start(120.0, true, true); $GLOBALS['__pp_budget_deadline'] = $dl;
+        pp_tl_clean_globals(); pp_budget_start(120.0, true, true); $GLOBALS['__pp_budget_deadline'] = $dl; pp_v12_stat('iso_computed');
         $o = pp_run_simulation_core_inner($in);
         $runs = max(1, (int)($GLOBALS['__pp_core_runs'] ?? 1));
         $trunc = !empty($GLOBALS['__pp_budget_aborts']) || !empty($GLOBALS['__pp_core_budget_hit']);
@@ -224,9 +226,28 @@ function pp_v12_side_drain(string $job): int {
     try { while ($n < 16 && (pp_v12_side_run_one($job) || pp_v12_land_run_one($job))) $n++; } finally { $busy = false; }
     return $n;
 }
+/* Sisipan tugas samping dari dalam evaluasi pembantu yang sedang berjalan (maks. tiap 50 ms): seluruh global __pp* (termasuk __ppx_*)
+ * disimpan dan dipulihkan persis, kunci baru dihapus. PP_V12_NESTED=0 mematikan. */
+function pp_v12_side_drain_nested(): void {
+    static $last = 0.0; if ((string)getenv('PP_V12_NESTED') === '0') return;
+    $now = microtime(true); if ($now - $last < 0.05) return; $last = $now;
+    $job = pp_v12_side_job(); if ($job === '') return;
+    $dir = pp_job_dir($job); $any = false;
+    foreach (['v12_side.json', 'v12_side_fz.json', 'v12_side_rv.json'] as $fn) { $st = @stat($dir . DIRECTORY_SEPARATOR . $fn); if ($st && $st['size'] > 20) { $any = true; break; } }
+    if (!$any && !glob($dir . DIRECTORY_SEPARATOR . 'v12_land_*.task')) return;
+    $isEng = function ($gk): bool { return is_string($gk) && (strpos($gk, '__') === 0 || in_array($gk, ['ppV6StgLife', 'ppV10Inc', 'ppExactTrack', 'ppFamilyBusy', 'ppV10ReviewFast', 'ppV10ReviewRound'], true)); };
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if ($isEng($gk)) $saved[$gk] = $gv;
+    $hook = $GLOBALS['ppTlHook'] ?? null;
+    try { pp_v12_side_drain($job); }
+    finally {
+        foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && !array_key_exists($gk, $saved)) unset($GLOBALS[$gk]);
+        foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
+        if ($hook !== null) $GLOBALS['ppTlHook'] = $hook;
+    }
+}
 /* Tugas samping pendaratan (satu berkas per tugas; klaim eksklusif lintas proses dengan berkas penanda). */
-function pp_v12_land_publish(array $orig, array $off, array $seed, int $maxEvals, float $dl): void {
-    if ((string)getenv('PP_V12_SIDE') === '0' || (string)getenv('PP_V12_LAND') !== '1' || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
+function pp_v12_land_publish(array $orig, array $off, array $seed, int $maxEvals, float $dl, bool $always = false): void {
+    if ((string)getenv('PP_V12_SIDE') === '0' || (!$always && (string)getenv('PP_V12_LAND') !== '1') || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
     if (!empty($GLOBALS['__ppv12_in_side'])) return;
     $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
     $k = substr(md5(json_encode([pp_tl_key($orig), $off, $seed, $maxEvals])), 0, 20);
@@ -4089,6 +4110,9 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
      * sebab yang dinyatakan, bukan diam-diam. */
     $maxAttempts = PP_PGN_SUPPLIER_MAX_ATTEMPTS;
     for ($it = 1; $it <= $maxAttempts; $it++) {
+        /* V12: pekerja pembantu menyisipkan tugas samping pemilik (jalur kritis) di antara percobaan supplier; seluruh global engine
+         * dipulihkan sesudahnya sehingga evaluasi yang sedang berjalan tidak berubah. */
+        if ($it > 1 && !empty($GLOBALS['ppTlHook']['helper']) && empty($GLOBALS['__ppv12_in_side']) && function_exists('pp_v12_side_drain_nested')) pp_v12_side_drain_nested();
         if ($it > 1 && pp_budget_exceeded('pgn_supplier_window_repair')) { $budgetStopped = true; break; }
         if ($it > 1 && $underTarget !== null && $overTarget !== null
             && abs($underTarget - $overTarget) < PP_PGN_SUPPLIER_BRACKET_EPS) {
@@ -4467,6 +4491,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         $out['info']['PGN Supplier Direct Raise'] = ['triggered' => true, 'applied' => $raiseApplied, 'room_to_total_ceiling_bbtud' => is_finite($roomToCeil) ? round($roomToCeil, 6) : null,
             'attempts' => $raiseEv, 'catatan' => 'sisa di bawah lantai window supplier dinaikkan dengan lever kenaikan gas nyata pada state yang sama'];
     }
+    if (function_exists('pp_v12_stat')) { pp_v12_stat('supplier_attempts', (int)$attempts); pp_v12_stat('supplier_searches'); }
     $out['info']['PGN Supplier Repair Review']=['attempts'=>$attempts,'accepted_attempts'=>$acceptedAttempts,'rejected_attempts'=>$rejectedAttempts,'max_attempts'=>$maxAttempts,'search_mode'=>$searchMode,'under_internal_target'=>$underTarget,'over_internal_target'=>$overTarget,'bracket_observations'=>$bracketObservations,'budget_stopped'=>$budgetStopped,
       'budget_elapsed_seconds'=>round(pp_budget_elapsed(),4),'budget_left_seconds'=>round(max(0.0,pp_budget_left()),4),
       'final_pipe_used_bbtud'=>round($finalPuT,4),'pipe_quota_bbtud'=>round($finalQT,4),'residual_gap_bbtud'=>round($finalGapT,4),
