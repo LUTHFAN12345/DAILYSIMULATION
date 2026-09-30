@@ -1882,6 +1882,42 @@ function pp_v3_eval(array $orig, array $c, float $adj, ?float $hint, float $dl):
  * dan turunannya yang dihitung ulang. Valid bila perubahan terserap slack window gas. */
 function pp_v3_frozen_eval(array $orig, array $bd, float $dl): ?array {
     if (count($bd) !== 48 || microtime(true) > $dl - 1.0) return null;
+    $in = pp_v12_fz_input($orig, $bd);
+    /* V12: evaluasi beku berjalan di konteks global bersih -> fungsi (orig, dispatch) saja; dibagi lintas proses lewat kolam
+     * kandidat-state berkunci input lengkap (termasuk seluruh fixed load hasil pembekuan), dapat dihitung lebih dulu oleh pembantu. */
+    $k = (function_exists('pp_v12_iso_on') && pp_v12_iso_on()) ? pp_v12_fz_key($in) : null;
+    if ($k === null) return pp_v12_fz_compute($orig, $in, $dl, null, null);
+    $hit = pp_v12_fz_get($k); if ($hit !== null) return $hit;
+    $lk = null; $job = function_exists('pp_v12_side_job') ? pp_v12_side_job() : '';
+    while (true) {
+        $h = @fopen(pp_cs_file($k, '.lock'), 'c');
+        if ($h && @flock($h, LOCK_EX | LOCK_NB)) { $hit = pp_v12_fz_get($k); if ($hit !== null) { pp_cs_release($h); return $hit; } $lk = $h; break; }
+        if ($h) @fclose($h);
+        $hit = pp_v12_fz_get($k); if ($hit !== null) return $hit;
+        if (microtime(true) > $dl - 1.0) break;
+        if (!($job !== '' && empty($GLOBALS['__ppv12_in_side']) && function_exists('pp_v12_side_run_one') && pp_v12_side_run_one($job))) usleep(20000);
+    }
+    return pp_v12_fz_compute($orig, $in, $dl, $k, $lk);
+}
+function pp_v12_fz_key(array $in): ?string { $k = pp_cs_key($in); return $k === null ? null : 'fz' . substr($k, 0, 38); }
+function pp_v12_fz_get(string $k): ?array {
+    $r = pp_tl_read(pp_cs_file($k)); if (!is_array($r) || ($r['k'] ?? null) !== $k || !is_array($r['a'] ?? null) || !is_array($r['out'] ?? null)) return null;
+    $a = $r['a']; $a['output'] = $r['out']; $n = (int)($GLOBALS['__pp_v12_fz_hits'] ?? 0) + 1;
+    pp_tl_clean_globals(); $GLOBALS['__pp_v12_fz_hits'] = $n;      // efek samping yang sama dengan evaluasi nyata: global bersih sesudahnya
+    return $a;
+}
+function pp_v12_fz_compute(array $orig, array $in, float $dl, ?string $k, $lk): ?array {
+    $a = null;
+    try {
+        pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $GLOBALS['__pp_budget_deadline'] = $dl;
+        try { $o = pp_run_simulation_once($in); } catch (Throwable $e) { pp_tl_clean_globals(); return null; }
+        $a = pp_tl_assess($orig, $o); pp_tl_clean_globals();
+        $a['output'] = $o; $a['off'] = []; $a['adj'] = 0.0; $a['supplier_target'] = pp_tl_supplier_target($o);
+        if ($k !== null && !empty($a['checks']['not_truncated'])) { $sum = $a; unset($sum['output']); pp_tl_write(pp_cs_file($k), ['k' => $k, 'a' => $sum, 'out' => $o, 'at' => microtime(true), 'by' => getmypid()]); }
+    } finally { if ($k !== null) pp_cs_release($lk); }
+    return $a;
+}
+function pp_v12_fz_input(array $orig, array $bd): array {
     $in = json_decode(json_encode($orig), true); $m = &$in['data3']['modeling'];
     $m['unit_stop_time'] = (array)($m['unit_stop_time'] ?? []);
     foreach (pp_v3_stops($bd) as $st) $m['unit_stop_time'][] = $st;
@@ -1890,11 +1926,7 @@ function pp_v3_frozen_eval(array $orig, array $bd, float $dl): ?array {
         if ($rules) { $m['unit_fix_load'] = (array)($m['unit_fix_load'] ?? []); $m['unit_fix_load'][$u] = $rules; } }
     $m['__tl_no_auto_start'] = true; $m['time_budget_seconds'] = 60.0; $m['time_budget_max_seconds'] = 60.0;
     unset($m);
-    pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $GLOBALS['__pp_budget_deadline'] = $dl;
-    try { $o = pp_run_simulation_once($in); } catch (Throwable $e) { pp_tl_clean_globals(); return null; }
-    $a = pp_tl_assess($orig, $o); pp_tl_clean_globals();
-    $a['output'] = $o; $a['off'] = []; $a['adj'] = 0.0; $a['supplier_target'] = pp_tl_supplier_target($o);
-    return $a;
+    return $in;
 }
 /* Pemenang commitment dipertahankan: pindaian lever gas di sekitar lever pemenang lama (titik
  * awal supplier dari pemenang lama), lalu pendaratan bisection bila belum ada yang valid. */
@@ -5444,6 +5476,163 @@ function pp_v11_frag_audit(array $input, array $out): array {
         'band' => ['cp_min' => $bc['cp_min'] ?? null, 'winner' => $bc['winner'] ?? null],
         'rule' => 'deteksi: >= 2 unit GTG dekat Effective Min dan unit berjalan berprioritas lebih tinggi masih punya legal headroom >= 1 MW; alasan sah wajib berbasis bukti (status paksa, minimum runtime, bukti per row, counterfactual konsolidasi)'];
 }
+/* =============================================================================================
+ *  V12 AUDIT MERIT DISPATCH GENERIK (analisis murni; tidak menjalankan simulasi, tidak mengubah dispatch).
+ *  Per row 30 menit x setiap unit (GTG, STG, GE/GEG, BBLN): batas berlaku, MW, legal headroom, rank & grup prioritas,
+ *  Heat Rate inkremental & biaya bahan bakar inkremental, allowance ramp / reserve / Export / Bus Flow / gas / blok STG,
+ *  status paksa, row stop legal paling awal. Aturan yang diperiksa:
+ *   C1 MERIT_HEADROOM  unit berjalan prioritas lebih rendah di atas minimum sementara unit berjalan prioritas lebih tinggi
+ *                      punya legal headroom (dicatat; alasan ekonomi/ramp/fixed dicantumkan) — laporan;
+ *   C2 START_DENGAN_HEADROOM  unit prioritas rendah START padahal legal headroom unit berjalan prioritas lebih tinggi
+ *                      cukup menampung beban unit itu — wajib punya bukti counterfactual/status paksa, selain itu FAIL;
+ *   C3 STOP_ROW_LEGAL_PERTAMA  setiap interval unit prioritas rendah (eligible) diuji stop pada row legal pertama sesudah
+ *                      minimum runtime (atau memang berhenti di sana) — selain itu FAIL.
+ * =========================================================================================== */
+function pp_v12_on(): bool { return (string)getenv('PP_V12') !== '0' && function_exists('pp_v11_on') && pp_v11_on(); }
+function pp_v12_unit_col(string $u): string { $U = strtoupper($u); return ($U === 'B1' || $U === 'B2') ? 'BB' . substr($U, 1) : $U; }
+function pp_v12_merit_audit(array $input, array $out): array {
+    $orig = pp_normalize_copy($input); $d3 = (array)$orig['data3']; $m = (array)$d3['modeling'];
+    $rows = array_values((array)($out['data'] ?? [])); $n = count($rows); $i = (array)($out['info'] ?? []);
+    if ($n !== 48) return ['schema' => 'co12-v12-merit-audit-v1', 'status' => 'TIDAK_BERLAKU', 'reason' => 'BUKAN_48_ROW'];
+    $rank = pp_priority_rank($m); $el = pp_v8_eligible($orig); $lim = pp_runtime_limits($m);
+    $grp = []; foreach ((array)($m['block_priority'] ?? []) as $gi => $blk) foreach ((array)$blk as $uu) if (is_string($uu)) $grp[strtolower($uu)] = $gi + 1;
+    $fp = (array)($i['Fuel Provenance'] ?? []); $pJ = (float)($fp['jababeka_pool_price_usd_mmbtu'] ?? 0); $pM = (float)($fp['mm2100_price_usd_mmbtu'] ?? 0);
+    $resMin = function_exists('pp_reserve_min') ? pp_reserve_min($m) : 0.0; $busMin = (float)($m['busflow_min'] ?? 0);
+    $q = (float)($i['Total Gas Quota (BBTUD)'] ?? 0); $gU = (float)($i['Total Gas Used (BBTUD)'] ?? 0); $gasAllow = $q > 1.0 ? round($q - $gU, 4) : null;
+    $cant = array_map('strtolower', (array)($m['unit_cannot_stop'] ?? [])); $req = (array)($m['required_mode'] ?? []);
+    $lds = (array)($m['unit_last_data_status'] ?? []);
+    $UN = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','ge1','ge2','ge3','ge4','b1','b2'];
+    $cls = function (string $u): string { return in_array($u, ['s1','s2','s3'], true) ? 'STG' : (in_array($u, ['ge1','ge2','ge3','ge4'], true) ? 'GE' : (in_array($u, ['b1','b2'], true) ? 'BBLN' : 'GTG')); };
+    $mw = function (int $k, string $u) use ($rows): float { return (float)($rows[$k][pp_v12_unit_col($u)] ?? 0); };
+    $incHr = function (string $u, float $x) use ($d3): ?float { if ($x < 1.0 || !isset($d3[$u]['x0_f1'])) return null; $mxU = (float)($d3[$u]['max_load'] ?? ($x + 1.0));
+        $a = max(1.0, min($x, $mxU) - 1.0); $b = min($mxU, $x + 1.0); if ($b - $a < 0.5) return null;
+        $f = (calc_fuel($d3, $u, $b) - calc_fuel($d3, $u, $a)) / ($b - $a); return $f > 0 ? round($f * 1.0e6, 1) : null; };      // BBTU/h per MW -> BTU/kWh
+    $start = []; $earliest = [];
+    foreach ($UN as $u) { if (!isset($d3[$u])) continue; $run = (int)($lim[pp_runtime_class($u, $d3)]['run_rows'] ?? 0); $a = null;
+        for ($k = 0; $k < $n; $k++) { $on = $mw($k, $u) > 0.01; if ($on && $a === null) $a = $k + 1; if (!$on) $a = null; $start[$u][$k + 1] = $a;
+            $earliest[$u][$k + 1] = $a === null ? null : (($a === 1 && strtolower((string)($lds[strtoupper($u)] ?? '')) === 'running') ? null : $a + $run); } }
+    $R = []; $C1 = []; $C2 = []; $sumHead = 0.0;
+    for ($k = 0; $k < $n; $k++) { $r = $k + 1; $row = $rows[$k]; $exp = (float)($row['Export_PLN'] ?? 0); $lo = (float)($row['pln_lo'] ?? 0); $hi = (float)($row['pln_hi'] ?? 0);
+        $spin = (float)($row['Spin_Res'] ?? 0); $bus = (float)($row['BusFlow'] ?? 0); $U8 = [];
+        foreach ($UN as $u) { if (!isset($d3[$u])) continue; $x = $mw($k, $u); $c = $cls($u);
+            $mn = function_exists('pp_effective_min_load') ? pp_effective_min_load($d3, $m, $u, $r) : 0.0; $mx = function_exists('pp_effective_max_load') ? pp_effective_max_load($d3, $m, $u, $r) : (float)($d3[$u]['max_load'] ?? 0);
+            if ($mn <= 0.01) $mn = (float)($d3[$u]['min_ccload'] ?? $d3[$u]['min_scload'] ?? $d3[$u]['min_load'] ?? 0);
+            $fix = pp_get_fixed_load($m, $u, $r) >= 0; $running = $x > 0.01;
+            $rampCap = ($u === 'b1' || $u === 'b2') ? pp_babelan_ramp_limit($m) : 30.0;
+            $pv = $k > 0 ? $mw($k - 1, $u) : $x; $nx = $k < $n - 1 ? $mw($k + 1, $u) : $x;
+            $rampUp = $running ? max(0.0, min($rampCap - ($x - $pv), $rampCap - ($x - $nx) + 2 * $rampCap)) : null;
+            $head = $running && !$fix && $x >= $mn - 1e-6 ? max(0.0, $mx - $x) : 0.0;
+            $legal = $running ? round(min($head, $rampUp ?? $head, $hi > 0 ? max(0.0, $hi - $exp) + $head : $head), 3) : 0.0;
+            $st = []; if (in_array($u, $cant, true)) $st[] = 'CANNOT_STOP'; if (isset($req[$u])) $st[] = 'REQUIRED:' . (string)($req[$u]['mode'] ?? ''); if ($fix) $st[] = 'FIXED_LOAD';
+            if (strtolower((string)($lds[strtoupper($u)] ?? '')) === 'running' && $r === 1) $st[] = 'LAST_DATA_RUNNING';
+            $ih = $running ? $incHr($u, $x) : null; $price = in_array($u, ['ge1','ge2','ge3','ge4','g10'], true) ? $pM : ($c === 'GTG' ? $pJ : null);
+            $rec = ['unit' => strtoupper($u), 'class' => $c, 'mw' => round($x, 3), 'min' => round($mn, 3), 'max' => round($mx, 3), 'legal_headroom_mw' => $legal,
+                'priority_rank' => isset($rank[$u]) ? (int)$rank[$u] + 1 : null, 'priority_group' => $grp[$u] ?? null, 'incremental_heat_rate_btu_kwh' => $ih,
+                'incremental_fuel_cost_usd_mwh' => ($ih !== null && $price) ? round($ih * $price / 1000.0, 3) : null,
+                'ramp_allowance_mw' => $rampUp === null ? null : round($rampUp, 3), 'status' => $st, 'earliest_legal_stop_row' => $earliest[$u][$r] ?? null];
+            if ($running || $st) $U8[] = $rec;
+            if ($running && $c === 'GTG') $sumHead += $legal; }
+        $R[] = ['row' => $r, 'time' => $row['Time'] ?? null, 'export_mw' => round($exp, 3), 'export_allowance_up_mw' => $hi > 0 ? round($hi - $exp, 3) : null, 'export_allowance_down_mw' => round($exp - $lo, 3),
+            'reserve_allowance_mw' => round($spin - $resMin, 3), 'busflow_allowance_mw' => round($bus - $busMin, 3), 'units' => $U8];
+        /* C1 / C2 atas GTG dispatchable (bukan MM2100) */
+        $gt = []; foreach ($U8 as $e) if ($e['class'] === 'GTG' && $e['mw'] > 0.01 && !pp_is_mm2100_unit(strtolower($e['unit']))) $gt[strtolower($e['unit'])] = $e;
+        foreach ($gt as $u => $e) { $ru = (int)($rank[$u] ?? 99);
+            $hiHead = []; foreach ($gt as $v => $f) if ((int)($rank[$v] ?? 99) < $ru && $f['legal_headroom_mw'] >= 1.0) $hiHead[strtoupper($v)] = $f['legal_headroom_mw'];
+            if (!$hiHead) continue;
+            $newStart = ($start[$u][$r] ?? null) === $r && $r > 1;
+            if ($e['mw'] > $e['min'] + 1.0 && !$newStart) { $why = [];
+                foreach ($hiHead as $V => $h) { $f = $gt[strtolower($V)]; if ($e['incremental_heat_rate_btu_kwh'] !== null && $f['incremental_heat_rate_btu_kwh'] !== null && $e['incremental_heat_rate_btu_kwh'] < $f['incremental_heat_rate_btu_kwh'])
+                    $why[] = sprintf('EKONOMI: HR inkremental %s %.1f < %s %.1f BTU/kWh', $e['unit'], $e['incremental_heat_rate_btu_kwh'], $V, $f['incremental_heat_rate_btu_kwh']); }
+                if ($e['status']) $why[] = 'STATUS:' . implode('+', $e['status']);
+                $C1[] = ['row' => $r, 'unit' => $e['unit'], 'mw_above_min' => round($e['mw'] - $e['min'], 3), 'higher_priority_headroom' => $hiHead, 'reasons' => $why]; }
+            if ($newStart) {
+                /* beban steady unit yang baru start: MW pertama >= Effective Min dalam interval ini */
+                $ss = $e['mw']; for ($kk = $k; $kk < $n && $mw($kk, $u) > 0.01; $kk++) { $x2 = $mw($kk, $u); if ($x2 >= $e['min'] - 1e-6) { $ss = $x2; break; } }
+                if (array_sum($hiHead) + 1e-6 >= $ss) $C2[] = ['row' => $r, 'unit' => $e['unit'], 'unit_mw' => round($ss, 3), 'higher_priority_headroom' => $hiHead, 'headroom_mw' => round(array_sum($hiHead), 3)]; } }
+    }
+    /* bukti C2: status paksa, bukti per row review (counterfactual DELAY/OFF/SWAP), atau pembanding pool V11 */
+    $rv = (array)($i['V8 Priority Review'] ?? []); $ev = (array)($rv['row_evidence'] ?? []); $c2f = 0;
+    foreach ($C2 as &$x) { $u = strtolower($x['unit']); $why = [];
+        if (empty($el[$u])) $why[] = 'STATUS_PAKSA/TIDAK_ELIGIBLE';
+        foreach ((array)($ev[$x['row'] . '#' . $x['unit']]['reasons'] ?? []) as $w) if (!preg_match('~^(MINIMUM_LOAD|INCUMBENT|PREVIOUS_FINAL|TIME)~i', (string)$w)) $why[] = 'REVIEW:' . $w;
+        $rs = $x['row'] + 0; foreach ((array)($rv['final_candidates'] ?? []) as $c) if (strtoupper((string)($c['unit'] ?? '')) === $x['unit'] && in_array($c['kind'] ?? '', ['DELAY', 'DECOMMIT', 'SWAP'], true) && !empty($c['evaluated'])
+            && (int)($c['off_rows'][0] ?? 99) <= $rs && (int)($c['off_rows'][1] ?? 0) >= $rs) $why[] = sprintf('COUNTERFACTUAL %s: %s%s', $c['id'], !empty($c['valid']) ? 'valid CP ' . $c['cp'] : 'tidak valid ' . implode(',', (array)($c['violations'] ?? [])), isset($c['prescreen']['row']) ? sprintf(' (row %d Export maks %.1f < Range Min %.1f)', $c['prescreen']['row'], $c['prescreen']['export_max_mw'] ?? 0, $c['prescreen']['range_min_mw'] ?? 0) : '');
+        $x['reasons'] = array_values(array_unique($why)); $x['result'] = $why ? 'PASS_WITH_REASON' : 'FAIL'; if (!$why) $c2f++; } unset($x);
+    /* C3 stop pada row legal pertama */
+    $C3 = []; $c3f = 0;
+    foreach ((array)($rv['relevant_intervals'] ?? []) as $iv) { $U = (string)$iv['unit']; $u = strtolower($U); if (empty($el[$u])) continue; [$a, $b] = (array)$iv['rows']; $s0 = $iv['first_legal_stop_row'] ?? null;
+        if ($s0 === null) { $C3[] = ['unit' => $U, 'rows' => [$a, $b], 'first_legal_stop_row' => null, 'result' => 'PASS', 'reason' => 'INTERVAL_BERAKHIR_SEBELUM/PADA_ROW_LEGAL_PERTAMA (' . ($iv['first_legal_stop_basis'] ?? '') . ')']; continue; }
+        $t = null; foreach ((array)($rv['final_candidates'] ?? []) as $c) if (strtoupper((string)($c['unit'] ?? '')) === $U && in_array($c['kind'] ?? '', ['STOP', 'EARLY_STOP', 'TRUNC', 'DECOMMIT'], true) && (int)($c['off_rows'][0] ?? 0) <= (int)$s0 && (int)($c['rows'][0] ?? $a) === (int)$a && !empty($c['evaluated'])) { $t = $c; break; }
+        $ok = $t !== null; if (!$ok) $c3f++;
+        $C3[] = ['unit' => $U, 'rows' => [$a, $b], 'first_legal_stop_row' => $s0, 'tested_candidate' => $t['id'] ?? null, 'result' => $ok ? 'TESTED' : 'FAIL',
+            'outcome' => $t === null ? null : (!empty($t['valid']) ? sprintf('valid CP %.4f (pemenang lebih murah/band)', (float)$t['cp']) : 'tidak valid: ' . implode(',', (array)($t['violations'] ?? [])) . (isset($t['prescreen']['row']) ? sprintf(' (row %d Export maks %.1f < Range Min %.1f)', $t['prescreen']['row'], $t['prescreen']['export_max_mw'] ?? 0, $t['prescreen']['range_min_mw'] ?? 0) : '')),
+            'breakpoint_rows' => $iv['need_rows_export'] ?? null]; }
+    $status = ($c2f || $c3f) ? 'FAIL' : 'PASS';
+    return ['schema' => 'co12-v12-merit-audit-v1', 'status' => $status, 'rows_audited' => $n, 'unit_row_records' => array_sum(array_map(function ($x) { return count($x['units']); }, $R)),
+        'c1_merit_headroom' => ['findings' => count($C1), 'with_reason' => count(array_filter($C1, function ($x) { return (bool)$x['reasons']; })), 'detail' => array_slice($C1, 0, 60)],
+        'c2_start_with_headroom' => ['findings' => count($C2), 'fail' => $c2f, 'detail' => $C2],
+        'c3_first_legal_stop' => ['intervals' => count($C3), 'fail' => $c3f, 'detail' => $C3],
+        'gas_allowance_bbtud' => $gasAllow, 'reserve_min_mw' => $resMin, 'busflow_min_mw' => $busMin, 'export_step_limit_mw' => pp_export_step_limit($m),
+        'rows' => $R,
+        'rule' => 'C2 dan C3 memblokir FINAL bila FAIL; C1 dilaporkan dengan alasan ekonomi (Heat Rate inkremental) / status. Legal headroom = min(Effective Max - MW, allowance ramp) untuk unit berjalan tanpa Fixed Load.'];
+}
+/* V12 HASIL AKHIR SETIAP LOW_LOAD_FRAGMENTATION: RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP (ada sebelum review, hilang pada
+ * FINAL), PASS_WITH_REASON (tetap ada, dengan bukti numerik / status paksa), FAIL (tanpa bukti; memblokir FINAL). */
+function pp_v12_llf_outcome(array $input, array $out): array {
+    $A = (array)($out['info']['V11 Low Load Fragmentation Audit'] ?? []); $rv = (array)($out['info']['V8 Priority Review'] ?? []);
+    $before = (array)($rv['fragmentation_before'] ?? []); $rows = array_values((array)($out['data'] ?? []));
+    $now = []; foreach ((array)($A['findings_detail'] ?? []) as $f) $now[$f['row'] . '#' . $f['unit']] = $f;
+    $O = []; $cnt = ['RESOLVED_BY_CONSOLIDATION' => 0, 'RESOLVED_BY_STOP' => 0, 'PASS_WITH_REASON' => 0, 'FAIL' => 0];
+    foreach ($before as $U => $rs) foreach ((array)$rs as $r) { if (isset($now[$r . '#' . $U])) continue;
+        $off = (float)($rows[$r - 1][pp_v12_unit_col($U)] ?? 0) <= 0.01; $k = $off ? 'RESOLVED_BY_STOP' : 'RESOLVED_BY_CONSOLIDATION'; $cnt[$k]++;
+        $O[] = ['row' => (int)$r, 'unit' => $U, 'outcome' => $k, 'final_mw' => round((float)($rows[$r - 1][pp_v12_unit_col($U)] ?? 0), 3)]; }
+    foreach ($now as $f) { $num = []; foreach ((array)$f['reasons'] as $w) if (preg_match('~\d~', (string)$w) || preg_match('~^STATUS_PAKSA|^LAST_DATA~', (string)$w)) $num[] = $w;
+        $k = $num ? 'PASS_WITH_REASON' : 'FAIL'; $cnt[$k]++;
+        $O[] = ['row' => (int)$f['row'], 'unit' => $f['unit'], 'outcome' => $k, 'final_mw' => $f['unit_mw'], 'numeric_proof' => array_slice($num, 0, 4)]; }
+    usort($O, function ($x, $y) { return [$x['row'], $x['unit']] <=> [$y['row'], $y['unit']]; });
+    return ['schema' => 'co12-v12-llf-outcome-v1', 'status' => $cnt['FAIL'] ? 'FAIL' : ((array_sum($cnt) === 0) ? 'PASS' : 'PASS_WITH_OUTCOMES'), 'counts' => $cnt, 'outcomes' => array_slice($O, 0, 120),
+        'rule' => 'Setiap temuan LOW_LOAD_FRAGMENTATION (sebelum review Unit Priority dan pada FINAL) berakhir sebagai RESOLVED_BY_CONSOLIDATION, RESOLVED_BY_STOP, PASS_WITH_REASON dengan bukti numerik, atau FAIL yang memblokir FINAL. Alasan incumbent / FINAL sebelumnya / minimum load / batas waktu tidak sah.'];
+}
+/* V12 laporan comparator CP (dari V11 Candidate Comparison): CP minimum absolut, CP pemenang, selisih, Heat Rate pemenang,
+ * Heat Rate minimum di dalam band, alasan tie-break. */
+function pp_v12_cp_report(array $out): array {
+    $b = (array)($out['info']['V11 Candidate Comparison'] ?? []); $t = (array)($b['table'] ?? []); $cpF = $out['info']['Cost Production (USD/MWh)'] ?? null; $hrF = $out['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null;
+    if (!$t) return ['schema' => 'co12-v12-cp-report-v1', 'status' => 'TANPA_TABEL_BAND', 'final_cp' => $cpF, 'final_heat_rate' => $hrF,
+        'note' => 'Rute ini tidak membentuk himpunan band (mis. rute bahan bakar / inkremental delta); CP FINAL = CP minimum kandidat yang dievaluasi rute.'];
+    $minRow = null; $hrBand = null; $win = null;
+    foreach ($t as $x) { if ($minRow === null || $x['cp'] < $minRow['cp']) $minRow = $x; if (!empty($x['in_band'])) $hrBand = $hrBand === null ? $x['heat_rate'] : min($hrBand, $x['heat_rate']); if (($x['result'] ?? '') === 'MENANG') $win = $x; }
+    $cpMin = (float)($b['cp_min'] ?? $minRow['cp']); $wcp = $win['cp'] ?? $b['winner_cp'] ?? null;
+    $why = $win === null ? null : (abs((float)$wcp - $cpMin) < 1e-6 ? 'PEMENANG = CP MINIMUM ABSOLUT' . ((int)($b['candidates_in_band'] ?? 1) > 1 ? ' dan Heat Rate terendah di band' : '')
+        : sprintf('TIE-BREAK HEAT RATE: pemenang %.2f BTU/kWh vs CP minimum %s %.2f BTU/kWh; selisih CP %+.4f USD/MWh (%.4f %% <= %s %%)', (float)$win['heat_rate'], $minRow['candidate'], (float)$minRow['heat_rate'], (float)$wcp - $cpMin, 100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), str_replace('.', ',', (string)($b['band_pct'] ?? 0.2))));
+    return ['schema' => 'co12-v12-cp-report-v1', 'status' => 'OK', 'absolute_cp_min' => round($cpMin, 4), 'absolute_cp_min_candidate' => $minRow['candidate'] ?? null,
+        'winner' => $b['winner'] ?? null, 'winner_cp' => $wcp, 'delta_winner_vs_min_usd_mwh' => $wcp === null ? null : round((float)$wcp - $cpMin, 4),
+        'delta_winner_vs_min_pct' => $wcp === null ? null : round(100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), 4), 'band_upper' => $b['band_upper'] ?? null,
+        'winner_heat_rate' => $win['heat_rate'] ?? ($b['winner_heat_rate'] ?? null), 'min_heat_rate_in_band' => $hrBand, 'candidates_valid' => $b['candidates_valid'] ?? null,
+        'candidates_in_band' => $b['candidates_in_band'] ?? null, 'tie_break_reason' => $why, 'final_cp' => $cpF, 'final_heat_rate' => $hrF,
+        'order' => 'hard constraints + provenance PASS -> CP minimum absolut -> band CP <= CP_min x 1,002 -> Heat Rate -> start -> row prioritas rendah -> row fragmentation -> skor prioritas -> kunci kanonik'];
+}
+/* V12 SERTIFIKAT REUSE KANONIK. Setiap pemakaian ulang hasil di V12 berkunci input lengkap (state numerik kanonik + sidik
+ * jari engine): FINAL memo, kolam kandidat-state (pp_cs_key), core run terisolasi (pp_v12_iso_key), tugas samping pembantu.
+ * Alias lama (stop tambahan tidak mengikat) tetap mati. FINAL sebelumnya / jangkar hanya warm start (seed, pustaka), bukan
+ * pembatas ruang kandidat. Sertifikat ini mencatat seluruh dependensi sehingga reuse dapat diperiksa ulang. */
+function pp_v12_reuse_certificate(array $input, array $out): array {
+    $orig = pp_normalize_copy($input); foreach (array_keys((array)$orig['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($orig['data3']['modeling'][$mk]);
+    $i = (array)($out['info'] ?? []); $fp = pp_v10_fingerprints($orig); $rs = (array)($i['Run Status'] ?? []); $ir = (array)($i['Incremental Recompute'] ?? []);
+    $prov = (array)($i['Fuel Provenance'] ?? []); $cs = (array)($i['V10 Candidate Screening'] ?? []); $ex = (array)($i['Exact Candidate Space'] ?? []);
+    $rows = array_values((array)($out['data'] ?? []));
+    $phys = substr(md5(json_encode(array_map(function ($r) { $x = []; foreach ((array)$r as $k => $v) if (preg_match('~^(G\d+|S\d+|GE\d+|BB\d)$~', (string)$k)) $x[$k] = round((float)$v, 4); ksort($x); return $x; }, $rows))), 0, 16);
+    $uni = $cs['universe_signature'] ?? (isset($ex['family_nodes']) ? substr(hash('sha256', json_encode([$ex['family_nodes'] ?? null, $ex['eligible_units'] ?? null, $ex['definition'] ?? null])), 0, 24) : null);
+    $route = (string)($rs['mode'] ?? ($ir['applied'] ?? false ? 'INCREMENTAL' : 'EXACT'));
+    return ['schema' => 'co12-v12-reuse-certificate-v1', 'proof_version' => 'co12-v12-proof-1', 'route' => $route,
+        'numerical_state_signature' => substr(pp_v3_state_hash($orig), 0, 32), 'engine_fingerprint' => $fp['engine'], 'constraint_fingerprint' => $fp['constraints'],
+        'priority_fingerprint' => $fp['priority'], 'fuel_fingerprint' => $fp['fuel'],
+        'provenance_fingerprint' => substr(md5(json_encode([$prov['status'] ?? null, $prov['accounts'] ?? null, $i['MM2100 Gas Provenance']['status'] ?? null])), 0, 16),
+        'dirty_row_dependency_signature' => !empty($ir['applied']) ? substr(md5(json_encode([$ir['base_file'] ?? null, $ir['diff']['dirty_rows'] ?? ($ir['dirty_row_range'] ?? null)])), 0, 16) : 'FULL_HORIZON',
+        'dirty_rows' => $ir['diff']['dirty_rows'] ?? null, 'warm_start_base' => $ir['base_file'] ?? null,
+        'candidate_universe_signature' => $uni, 'physical_dispatch_signature' => $phys, 'gtg_dispatch_signature' => count($rows) === 48 ? pp_v6_gtg_sig($rows) : null,
+        'reuse_rule' => 'reuse hanya bila kunci input lengkap identik (state numerik kanonik + engine); alias stop-tak-mengikat V5 mati; FINAL sebelumnya hanya warm start',
+        'v12_iso_cache_hits' => (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0)];
+}
 /* V11 AUDIT FORMULA CP: seluruh bahan bakar yang dipakai berharga, biaya start-up (gas penalti) tercatat, Heat Rate konsisten. */
 function pp_v11_cp_audit(array $input, array $out): array {
     $i = (array)($out['info'] ?? []); $m = (array)($input['data3']['modeling'] ?? []); $P = (array)($m['price'] ?? []); $iss = [];
@@ -5948,6 +6137,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
         if (!empty($repair['applied'])) { $maxRounds = 1; $cap = 6; $wallCap = max($wallCap, 180.0); $dl = max($dl, $t0 + 180.0); }   // V9: sesudah REPAIR START, batas jumlah (bukan waktu) yang menentukan
         $dl = (pp_v9_canon() && isset($GLOBALS['__pp_async_worker_ceiling'])) ? $t0 + $wallCap : min($dl, $t0 + $wallCap);     // V9 (job asinkron): batas jumlah kandidat yang menentukan; waktu hanya pengaman
         $cp0 = $aW['key']['cp'] ?? null; $applied = []; $all = [];
+        $frag0V12 = pp_v11_on() ? (array)(pp_v11_fragmentation($orig, $out)['unit_rows'] ?? []) : [];
         /* V11: himpunan kandidat valid review (dengan dispatch 48 row) untuk seleksi band CP 0,2 % + tie-break Heat Rate. */
         $poolV11 = [['id' => 'INCUMBENT', 'a' => $aW + ['output' => $out]]];
         if (!empty($repair['applied'])) $applied[] = ['round' => 0, 'candidate' => $repair['winner'], 'cp_before' => null, 'cp_after' => $cp0, 'reason' => 'REPAIR_START_' . implode('_', (array)($repair['deficit_kind'] ?? []))]; $final = null; $rounds = 0; $W = $out; $truncated = false; $nSim = 0; $nPre = 0;
@@ -6164,6 +6354,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
             'history' => array_slice(array_map(function ($x) { unset($x['deficit_rows'], $x['stops']); return $x; }, $all), 0, 80),
             'start_repair' => $repair, 'rescan' => $rescan ?? null, 'carry' => pp_v8_carry($all, $applied), 'row_evidence' => $ev, 'rows_sig' => pp_v6_gtg_sig((array)$W['data']), 'wall_s' => round(microtime(true) - $t0, 3),
             'method' => 'kandidat row-local dari commitment pemenang (SWAP peer prioritas lebih tinggi, TRUNC row legal pertama, DELAY start, OFF); prasaring kapasitas Export (batas atas sah); dispatch 48 row engine + pendaratan window gas; validasi penuh terhadap input asli; pemenang diganti hanya bila valid dan lebih baik (comparator engine)'];
+        if (pp_v11_on()) $W['info']['V8 Priority Review']['fragmentation_before'] = $frag0V12 ?? [];
         if (pp_v11_on()) {
             $W['info']['V11 Consolidation Sweep'] = $sweepV11;
             $W['info']['V11 Candidate Comparison'] = is_array($bandV11) ? ['schema' => 'co12-v11-band-v1', 'rule' => 'kandidat valid (hard constraints + provenance PASS); CP minimum; di dalam band CP <= CP_min x (1 + ' . str_replace('.', ',', (string)($bandV11['band_pct'] ?? 0.2)) . ' %): Heat Rate JBBK+MM2100 lebih rendah, start lebih sedikit, row unit prioritas rendah lebih sedikit, row LOW_LOAD_FRAGMENTATION lebih sedikit, skor Unit Priority, kunci kanonik',
@@ -6254,6 +6445,10 @@ function pp_v6_priority_polish(array $orig, array $a, float $dl, ?callable $eval
             if ($better($A, $a)) { foreach ($ok as $k => $x) $applied[] = $x + ['round' => $rounds]; $a = array_merge($a, ['output' => $A['output'], 'key' => $A['key'], 'checks' => $A['checks'], 'violations' => $A['violations'], 'dev' => $A['dev'], 'gas_only' => $A['gas_only'], 'running' => $A['running'] ?? ($a['running'] ?? [])]); $o = $A['output']; continue; }
             /* 2) satu per satu: alasan per temuan dari counterfactual-nya sendiri */
             $good = []; $bestSingle = null; $bestK = null;
+            /* V12: counterfactual tunggal saling bebas -> diterbitkan ke pembantu (evaluasi beku berkunci input, hasil identik) */
+            if ($evalFn === null && count($ok) > 1 && function_exists('pp_v12_side_publish_fz')) { $pre = [];
+                foreach ($ok as $k => $x) { $r = pp_v6_shift_rows($o['data'], $x, $d3, $m); if ($r !== null) $pre[] = $r; }
+                pp_v12_side_publish_fz($orig, $pre, $dl); }
             foreach ($ok as $k => $x) {
                 if (microtime(true) > $dl - 2.0) break;
                 $r = pp_v6_shift_rows($o['data'], $x, $d3, $m); $A1 = $r === null ? null : $ev($r); $evals++;
@@ -6689,6 +6884,23 @@ function pp_attach_or_reject_acceptance(array $input,array &$output): array {
     if (function_exists('pp_v11_on') && pp_v11_on() && count((array)($output['data'] ?? [])) === 48) {
         try { $output['info']['V11 Low Load Fragmentation Audit'] = pp_v11_frag_audit($input, $output); } catch (Throwable $e) { $output['info']['V11 Low Load Fragmentation Audit'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
         try { $output['info']['V11 CP Audit'] = pp_v11_cp_audit($input, $output); } catch (Throwable $e) { $output['info']['V11 CP Audit'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } }
+    /* V12: audit merit dispatch generik, hasil akhir LOW_LOAD_FRAGMENTATION, laporan comparator CP. FAIL memblokir FINAL. */
+    if (function_exists('pp_v12_on') && pp_v12_on() && count((array)($output['data'] ?? [])) === 48) {
+        try { $output['info']['V12 Dispatch Merit Audit'] = pp_v12_merit_audit($input, $output); } catch (Throwable $e) { $output['info']['V12 Dispatch Merit Audit'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
+        try { $output['info']['V12 Low Load Fragmentation Outcome'] = pp_v12_llf_outcome($input, $output); } catch (Throwable $e) { $output['info']['V12 Low Load Fragmentation Outcome'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
+        try { $output['info']['V12 Reuse Certificate'] = pp_v12_reuse_certificate($input, $output); } catch (Throwable $e) { $output['info']['V12 Reuse Certificate'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
+        try { $output['info']['V12 CP Report'] = pp_v12_cp_report($output); } catch (Throwable $e) { $output['info']['V12 CP Report'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
+        $v12blk = [];
+        if (($output['info']['V12 Low Load Fragmentation Outcome']['status'] ?? '') === 'FAIL') $v12blk[] = 'V12_LOW_LOAD_FRAGMENTATION_TANPA_BUKTI';
+        if (($output['info']['V12 Dispatch Merit Audit']['status'] ?? '') === 'FAIL') $v12blk[] = 'V12_MERIT_DISPATCH_TANPA_BUKTI';
+        /* gerbang hanya pada hasil yang SUDAH melewati review Unit Priority (bukti counterfactual tersedia); pemeriksaan penerimaan
+         * antara (mis. rute cepat sebelum review) dan jalur tanpa review (Change Over) hanya melaporkan. */
+        $rvS = (string)($output['info']['V8 Priority Review']['status'] ?? '');
+        $v12gate = $rvS !== '' && !in_array($rvS, ['SKIPPED', 'ERROR'], true);
+        $output['info']['V12 Dispatch Merit Audit']['gate_applied'] = $v12gate;
+        if ($v12blk && $v12gate && !empty($review['publish_allowed']) && (string)getenv('PP_V12_MERIT_GATE') !== '0') {
+            $review['publish_allowed'] = false; $review['blocking_reasons'] = array_values(array_merge((array)($review['blocking_reasons'] ?? []), $v12blk)); $review['v12_merit_block'] = $v12blk; }
+    }
     try { $output['info']['MM2100 Gas Provenance'] = pp_v8_mm2100_provenance($input, $output); } catch (Throwable $e) { $output['info']['MM2100 Gas Provenance'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
     try { $output['info']['Fuel Provenance'] = pp_v9_fuel_provenance($input, $output); } catch (Throwable $e) { $output['info']['Fuel Provenance'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
     $coLeg = null; try { $coLeg = pp_v5_changeover_legality($input); if ($coLeg !== null) $output['info']['Change Over Legality'] = $coLeg; } catch (Throwable $e) { $coLeg = null; }
@@ -6722,6 +6934,7 @@ function pp_attach_or_reject_acceptance(array $input,array &$output): array {
             $details=['convergence'=>$conv,'acceptance_review'=>$review,
               'incumbent_available_for_review'=>true,'rows'=>count((array)($output['data']??[])),
               'recommended_action'=>'Tinjau hasil ini sebagai pratinjau, lalu jalankan ulang simulasi sampai converged=true sebelum mempublikasikan.'];}
+        elseif(!empty($review['v12_merit_block'])){$code='V12_DISPATCH_MERIT_BELUM_TERBUKTI';$msg='Dispatch belum lolos audit merit V12: '.implode(', ',$review['v12_merit_block']).'. Hasil tidak boleh dipublikasikan.';$details=['v12'=>['merit'=>$output['info']['V12 Dispatch Merit Audit']['status']??null,'llf'=>$output['info']['V12 Low Load Fragmentation Outcome']['status']??null],'acceptance_review'=>$review];}
         else{$code='COST_PRODUCTION_PROOF_FAILED';$msg='Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all eligible candidates actually evaluated.';$details=['acceptance_review'=>$review,'recommended_action'=>'Re-evaluate all eligible candidates with the same clean-validation stage and select the lowest Cost Production identity.'];}
         $output['ok']=false;$output['result']='rejected';$output['error_code']=$code;
         $output['message']=$msg;$output['error_message']=$msg;

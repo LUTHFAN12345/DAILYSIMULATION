@@ -5705,6 +5705,19 @@ function v11AuditExtra(out){
     if(p&&typeof p==='object') L.push('<b>V11 CP Audit</b>: <b>'+E(p.status)+'</b>; CP '+n(p.cost_production,4)+' = Total Cost / Net '+n(p.total_cost_over_net,4)
       +'; Heat Rate JBBK+MM2100 '+n(p.heat_rate_jbbk_mm,2)+' BTU/kWh; akun bahan bakar berharga '+((p.fuel_accounts||[]).filter(a=>a&&a.priced).length)+'/'+((p.fuel_accounts||[]).length)
       +((p.issues||[]).length?'; isu: '+E((p.issues||[]).join(', ')):''));
+    /* V12: comparator CP (minimum absolut vs pemenang), hasil akhir LOW_LOAD_FRAGMENTATION, audit merit dispatch, sertifikat reuse */
+    const r=ii['V12 CP Report'];
+    if(r&&typeof r==='object'&&r.status==='OK') L.push('<b>V12 CP Report</b>: CP minimum absolut '+n(r.absolute_cp_min,4)+' ('+E(r.absolute_cp_min_candidate)+'); CP pemenang '+n(r.winner_cp,4)
+      +' (selisih '+n(r.delta_winner_vs_min_usd_mwh,4)+' USD/MWh = '+n(r.delta_winner_vs_min_pct,4)+' %); Heat Rate pemenang '+n(r.winner_heat_rate,2)+', minimum di band '+n(r.min_heat_rate_in_band,2)+' BTU/kWh; '+E(r.tie_break_reason));
+    const o=ii['V12 Low Load Fragmentation Outcome'];
+    if(o&&typeof o==='object'){ const k=o.counts||{}; L.push('<b>V12 LOW_LOAD_FRAGMENTATION</b>: <b>'+E(o.status)+'</b>; RESOLVED_BY_CONSOLIDATION '+E(k.RESOLVED_BY_CONSOLIDATION)+', RESOLVED_BY_STOP '+E(k.RESOLVED_BY_STOP)
+      +', PASS_WITH_REASON '+E(k.PASS_WITH_REASON)+', FAIL '+E(k.FAIL)); }
+    const d=ii['V12 Dispatch Merit Audit'];
+    if(d&&typeof d==='object'&&d.c2_start_with_headroom) L.push('<b>V12 Dispatch Merit Audit</b>: <b>'+E(d.status)+'</b>; '+E(d.rows_audited)+' row x unit ('+E(d.unit_row_records)+' catatan legal headroom); start dengan headroom unit prioritas tinggi: '
+      +E(d.c2_start_with_headroom.findings)+' (tanpa bukti '+E(d.c2_start_with_headroom.fail)+'); stop row legal pertama: '+E(d.c3_first_legal_stop.intervals)+' interval (belum diuji '+E(d.c3_first_legal_stop.fail)+'); headroom prioritas (C1) '
+      +E(d.c1_merit_headroom.findings)+' temuan, beralasan '+E(d.c1_merit_headroom.with_reason));
+    const q=ii['V12 Reuse Certificate'];
+    if(q&&typeof q==='object'&&q.schema) L.push('<b>V12 Reuse Certificate</b>: rute '+E(q.route)+'; state '+E(q.numerical_state_signature).slice(0,12)+'…; dispatch fisik '+E(q.physical_dispatch_signature)+'; universe '+E(q.candidate_universe_signature)+'; '+E(q.proof_version));
     return L.length?'<br>'+L.join('<br>'):'';
   }catch(e){ return ''; }
 }

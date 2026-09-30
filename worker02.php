@@ -239,11 +239,41 @@ function pp_v12_land_run_one(string $job): bool {
     }
     return false;
 }
+/* Tugas samping evaluasi beku (counterfactual polish / review): daftar terpisah, diganti per terbitan. */
+function pp_v12_side_publish_fz(array $orig, array $bds, float $dl): void {
+    if ((string)getenv('PP_V12_SIDE') === '0' || !$bds || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0 || !function_exists('pp_v12_fz_input')) return;
+    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $dir = pp_job_dir($job); $of = 'v12_fzorig_' . substr(md5(json_encode($orig)), 0, 12) . '.json'; if (!is_file($dir . DIRECTORY_SEPARATOR . $of)) pp_tl_write($dir . DIRECTORY_SEPARATOR . $of, $orig);
+    $list = [];
+    foreach ($bds as $bd) { $k = pp_v12_fz_key(pp_v12_fz_input($orig, $bd)); if ($k === null || is_file(pp_cs_file($k))) continue;
+        $f = 'v12_fzbd_' . $k . '.json'; pp_tl_write($dir . DIRECTORY_SEPARATOR . $f, $bd); $list[] = ['k' => $k, 'f' => $f, 'o' => $of, 'dl' => $dl]; }
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_side_fz.json', ['t' => $list, 'at' => microtime(true)]);
+}
+function pp_v12_side_run_fz(string $job): bool {
+    $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side_fz.json'; if (!is_file($lf)) return false;
+    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t'])) return false;
+    foreach ((array)$cur['t'] as $e) {
+        $k = (string)($e['k'] ?? ''); $dl = (float)($e['dl'] ?? 0); if ($k === '' || microtime(true) > $dl - 2.0 || is_file(pp_cs_file($k))) continue;
+        $h = @fopen(pp_cs_file($k, '.lock'), 'c'); if (!$h) continue;
+        if (!@flock($h, LOCK_EX | LOCK_NB)) { @fclose($h); continue; }
+        if (is_file(pp_cs_file($k))) { pp_cs_release($h); continue; }
+        $orig = pp_tl_read($dir . DIRECTORY_SEPARATOR . basename((string)$e['o'])); $bd = pp_tl_read($dir . DIRECTORY_SEPARATOR . basename((string)$e['f']));
+        if (!is_array($orig) || !is_array($bd)) { pp_cs_release($h); continue; }
+        $in = pp_v12_fz_input($orig, $bd); if (pp_v12_fz_key($in) !== $k) { pp_cs_release($h); continue; }
+        $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+        $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true; $GLOBALS['__ppv12_in_side'] = true;
+        try { pp_v12_fz_compute($orig, $in, $dl, $k, $h); } catch (PpJobAborted $x) { throw $x; } catch (Throwable $x) {}
+        finally { unset($GLOBALS['__ppv12_in_side']); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+        $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
+        return true;
+    }
+    return false;
+}
 /* Satu tugas samping (dipanggil pekerja pembantu). true bila satu core run dikerjakan. */
 function pp_v12_side_run_one(string $job): bool {
     if ((string)getenv('PP_V12_SIDE') === '0' || $job === '') return false;
     $dir = pp_job_dir($job); $cur = @is_file($dir . DIRECTORY_SEPARATOR . 'v12_side.json') ? pp_tl_read($dir . DIRECTORY_SEPARATOR . 'v12_side.json') : null;
-    if (!is_array($cur) || empty($cur['t'])) return false;
+    if (!is_array($cur) || empty($cur['t'])) return pp_v12_side_run_fz($job);
     $posK = (string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'v12_side_pos.json'); $pos = -1;
     foreach ((array)$cur['t'] as $i => $e) if ((string)($e['k'] ?? '') === $posK) { $pos = $i; break; }
     $look = max(1, (int)(getenv('PP_V12_SIDE_LOOK') ?: 3));
@@ -261,7 +291,7 @@ function pp_v12_side_run_one(string $job): bool {
         $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
         return true;
     }
-    return false;
+    return pp_v12_side_run_fz($job);
 }
 function pp_run_simulation_core_inner(array $input): array {
     /* Core run dicatat sebagai fase terberat. Sidik jari diambil dari INPUT saja (belum ada baris
