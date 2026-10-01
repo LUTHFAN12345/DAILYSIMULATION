@@ -5656,12 +5656,16 @@ function pp_v12_fast_check(array $input, array $out): array {
     $why = []; $rows = array_values((array)($out['data'] ?? [])); $i = (array)($out['info'] ?? []);
     if (count($rows) !== 48) return ['ok' => false, 'reasons' => ['BUKAN_48_ROW']];
     $rv = (array)($i['V8 Priority Review'] ?? []); $rvs = strtoupper((string)($rv['status'] ?? $rv['final_status'] ?? ''));
-    if ($rvs === '' || strpos($rvs, 'SKIP') !== false || $rvs === 'ERROR') return ['ok' => false, 'reasons' => ['REVIEW_UNIT_PRIORITY_BELUM_SELESAI']];
+    $coOn = !empty($input['data3']['modeling']['change_over']['enabled']);
+    if (!($coOn && ($rv['reason'] ?? '') === 'CHANGE_OVER_PUNYA_RUANG_KANDIDAT_SENDIRI') && ($rvs === '' || strpos($rvs, 'SKIP') !== false || $rvs === 'ERROR')) return ['ok' => false, 'reasons' => ['REVIEW_UNIT_PRIORITY_BELUM_SELESAI']];
     try { $pv = pp_v9_fuel_provenance($input, $out); if (($pv['status'] ?? '') !== 'PASS') $why[] = 'PROVENANCE_BAHAN_BAKAR_' . ($pv['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'PROVENANCE_ERROR'; }
     try { $pm = pp_v8_mm2100_provenance($input, $out); if (($pm['status'] ?? '') !== 'PASS') $why[] = 'PROVENANCE_MM2100_' . ($pm['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'PROVENANCE_MM2100_ERROR'; }
     $o2 = $out; $co = null;
     try { $o2['info']['V11 Low Load Fragmentation Audit'] = pp_v11_frag_audit($input, $o2); $ll = pp_v12_llf_outcome($input, $o2); if (($ll['status'] ?? '') === 'FAIL') $why[] = 'LOW_LOAD_FRAGMENTATION_UNRESOLVED'; } catch (Throwable $e) { $why[] = 'LLF_ERROR'; }
-    try { $ma = pp_v12_merit_audit($input, $o2); if (($ma['status'] ?? '') !== 'PASS') $why[] = 'MERIT_DISPATCH_' . ($ma['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'MERIT_ERROR'; }
+    try { $ma = pp_v12_merit_audit($input, $o2); if (($ma['status'] ?? '') !== 'PASS') $why[] = 'MERIT_DISPATCH_' . ($ma['status'] ?? '?');
+        if ((int)($ma['c4_cross_group_priority']['fail'] ?? 0) > 0) $why[] = 'C4_LINTAS_GRUP_TANPA_ALASAN'; } catch (Throwable $e) { $why[] = 'MERIT_ERROR'; }
+    $sp = null; try { $sp = pp_v12_stg_proof($input, $out); if ($sp['violations'] > 0) $why[] = 'STG_TIDAK_SESUAI_CALC_STG'; } catch (Throwable $e) { $why[] = 'STG_PROOF_ERROR'; }
+    $hv = (array)($out['simulation_acceptance_review']['hard_validation'] ?? []); if ($hv && ($hv['status'] ?? '') !== 'PASS') $why[] = 'HARD_CONSTRAINTS_' . ($hv['status'] ?? '?');
     $m = (array)($input['data3']['modeling'] ?? []);
     if (!empty($m['change_over']['enabled'])) {
         $tl = (array)($i['Change Over Timeline'] ?? []); $stg = ['1' => 'S1', '2' => 'S2']; $src = null; $tgt = null;
@@ -5672,7 +5676,21 @@ function pp_v12_fast_check(array $input, array $out): array {
         if (empty($tl['executed'])) $why[] = 'CHANGE_OVER_BELUM_EXECUTED';
         if ($ov < 3) $why[] = 'CHANGE_OVER_OVERLAP_STG_KURANG_DARI_3_ROW';
     }
-    return ['ok' => !$why, 'reasons' => $why, 'change_over' => $co, 'stg_recomputed' => 'CORE_RUN_PENUH_48_ROW'];
+    return ['ok' => !$why, 'reasons' => $why, 'change_over' => $co, 'stg_proof' => $sp, 'merit_audit' => isset($ma) ? ($ma['status'] ?? null) : null,
+            'c4' => isset($ma) ? ['findings' => $ma['c4_cross_group_priority']['findings'] ?? null, 'fail' => $ma['c4_cross_group_priority']['fail'] ?? null] : null,
+            'llf' => isset($ll) ? ($ll['status'] ?? null) : null, 'hard_constraints' => $hv['status'] ?? 'PASS_KOLAM'];
+}
+/* V12 bukti STG per row: STG keluaran = calc_stg engine atas GTG blok pemasok uap (load >= min_ccload); STG <= calc hanya pada
+ * penahanan start-up STG (Cold/Warm/Hot). */
+function pp_v12_stg_proof(array $input, array $out): array {
+    $d3 = (array)(pp_normalize_copy($input)['data3'] ?? []); if (function_exists('pp_stg_migrate_3segment')) pp_stg_migrate_3segment($d3);
+    $n = 0; $eq = 0; $held = 0; $bad = [];
+    foreach (array_values((array)($out['data'] ?? [])) as $k => $r) foreach (['s1', 's2', 's3'] as $s) { if (!isset($d3[$s])) continue;
+        $feed = []; foreach ((array)($d3[$s]['hrsg'] ?? []) as $h => $g) { $ld = (float)($r[strtoupper($g)] ?? 0); $mcc = $d3[$g]['min_ccload'] ?? null;
+            if ($mcc !== null && $ld > 0 && $ld < $mcc - 1e-6) continue; if ($ld > 0) $feed[$g] = $ld; }
+        $exp = $feed ? round(calc_stg($d3, $s, $feed), 2) : 0.0; $got = round((float)($r[strtoupper($s)] ?? 0), 2); $n++;
+        if (abs($exp - $got) <= 0.011) $eq++; elseif ($got < $exp + 0.011) $held++; elseif (count($bad) < 5) $bad[] = sprintf('row %d %s %.2f > calc %.2f', $k + 1, strtoupper($s), $got, $exp); else $bad[] = 1; }
+    return ['rows_x_stg' => $n, 'equal_calc' => $eq, 'startup_hold' => $held, 'violations' => count($bad), 'examples' => array_slice(array_filter($bad, 'is_string'), 0, 5)];
 }
 /* V12 laporan comparator CP (dari V11 Candidate Comparison): CP minimum absolut, CP pemenang, selisih, Heat Rate pemenang,
  * Heat Rate minimum di dalam band, alasan tie-break. */
@@ -7465,6 +7483,44 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
     exit;
 }
 /* TARGET SELESAI — kandidat valid terbaik saat ini (GET, ringan, tidak menyentuh engine). */
+/* V12 FASTEST - DEFAULT: finalisasi kandidat VALID PERTAMA kolam job ini dengan langkah merit yang SAMA dengan pipeline
+ * (review Unit Priority V8 + polish lanjutan, audit penerimaan: hard constraints kanonik, provenance, audit merit C1-C4, LLF),
+ * lalu gerbang fully valid (pp_v12_fast_check + bukti STG per row). Tidak mencari CP minimum global; hasil di-cache per
+ * tanda tangan dispatch kandidat. Maximum Review tidak memakai jalur ini. */
+if (($_GET['mode'] ?? '') === 'fast_finalize') {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    header('Content-Type: application/json; charset=utf-8'); @set_time_limit(180);
+    $jidF = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['job'] ?? ''));
+    $inF = $jidF !== '' ? json_decode((string)@file_get_contents(pp_job_dir($jidF) . '/input.json'), true) : null;
+    if (!is_array($inF)) { http_response_code(404); echo json_encode(['ok' => false, 'error' => 'JOB_TIDAK_DITEMUKAN']); exit; }
+    $kF = pp_tl_key($inF); $bestF = null;
+    foreach (['_x', '_q'] as $sd) { $b = pp_tl_read(pp_tl_file($kF . $sd . '_best.json')); if (is_array($b['output']['data'] ?? null) && count($b['output']['data']) === 48) { $bestF = $b; break; } }
+    if ($bestF === null) { echo json_encode(['ok' => false, 'error' => 'BELUM_ADA_KANDIDAT_VALID']); exit; }
+    $sgF = pp_v6_gtg_sig((array)$bestF['output']['data']); $cF = pp_tl_file($kF . '_ffin_' . substr(md5($sgF), 0, 16) . '.json');
+    $lkF = @fopen($cF . '.lock', 'c'); if ($lkF) @flock($lkF, LOCK_EX);
+    $res = pp_tl_read($cF); $t0F = microtime(true);
+    if (!is_array($res)) {
+        try {
+            $oF = pp_v8_priority_review($inF, (array)$bestF['output'], microtime(true) + 60.0); pp_tl_clean_globals();
+            pp_attach_or_reject_acceptance($inF, $oF); pp_tl_clean_globals();
+            $fcF = pp_v12_fast_check(pp_normalize_copy($inF), $oF);
+            $res = ['ok' => true, 'fast' => $fcF, 'candidate_sig' => $sgF, 'source' => $bestF['meta']['source'] ?? null, 'finalize_s' => round(microtime(true) - $t0F, 3), 'output' => $oF];
+        } catch (Throwable $e) { $res = ['ok' => false, 'error' => 'FINALISASI_GAGAL: ' . $e->getMessage(), 'candidate_sig' => $sgF]; }
+        pp_tl_write($cF, $res);
+    }
+    if ($lkF) { @flock($lkF, LOCK_UN); fclose($lkF); }
+    if (!empty($res['fast']['ok'])) { $o = (array)$res['output'];
+        $o['time_limited'] = true; $o['status'] = 'FASTEST_VALID_PLAN'; $o['result_label'] = 'FASTEST VALID PLAN'; $o['global_optimum_proven'] = false; $o['ok'] = true;
+        $o['preliminary'] = true; $o['final_result_visible'] = true; $o['save_allowed'] = false; $o['publish_allowed'] = false;
+        $o['release_gate'] = ['release_allowed' => false, 'status' => 'FASTEST_FIRST_FULLY_VALID', 'hard_validation' => 'PASS', 'economic_review' => 'NOT_PROVEN', 'convergence' => 'FASTEST',
+            'blocking_reasons' => ['FASTEST_NOT_PROVEN_GLOBAL_OPTIMUM'], 'note' => 'Kandidat fully valid pertama (hard constraints, provenance, merit C1-C4, STG, LOW_LOAD_FRAGMENTATION). Bukan CP minimum global; pilih Maximum Review untuk hasil final.'];
+        $o['info']['Result Status'] = 'FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO)';
+        $o['info']['V12 Fastest Check'] = $res['fast'] + ['finalize_s' => $res['finalize_s'] ?? null, 'candidate_source' => $res['source'] ?? null];
+        $res['output'] = $o; }
+    else unset($res['output']);
+    try { $cntF = pp_v11_cnt_read($kF, $jidF, !empty($res['fast']['ok']) ? [$sgF] : []); $res['counters'] = $cntF; } catch (Throwable $e) {}
+    echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR); exit;
+}
 if (in_array(($_GET['mode'] ?? ''), ['tl_best', 'tl_stop', 'tl_pool'], true)) {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8');
