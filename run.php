@@ -1086,6 +1086,7 @@ function pp_job_worker_main(string $id): int {
             pp_job_update($id, function (array $j): array {
                 $j['result_available'] = false; $j['finished_at'] = date('c');
                 if (!empty($j['cancel_requested'])) { $j['status'] = 'CANCELLED'; $j['current_step'] = 'DIHENTIKAN_TARGET_SELESAI'; }
+                elseif (!empty($j['fastest_claimed'])) { $j['current_step'] = 'FASTEST_FINALISASI'; }   // V12: dibatalkan oleh pengklaim Fastest setelah rilis
                 else { $j['status'] = 'QUEUED'; $j['current_step'] = 'ANTRE'; $j['claim_id'] = null; }
                 return $j; });
             return 0;
@@ -1392,7 +1393,48 @@ function pp_tl_pool_offer(string $key, array $a, string $source, string $owner):
         else $better = false;
     }
     if ($lk) { @flock($lk, LOCK_UN); fclose($lk); }
+    if ($better && $owner !== '' && function_exists('pp_v12_fast_release_try')) pp_v12_fast_release_try($owner, $a);
     return $better;
+}
+/* V12 FASTEST_RELEASE_READY: pada job Fastest, proses yang menawarkan kandidat valid PERTAMA ke kolam mengklaimnya (berkas
+ * klaim eksklusif), meminta job exact + pembantu berhenti, lalu langsung membawa bukti merit bersama kandidat: review Unit
+ * Priority V8 (+ polish lanjutan) dan audit penerimaan (hard constraints kanonik, provenance, merit C1-C4, LLF) serta gerbang
+ * fully valid (bukti STG per row, Change Over). Hasil ditulis ke v12_fast_ready.json; UI hanya membacanya (tanpa finalisasi
+ * kedua, tanpa menunggu exact). Global engine proses ini disimpan dan dipulihkan persis. */
+function pp_v12_fast_release_try(string $job, array $a): void {
+    static $busy = false; if ($busy) return;
+    $dir = pp_job_dir($job); if (!is_file($dir . DIRECTORY_SEPARATOR . 'v12_fast.flag')) return;
+    $cl = @fopen($dir . DIRECTORY_SEPARATOR . 'v12_fast.claim', 'x'); if (!$cl) return; fwrite($cl, (string)getmypid()); fclose($cl);
+    $busy = true; $t0 = microtime(true);
+    $pid = (int)getmypid(); pp_job_update($job, function (array $x) use ($pid): array { $x['fastest_claimed'] = true; $x['fastest_claim_pid'] = $pid; return $x; });
+    $isEng = function ($gk): bool { return is_string($gk) && (strpos($gk, '__') === 0 || in_array($gk, ['ppV6StgLife', 'ppV10Inc', 'ppExactTrack', 'ppFamilyBusy', 'ppV10ReviewFast', 'ppV10ReviewRound', 'ppTlHook', 'ppV12RvT'], true)); };
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if ($isEng($gk)) $saved[$gk] = $gv;
+    $res = null;
+    try {
+        foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && $gk !== '__pp_budget_deadline') unset($GLOBALS[$gk]);   // tanpa hook abort
+        $GLOBALS['__pp_v8_job'] = $job;                                                                                  // kandidat review dikerjakan paralel oleh pembantu job
+        $inF = json_decode((string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'input.json'), true);
+        $oF = pp_v8_priority_review($inF, (array)$a['output'], microtime(true) + 90.0); pp_tl_clean_globals();
+        pp_attach_or_reject_acceptance($inF, $oF); pp_tl_clean_globals();
+        $fc = pp_v12_fast_check(pp_normalize_copy($inF), $oF);
+        $res = ['ok' => !empty($fc['ok']), 'FASTEST_RELEASE_READY' => !empty($fc['ok']), 'fast' => $fc, 'finalize_s' => round(microtime(true) - $t0, 3), 'claimed_at' => $t0, 'candidate_sig' => pp_v6_gtg_sig((array)($oF['data'] ?? $a['output']['data']))];
+        if (!empty($fc['ok'])) { $o = $oF;
+            $o['time_limited'] = true; $o['status'] = 'FASTEST_VALID_PLAN'; $o['result_label'] = 'FASTEST VALID PLAN'; $o['global_optimum_proven'] = false; $o['ok'] = true;
+            $o['preliminary'] = true; $o['final_result_visible'] = true; $o['save_allowed'] = false; $o['publish_allowed'] = false;
+            $o['release_gate'] = ['release_allowed' => false, 'status' => 'FASTEST_FIRST_FULLY_VALID', 'hard_validation' => 'PASS', 'economic_review' => 'NOT_PROVEN', 'convergence' => 'FASTEST',
+                'blocking_reasons' => ['FASTEST_NOT_PROVEN_GLOBAL_OPTIMUM'], 'note' => 'Kandidat fully valid pertama (hard constraints, provenance, merit C1-C4, STG, LOW_LOAD_FRAGMENTATION). Bukan CP minimum global; pilih Maximum Review untuk hasil final.'];
+            $o['info']['Result Status'] = 'FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO)';
+            $o['info']['V12 Fastest Check'] = $fc + ['finalize_s' => $res['finalize_s'], 'FASTEST_RELEASE_READY' => true];
+            $res['output'] = $o; }
+    } catch (Throwable $e) { $res = ['ok' => false, 'FASTEST_RELEASE_READY' => false, 'error' => 'FINALISASI_GAGAL: ' . $e->getMessage(), 'finalize_s' => round(microtime(true) - $t0, 3)]; }
+    finally {
+        foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && !array_key_exists($gk, $saved)) unset($GLOBALS[$gk]);
+        foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; $busy = false;
+    }
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_fast_ready.json', $res);
+    pp_job_update($job, function (array $x): array { $x['cancel_requested'] = true; $x['cancel_abort'] = true;
+        if (in_array((string)($x['status'] ?? ''), ['QUEUED', 'CLAIMED', 'RUNNING'], true)) { $x['status'] = 'CANCELLED'; $x['current_step'] = 'FASTEST_DIRILIS'; $x['finished_at'] = date('c'); }
+        return $x; });
 }
 /* Pengamat job exact: dipanggil setiap core run (lihat pp_run_simulation_core). Hanya MENCATAT —
  * tidak ada nilai engine yang dibaca balik, sehingga hasil exact tidak berubah sedikit pun. */
@@ -1424,6 +1466,11 @@ function pp_tl_abort_poll(): void {
     if (is_array($j) && !empty($j['cancel_requested']) && !empty($j['cancel_abort'])) {
         $GLOBALS['ppTlHook']['aborted'] = true;            // hasil apa pun sesudah ini tidak sah
         throw new PpJobAborted('DIHENTIKAN_TARGET_SELESAI');
+    }
+    /* V12 Fastest: kandidat valid pertama sudah diklaim proses lain -> pemilik job exact berhenti (pembantu tetap hidup untuk
+     * mengerjakan tugas review kandidat itu secara paralel; seluruh job dibatalkan begitu rilis Fastest ditulis). */
+    if (is_array($j) && !empty($j['fastest_claimed']) && empty($h['helper']) && (int)($j['fastest_claim_pid'] ?? 0) !== (int)getmypid()) {
+        $GLOBALS['ppTlHook']['aborted'] = true; throw new PpJobAborted('FASTEST_DIRILIS');
     }
     /* V4: pekerja pembantu berhenti begitu job pemiliknya selesai/dibatalkan (tidak menghabiskan CPU
      * untuk candidate-state yang tidak lagi dibutuhkan). */
@@ -1740,6 +1787,10 @@ function pp_v3_handoff_respond(array $input, $rid, $rev, array $autosave, array 
     $jF = (array)$stF['job'];
     /* V12: job Target Selesai — satu pembantu tetap pada spekulasi keluarga (kandidat valid pertama secepat V11). */
     if (!empty($_GET['tl'])) @touch(pp_job_dir((string)$jF['job_id']) . DIRECTORY_SEPARATOR . 'v12_tl.flag');
+    /* V12 Fastest - Default: job ditandai; kandidat valid pertama yang masuk kolam langsung difinalisasi oleh proses yang
+     * menemukannya (FASTEST_RELEASE_READY). Run lain untuk state yang sama (Maximum Review) melepas tanda ini. */
+    $ffF = pp_job_dir((string)$jF['job_id']) . DIRECTORY_SEPARATOR . 'v12_fast.flag';
+    if (!empty($_GET['fast'])) { @touch($ffF); @touch(pp_job_dir((string)$jF['job_id']) . DIRECTORY_SEPARATOR . 'v12_tl.flag'); } else @unlink($ffF);
     $asyncF = ['required' => true, 'kind' => 'economic_review', 'reason' => 'Satu pemilik perhitungan per state (V3).',
         'ok' => true, 'job_id' => $jF['job_id'], 'exec_token' => $jF['exec_token'] ?? null,
         'status' => $jF['status'] ?? null, 'reused' => (bool)($stF['reused'] ?? false),
@@ -7487,6 +7538,16 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
  * (review Unit Priority V8 + polish lanjutan, audit penerimaan: hard constraints kanonik, provenance, audit merit C1-C4, LLF),
  * lalu gerbang fully valid (pp_v12_fast_check + bukti STG per row). Tidak mencari CP minimum global; hasil di-cache per
  * tanda tangan dispatch kandidat. Maximum Review tidak memakai jalur ini. */
+if (($_GET['mode'] ?? '') === 'fast_ready') {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
+    $jidR = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['job'] ?? '')); $dR = pp_job_dir($jidR); $jR = $jidR !== '' ? pp_job_read($jidR) : null;
+    $rR = pp_tl_read($dR . DIRECTORY_SEPARATOR . 'v12_fast_ready.json');
+    $outR = ['ok' => true, 'job_status' => (string)($jR['status'] ?? ''), 'result_available' => !empty($jR['result_available']), 'claimed' => is_file($dR . DIRECTORY_SEPARATOR . 'v12_fast.claim'), 'ready' => is_array($rR)];
+    if (is_array($rR)) { $outR += $rR; if (!empty($rR['ok'])) { $inR = json_decode((string)@file_get_contents($dR . DIRECTORY_SEPARATOR . 'input.json'), true);
+        try { $outR['counters'] = pp_v11_cnt_read(pp_tl_key((array)$inR), $jidR, [(string)($rR['candidate_sig'] ?? '')]); } catch (Throwable $e) {} } }
+    echo json_encode($outR, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR); exit;
+}
 if (($_GET['mode'] ?? '') === 'fast_finalize') {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8'); @set_time_limit(180);
