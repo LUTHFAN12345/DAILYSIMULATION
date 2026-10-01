@@ -1,0 +1,26 @@
+BASE_PGN30 {"wall":41.59,"mode":"EXACT","status":null,"final":true,"cp":64.6644}
+   V9 APPLIED None 64.6658 -> 64.6644 ['V11_BAND_HEAT_RATE:V11_SUSUN:SWAP:G5>G2:26-37'] wall 12.819 sim 3 pre 4 rounds 1 | HPA PASS_WITH_REASON 0
+WB09 {"wall":26.14,"mode":"EXACT","status":null,"final":true,"cp":64.3644}
+   V9 APPLIED None 64.5788 -> 64.3644 ['SWAP:G2>G5:26-37', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] wall 5.677 sim 6 pre 6 rounds 3 | HPA PASS_WITH_REASON 0
+WB09_KP72 {"wall":26.54,"mode":"EXACT","status":null,"final":true,"cp":64.1989}
+   V9 APPLIED None 64.4083 -> 64.1989 ['SWAP:G2>G5:26-37', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] wall 5.761 sim 6 pre 6 rounds 3 | HPA PASS_WITH_REASON 0
+BASE_ACT10 {"wall":90.28,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   V9 APPLIED None 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] wall 1.803 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+ACT_PGN_UP {"wall":88.67,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6801}
+   V9 APPLIED None 64.6801 -> 64.6801 ['DELAY:G5:26-37:@27', 'SWAP:G5>G2:27-38', 'V11_BAND_HEAT_RATE:INCUMBENT'] wall 1.899 sim 4 pre 3 rounds 2 | HPA PASS_WITH_REASON 0
+ACT_PGN_DOWN {"wall":88.68,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.5676}
+   V9 APPLIED None 64.575 -> 64.5676 ['SWAP:G2>G5:26-37'] wall 1.969 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+ACT_FFJ_UP {"wall":90.62,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6309}
+   V9 APPLIED None 64.644 -> 64.6309 ['SWAP:G2>G5:26-37', 'POLISH_UNIT_PRIORITY_LANJUTAN'] wall 2.654 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+ACT_FFM_DOWN {"wall":88.28,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   V9 APPLIED None 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] wall 2.372 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+KP72_DOWN {"wall":87.15,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   V9 APPLIED None 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] wall 1.685 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+ACT_PGN_2SLOT_C {"wall":84.83,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6987}
+   V9 APPLIED None 64.7119 -> 64.6987 ['SWAP:G2>G5:26-37'] wall 1.214 sim 5 pre 5 rounds 2 | HPA PASS_WITH_REASON 0
+QA_pgn_pipe_1 {"wall":46.46,"mode":"INCREMENTAL","status":null,"final":true,"cp":63.8609}
+   V9 DELTA_REVIEW_BASIS None 63.8609 -> 63.8609 [] wall 0.088 sim 0 pre 0 rounds 0 | HPA PASS_WITH_REASON 0
+QA_pep_-1 {"wall":1.08,"mode":"DELTA_CERTIFICATE","status":"USER_ACTION_REQUIRED","final":false,"cp":65.6235}
+   V9 SKIPPED PEMENANG_BELUM_VALID None -> None [] wall None sim None pre None rounds None | HPA REVIEW_MINOR 8
+WB09_3 {"wall":24.5,"mode":"EXACT","status":null,"final":true,"cp":63.4469}
+   V9 APPLIED None 63.7144 -> 63.4469 ['STOP:G5:26-48:@38', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] wall 7.526 sim 6 pre 6 rounds 3 | HPA PASS_WITH_REASON 0

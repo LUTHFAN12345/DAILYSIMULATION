@@ -1,0 +1,22 @@
+# V11 targeted: reproducer WB09_3, audit V11, band CP 0,2 % + Heat Rate, counter kanonik
+
+PASS 16 / 16
+
+| id | hasil | bukti |
+|---|---|---|
+| R01 WB09_3 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang | PASS | mode EXACT, CP 63.4469 (ref 63.4469), HR 8109.13 (ref 8109.13), 25.5 s CLI, audit hilang [] |
+| R02 WB09_3 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS | PASS | CP audit PASS [], akun 4 (tanpa harga 0), fuel PASS, MM2100 PASS |
+| R03 WB09_3 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang | PASS | CP_min 63.4469 (bukti 63.4469, 12 kandidat), band s.d. 63.5738, FINAL 63.4469, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8109.13, HR terendah band 8109.13, di band 5 |
+| R04 WB09_3 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid | PASS | {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":14,"screened_also_full_run_excluded":1,"best_candidate":"FINAL","best_candidate_in_valid":true,"constraints_pass":true,"cost_production":63.4469,"invariants":{"best_implies_valid_ge_1":true,"valid_le_checked":true}} |
+| R05 WB09_3 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja) | PASS | PASS_WITH_REASON, row 5, temuan 10, tanpa alasan 0, unit_rows {"G1":[33,34,35,37,38],"G5":[33,34,35,37,38]}, kandidat konsolidasi {"generated":5,"screened_tier1":4,"full_run":1,"valid":1} |
+| R06 WB09_3 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai | PASS | HPA PASS_WITH_REASON/0 row 48, review APPLIED (63.7144 -> 63.4469) |
+| R01 WB09 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang | PASS | mode EXACT, CP 64.3644 (ref 64.3644), HR 8319.17, 25.9 s CLI, audit hilang [] |
+| R02 WB09 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS | PASS | CP audit PASS [], akun 3 (tanpa harga 0), fuel PASS, MM2100 PASS |
+| R03 WB09 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang | PASS | CP_min 64.3644 (bukti 64.3644, 12 kandidat), band s.d. 64.4931, FINAL 64.3644, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8319.17, HR terendah band 8319.17, di band 6 |
+| R04 WB09 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid | PASS | {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":11,"screened_also_full_run_excluded":1,"best_candidate":"FINAL","best_candidate_in_valid":true,"constraints_pass":true,"cost_production":64.3644,"invariants":{"best_implies_valid_ge_1":true,"valid_le_checked":true}} |
+| R05 WB09 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja) | PASS | PASS_WITH_REASON, row 9, temuan 18, tanpa alasan 0, unit_rows {"G1":[10,11,32,33,34,35,36,37,38],"G9":[10,11],"G5":[32,33,34,35,36,37,38]}, kandidat konsolidasi {"generated":5,"screened_tier1":4,"full_run":1,"valid":1} |
+| R06 WB09 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai | PASS | HPA PASS_WITH_REASON/0 row 48, review APPLIED (64.5788 -> 64.3644) |
+| R07 logika konsolidasi / fragmentation generik (tanpa hardcode G5/G1/unit tertentu) | PASS | panjang badan 17380 byte |
+| R08 unit prioritas rendah yang di-start diuji stop dan berhenti pada row legal pertama setelah minimum runtime | PASS | G5 start 27 stop row 39 (legal pertama 39) |
+| R09 WB09_3 determinisme (akar baru kedua): dispatch 48 row, CP, Heat Rate, pemenang band identik | PASS | md5 49da493b56 / 49da493b56, CP 63.4469 / 63.4469 |
+| R10 PP_V11=0: engine tetap FINAL valid (audit V11 tidak dilampirkan), V11 aktif tidak lebih mahal di luar band | PASS | V11 off CP 63.4469 HR 8109.13 / V11 on CP 63.4469 HR 8109.13 |

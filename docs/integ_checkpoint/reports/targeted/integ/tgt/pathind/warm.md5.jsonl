@@ -1,0 +1,4 @@
+{"sc":"ACT_PGN_UP","md5":"bf94dc3fe3","cp":64.6801,"wall":0,"mode":"INCREMENTAL","final":true,"v9":"APPLIED","inc":"INC","base":"8f81c3736a529d97166f277b598caca3.json"}
+{"sc":"QA_pep_-1","md5":"f038709283","cp":65.6235,"wall":0,"mode":"DELTA_CERTIFICATE","final":false,"v9":"SKIPPED","inc":null,"base":null}
+{"sc":"WB09","md5":"550095db8c","cp":64.3644,"wall":0,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}
+{"sc":"WB09_3","md5":"2b5270f108","cp":63.4469,"wall":0,"mode":"EXACT","final":true,"v9":"APPLIED","inc":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","base":null}

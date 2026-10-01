@@ -1,0 +1,2104 @@
+[
+ {
+  "id": "M01_HEADROOM_BASE",
+  "state": "BASE_PGN30",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G2",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G2",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G2": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   },
+   "G9": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 504.38,
+   "G2": 0.0,
+   "G5": 110.0,
+   "G8": 2070.59,
+   "G9": 2070.59,
+   "S2": 380.13,
+   "S3": 2516.72,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 505.13,
+   "G2": 110.0,
+   "G5": 0.0,
+   "G8": 2072.86,
+   "G9": 2069.01,
+   "S2": 380.46,
+   "S3": 2516.96,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.75,
+   "3": 0.69
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.33,
+   "3": 0.24
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": 1.08,
+   "3": 0.93
+  },
+  "cp_before_redistribution": 64.6658,
+  "stg_recalculation": {
+   "rows_gtg_changed": 30,
+   "rows_stg_recalculated": 18,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 5.0, 0.0) STG tetap 11.13",
+    "row 27 blok 2 GTG (20.0, 0.0, 15.0)->(20.0, 15.0, 0.0) STG tetap 11.13",
+    "row 28 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 29 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 30 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 31 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56"
+   ],
+   "violations": 12
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": null,
+    "interval_review": [
+     26,
+     37
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 33.43,
+     "G9": 33.43,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:26-37:@27 valid CP 64.7173; DELAY:G5:26-37:@28 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 38,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 0,
+   "RESOLVED_BY_STOP": 10,
+   "PASS_WITH_REASON": 34,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.6644,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G5>G2:26-37",
+  "winner_cp": 64.6644,
+  "winner_heat_rate": 8386.61,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 47,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 46,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M02_NEAR_MIN_WB09_3",
+  "state": "WB09_3",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 29,
+    "mw": 31,
+    "max": 31,
+    "legal_headroom_mw": 0
+   },
+   "G5": {
+    "row": 29,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 544.5,
+   "G5": 220.0,
+   "G8": 2333.61,
+   "G9": 2333.61,
+   "S2": 495.9,
+   "S3": 2712.33,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 541.23,
+   "G5": 110.0,
+   "G8": 2435.56,
+   "G9": 2435.56,
+   "S2": 384.04,
+   "S3": 2788.2,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -113.27,
+   "3": 203.9
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -111.86,
+   "3": 75.87
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -225.13,
+   "3": 279.77
+  },
+  "cp_before_redistribution": 63.7197,
+  "stg_recalculation": {
+   "rows_gtg_changed": 53,
+   "rows_stg_recalculated": 51,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 0.0, 0.0) STG tetap 11.13",
+    "row 27 blok 2 GTG (25.5, 0.0, 15.0)->(25.5, 0.0, 5.0) STG tetap 13.58"
+   ],
+   "violations": 2
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": 27,
+    "interval_review": [
+     27,
+     38
+    ],
+    "start_reason": [
+     "DECOMMIT:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW)",
+     "DELAY:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW)",
+     "SWAP:KEHILANGAN_UAP_COMBINED_CYCLE(G5 memasok S2 yang running; blok G3 (S1) mati sepanjang interval, G3 prioritas lebih rendah)"
+    ],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {
+     "G1": 5.5,
+     "G8": 0,
+     "G9": 0,
+     "S3": 0,
+     "B1": 0,
+     "B2": 0
+    },
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 12.72,
+     "G9": 12.72,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:27-38:@29 tidak valid: EXPORT; DELAY:G5:27-38:@28 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": 38,
+    "first_legal_stop_row": 39,
+    "actual_stop_row": 39,
+    "last_running_row": 38,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 12,
+   "RESOLVED_BY_STOP": 10,
+   "PASS_WITH_REASON": 10,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 63.4469,
+  "absolute_cp_min_candidate": "POLISH_UNIT_PRIORITY_LANJUTAN",
+  "winner_cp": 63.4469,
+  "winner_heat_rate": 8109.13,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 46,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 45,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M03_CONSOLIDATION_WB09",
+  "state": "WB09",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 29,
+    "mw": 29,
+    "max": 31,
+    "legal_headroom_mw": 2
+   },
+   "G5": {
+    "row": 29,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 505.49,
+   "G2": 220.0,
+   "G5": 0.0,
+   "G8": 2110.11,
+   "G9": 2094.99,
+   "S2": 492.99,
+   "S3": 2540.5,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 524.75,
+   "G2": 0.0,
+   "G5": 110.0,
+   "G8": 2189.28,
+   "G9": 2189.28,
+   "S2": 382.02,
+   "S3": 2604.99,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -90.74,
+   "3": 173.46
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -110.97,
+   "3": 64.49
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -201.71,
+   "3": 237.95
+  },
+  "cp_before_redistribution": 64.5788,
+  "stg_recalculation": {
+   "rows_gtg_changed": 70,
+   "rows_stg_recalculated": 62,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 5.0, 0.0)->(20.0, 0.0, 0.0) STG tetap 11.13",
+    "row 32 blok 2 GTG (20.0, 20.0, 0.0)->(20.0, 0.0, 20.0) STG tetap 31.56",
+    "row 33 blok 2 GTG (20.0, 20.0, 0.0)->(20.0, 0.0, 20.0) STG tetap 31.56",
+    "row 34 blok 2 GTG (20.0, 20.0, 0.0)->(20.0, 0.0, 20.0) STG tetap 31.56",
+    "row 35 blok 2 GTG (20.0, 20.0, 0.0)->(20.0, 0.0, 20.0) STG tetap 31.56",
+    "row 36 blok 2 GTG (20.0, 20.0, 0.0)->(20.0, 0.0, 20.0) STG tetap 31.56"
+   ],
+   "violations": 8
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": 27,
+    "interval_review": [
+     27,
+     38
+    ],
+    "start_reason": [
+     "DECOMMIT:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW)",
+     "DELAY:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW)",
+     "SWAP:KEHILANGAN_UAP_COMBINED_CYCLE(G5 memasok S2 yang running; blok G3 (S1) mati sepanjang interval, G3 prioritas lebih rendah)"
+    ],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {
+     "G1": 5.5,
+     "G8": 0,
+     "G9": 0,
+     "S3": 0,
+     "B1": 0,
+     "B2": 0
+    },
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 27.14,
+     "G9": 27.14,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:27-38:@29 tidak valid: EXPORT; DELAY:G5:27-38:@28 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": 38,
+    "first_legal_stop_row": 39,
+    "actual_stop_row": 39,
+    "last_running_row": 38,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 24,
+   "RESOLVED_BY_STOP": 21,
+   "PASS_WITH_REASON": 18,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.3644,
+  "absolute_cp_min_candidate": "POLISH_UNIT_PRIORITY_LANJUTAN",
+  "winner_cp": 64.3644,
+  "winner_heat_rate": 8319.17,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 0,
+   "STATUS_PAKSA": 0,
+   "AKUN_MM2100_TERPAKAI_PENUH": 0,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 0.0,
+    "used_bbtud": 0.0
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M04_MIN_RUNTIME_STOP",
+  "state": "Q_pep_kp72_1",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G2",
+   "S2",
+   "GE1",
+   "GE2"
+  ],
+  "running_units": [
+   "G1",
+   "G2",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "GE2",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G2": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   },
+   "G9": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 504.38,
+   "G2": 0.0,
+   "G5": 110.0,
+   "G8": 2070.59,
+   "G9": 2070.59,
+   "S2": 380.13,
+   "S3": 2516.72,
+   "GE1": 300.0,
+   "GE2": 114.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 505.13,
+   "G2": 110.0,
+   "G5": 0.0,
+   "G8": 2072.86,
+   "G9": 2069.01,
+   "S2": 380.46,
+   "S3": 2516.96,
+   "GE1": 300.0,
+   "GE2": 114.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.75,
+   "3": 0.69
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.33,
+   "3": 0.24
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": 1.08,
+   "3": 0.93
+  },
+  "cp_before_redistribution": 64.6324,
+  "stg_recalculation": {
+   "rows_gtg_changed": 30,
+   "rows_stg_recalculated": 18,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 5.0, 0.0) STG tetap 11.13",
+    "row 27 blok 2 GTG (20.0, 0.0, 15.0)->(20.0, 15.0, 0.0) STG tetap 11.13",
+    "row 28 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 29 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 30 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 31 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56"
+   ],
+   "violations": 12
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": null,
+    "interval_review": [
+     26,
+     37
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 33.43,
+     "G9": 33.43,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:26-37:@27 valid CP 64.6732; DELAY:G5:26-37:@28 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 38,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 0,
+   "RESOLVED_BY_STOP": 10,
+   "PASS_WITH_REASON": 34,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.631,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G5>G2:26-37",
+  "winner_cp": 64.631,
+  "winner_heat_rate": 8382.58,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 93,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 92,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 3.2,
+    "used_bbtud": 3.1991
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M05_RESERVE",
+  "state": "OPS:pgn_pipe=33;mj=spinning_reserve_min:5",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1",
+   "GE2"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "GE2",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 31,
+    "max": 31,
+    "legal_headroom_mw": 0
+   },
+   "G5": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 517.95,
+   "G5": 220.0,
+   "G8": 2144.96,
+   "G9": 2145.15,
+   "S2": 491.58,
+   "S3": 2572.09,
+   "GE1": 291.75,
+   "GE2": 0.0,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 522.77,
+   "G5": 170.0,
+   "G8": 2215.53,
+   "G9": 2163.04,
+   "S2": 438.33,
+   "S3": 2604.99,
+   "GE1": 231.0,
+   "GE2": 46.5,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -45.18,
+   "3": 88.46
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -53.25,
+   "3": 32.9
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -98.43,
+   "3": 121.36
+  },
+  "cp_before_redistribution": 64.5216,
+  "stg_recalculation": {
+   "rows_gtg_changed": 68,
+   "rows_stg_recalculated": 67,
+   "stg_unchanged_violations": [
+    "row 19 blok 3 GTG (108.0, 108.0)->(107.98, 108.0) STG tetap 121.02"
+   ],
+   "violations": 1
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": 20,
+    "interval_review": [
+     16,
+     37
+    ],
+    "start_reason": [
+     "DECOMMIT:EXPORT(kapasitas maks row 22 = 25.0 < Range Min 25.0 MW)",
+     "SWAP:EXPORT(Export maks row 28 = 14.8 MW < Range Min 25.0 MW (seluruh unit tersedia pada Effective Max))",
+     "MIN_RUNTIME_COMBINED_CYCLE_SEJAK_START_ROW_16"
+    ],
+    "need_rows_export": [
+     22,
+     31,
+     5
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {
+     "G1": 5.5,
+     "G8": 0,
+     "G9": 0,
+     "S3": 0,
+     "B1": 0,
+     "B2": 0
+    },
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 36.99,
+     "G9": 36.99,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:16-37:@17 tidak valid: GAS_WINDOW,RESERVE; DELAY:G5:16-37:@20 valid CP 64.4728",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": 31,
+    "first_legal_stop_row": 28,
+    "actual_stop_row": 38,
+    "last_running_row": 37,
+    "numeric_reason_not_stopped": "STOP:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW) | DECOMMIT:EXPORT(kapasitas maks row 22 = 25.0 < Range Min 25.0 MW) | SWAP:EXPORT(Export maks row 28 = 14.8 MW < Range Min 25.0 MW (seluruh unit tersedia pada Effective Max))"
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 9,
+   "RESOLVED_BY_STOP": 2,
+   "PASS_WITH_REASON": 25,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.4728,
+  "absolute_cp_min_candidate": "DELAY:G5:16-37:@20",
+  "winner_cp": 64.4728,
+  "winner_heat_rate": 8296.78,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 40,
+   "STATUS_PAKSA": 5,
+   "AKUN_MM2100_TERPAKAI_PENUH": 35,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.1825
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M06_BUSFLOW",
+  "state": "OPS:pgn_pipe=30;mj=busflow_min:22",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G2",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G2",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G2": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   },
+   "G9": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 504.38,
+   "G2": 0.0,
+   "G5": 110.0,
+   "G8": 2070.59,
+   "G9": 2070.59,
+   "S2": 380.13,
+   "S3": 2516.72,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 505.13,
+   "G2": 110.0,
+   "G5": 0.0,
+   "G8": 2072.86,
+   "G9": 2069.01,
+   "S2": 380.46,
+   "S3": 2516.96,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.75,
+   "3": 0.69
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.33,
+   "3": 0.24
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": 1.08,
+   "3": 0.93
+  },
+  "cp_before_redistribution": 64.6658,
+  "stg_recalculation": {
+   "rows_gtg_changed": 30,
+   "rows_stg_recalculated": 18,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 5.0, 0.0) STG tetap 11.13",
+    "row 27 blok 2 GTG (20.0, 0.0, 15.0)->(20.0, 15.0, 0.0) STG tetap 11.13",
+    "row 28 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 29 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 30 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56",
+    "row 31 blok 2 GTG (20.0, 0.0, 20.0)->(20.0, 20.0, 0.0) STG tetap 31.56"
+   ],
+   "violations": 12
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": null,
+    "interval_review": [
+     26,
+     37
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 33.43,
+     "G9": 33.43,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:26-37:@27 valid CP 64.7173; DELAY:G5:26-37:@28 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 38,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 0,
+   "RESOLVED_BY_STOP": 10,
+   "PASS_WITH_REASON": 34,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.6644,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G5>G2:26-37",
+  "winner_cp": 64.6644,
+  "winner_heat_rate": 8386.61,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 47,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 46,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M07_EXPORT_RANGE",
+  "state": "OPS:pgn_pipe=33;mj=pln_export_priority:{\"range\":{\"min\":26,\"max\":155,\"required\":true},\"daily_target\":{\"value\":1800,\"requi",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 31,
+    "max": 31,
+    "legal_headroom_mw": 0
+   },
+   "G5": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 525.93,
+   "G5": 120.0,
+   "G8": 2232.18,
+   "G9": 2232.18,
+   "S2": 387.63,
+   "S3": 2636.85,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 529.38,
+   "G5": 110.0,
+   "G8": 2240.87,
+   "G9": 2240.62,
+   "S2": 379.12,
+   "S3": 2643.26,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -6.55,
+   "3": 17.13
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -8.51,
+   "3": 6.41
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -15.06,
+   "3": 23.54
+  },
+  "cp_before_redistribution": 64.2998,
+  "stg_recalculation": {
+   "rows_gtg_changed": 41,
+   "rows_stg_recalculated": 40,
+   "stg_unchanged_violations": [
+    "row 21 blok 2 GTG (28.0, 0.0, 15.0)->(28.0, 0.0, 5.0) STG tetap 14.69"
+   ],
+   "violations": 1
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": 21,
+    "interval_review": [
+     21,
+     32
+    ],
+    "start_reason": [
+     "DECOMMIT:EXPORT(kapasitas maks row 22 = 25.0 < Range Min 27.0 MW)",
+     "DELAY:EXPORT(kapasitas maks row 22 = 25.0 < Range Min 27.0 MW)",
+     "SWAP:KEHILANGAN_UAP_COMBINED_CYCLE(G5 memasok S2 yang running; blok G3 (S1) mati sepanjang interval, G3 prioritas lebih rendah)"
+    ],
+    "need_rows_export": [
+     22,
+     31,
+     6
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {
+     "G1": 3,
+     "G8": 0,
+     "G9": 0,
+     "S3": 0,
+     "B1": 0,
+     "B2": 0
+    },
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 33.77,
+     "G9": 33.77,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:21-32:@23 tidak valid: EXPORT; DELAY:G5:21-32:@22 valid CP 64.2826",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": 32,
+    "first_legal_stop_row": 33,
+    "actual_stop_row": 33,
+    "last_running_row": 32,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 4,
+   "RESOLVED_BY_STOP": 0,
+   "PASS_WITH_REASON": 9,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.273,
+  "absolute_cp_min_candidate": "POLISH_UNIT_PRIORITY_LANJUTAN",
+  "winner_cp": 64.273,
+  "winner_heat_rate": 8253.06,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 46,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 45,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M08_DEV_DISPATCH",
+  "state": "OPS:pgn_pipe=33;mj=pln_export_priority:{\"range\":{\"min\":20,\"max\":155,\"required\":true},\"daily_target\":{\"value\":1800,\"requi",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 30,
+    "max": 31,
+    "legal_headroom_mw": 1
+   },
+   "G5": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 28,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 518.03,
+   "G3": 270.45,
+   "G5": 0.0,
+   "G8": 2188.48,
+   "G9": 2010.87,
+   "S1": 117.72,
+   "S2": 284.06,
+   "S3": 2538.33,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 520.5,
+   "G3": 0.0,
+   "G5": 180.0,
+   "G8": 2181.01,
+   "G9": 2179.07,
+   "S1": 0.0,
+   "S2": 450.29,
+   "S3": 2598.11,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": -270.45,
+   "2": 182.47,
+   "3": 160.73
+  },
+  "delta_stg_mwh_per_block": {
+   "1": -117.72,
+   "2": 166.23,
+   "3": 59.78
+  },
+  "delta_block_total_mwh": {
+   "1": -388.17,
+   "2": 348.7,
+   "3": 220.51
+  },
+  "cp_before_redistribution": 65.309,
+  "stg_recalculation": {
+   "rows_gtg_changed": 87,
+   "rows_stg_recalculated": 77,
+   "stg_unchanged_violations": [
+    "row 19 blok 3 GTG (107.98, 108.0)->(108.0, 108.0) STG tetap 121.02",
+    "row 21 blok 2 GTG (26.5, 0.0, 0.0)->(26.5, 0.0, 5.0) STG tetap 14.03",
+    "row 22 blok 2 GTG (31.0, 0.0, 0.0)->(31.0, 0.0, 15.0) STG tetap 16.03"
+   ],
+   "violations": 3
+  },
+  "low_priority_units": [
+   {
+    "unit": "G3",
+    "start_row": null,
+    "interval_review": [
+     21,
+     39
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     22,
+     31,
+     6
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 33.5,
+     "G9": 33.5,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G3:21-39:@22 tidak valid: MIN_RUNTIME_DOWNTIME; DELAY:G3:21-39:@23 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 40,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 24,
+   "RESOLVED_BY_STOP": 22,
+   "PASS_WITH_REASON": 24,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.4309,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G3>G5:21-39",
+  "winner_cp": 64.4309,
+  "winner_heat_rate": 8287.94,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 47,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 46,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M09_REQUIRED_G5",
+  "state": "OPS:pgn_pipe=30;mj=required_mode:{\"g1\":{\"mode\":\"continuous\"},\"g8\":{\"mode\":\"continuous\"},\"g9\":{\"mode\":\"continuous\"},\"s2\":",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G5": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   },
+   "G9": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 492.9,
+   "G5": 160.0,
+   "G8": 2032.56,
+   "G9": 2032.56,
+   "S2": 426.09,
+   "S3": 2488.42,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 492.9,
+   "G5": 160.0,
+   "G8": 2032.56,
+   "G9": 2032.56,
+   "S2": 426.09,
+   "S3": 2488.42,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "cp_before_redistribution": 64.7788,
+  "stg_recalculation": {
+   "rows_gtg_changed": 0,
+   "rows_stg_recalculated": 0,
+   "stg_unchanged_violations": [],
+   "violations": 0
+  },
+  "low_priority_units": [],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 0,
+   "RESOLVED_BY_STOP": 0,
+   "PASS_WITH_REASON": 46,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.7788,
+  "absolute_cp_min_candidate": "INCUMBENT",
+  "winner_cp": 64.7788,
+  "winner_heat_rate": 8412.58,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 48,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 47,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M10_MULTI_START",
+  "state": "Q_pgn_pipe_4",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 29,
+    "mw": 31,
+    "max": 31,
+    "legal_headroom_mw": 0
+   },
+   "G5": {
+    "row": 29,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 29,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 531.25,
+   "G5": 220.0,
+   "G8": 2197.34,
+   "G9": 2197.34,
+   "S2": 494.64,
+   "S3": 2610.96,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 537.74,
+   "G5": 110.0,
+   "G8": 2296.2,
+   "G9": 2296.2,
+   "S2": 385.49,
+   "S3": 2684.53,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -103.51,
+   "3": 197.72
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -109.15,
+   "3": 73.57
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -212.66,
+   "3": 271.29
+  },
+  "cp_before_redistribution": 64.3954,
+  "stg_recalculation": {
+   "rows_gtg_changed": 55,
+   "rows_stg_recalculated": 53,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 0.0, 0.0) STG tetap 11.13",
+    "row 27 blok 2 GTG (25.5, 0.0, 15.0)->(25.5, 0.0, 5.0) STG tetap 13.58"
+   ],
+   "violations": 2
+  },
+  "low_priority_units": [
+   {
+    "unit": "G2",
+    "start_row": null,
+    "interval_review": [
+     27,
+     38
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 20.98,
+     "G9": 20.98,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G2:27-38:@28 tidak valid: EXPORT; DELAY:G2:27-38:@29 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 39,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 13,
+   "RESOLVED_BY_STOP": 17,
+   "PASS_WITH_REASON": 10,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.1256,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G2>G5:27-38",
+  "winner_cp": 64.1256,
+  "winner_heat_rate": 8207.16,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 46,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 45,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M11_GAS_WINDOW",
+  "state": "Q_pep_1",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 30,
+    "mw": 24,
+    "max": 31,
+    "legal_headroom_mw": 7
+   },
+   "G5": {
+    "row": 30,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 30,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   },
+   "G9": {
+    "row": 30,
+    "mw": 108,
+    "max": 108,
+    "legal_headroom_mw": 0
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 504.69,
+   "G5": 220.0,
+   "G8": 2081.46,
+   "G9": 1991.51,
+   "S2": 492.63,
+   "S3": 2491.34,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 518.75,
+   "G5": 110.0,
+   "G8": 2128.14,
+   "G9": 2127.96,
+   "S2": 384.88,
+   "S3": 2559.42,
+   "GE1": 291.75,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": -95.94,
+   "3": 183.13
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": -107.75,
+   "3": 68.08
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": -203.69,
+   "3": 251.21
+  },
+  "cp_before_redistribution": 64.6765,
+  "stg_recalculation": {
+   "rows_gtg_changed": 61,
+   "rows_stg_recalculated": 60,
+   "stg_unchanged_violations": [
+    "row 26 blok 2 GTG (20.0, 0.0, 5.0)->(20.0, 0.0, 0.0) STG tetap 11.13"
+   ],
+   "violations": 1
+  },
+  "low_priority_units": [
+   {
+    "unit": "G2",
+    "start_row": null,
+    "interval_review": [
+     27,
+     38
+    ],
+    "start_reason": [],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {},
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 32.56,
+     "G9": 32.56,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G2:27-38:@28 tidak valid: EXPORT; DELAY:G2:27-38:@29 tidak valid: EXPORT",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": null,
+    "first_legal_stop_row": null,
+    "actual_stop_row": 39,
+    "last_running_row": 0,
+    "numeric_reason_not_stopped": null
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 29,
+   "RESOLVED_BY_STOP": 10,
+   "PASS_WITH_REASON": 23,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.4253,
+  "absolute_cp_min_candidate": "V11_SUSUN:SWAP:G2>G5:27-38",
+  "winner_cp": 64.4253,
+  "winner_heat_rate": 8336.79,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 46,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 45,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.199
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ },
+ {
+  "id": "M12_ACTUAL_SLOT",
+  "state": "ACT_PGN_UP",
+  "unit_priority_order": [
+   "B1",
+   "B2",
+   "G8",
+   "G9",
+   "S3",
+   "G1",
+   "G5",
+   "S2",
+   "GE1"
+  ],
+  "running_units": [
+   "G1",
+   "G5",
+   "G8",
+   "G9",
+   "S2",
+   "S3",
+   "GE1",
+   "BB1",
+   "BB2"
+  ],
+  "high_priority_legal_headroom_peak_row": {
+   "G1": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G5": {
+    "row": 28,
+    "mw": 20,
+    "max": 31,
+    "legal_headroom_mw": 11
+   },
+   "G8": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   },
+   "G9": {
+    "row": 28,
+    "mw": 103.33,
+    "max": 108,
+    "legal_headroom_mw": 4.67
+   }
+  },
+  "energy_before_mwh": {
+   "G1": 504.69,
+   "G5": 110.0,
+   "G8": 2079.74,
+   "G9": 2060.07,
+   "S2": 380.26,
+   "S3": 2516.2,
+   "GE1": 289.47,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "energy_after_mwh": {
+   "G1": 504.69,
+   "G5": 110.0,
+   "G8": 2079.74,
+   "G9": 2060.07,
+   "S2": 380.26,
+   "S3": 2516.2,
+   "GE1": 289.47,
+   "BB1": 2880.0,
+   "BB2": 2880.0
+  },
+  "delta_gtg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "delta_stg_mwh_per_block": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "delta_block_total_mwh": {
+   "1": 0.0,
+   "2": 0.0,
+   "3": 0.0
+  },
+  "cp_before_redistribution": 64.6801,
+  "stg_recalculation": {
+   "rows_gtg_changed": 0,
+   "rows_stg_recalculated": 0,
+   "stg_unchanged_violations": [],
+   "violations": 0
+  },
+  "low_priority_units": [
+   {
+    "unit": "G5",
+    "start_row": 26,
+    "interval_review": [
+     27,
+     38
+    ],
+    "start_reason": [
+     "BAND_V11_TIE_BREAK: kandidat valid SWAP:G5>G2:27-38 tanpa G5 pada row ini (CP 64.6587, -0.0214 di dalam band 0,2 %, Heat Rate 8388.31 vs 8387.69)"
+    ],
+    "need_rows_export": [
+     28,
+     31,
+     4
+    ],
+    "higher_priority_legal_headroom_at_start_final_mw": {
+     "G1": 11,
+     "G8": 17.1,
+     "G9": 17.1,
+     "S3": 0,
+     "B1": 0,
+     "B2": 0
+    },
+    "higher_priority_headroom_before_review_mw": {
+     "G8": 43,
+     "G9": 43,
+     "G1": 11
+    },
+    "start_deferrable": "tidak \u2014 DELAY:G5:27-38:@29 tidak valid: EXPORT; DELAY:G5:27-38:@28 tidak valid: GAS_WINDOW,EXPORT,RAMP",
+    "min_runtime_rows": 12,
+    "min_runtime_end_row": 37,
+    "first_legal_stop_row": 38,
+    "actual_stop_row": 39,
+    "last_running_row": 37,
+    "numeric_reason_not_stopped": "DECOMMIT:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW) | MIN_RUNTIME_COMBINED_CYCLE_SEJAK_START_ROW_27 | CP_LEBIH_RENDAH_DARI_KANDIDAT_VALID SWAP:G5>G2:27-38 (CP 64.6587, +-0.0214)"
+   }
+  ],
+  "llf_status": "PASS_WITH_OUTCOMES",
+  "llf_counts": {
+   "RESOLVED_BY_CONSOLIDATION": 0,
+   "RESOLVED_BY_STOP": 0,
+   "PASS_WITH_REASON": 35,
+   "FAIL": 0
+  },
+  "absolute_cp_min": 64.6587,
+  "absolute_cp_min_candidate": "SWAP:G5>G2:27-38",
+  "winner_cp": 64.6801,
+  "winner_heat_rate": 8387.69,
+  "constraints": {
+   "hard": "PASS",
+   "release": true,
+   "export_in_band_rows": 48
+  },
+  "provenance": {
+   "fuel": "PASS",
+   "mm2100": "PASS"
+  },
+  "independent_cross_group": {
+   "total": 46,
+   "STATUS_PAKSA": 1,
+   "AKUN_MM2100_TERPAKAI_PENUH": 45,
+   "TANPA_ALASAN": [],
+   "mm2100": {
+    "quota_bbtud": 2.2,
+    "used_bbtud": 2.1988
+   }
+  },
+  "criteria": {
+   "low_start_with_sufficient_high_headroom": true,
+   "high_units_raised_as_far_as_legal_and_needed": true,
+   "stg_recalculated_on_gtg_change": true,
+   "low_unit_stopped_at_first_legal_row_or_numeric_proof": true,
+   "low_load_fragmentation_resolved": true,
+   "cheaper_valid_candidates_in_comparator": true,
+   "heat_rate_only_inside_cp_band": true,
+   "identical_cold_warm_helper": true,
+   "hard_constraints_and_provenance": true,
+   "independent_cross_group_merit": true
+  },
+  "merit_status": "PASS"
+ }
+]

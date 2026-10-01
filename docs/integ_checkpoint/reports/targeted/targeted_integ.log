@@ -1,0 +1,545 @@
+=== LINT PHP 7.4 ===
+No syntax errors detected in integfreeze/run.php
+No syntax errors detected in integfreeze/worker02.php
+No syntax errors detected in integfreeze/worker_functions.php
+No syntax errors detected in integfreeze/index.php
+=== SNAPSHOT BASIS ACTUAL (FINAL jangkar PGN 30 + pustaka dispatch + BASE_ACT10, engine SRC) — SEBELUM suite yang memakainya ===
+{"wall":39.21,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+66a01430c400b17a90a358eebe7449bc.json
+8f81c3736a529d97166f277b598caca3.json
+8f81c3736a529d97166f277b598caca3.v10lib.json
+=== V11: REPRODUCER WB09_3 + AUDIT V11 + BAND CP/HEAT RATE + COUNTER ===
+PASS  R01 WB09_3 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang  -- mode EXACT, CP 63.4469 (ref 63.4469), HR 8109.13 (ref 8109.13), 25.5 s CLI, audit hilang []
+PASS  R02 WB09_3 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS  -- CP audit PASS [], akun 4 (tanpa harga 0), fuel PASS, MM2100 PASS
+PASS  R03 WB09_3 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang  -- CP_min 63.4469 (bukti 63.4469, 12 kandidat), band s.d. 63.5738, FINAL 63.4469, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8109.13, HR t
+PASS  R04 WB09_3 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid  -- {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":14,"screened_also_full_run_excluded
+PASS  R05 WB09_3 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja)  -- PASS_WITH_REASON, row 5, temuan 10, tanpa alasan 0, unit_rows {"G1":[33,34,35,37,38],"G5":[33,34,35,37,38]}, kandidat konsolidasi {"generated":5,"
+PASS  R06 WB09_3 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai  -- HPA PASS_WITH_REASON/0 row 48, review APPLIED (63.7144 -> 63.4469)
+PASS  R01 WB09 FINAL: 48 row, hard PASS, Export 48/48, residual 0, rilis; kelima audit V11 terpasang  -- mode EXACT, CP 64.3644 (ref 64.3644), HR 8319.17, 25.9 s CLI, audit hilang []
+PASS  R02 WB09 CP audit: CP = Total Cost / Net, seluruh bahan bakar terpakai berharga (tidak ada fuel gratis), Heat Rate konsisten, provenance fuel & MM2100 PASS  -- CP audit PASS [], akun 3 (tanpa harga 0), fuel PASS, MM2100 PASS
+PASS  R03 WB09 comparator V11: CP_min = kandidat valid termurah; FINAL_CP <= CP_min x 1,002; pemenang = Heat Rate terendah di dalam band; kandidat di luar band tidak pernah menang  -- CP_min 64.3644 (bukti 64.3644, 12 kandidat), band s.d. 64.4931, FINAL 64.3644, pemenang POLISH_UNIT_PRIORITY_LANJUTAN HR 8319.17, HR ter
+PASS  R04 WB09 counter satu sumber: checked = full-run unik + screened-out unik (kunci fisik kanonik); valid >= 1 bila CP tersedia; valid <= full-run <= checked; best termasuk valid  -- {"candidates_checked":29,"candidates_screened_out":4,"candidates_full_run":25,"candidates_valid":11,"screened_also_full_run_excluded":
+PASS  R05 WB09 LOW_LOAD_FRAGMENTATION: setiap temuan terselesaikan (PASS) atau PASS_WITH_REASON berbasis bukti (bukan incumbent / FINAL sebelumnya / minimum load saja)  -- PASS_WITH_REASON, row 9, temuan 18, tanpa alasan 0, unit_rows {"G1":[10,11,32,33,34,35,36,37,38],"G9":[10,11],"G5":[32,33,34,35,36,37,38]}, kandidat
+PASS  R06 WB09 Unit Priority: audit headroom seluruh row PASS/PASS_WITH_REASON tanpa flag tak terselesaikan; review prioritas selesai  -- HPA PASS_WITH_REASON/0 row 48, review APPLIED (64.5788 -> 64.3644)
+PASS  R07 logika konsolidasi / fragmentation generik (tanpa hardcode G5/G1/unit tertentu)  -- panjang badan 17380 byte
+PASS  R08 unit prioritas rendah yang di-start diuji stop dan berhenti pada row legal pertama setelah minimum runtime  -- G5 start 27 stop row 39 (legal pertama 39)
+PASS  R09 WB09_3 determinisme (akar baru kedua): dispatch 48 row, CP, Heat Rate, pemenang band identik  -- md5 49da493b56 / 49da493b56, CP 63.4469 / 63.4469
+PASS  R10 PP_V11=0: engine tetap FINAL valid (audit V11 tidak dilampirkan), V11 aktif tidak lebih mahal di luar band  -- V11 off CP 63.4469 HR 8109.13 / V11 on CP 63.4469 HR 8109.13
+=== V10 (versi V11): RUTE CEPAT, SERTIFIKAT, SCREENING DUA TINGKAT ===
+PASS  V01 ACT_PGN_UP FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:pipeline@-0.16, CP 64.6801
+PASS  V02 ACT_PGN_UP sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_PGN_UP invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6801, kandidat valid termurah 64.6587 (12 kandidat valid)
+PASS  V01 KP72_DOWN FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6214
+PASS  V02 KP72_DOWN sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 KP72_DOWN invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6214, kandidat valid termurah 64.6214 (17 kandidat valid)
+PASS  V01 ACT_PGN_2SLOT_C FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6987
+PASS  V02 ACT_PGN_2SLOT_C sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_PGN_2SLOT_C invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6987, kandidat valid termurah 64.6987 (12 kandidat valid)
+PASS  V01 ACT_FFM_DOWN FINAL rute cepat: 48 row, hard PASS, Export 48/48, residual 0, rilis  -- mode INCREMENTAL, pemenang v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16, CP 64.6214
+PASS  V02 ACT_FFM_DOWN sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)  -- universe 3dc068cea988b5bdadcbc642, dibangkitkan 13, dipangkas 0 [], tier2a 10, tier2b 3
+PASS  V03 ACT_FFM_DOWN invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)  -- FINAL 64.6214, kandidat valid termurah 64.6214 (17 kandidat valid)
+PASS  V04 pustaka dispatch jangkar dibangun ulang (akar tanpa pustaka) vs dipakai ulang: dispatch 48 row & CP identik  -- md5 fa80b4e938 / fa80b4e938, CP 64.6309 / 64.6309, pustaka dibangun 32.5 s
+PASS  V05 rute cepat tanpa kandidat valid (window total dan supplier tidak dapat dipenuhi bersama) -> jalur kanonik V9 / exact, bukan FINAL palsu  -- mode EXACT, alasan rute cepat V10_TIDAK_ADA_KANDIDAT_VALID, status USER_ACTION_REQUIRED
+PASS  V06 Q_pgn_pipe_1 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas ["G5"], cakupan LENGKAP, keluarga 9 node, CP 64.5424 (V9 64.5450), 33.9 s CLI
+PASS  V06 Q_lng_1 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas ["G5"], cakupan LENGKAP, keluarga 9 node, CP 64.8581 (V9 64.8608), 33.8 s CLI
+PASS  V06 WB09 exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)  -- dipangkas [], cakupan -, keluarga 7 node, CP 64.3644 (V9 64.3644), 26.0 s CLI
+PASS  V07 bukti kapasitas Export: seluruh GTG dimatikan -> terbukti infeasible; commitment pemenang jangkar (Export valid 48 row) -> tidak dipangkas (batas atas sah)  -- semua off: "Export maks row 1 = -246.6 MW < Range Min 20.0 MW (seluruh unit tersedia pada Effective Max)"; pemenang: null
+PASS  V08 KP72_DOWN lewat rantai (sesudah ACT_PGN_DOWN) vs langsung (akar baru): dispatch & CP identik; state ulang = cache FINAL  -- rantai 9bc52c0f57 CP 64.6214 / langsung 9bc52c0f57 CP 64.6214; ulang 0.28 s
+=== V9 (versi V11): UNIT PRIORITY GENERIK (10 konfigurasi) + PROVENANCE BAHAN BAKAR ===
+PASS  P01 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 5.99 s, CP 63.9057, kandidat valid termurah -, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P01 headroom penuh (Export Range Min 10 MW sepanjang hari; row puncak Export maks tanpa start 14 MW): headroom G1/G8/G9 cukup -> tidak ada start GTG prioritas rendah  -- start GTG 0; running: G1:48 G2:0 G3:0 G4:0 G5:0 G6:0 G7:0 G8:48 G9:48 G10:0
+PASS  P02 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 38.16 s, CP 64.9301, kandidat valid termurah 64.9301, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P02 headroom parsial karena ramp: alasan RAMP per row  -- RAMP_LIMIT_TETANGGA
+FAIL  P03 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 134.77 s, CP 64.7133, kandidat valid termurah -, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P03 reserve mengikat (Spinning Reserve Min 20 MW; V8 gagal hard reserve row 17-23): REPAIR START unit prioritas tertinggi yang tersedia, alasan RESERVE per row  -- repair EXTEND:G2:14-27; DELAY:RESERVE | STOP:RESERVE
+PASS  P04 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 25.97 s, CP 64.3644, kandidat valid termurah 64.3703, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P04 headroom terhalang Export (Range Min 25 MW row 17-32): bukti kapasitas + alasan EXPORT  -- DELAY:G5:27-38:@28: simulasi 48 row
+PASS  P08 minimum runtime menahan unit prioritas rendah: G5 running row 27-38 dengan alasan MIN_RUNTIME  -- MIN_RUNTIME_COMBINED_CYCLE_SEJAK_START_ROW_27
+PASS  P09 unit berhenti pada row legal pertama sesudah minimum runtime (G5 12 row = 6 jam), G2 tidak running  -- G5 12 row, G2 0 row
+PASS  P10 beberapa unit eligible: kandidat SWAP/STOP/DELAY/DECOMMIT dibandingkan, pemenang = CP terendah kandidat valid  -- kandidat valid 5, jenis SWAP,STOP,DELAY,DECOMMIT,EARLY_STOP, CP 64.3644, termurah 64.3703
+PASS  P05 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 76.58 s, CP 64.3725, kandidat valid termurah 64.3784, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P05 headroom terhalang Bus Flow (Bus Flow Min 180 MW; BBLN/G1 di Bus B): alasan BUS_FLOW / bukti Bus Flow tanpa unit  -- BUS_FLOW(Bus Flow 180.0 MW, min 180.0 MW: BB1 di Bus B tidak dapat dinaikkan) | BUS_FLOW(Bus Flow 180.0 MW, min 180.0 MW: BB2 di Bus B tidak dapat dinaikkan)
+PASS  P06 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 41.22 s, CP 64.6644, kandidat valid termurah 64.7173, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P06 headroom/kandidat terhalang window gas (PGN 30): kandidat yang hanya gagal window gas tercatat dan tidak dipilih  -- SWAP:G5>G2:26-37 CP 64.6719 -> GAS_WINDOW
+PASS  P06b FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 21.94 s, CP 65.2141, kandidat valid termurah 65.2149, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P06b Gas Shortage (PGN Pipe 26) + Add LNG 1,6: aksi bahan bakar ikut review kandidat Unit Priority (tidak dibekukan), akun LNG berbiaya  -- review NO_BETTER_VALID_CANDIDATE, disimulasikan 3, LNG 1.6 BBTUD, CP 65.2141
+FAIL  P07 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 69.15 s, CP 64.5005, kandidat valid termurah 64.5078, audit PASS_WITH_REASON/0, provenance PASS
+PASS  P07 headroom terhalang kopling STG/blok (G1 stop 10:00): alasan STG/blok per row  -- SWAP:FORCED_STATUS(LAST_DATA_RUNNING_G1_WAJIB_BERBEBAN_ROW_1) | SWAP:BLOCK_STG(S2_CONTINUOUS_TANPA_PEMASOK_GTG_ROW_21)
+PASS  F1 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 28.46 s, CP 64.1989, kandidat valid termurah 64.2047, audit PASS_WITH_REASON/0, provenance PASS
+PASS  F1 kuota KP72 2,2 (GE berbeban): setiap unit berbahan bakar punya sumber sah, akun biaya, heat rate, biaya per row  -- status PASS, unit-row GE 48, unit-row ber-heat-rate & biaya 204, sumber MM2100 KP72_QUOTA, identitas 0
+PASS  F2 FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)  -- wall 44.41 s, CP 64.3653, kandidat valid termurah 64.3655, audit PASS_WITH_REASON/0, provenance PASS
+PASS  F2 fixed flow manual MM2100 (kuota 0): setiap unit berbahan bakar punya sumber sah, akun biaya, heat rate, biaya per row  -- status PASS, unit-row GE 1, unit-row ber-heat-rate & biaya 157, sumber MM2100 MANUAL_FIXED_FLOW_MM2100, identitas -0.0133
+=== V11: PATH INDEPENDENCE (13 state) ===
+**13/13 state identik di seluruh jalur yang dijalankan** (47 perbandingan terhadap direct).
+| QA_pep_-1 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | f038709283 / 65.6235 | IDENTIK (6 jalur) |
+| WB09_3 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | 2b5270f108 / 63.4469 | IDENTIK (6 jalur) |
+**13/13 state identik di seluruh jalur yang dijalankan** (47 perbandingan terhadap direct).
+=== V8: REPRODUCER + GAS GE + UNIT PRIORITY (jalur job) ===
+PASS  T1 reproducer Daily_Plan_09_Jul_26_Baru: FINAL 48 row, hard PASS, Export 48/48, residual 0  -- wall 26.45 s, CP 64.3644
+PASS  T2 kuota MM2100 0 + fixed/actual MM2100 0: GE1-GE4 = 0 MW, provenance PASS (sumber NONE), MM2100 Daily Used 0  -- GE rows 0, sumber NONE, used 0
+PASS  T2b dispatch V7 (GE1 3 MW row 1, kuota KP72 0) ditolak validator V8: mm2100_gas_source  -- status FAIL pelanggaran fuel_account,mm2100_gas_source
+PASS  T4 unit prioritas rendah start lalu kebutuhan turun: stop pada row legal pertama (G5 = minimum runtime 12 row, G2 tidak running)  -- G2 0 row; G5 row 27-38 (V7: G2 row 26-48 = 23 row)
+PASS  T5 headroom G1/G8/G9 dipakai sebelum unit prioritas rendah: tanpa G5, G1/G8/G9/BBLN di Effective Max pun Export di bawah Range Min (bukti kapasitas)  -- DECOMMIT:G5:27-38: row 28 Export maks 14.00 < Range Min 25.0 MW
+PASS  T5b CP lebih rendah dari incumbent V7 dan kandidat pembanding tercatat (incumbent, G2 off/trunc, G5 swap, delay)  -- CP V7 64.5741 -> V8 64.3644; diterapkan SWAP:G2>G5:26-37, DELAY:G5:26-37:@27, POLISH_UNIT_PRIORITY_LANJUTAN
+PASS  T7 alasan terhalang Export (reserve/Export/Bus Flow) tercatat per row; Headroom/Unit Priority PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, alasan EXPORT=YA
+PASS  T3 kuota MM2100 0 + fixed flow manual MM2100 sah (row 1-2): GE hanya pada row bersumber, provenance jelas, gas tidak melebihi sumber, biaya gas dihitung  -- GE row [1], sumber MANUAL_FIXED_FLOW_MM2100, row gagal 0, biaya gas MM2100 100.2 USD, Heat Rate MM2100 17813.33
+PASS  T3b kuota KP72 2,2 sah: GE berbeban, heat rate dan cost MM2100 dihitung, provenance KP72 PASS  -- GE1 48 row, HR MM2100 7537.38, CP MM2100 56.5303, used 2.199/2.2
+PASS  T6 headroom terhalang ramp (Fixed Load G8/G9 76 MW row 24-27): alasan RAMP per row, FINAL, PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, contoh RAMP_LIMIT_TETANGGA | RAMP_LIMIT_TETANGGA, CP 64.9301
+FAIL  T8 kopling blok STG (G1 stop 10:00, S2 continuous): alasan STG/blok per row, FINAL, PASS_WITH_REASON  -- PASS_WITH_REASON, tanpa alasan 0, contoh SWAP:FORCED_STATUS(LAST_DATA_RUNNING_G1_WAJIB_BERBEBAN_ROW_1) | SWAP:FORCED_STATUS(PEER_G1_TIDAK_TERSEDIA_ROW_26), CP 64.5005
+PASS  T9 deterministik: reproducer dijalankan ulang di akar baru -> 48 row identik  -- cfe07f3de3494b5caf1e6f805f8e4fc0 / cfe07f3de3494b5caf1e6f805f8e4fc0
+=== V8 UI: REPRODUCER Daily_Plan_09_Jul_26_Baru ===
+PASS  U1 reproducer FINAL 48 row, hard PASS, Export 48/48, residual 0  -- FINAL 14258 ms rows=48 hard=PASS exp=OK cp=64.3644
+PASS  U2 GE1-GE4 = 0 MW tanpa gas MM2100 sah  -- GE rows [0,0,0,0] sumber=NONE used=0
+PASS  U3 unit prioritas rendah tidak continuous running: G2 off, G5 hanya sepanjang minimum runtime (stop pada row legal pertama)  -- G2 rows 0, G5 rows 27-38 (12)
+PASS  U4 CP lebih rendah dari V7 64,5741 dan kandidat pembanding tercatat  -- CP 64.3644 (V8 64.5788 -> 64.3644) diterapkan SWAP:G2>G5:26-37, DELAY:G5:26-37:@27, POLISH_UNIT_PRIORITY_LANJUTAN
+PASS  U5 Headroom/Unit Priority PASS_WITH_REASON, alasan terstruktur per row untuk G5  -- PASS_WITH_REASON temuan 85 tanpa alasan 0; contoh 27:DECOMMIT:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW);DELAY:EXPORT(kapasitas maks row 28 = 14.0 < Range Min 25.0 MW);DELAY:EXPORT;SWAP:KEHILANGAN
+PASS  U6 kartu V8 (kandidat + provenance gas MM2100) tampil di UI  -- Review Unit Priority generik V9 (kandidat pembanding) & Provenance Bahan Bakar — APPLIED · CP 64.5788 → 64.3644 · Gas MM2100: NONE (PASS) · Provenance bahan bak
+PASS  U7 kuota PEP KP72 2,2: GE berbeban dengan sumber KP72_QUOTA, provenance PASS  -- FINAL 14187 ms GE rows [48,0,0,0] used=2.199 cp=64.1989
+PASS  U8 kembali ke kuota KP72 0: hasil identik (deterministik)  -- FINAL 816 ms cp 64.3644 identik=true
+PASS  U9 tidak ada JavaScript error  -- 
+=== V8 UI: PGN 30 -> reproducer lewat perubahan kuota (PEP +2, PEP KP72 -2,2) ===
+BASIS FINAL 15239 64.6644
+pep:2+pep_kp72:-2.2 FINAL valid 1065 akhir 12509 angka null cp 64.3644 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+=== LINT ===
+No syntax errors detected in integfreeze/run.php
+No syntax errors detected in integfreeze/worker02.php
+No syntax errors detected in integfreeze/worker_functions.php
+No syntax errors detected in integfreeze/index.php
+=== SIMULATION DATA + KUOTA (basis Actual 11 jam): COLD ===
+{"sc":"ACT_PGN_UP","mode":"cold","save_ms":2.1,"resp":0.281,"valid":2.27,"final":5.08,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.6801,"release":true,"sims":24,"fb":null,"h":3}
+{"sc":"ACT_PGN_DOWN","mode":"cold","save_ms":2,"resp":0.276,"valid":2.27,"final":4.57,"job":{"job_started_s":0.28},"comp":"INCREMENTAL","cp":64.5676,"release":true,"sims":25,"fb":null,"h":3}
+{"sc":"ACT_FFJ_UP","mode":"cold","save_ms":1.8,"resp":0.274,"valid":2.8,"final":5.6,"job":{"job_started_s":0.28},"comp":"INCREMENTAL","cp":64.6309,"release":true,"sims":37,"fb":null,"h":3}
+{"sc":"ACT_FFJ_DOWN","mode":"cold","save_ms":1.8,"resp":0.278,"valid":null,"final":11.05,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.7607,"release":false,"sims":33,"fb":"TIDAK_ADA_KANDIDAT_VALID_COMMITMENT_TETAP"
+{"sc":"ACT_FFM_UP","mode":"cold","save_ms":2.1,"resp":0.299,"valid":2.29,"final":5.36,"job":{"job_started_s":0.3},"comp":"INCREMENTAL","cp":64.6216,"release":true,"sims":30,"fb":null,"h":3}
+{"sc":"ACT_FFM_DOWN","mode":"cold","save_ms":3.2,"resp":0.302,"valid":2.27,"final":5.33,"job":{"job_started_s":0.31},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":30,"fb":null,"h":3}
+{"sc":"KP72_UP","mode":"cold","save_ms":2,"resp":0.286,"valid":2.27,"final":5.32,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"KP72_DOWN","mode":"cold","save_ms":2,"resp":0.286,"valid":2.25,"final":5.31,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"ACT_PGN_2SLOT_C","mode":"cold","save_ms":1.9,"resp":0.322,"valid":2.31,"final":4.37,"job":{"job_started_s":0.33},"comp":"INCREMENTAL","cp":64.6987,"release":true,"sims":31,"fb":null,"h":3}
+{"sc":"ACT_PGN_BIG","mode":"cold","save_ms":1.9,"resp":0.28,"valid":null,"final":10.82,"job":{"job_started_s":0.29},"comp":"EXACT","cp":66.0122,"release":false,"sims":28,"fb":"TIDAK_ADA_KANDIDAT_VALID_COMMITMENT_TETAP","
+{"sc":"QA_pgn_pipe_1","mode":"cold","save_ms":1.8,"resp":0.29,"valid":14.49,"final":15.53,"job":{"job_started_s":0.3},"comp":"INCREMENTAL","cp":63.8609,"release":true,"sims":30,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_-1","mode":"cold","save_ms":2.6,"resp":0.315,"valid":null,"final":11.39,"job":{"job_started_s":0.32},"comp":"EXACT","cp":64.7333,"release":false,"sims":12,"fb":"V9_JANGKAR_BELUM_ADA","h":3}
+{"sc":"QA_pgn_pipe_2","mode":"cold","save_ms":1.9,"resp":0.293,"valid":14.63,"final":16.17,"job":{"job_started_s":0.3},"comp":"INCREMENTAL","cp":62.9444,"release":true,"sims":40,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_-2","mode":"cold","save_ms":2,"resp":0.296,"valid":null,"final":11.93,"job":{"job_started_s":0.31},"comp":"EXACT","cp":64.7333,"release":false,"sims":11,"fb":"V9_JANGKAR_BELUM_ADA","h":3}
+{"sc":"QA_pgn_pipe_4","mode":"cold","save_ms":2.3,"resp":0.314,"valid":14.39,"final":19.22,"job":{"job_started_s":0.32},"comp":"INCREMENTAL","cp":60.277,"release":true,"sims":48,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_-4","mode":"cold","save_ms":3.3,"resp":0.294,"valid":null,"final":11.01,"job":{"job_started_s":0.3},"comp":"EXACT","cp":64.7333,"release":false,"sims":12,"fb":"V9_JANGKAR_BELUM_ADA","h":3}
+{"sc":"QA_pep_1","mode":"cold","save_ms":2,"resp":0.295,"valid":null,"final":1.05,"job":{"job_started_s":0.3},"comp":"DELTA_CERTIFICATE","cp":66.0665,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pep_-1","mode":"cold","save_ms":2.1,"resp":0.279,"valid":null,"final":1.32,"job":{"job_started_s":0.28},"comp":"DELTA_CERTIFICATE","cp":65.6235,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pep_2","mode":"cold","save_ms":2.6,"resp":0.292,"valid":null,"final":0.51,"job":{"job_started_s":0.3},"comp":"DELTA_CERTIFICATE","cp":65.1795,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pep_-2","mode":"cold","save_ms":1.9,"resp":0.33,"valid":null,"final":1.36,"job":{"job_started_s":0.34},"comp":"DELTA_CERTIFICATE","cp":65.3991,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_lng_1","mode":"cold","save_ms":2,"resp":0.279,"valid":14.4,"final":15.69,"job":{"job_started_s":0.28},"comp":"INCREMENTAL","cp":64.1733,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"QA_lng_-1","mode":"cold","save_ms":2,"resp":0.281,"valid":null,"final":11.07,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.4127,"release":false,"sims":11,"fb":"V9_JANGKAR_BELUM_ADA","h":3}
+{"sc":"QA_pep_kp72_1","mode":"cold","save_ms":1.8,"resp":0.295,"valid":null,"final":1.29,"job":{"job_started_s":0.3},"comp":"DELTA_CERTIFICATE","cp":65.8037,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pep_kp72_-1","mode":"cold","save_ms":2.2,"resp":0.292,"valid":null,"final":1.29,"job":{"job_started_s":0.3},"comp":"DELTA_CERTIFICATE","cp":65.9826,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_akasia_1","mode":"cold","save_ms":1.9,"resp":0.299,"valid":null,"final":1.05,"job":{"job_started_s":0.3},"comp":"DELTA_CERTIFICATE","cp":66.3111,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_akasia_-1","mode":"cold","save_ms":1.8,"resp":0.273,"valid":null,"final":1.26,"job":{"job_started_s":0.28},"comp":"DELTA_CERTIFICATE","cp":65.3788,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"PGN29_PEP32_ACT","mode":"cold","save_ms":1.8,"resp":0.28,"valid":null,"final":0.77,"job":{"job_started_s":0.29},"comp":"DELTA_CERTIFICATE","cp":66.2908,"release":false,"sims":1,"fb":null,"h":3}
+=== TRANSITION / WARM (rantai dari final sebelumnya) ===
+{"sc":"ACT_PGN_UP","mode":"warm","save_ms":1.9,"resp":0.273,"valid":2.02,"final":4.82,"job":{"job_started_s":0.28},"comp":"INCREMENTAL","cp":64.6801,"release":true,"sims":29,"fb":null,"h":3}
+{"sc":"ACT_PGN_DOWN","mode":"warm","save_ms":1.6,"resp":0.037,"valid":1.78,"final":4.07,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":64.5676,"release":true,"sims":25,"fb":null,"h":3}
+{"sc":"ACT_PGN_UP","mode":"warm","save_ms":1.6,"resp":0.013,"valid":0.03,"final":0.04,"job":{"job_started_s":-8.92},"comp":"INCREMENTAL","cp":64.6801,"release":true,"sims":29,"fb":null,"h":3}
+{"sc":"ACT_PGN_2SLOT_C","mode":"warm","save_ms":1.7,"resp":0.038,"valid":1.78,"final":3.82,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":64.6987,"release":true,"sims":28,"fb":null,"h":3}
+{"sc":"KP72_DOWN","mode":"warm","save_ms":1.9,"resp":0.039,"valid":1.52,"final":4.58,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":31,"fb":null,"h":3}
+{"sc":"ACT_FFJ_UP","mode":"warm","save_ms":1.6,"resp":0.037,"valid":2.56,"final":5.62,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":64.6309,"release":true,"sims":35,"fb":null,"h":3}
+{"sc":"QA_lng_1","mode":"warm","save_ms":1.8,"resp":0.038,"valid":13.62,"final":14.65,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":64.1733,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"QA_pep_1","mode":"warm","save_ms":1.8,"resp":0.039,"valid":null,"final":0.76,"job":{"job_started_s":0.04},"comp":"DELTA_CERTIFICATE","cp":66.0665,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_1","mode":"warm","save_ms":1.6,"resp":0.038,"valid":13.12,"final":14.41,"job":{"job_started_s":0.04},"comp":"INCREMENTAL","cp":63.8609,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"QA_pep_-1","mode":"warm","save_ms":1.8,"resp":0.038,"valid":null,"final":1.02,"job":{"job_started_s":0.04},"comp":"DELTA_CERTIFICATE","cp":65.6235,"release":false,"sims":1,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_1","mode":"warm","save_ms":1.6,"resp":0.006,"valid":0.02,"final":0.03,"job":{"job_started_s":-15.38},"comp":"INCREMENTAL","cp":63.8609,"release":true,"sims":32,"fb":null,"h":3}
+=== REFERENSI EXACT PENUH (inkremental dimatikan, state sama) ===
+{"sc":"ACT_PGN_UP","mode":"cold","save_ms":1.9,"resp":0.299,"valid":2.31,"final":5.11,"job":{"job_started_s":0.31},"comp":"INCREMENTAL","cp":64.6801,"release":true,"sims":24,"fb":null,"h":3}
+{"sc":"ACT_PGN_DOWN","mode":"cold","save_ms":1.7,"resp":0.28,"valid":2.28,"final":4.58,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.5676,"release":true,"sims":26,"fb":null,"h":3}
+{"sc":"ACT_FFJ_UP","mode":"cold","save_ms":1.8,"resp":0.269,"valid":2.78,"final":5.84,"job":{"job_started_s":0.27},"comp":"INCREMENTAL","cp":64.6309,"release":true,"sims":37,"fb":null,"h":3}
+{"sc":"ACT_FFM_DOWN","mode":"cold","save_ms":1.7,"resp":0.285,"valid":2.25,"final":5.57,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":31,"fb":null,"h":3}
+{"sc":"KP72_DOWN","mode":"cold","save_ms":2,"resp":0.291,"valid":2.04,"final":5.1,"job":{"job_started_s":0.3},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"ACT_PGN_2SLOT_C","mode":"cold","save_ms":1.8,"resp":0.293,"valid":2.32,"final":4.12,"job":{"job_started_s":0.3},"comp":"INCREMENTAL","cp":64.6987,"release":true,"sims":28,"fb":null,"h":3}
+{"sc":"QA_pgn_pipe_1","mode":"cold","save_ms":1.8,"resp":0.331,"valid":14.44,"final":15.47,"job":{"job_started_s":0.33},"comp":"INCREMENTAL","cp":63.8609,"release":true,"sims":32,"fb":null,"h":3}
+{"sc":"QA_lng_1","mode":"cold","save_ms":1.8,"resp":0.271,"valid":14.64,"final":15.67,"job":{"job_started_s":0.28},"comp":"INCREMENTAL","cp":64.1733,"release":true,"sims":32,"fb":null,"h":3}
+=== KUOTA DARI BASIS PGN 30 (tanpa Actual) ===
+{"sc":"BASE_PGN30","mode":"warm","save_ms":2,"resp":0.289,"valid":2.52,"final":15.98,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.6644,"release":true,"sims":79,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"BASE_PGN30_RERUN_IDENTIK","mode":"warm","save_ms":1.4,"resp":0.007,"valid":0.02,"final":0.03,"job":{"job_started_s":-15.69},"comp":"EXACT","cp":64.6644,"release":true,"sims":79,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KA
+{"sc":"Q_pgn_pipe_1","mode":"cold","save_ms":2.1,"resp":0.282,"valid":6.18,"final":12.29,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.5424,"release":true,"sims":42,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pgn_pipe_-1","mode":"cold","save_ms":1.9,"resp":0.275,"valid":null,"final":5.64,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.2315,"release":false,"sims":13,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3
+{"sc":"Q_pgn_pipe_2","mode":"cold","save_ms":1.9,"resp":0.28,"valid":0.98,"final":15.94,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.4029,"release":true,"sims":47,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pgn_pipe_-2","mode":"cold","save_ms":1.9,"resp":0.288,"valid":null,"final":6.67,"job":{"job_started_s":0.29},"comp":"EXACT","cp":63.5829,"release":false,"sims":12,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3
+{"sc":"Q_pgn_pipe_4","mode":"cold","save_ms":1.8,"resp":0.288,"valid":1.5,"final":11.43,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.1256,"release":true,"sims":56,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pgn_pipe_-4","mode":"cold","save_ms":2.3,"resp":0.283,"valid":null,"final":6.44,"job":{"job_started_s":0.29},"comp":"EXACT","cp":62.2857,"release":false,"sims":13,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3
+{"sc":"Q_pep_1","mode":"cold","save_ms":2.1,"resp":0.303,"valid":6.73,"final":13.34,"job":{"job_started_s":0.31},"comp":"EXACT","cp":64.4253,"release":true,"sims":59,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pep_-1","mode":"cold","save_ms":2.2,"resp":0.286,"valid":null,"final":5.66,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.2762,"release":false,"sims":12,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pep_2","mode":"cold","save_ms":2,"resp":0.283,"valid":1.29,"final":12.72,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.1989,"release":true,"sims":73,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pep_-2","mode":"cold","save_ms":3.5,"resp":0.291,"valid":null,"final":6.72,"job":{"job_started_s":0.3},"comp":"EXACT","cp":63.6723,"release":false,"sims":12,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_lng_1","mode":"cold","save_ms":2.2,"resp":0.302,"valid":5.74,"final":11.08,"job":{"job_started_s":0.31},"comp":"EXACT","cp":64.8581,"release":true,"sims":60,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_lng_-1","mode":"cold","save_ms":1.7,"resp":0.278,"valid":null,"final":5.92,"job":{"job_started_s":0.28},"comp":"EXACT","cp":63.9109,"release":false,"sims":12,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pep_kp72_1","mode":"cold","save_ms":2.2,"resp":0.287,"valid":2.88,"final":20.7,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.631,"release":true,"sims":108,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pep_kp72_-1","mode":"cold","save_ms":1.8,"resp":0.28,"valid":2.55,"final":16.04,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.786,"release":true,"sims":79,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_akasia_1","mode":"cold","save_ms":2.2,"resp":0.286,"valid":6.44,"final":13.81,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.6661,"release":true,"sims":67,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_akasia_-1","mode":"cold","save_ms":2.4,"resp":0.309,"valid":null,"final":6.45,"job":{"job_started_s":0.31},"comp":"EXACT","cp":64.0315,"release":false,"sims":12,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"PGN29_PEP32","mode":"cold","save_ms":2.6,"resp":0.29,"valid":6.21,"final":20.17,"job":{"job_started_s":0.29},"comp":"EXACT","cp":64.3188,"release":true,"sims":70,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+--- transisi PGN 29 + PEP 32 (warm: basis -> 29/32 -> kembali 30 -> 29/32) ---
+{"sc":"PGN29_PEP32","mode":"warm","save_ms":2.2,"resp":0.293,"valid":5.96,"final":18.45,"job":{"job_started_s":0.3},"comp":"EXACT","cp":64.3188,"release":true,"sims":70,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"BASE_PGN30","mode":"warm","save_ms":1.7,"resp":0.047,"valid":0.25,"final":1.28,"job":{"job_started_s":0.05},"comp":"EXACT","cp":64.6644,"release":true,"sims":1,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"PGN29_PEP32_LAGI","mode":"warm","save_ms":1.6,"resp":0.007,"valid":0.02,"final":0.03,"job":{"job_started_s":-21.04},"comp":"EXACT","cp":64.3188,"release":true,"sims":70,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","
+{"sc":"Q_pep_1","mode":"warm","save_ms":1.6,"resp":0.037,"valid":6.46,"final":14.34,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.4253,"release":true,"sims":76,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pgn_pipe_1","mode":"warm","save_ms":2.3,"resp":0.038,"valid":5.15,"final":11.76,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.5424,"release":true,"sims":42,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"Q_pgn_pipe_1","mode":"cold","save_ms":2,"resp":0.28,"valid":6.41,"final":12.53,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.5424,"release":true,"sims":41,"fb":"PP_V3_INCREMENTAL=0","h":3}
+{"sc":"Q_pep_1","mode":"cold","save_ms":1.9,"resp":0.274,"valid":6.65,"final":13.51,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.4253,"release":true,"sims":60,"fb":"PP_V3_INCREMENTAL=0","h":3}
+{"sc":"Q_lng_1","mode":"cold","save_ms":4,"resp":0.297,"valid":6.45,"final":11.55,"job":{"job_started_s":0.3},"comp":"EXACT","cp":64.8581,"release":true,"sims":41,"fb":"PP_V3_INCREMENTAL=0","h":3}
+{"sc":"Q_pep_kp72_1","mode":"cold","save_ms":2.5,"resp":0.277,"valid":2.79,"final":20.1,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.631,"release":true,"sims":108,"fb":"PP_V3_INCREMENTAL=0","h":3}
+{"sc":"Q_pep_kp72_-1","mode":"cold","save_ms":2,"resp":0.311,"valid":2.59,"final":13.56,"job":{"job_started_s":0.32},"comp":"EXACT","cp":64.786,"release":true,"sims":80,"fb":"PP_V3_INCREMENTAL=0","h":3}
+{"sc":"Q_akasia_1","mode":"cold","save_ms":1.9,"resp":0.272,"valid":6.46,"final":13.32,"job":{"job_started_s":0.28},"comp":"EXACT","cp":64.6661,"release":true,"sims":59,"fb":"PP_V3_INCREMENTAL=0","h":3}
+=== EVENT BERAT: STATUS UNIT, MANDATORY STOP, SKIP/FIX LOAD, CHANGE OVER ===
+{"sc":"BASE PGN30","mode":"warm","save_ms":3.3,"resp":0.34,"valid":2.58,"final":16.81,"job":{"job_started_s":0.35},"comp":"EXACT","cp":64.6644,"release":true,"sims":79,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"STOP_RUNNING_G1_FROM_10:00","mode":"warm","save_ms":1.8,"resp":0.037,"valid":0.5,"final":13.22,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.8331,"release":false,"sims":40,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_K
+{"sc":"FORCE_RUN_G5_AT_10:00","mode":"warm","save_ms":1.7,"resp":0.038,"valid":2.28,"final":3.05,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.7788,"release":true,"sims":27,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK
+{"sc":"MANDATORY_STOP_G1","mode":"warm","save_ms":1.9,"resp":0.038,"valid":12.74,"final":15.29,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.499,"release":true,"sims":58,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","
+{"sc":"SKIP_LOAD_G9","mode":"warm","save_ms":2.1,"resp":0.039,"valid":1.26,"final":10.17,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.8307,"release":true,"sims":72,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"FIX_LOAD_G9","mode":"warm","save_ms":2.1,"resp":0.04,"valid":null,"final":3.87,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.5169,"release":false,"sims":18,"fb":"V9_STATE_TANPA_ACTUAL_EXACT_KANONIK","h":3}
+{"sc":"CO_B2_G1_TO_B1_G3_SIM","mode":"warm","save_ms":1.9,"resp":0.038,"valid":null,"final":0.76,"job":{"job_started_s":0.05},"comp":"EXACT","cp":64.905,"release":false,"sims":2,"fb":"CHANGE_OVER_AKTIF","h":3}
+{"sc":"CO_B2_G1_TO_B1_G4_MANUAL","mode":"warm","save_ms":1.8,"resp":0.037,"valid":null,"final":2.03,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.3415,"release":false,"sims":9,"fb":"CHANGE_OVER_AKTIF","h":3}
+{"sc":"CO_B2_G1_TO_B1_G6_SIM","mode":"warm","save_ms":1.7,"resp":0.038,"valid":null,"final":0.76,"job":{"job_started_s":0.04},"comp":"EXACT","cp":64.9193,"release":false,"sims":2,"fb":"CHANGE_OVER_AKTIF","h":3}
+=== EXACT PENUH STATE ACTUAL (BASE_ACT10 dari nol) ===
+{"sc":"BASE_ACT10","mode":"warm","save_ms":1.9,"resp":0.289,"valid":25.97,"final":29.28,"job":{"job_started_s":0.29},"comp":"INCREMENTAL","cp":64.6214,"release":true,"sims":82,"fb":null,"h":3}
+No syntax errors detected in /tmp/claude-0/tv7_9600/ui/run.php
+No syntax errors detected in /tmp/claude-0/tv7_9600/ui/worker02.php
+No syntax errors detected in /tmp/claude-0/tv7_9600/ui/worker_functions.php
+No syntax errors detected in /tmp/claude-0/tv7_9600/ui/index.php
+=== POPUP PGN20 ===
+PASS  P2    Klik Run -> tahap progres PERTAMA tampil <= 2 detik  -- 862 ms; Input tersimpan; job pemilik state dimulai 0,0 s (kumulatif 0,0 s)Optimasi exact penuh 0,0 s (kumulatif 0,0 s)v4 family parallel 0,3 s (kumulatif 0,3 s)Menyiapk
+PASS  P3    Modal menutupi halaman (Run/Export/input); Save Input tetap aktif dan dapat diklik di atas modal (V3)  -- {"ok":true,"z":"10000","pos":"fixed","tertutup":true,"saveInputDiAtasModal":true}
+PASS  P4    OUTPUT tetap kosong selama analisis berjalan  -- {"output":"kosong","gate":true}
+PASS  P5    Daftar tahap bertambah mengikuti mesin hitung (bukan animasi)  -- awal=4 -> terakhir teramati=10 (6082 ms); judul="Gas shortage analysis in progress"
+PASS  P6    Modal berganti menjadi popup keputusan tanpa lapisan ganda  -- popup pada 7241 ms; lapisan ganda=0; jeda tanpa lapisan=0
+PASS  P7    Export/Publish/Save hasil terkunci selama keputusan belum diambil; Save Input tetap aktif (V3)  -- {"st":{"btn-xls":true,"btn-img-full":true,"btn-img-partial":true,"btn-publish":"tidak ada","btn-save-actual":"tidak ada"},"gate":true,"output":"kosong","saveInputAktif":true}
+PASS  P8    Tidak ada JavaScript error di halaman
+
+8/8 lulus -> integ/tgt/POPUP.md
+=== GAS SHORTAGE PGN 25 ===
+PASS  T1    PGN 25: popup Gas Shortage menampilkan angka LNG dan Distillate, tombol aktif setelah validasi  -- popup 5594 ms (awal: "Menghitung opsi yang tervalidasi…"), angka 6607 ms: LNG 4.7385 BBTUD, Distillate 132198 l
+PASS  T2    PGN 25 -> LNG rekomendasi -> rerun final otomatis, hasil final valid  -- 4640 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"add_lng","added":4.7385,"used":0}
+PASS  T3    PGN 25 -> Distillate rekomendasi -> rerun final otomatis, limit dihormati  -- 3351 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"use_distillate","added":0,"used":131640.7}
+PASS  T4    PGN 25 -> LNG manual kurang -> sisa ditutup Distillate otomatis  -- LNG 2.3693; 3848 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"mixed_lng_distillate","added":2.3693,"used":66133.1}
+PASS  T5    PGN 25 -> LNG manual lebih -> memakai kuota LNG user, tanpa Distillate  -- LNG 6.7385; 3469 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"add_lng","added":6.7385,"used":0}
+PASS  T6    PGN 30 selesai tanpa popup bila tidak ada shortage, hasil final valid  -- modal 48 ms, progres 755 ms, total 15365 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"recommendation","added"
+PASS  T9    PGN 25 -> Cancel: popup tertutup, hasil pendahuluan tidak diterbitkan, Export/Publish tetap terkunci, Save Input tetap aktif (V3)  -- popup 321 ms; sesudah Batal: popup=false, gate=true, saveInputAktif=true, exportAktif=false, msg="Dibatalkan. Inpu
+PASS  T7    Progress 100% langsung selesai: hasil tampil <= 2 s setelah job DONE, polling berhenti  -- jeda DONE->tampil per skenario (ms): [213,249,197,203,224]; polling sesudah hasil tampil: [0,0,0,0,0]
+PASS  T8    Tidak ada CMD/proses OS, tidak ada job gagal/menggantung, tidak ada JavaScript error  -- jobs=7 (DONE), gagal=0, menggantung=0, scan=0 temuan, jsErr=0
+=== GAS SHORTAGE PGN 20 ===
+PASS  T1    PGN 20: popup Gas Shortage menampilkan angka LNG dan Distillate, tombol aktif setelah validasi  -- popup 5603 ms (awal: "Menghitung opsi yang tervalidasi…"), angka 6626 ms: LNG 9.7385 BBTUD, Distillate 272475.8 l
+PASS  T2    PGN 20 -> LNG rekomendasi -> rerun final otomatis, hasil final valid  -- 4428 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"add_lng","added":9.7385,"used":0}
+PASS  T3    PGN 20 -> Distillate rekomendasi -> rerun final otomatis, limit dihormati  -- 3297 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"use_distillate","added":0,"used":270299.2}
+PASS  T4    PGN 20 -> LNG manual kurang -> sisa ditutup Distillate otomatis  -- LNG 4.8693; 3426 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"mixed_lng_distillate","added":4.8693,"used":135245.6}
+PASS  T5    PGN 20 -> LNG manual lebih -> memakai kuota LNG user, tanpa Distillate  -- LNG 11.7385; 3732 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"add_lng","added":11.7385,"used":0}
+PASS  T6    PGN 30 selesai tanpa popup bila tidak ada shortage, hasil final valid  -- modal 68 ms, progres 765 ms, total 16396 ms; {"rows":48,"conv":true,"econ":true,"hard":"PASS","econGate":"PASS","exp":"OK","resid":0,"rel":true,"src":"recommendation","added"
+PASS  T9    PGN 20 -> Cancel: popup tertutup, hasil pendahuluan tidak diterbitkan, Export/Publish tetap terkunci, Save Input tetap aktif (V3)  -- popup 310 ms; sesudah Batal: popup=false, gate=true, saveInputAktif=true, exportAktif=false, msg="Dibatalkan. Inpu
+PASS  T7    Progress 100% langsung selesai: hasil tampil <= 2 s setelah job DONE, polling berhenti  -- jeda DONE->tampil per skenario (ms): [180,223,195,210,261]; polling sesudah hasil tampil: [0,0,0,0,0]
+PASS  T8    Tidak ada CMD/proses OS, tidak ada job gagal/menggantung, tidak ada JavaScript error  -- jobs=7 (DONE), gagal=0, menggantung=0, scan=0 temuan, jsErr=0
+=== TL UI (15,25,35,45,55,60,max) ===
+PASS  T4-35  Target < 35 detik: hasil tampil sebelum batas; valid 48 baris; label & Global optimum proven dinyatakan  -- t=816 ms label=FINAL OPTIMAL cp=64.3188 rows=48 excel_terbuka=true msg=FINAL OPTIMAL — Target waktu < 35 detik | Waktu aktual 0,4 detik |
+PASS  V11-35  SUMMARY kuning tepat lima field; CP tersedia -> Valid >= 1; Valid <= Diperiksa; counter = satu sumber (info V11 Candidate Counters / tl_best.counters); best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandida
+PASS  T4-45  Target < 45 detik: hasil tampil sebelum batas; valid 48 baris; label & Global optimum proven dinyatakan  -- t=817 ms label=FINAL OPTIMAL cp=64.3188 rows=48 excel_terbuka=true msg=FINAL OPTIMAL — Target waktu < 45 detik | Waktu aktual 0,4 detik |
+PASS  V11-45  SUMMARY kuning tepat lima field; CP tersedia -> Valid >= 1; Valid <= Diperiksa; counter = satu sumber (info V11 Candidate Counters / tl_best.counters); best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandida
+PASS  T4-55  Target < 55 detik: hasil tampil sebelum batas; valid 48 baris; label & Global optimum proven dinyatakan  -- t=816 ms label=FINAL OPTIMAL cp=64.3188 rows=48 excel_terbuka=true msg=FINAL OPTIMAL — Target waktu < 55 detik | Waktu aktual 0,4 detik |
+PASS  V11-55  SUMMARY kuning tepat lima field; CP tersedia -> Valid >= 1; Valid <= Diperiksa; counter = satu sumber (info V11 Candidate Counters / tl_best.counters); best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandida
+PASS  T4-60  Target < 60 detik: hasil tampil sebelum batas; valid 48 baris; label & Global optimum proven dinyatakan  -- t=819 ms label=FINAL OPTIMAL cp=64.3188 rows=48 excel_terbuka=true msg=FINAL OPTIMAL — Target waktu < 60 detik | Waktu aktual 0,4 detik |
+PASS  V11-60  SUMMARY kuning tepat lima field; CP tersedia -> Valid >= 1; Valid <= Diperiksa; counter = satu sumber (info V11 Candidate Counters / tl_best.counters); best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandida
+PASS  T5-max  Maximum Review: exact selesai, FINAL OPTIMAL publishable, Global optimum proven: YES (ruang kandidat exact); kandidat Target Selesai yang lebih murah (bila ada) dinyatakan sebagai catatan  -- t=820 ms label=FINAL OPTIMAL cp=64.3188 catatan=false 
+PASS  V11-max  SUMMARY kuning tepat lima field; CP tersedia -> Valid >= 1; Valid <= Diperiksa; counter = satu sumber (info V11 Candidate Counters / tl_best.counters); best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandid
+PASS  T6  Cost Production tidak memburuk ketika target waktu diperpanjang (15 -> 25 -> 60)  -- ["15:64.5678","25:64.3188","35:64.3188","45:64.3188","55:64.3188","60:64.3188"] | Maximum Review (exact): 64.3188
+PASS  T8  Maximum Review (FINAL OPTIMAL) tidak lebih mahal daripada kandidat valid Target Selesai mana pun di luar band CP 0,2 % (V11)  -- Maximum Review 64.3188 vs Target Selesai terbaik 64.3188
+PASS  T7  tidak ada JavaScript error  -- 
+20/20 PASS
+=== TL NOVALID ===
+PASS  N1  PGN 20 (kekurangan gas) target < 15 detik: tanpa hasil invalid tepat waktu (NO VALID RESULT atau popup Gas Shortage), worker selesai/dihentikan  -- t=6542 ms outcome=GAS_SHORTAGE_DECISION_POPUP rows=0 gate=true jobs=["DONE"] msg=Done. Perhitungan eks
+Hasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 9,6985 BBTUD. Rencana ini bu
+=== PROV UI PGN 30->31 ===
+PASS  U1  run dasar final valid, Save terbuka  -- {"rows":48,"save":false}
+PASS  U2  VALID PROVISIONAL tampil <= 15 s dengan label, 48 baris  -- t=5852 ms
+PASS  U3  selama provisional Export/Publish terkunci, Save Input tetap aktif (V3)  -- {"save":false,"gate":true,"xls":true}
+PASS  U4  tahap 2 selesai: status akhir dinyatakan (FINAL OPTIMAL, exact ditolak release gate, atau rencana valid lebih murah dipertahankan)  -- t=11882 ms msg=FINAL OPTIMAL — optimasi exact mengganti hasil provisional. Commitment: G2 0→12 row, G5 12→0 r
+PASS  U5  Export hanya terbuka bila FINAL OPTIMAL; Save Input selalu aktif (V3)  -- {"save":false,"xls":false}
+PASS  U6  tidak ada JavaScript error  -- 
+6/6 PASS
+=== TARGETED12 ===
+PASS  S1     Recommendation shortage>0: popup keputusan MUNCUL
+PASS  S2.a   sebelum keputusan: OUTPUT final TIDAK diisi  -- outputAda=false rows=0
+PASS  S2.b   sebelum keputusan: tabel HASIL tidak berisi baris  -- baris #tbl-result=0
+PASS  S2.d   sebelum keputusan: ringkasan hasil masih kosong
+PASS  S2.c   sebelum keputusan: gerbang aktif  -- GSD_GATE=true
+PASS  S3.a   sebelum keputusan: Save Input TETAP AKTIF (V3: gerbang hanya mengunci hasil)  -- disabled=false
+PASS  S3.b   sebelum keputusan: Export Excel TERKUNCI  -- disabled=true
+PASS  S3.c   Export dipanggil paksa tetap diblokir gerbang  -- {"diblokir":true,"unduh":false}
+PASS  S4.a   tombol LNG tervalidasi menjadi aktif
+PASS  S4.b   rerun final berjalan dan gerbang dibuka  -- src=add_lng
+PASS  S4.c   hasil final tampil 48 baris  -- rows=48
+PASS  S4.d   Save terbuka kembali setelah hasil final  -- disabled=false
+PASS  S4.d2  Export terbuka kembali setelah hasil final  -- disabled=false
+PASS  S4.q   hasil final: 48 baris, konvergen, economic review selesai, release gate lulus  -- {"rows":48,"conv":true,"econ":true,"rel":true,"hard":"PASS"}
+PASS  S4.e   action final add_lng dengan LNG > 0 dan residual 0  -- {"src":"add_lng","added":9.7385,"resid":0}
+PASS  S5.a   tombol Distillate tervalidasi menjadi aktif
+PASS  S5.b   rerun final Distillate dan gerbang dibuka  -- src=use_distillate
+PASS  S5.c   action use_distillate, liter > 0, residual 0  -- {"src":"use_distillate","used":270299.2,"resid":0}
+PASS  S6.a   Add LNG kosong -> otomatis Required LNG: tidak ada popup kedua
+PASS  S6.b   Add LNG kosong -> otomatis Required LNG: rerun final otomatis berjalan  -- payload=["recommendation","add_lng"]
+PASS  S6.c   Add LNG kosong -> otomatis Required LNG: action final = add_lng  -- src=add_lng
+PASS  S6.d   Add LNG kosong -> otomatis Required LNG: residual tertutup  -- residual=0
+PASS  S6.e   Add LNG kosong -> otomatis Required LNG: 48 baris hasil final  -- rows=48
+PASS  S7.a   Add LNG manual = Required LNG: tidak ada popup kedua
+PASS  S7.b   Add LNG manual = Required LNG: rerun final otomatis berjalan  -- payload=["recommendation","add_lng"]
+PASS  S7.c   Add LNG manual = Required LNG: action final = add_lng  -- src=add_lng
+PASS  S7.d   Add LNG manual = Required LNG: residual tertutup  -- residual=0
+PASS  S7.e   Add LNG manual = Required LNG: 48 baris hasil final  -- rows=48
+PASS  S8.a   Add LNG manual > Required LNG: tidak ada popup kedua
+PASS  S8.b   Add LNG manual > Required LNG: rerun final otomatis berjalan  -- payload=["recommendation","add_lng"]
+PASS  S8.c   Add LNG manual > Required LNG: action final = add_lng  -- src=add_lng
+PASS  S8.d   Add LNG manual > Required LNG: residual tertutup  -- residual=0
+PASS  S8.e   Add LNG manual > Required LNG: 48 baris hasil final  -- rows=48
+PASS  S9.a   Add LNG manual < Required LNG -> CAMPURAN: tidak ada popup kedua
+PASS  S9.b   Add LNG manual < Required LNG -> CAMPURAN: rerun final otomatis berjalan  -- payload=["recommendation","mixed_lng_distillate"]
+PASS  S9.c   Add LNG manual < Required LNG -> CAMPURAN: action final = mixed_lng_distillate  -- src=mixed_lng_distillate
+PASS  S9.d   Add LNG manual < Required LNG -> CAMPURAN: residual tertutup  -- residual=0
+PASS  S9.e   Add LNG manual < Required LNG -> CAMPURAN: 48 baris hasil final  -- rows=48
+PASS  S9.f   CAMPURAN: LNG operator dipakai DAN distillate menutup sisa  -- LNG=7.9856 distillate=48952.1 l
+PASS  S10.a  Distillate kosong -> otomatis rekomendasi: tidak ada popup kedua
+PASS  S10.b  Distillate kosong -> otomatis rekomendasi: rerun final otomatis  -- src=use_distillate
+PASS  S10.c  Distillate kosong -> otomatis rekomendasi: action use_distillate  -- src=use_distillate
+PASS  S10.d  Distillate kosong -> otomatis rekomendasi: residual tertutup  -- residual=0
+PASS  S10.e  Distillate kosong -> otomatis rekomendasi: 48 baris hasil final  -- rows=48
+PASS  S11.a  Distillate manual cukup: tidak ada popup kedua
+PASS  S11.b  Distillate manual cukup: rerun final otomatis  -- src=use_distillate
+PASS  S11.c  Distillate manual cukup: action use_distillate  -- src=use_distillate
+PASS  S11.d  Distillate manual cukup: residual tertutup  -- residual=0
+PASS  S11.e  Distillate manual cukup: 48 baris hasil final  -- rows=48
+PASS  S11.f  plafon operator tidak dilampaui  -- 270299.2 <= 300000
+PASS  S12.a  Batal: popup tertutup
+PASS  S12.b  Batal: TIDAK ada rerun final terkirim  -- []
+PASS  S12.c  Batal: hasil final tetap TIDAK ada  -- outputAda=false rows=0
+PASS  S12.d  Batal: Save Input tetap aktif (V3)
+PASS  S12.e  Batal: Export tetap terkunci
+PASS  S0.a   tidak ada galat JavaScript sepanjang 12 skenario  -- nol galat kode
+PASS  S0.b   pemberitahuan HTTP hanya 422 (kontrak hasil tidak dapat dipublikasikan)  -- total=0 (422=0); 422 adalah kontrak backend untuk hasil yang belum final, bukan galat kode
+57/57 PASS (0 FAIL)
+TARGETED_SELESAI
+=== SAVE UI (C1-C7, S1) ===
+PASS  B0  Run dasar selesai FINAL OPTIMAL (exact penuh, basis inkremental)  -- t=0 ms cp=64.6657 msg=FINAL OPTIMAL (basis final tersimpan dari run sebelumnya)
+PASS  C4  Run menyimpan input_data.json lebih dulu (nilai slot baru sudah di disk saat respons Run tiba, sebelum hasil)  -- {"resp_ms":308,"autosave_ms":1.9,"disk":1.6598,"ui":"1.6598"}
+PASS  C5  Identitas state yang tersimpan = yang dihitung (hash)  -- {"saved":"28d6e5a4b861f48b","computed":"28d6e5a4b861f48b","owner":"economic_review-0a741d03f3c0bccd65d4"}
+PASS  C1  Save Input aktif dan berfungsi selama VALID PROVISIONAL (Export/Publish tetap terkunci)  -- {"prov_ms":2492,"save":"ok","xls_locked":true}
+PASS  S1  Actual PGN satu slot: hasil valid pertama < 5 s, FINAL OPTIMAL tanpa menunggu menit  -- valid_tampil=2492 ms kolam_terbaca=2488 ms job_valid_pertama=- final=5586 ms cp=64.6801 msg=FINAL OPTIMAL — recompute in
+PASS  C7  Klik ganda Run: tidak menulis dan tidak menghitung dua kali  -- {"run_requests":1,"writes":1,"owners":["economic_review-0a741d03f3c0bccd65d4"],"jobs_before":1,"jobs_after":1,"skipped_identical":[false],"owner_r
+PASS  C6  Penyimpanan gagal: simulasi tidak dimulai, sebab ditampilkan, file lama utuh  -- {"code":"INPUT_SAVE_FAILED","msg":"Run dibatalkan: input gagal disimpan ke input_data.json (tidak bisa membuka lock file input_da
+PASS  C3  Save Input aktif dan dapat diklik di atas modal selama job exact berjalan  -- {"mask":true,"disabled":false,"topmost":true,"save":"ok","jobs":["DONE","RUNNING"]}
+PASS  C2  Save Input aktif dan dapat diklik saat popup Gas Shortage terbuka (Export/Publish terkunci)  -- {"t_popup_ms":12558,"pop":true,"disabled":false,"topmost":true,"save":"ok","xls_locked":true}
+PASS  J1  tidak ada JavaScript error  -- 
+10/10 PASS
+=== V7 UI: PERUBAHAN SIMULATION DATA PER SLOT ===
+BASE FINAL 5689 64.6214
+PGN_UP FINAL valid 1863 final 4884 cp 64.6801 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:pipeline@-0.16","cand":13,"valid_ev":9,"evals":32,"far":null,"near":0,"commit_same":false,"rows_re":46,"rows_reuse":2,"first_val
+PGN_DOWN FINAL valid 2089 final 4654 cp 64.5676 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2b:winner@-0.16","cand":13,"valid_ev":11,"evals":22,"far":null,"near":0,"commit_same":true,"rows_re":41,"rows_reuse":7,"first_val
+FFJ_UP FINAL valid 2666 final 5656 cp 64.6309 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":8,"evals":40,"far":null,"near":0,"commit_same":true,"rows_re":45,"r
+FFJ_DOWN NOT_FINAL valid null final 11216 cp 64.6309 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":8,"evals":40,"far":null,"near":0,"commit_same":true,"rows_re
+FFM_UP FINAL valid 2050 final 4708 cp 64.6216 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":22,"far":null,"near":0,"commit_same":true,"rows_re":45,"
+FFM_DOWN FINAL valid 2228 final 5525 cp 64.6214 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":23,"far":null,"near":0,"commit_same":true,"rows_re":45
+KP72_UP FINAL valid 1908 final 4878 cp 64.6214 {"applied":true,"reason":null,"dirty":[1,30],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":22,"far":null,"near":0,"commit_same":true,"rows_re":46,
+KP72_DOWN FINAL valid 2079 final 4688 cp 64.6214 {"applied":true,"reason":null,"dirty":[1,30],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":22,"far":null,"near":0,"commit_same":true,"rows_re":4
+PGN_2SLOT FINAL valid 1701 final 3950 cp 64.6987 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":9,"evals":52,"far":null,"near":0,"commit_same":true,"rows_re":44
+FFJ_SMALL FINAL valid 1851 final 4670 cp 64.6214 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":20,"far":null,"near":0,"commit_same":true,"rows_re":4
+PGN_BIG GAS_SHORTAGE_POPUP valid null final 9911 cp 64.6214 {"applied":true,"reason":null,"dirty":[1,22],"winner":"v10_tier2a:winner:V11_SUSUN:SWAP:G5>G2:26-37@0.16","cand":13,"valid_ev":11,"evals":20,"far":null,"near":0,"commit_same":true,
+=== V7 UI: PERUBAHAN KUOTA (basis Actual 11 jam) ===
+BASIS FINAL 5629 64.6214
+pgn_pipe:1 FINAL valid 15048 akhir 16188 angka null cp 63.8609 INCREMENTAL  
+pgn_pipe:-1 GAS_SHORTAGE_POPUP valid null akhir 11773 angka 24910 cp 64.7333 EXACT V9_JANGKAR_BELUM_ADA 
+pgn_pipe:2 FINAL valid 18206 akhir 19800 angka null cp 62.9444 INCREMENTAL  
+pgn_pipe:-2 GAS_SHORTAGE_POPUP valid null akhir 10819 angka 23947 cp 64.7333 EXACT V9_JANGKAR_BELUM_ADA 
+pgn_pipe:4 FINAL valid 14856 akhir 20212 angka null cp 60.277 INCREMENTAL  
+pgn_pipe:-4 GAS_SHORTAGE_POPUP valid null akhir 11059 angka 30009 cp 64.7333 EXACT V9_JANGKAR_BELUM_ADA 
+pep:1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 647 angka null cp 66.0665 DELTA_CERTIFICATE  PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR
+pep:-1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 1043 angka null cp 65.6235 DELTA_CERTIFICATE  PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING
+pep:2 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 432 angka null cp 65.1795 DELTA_CERTIFICATE  PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR
+pep:-2 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 1253 angka null cp 65.3991 DELTA_CERTIFICATE  PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING
+lng:1 FINAL valid 14811 akhir 16177 angka null cp 64.1733 INCREMENTAL  
+lng:-1 GAS_SHORTAGE_POPUP valid null akhir 11304 angka 24437 cp 64.4127 EXACT V9_JANGKAR_BELUM_ADA 
+pep_kp72:1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 1253 angka null cp 65.8037 DELTA_CERTIFICATE  PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR
+pep_kp72:-1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 1246 angka null cp 65.9826 DELTA_CERTIFICATE  PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING
+akasia:1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 734 angka null cp 66.3111 DELTA_CERTIFICATE  PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR
+akasia:-1 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 1043 angka null cp 65.3788 DELTA_CERTIFICATE  PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING
+pgn_pipe:-1+pep:2 KEPUTUSAN_KUOTA_OPERATOR valid null akhir 632 angka null cp 66.2908 DELTA_CERTIFICATE  PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR
+=== V7 UI: PERUBAHAN KUOTA (basis PGN 30 tanpa Actual) ===
+BASIS FINAL 18366 64.6644
+pgn_pipe:1 FINAL valid 5880 akhir 11979 angka null cp 64.5424 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:-1 GAS_SHORTAGE_POPUP valid null akhir 6214 angka 7229 cp 64.2315 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:2 FINAL valid 761 akhir 11702 angka null cp 64.4029 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:-2 GAS_SHORTAGE_POPUP valid null akhir 5144 angka 6158 cp 63.5829 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:4 FINAL valid 1355 akhir 11455 angka null cp 64.1256 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:-4 GAS_SHORTAGE_POPUP valid null akhir 5367 angka 6381 cp 62.2857 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep:1 FINAL valid 5743 akhir 13050 angka null cp 64.4253 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep:-1 GAS_SHORTAGE_POPUP valid null akhir 5816 angka 6830 cp 64.2762 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep:2 FINAL valid 1181 akhir 12373 angka null cp 64.1989 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep:-2 GAS_SHORTAGE_POPUP valid null akhir 5901 angka 6918 cp 63.6723 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+lng:1 FINAL valid 6578 akhir 12653 angka null cp 64.8581 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+lng:-1 GAS_SHORTAGE_POPUP valid null akhir 5574 angka 6587 cp 63.9109 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep_kp72:1 FINAL valid 3596 akhir 20236 angka null cp 64.631 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pep_kp72:-1 FINAL valid 3541 akhir 16072 angka null cp 64.786 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+akasia:1 FINAL valid 6802 akhir 14548 angka null cp 64.6661 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+akasia:-1 GAS_SHORTAGE_POPUP valid null akhir 5705 angka 6719 cp 64.0315 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+pgn_pipe:-1+pep:2 FINAL valid 6819 akhir 18309 angka null cp 64.3188 EXACT V9_STATE_TANPA_ACTUAL_EXACT_KANONIK 
+=== V7 UI: FORCED STOP/START DAN CHANGE OVER ===
+F0_BASE FINAL 15676 cp 64.6644 rel true {} chk []
+F1_STOP_G1_1000 NOT_FINAL 25277 cp 64.1378 rel false {} chk [true]
+F2_STOP_G1_SLOTS NOT_FINAL 24499 cp 64.1378 rel false {} chk [true]
+F3_START_G5_1000 FINAL 3390 cp 64.7788 rel true {} chk [true]
+F4_RUN_G5_SLOTS FINAL 2495 cp 64.652 rel true {} chk [true,true]
+F4X_RUN_G5_TOO_SHORT NOT_FINAL 4930 cp null rel null {} chk []
+F5_COMBO FINAL 7953 cp 64.7387 rel true {} chk [true,true]
+C1_LEGAL_SIM FINAL 1522 cp 65.0245 rel true {"mode":"sim/sim (bounded timeline optimisation)","executed":true,"reason":null,"why":null,"cands":2,"start_row":18,"stop_row":35,"overlap":9} chk []
+C2_LEGAL_OVERLAP FINAL 5269 cp 64.8889 rel true {"mode":"manual/manual (bounded timeline optimisation)","executed":true,"reason":null,"why":null,"cands":1,"start_row":18,"stop_row":32,"overlap":6} chk []
+C3_ILLEGAL_EXPORT NOT_FINAL 3535 cp null rel null {} chk []
+C4_NEED_COMMIT GAS_SHORTAGE_POPUP 792 cp null rel null {} chk []
+C5_ILLEGAL_REQUIRED NOT_FINAL 2773 cp null rel null {} chk []
+TARGETED_V7_SELESAI
+TARGETED_V8_SELESAI
+=== V11 UI REPRODUCER WB09_3 (klik Run -> FINAL <= 15,5 s, SUMMARY lima field) ===
+PASS  W1 reproducer WB09_3 FINAL 48 row, hard PASS, Export 48/48, residual 0, rilis  -- FINAL 13105 ms rows=48 hard=PASS exp=OK cp=63.4469 hr=8109.13
+METRIK  W2 waktu klik Run -> FINAL 13105 ms (target <= 15500 ms: TERCAPAI)
+PASS  W3 audit V11 lengkap (5), fragmentation PASS/PASS_WITH_REASON, CP audit PASS, provenance fuel PASS, Unit Priority PASS/PASS_WITH_REASON  -- v11=5 frag=PASS_WITH_REASON cp=PASS prov=PASS hpa=PASS_WITH_REASON
+PASS  W4 SUMMARY kuning tepat lima field; counter = info V11 Candidate Counters; Valid >= 1 (CP tersedia); Valid <= Diperiksa; best termasuk valid; teknis hanya di Detail audit  -- labels=Target waktu|Waktu aktual|Kandidat diperiksa|Kandidat valid|Cost Production ds={"target":"max","elapsed":"13.02"
+PASS  W5 rantai UI (KP72 0 lalu kembali 2,2): FINAL identik dengan run pertama (path-independent, deterministik)  -- FINAL 545 ms cp 63.4469 hr 8109.13 identik=true; antara KP72 0: 63.5889
+PASS  W6 tidak ada JavaScript error  -- 
+5/5 PASS
+baris 43
+TARGETED_V11_SELESAI
+=== V12: UJI GENERIK MERIT DISPATCH (12 state nyata, backend HTTP) ===
+PASS  M01_HEADROOM_BASE.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.6644
+PASS  M01_HEADROOM_BASE.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M01_HEADROOM_BASE.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=1 tanpa bukti=0 ["G2@26:REVIEW:CP_LEBIH_RENDAH_DARI_KANDIDAT_VALID INCUMBENT (CP 64.6658, +0.0014)"]
+PASS  M01_HEADROOM_BASE.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 26-37 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M01_HEADROOM_BASE.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":0,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":34,"FAIL":0}
+PASS  M01_HEADROOM_BASE.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.6644 (V11_SUSUN:SWAP:G5>G2:26-37) pemenang 64.6644 d=0% HR 8386.61 / min band 8386.61; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terenda
+PASS  M01_HEADROOM_BASE.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 71479b553a2085c8de088002 dispatch 444d23a62fe5a577
+PASS  M01_HEADROOM_BASE.10 gas blocker: pemakaian gas di window [kuota-0,04 ; kuota]  -- gas 64.5918 kuota 64.6000
+PASS  M02_NEAR_MIN_WB09_3.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=63.4469
+PASS  M02_NEAR_MIN_WB09_3.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M02_NEAR_MIN_WB09_3.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M02_NEAR_MIN_WB09_3.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 27-38 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M02_NEAR_MIN_WB09_3.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":12,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":10,"FAIL":0}
+PASS  M02_NEAR_MIN_WB09_3.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 63.4469 (POLISH_UNIT_PRIORITY_LANJUTAN) pemenang 63.4469 d=0% HR 8109.13 / min band 8109.13; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate te
+PASS  M02_NEAR_MIN_WB09_3.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 541b2e98d3c827b6036ed49f dispatch a3b4344d65b9ab26
+PASS  M02_NEAR_MIN_WB09_3.10 beberapa unit dekat minimum: sapuan konsolidasi dievaluasi dan setiap temuan berakhir sah  -- sapuan DIEVALUASI dibangkitkan 5 valid 1; hasil {"RESOLVED_BY_CONSOLIDATION":12,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":10,"FAIL":0}
+PASS  M03_CONSOLIDATION_WB09.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.3644
+PASS  M03_CONSOLIDATION_WB09.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=349 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M03_CONSOLIDATION_WB09.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M03_CONSOLIDATION_WB09.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 27-38 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M03_CONSOLIDATION_WB09.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":24,"RESOLVED_BY_STOP":21,"PASS_WITH_REASON":18,"FAIL":0}
+PASS  M03_CONSOLIDATION_WB09.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.3644 (POLISH_UNIT_PRIORITY_LANJUTAN) pemenang 64.3644 d=0% HR 8319.17 / min band 8319.17; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate
+PASS  M03_CONSOLIDATION_WB09.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 541b2e98d3c827b6036ed49f dispatch 388edb53ce692b8a
+PASS  M03_CONSOLIDATION_WB09.10 beberapa unit dekat minimum: sapuan konsolidasi dievaluasi dan setiap temuan berakhir sah  -- sapuan DIEVALUASI dibangkitkan 5 valid 1; hasil {"RESOLVED_BY_CONSOLIDATION":24,"RESOLVED_BY_STOP":21,"PASS_WITH_REASON":18,"FAIL":0}
+PASS  M04_MIN_RUNTIME_STOP.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.631
+PASS  M04_MIN_RUNTIME_STOP.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=443 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M04_MIN_RUNTIME_STOP.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=1 tanpa bukti=0 ["G2@26:REVIEW:CP_LEBIH_RENDAH_DARI_KANDIDAT_VALID INCUMBENT (CP 64.6324, +0.0014)"]
+PASS  M04_MIN_RUNTIME_STOP.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 26-37 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M04_MIN_RUNTIME_STOP.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":0,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":34,"FAIL":0}
+PASS  M04_MIN_RUNTIME_STOP.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.631 (V11_SUSUN:SWAP:G5>G2:26-37) pemenang 64.631 d=0% HR 8382.58 / min band 8382.58; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terend
+PASS  M04_MIN_RUNTIME_STOP.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 71479b553a2085c8de088002 dispatch 23ab85bcfceecb34
+PASS  M04_MIN_RUNTIME_STOP.10 start diperlukan: seluruh unit eligible dibandingkan (SWAP ke setiap peer eligible dievaluasi) atau tidak ada start baru  -- peer per unit {"G5":["G3","G4","G6","G2"]}; interval relevan 1
+PASS  M05_RESERVE.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.4728
+PASS  M05_RESERVE.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=433 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M05_RESERVE.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M05_RESERVE.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 16-37 stop@28 TESTED tidak valid: EXPORT (row 28 Export maks 14.0 < Range Min 25."]
+PASS  M05_RESERVE.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":9,"RESOLVED_BY_STOP":2,"PASS_WITH_REASON":25,"FAIL":0}
+PASS  M05_RESERVE.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.4728 (DELAY:G5:16-37:@20) pemenang 64.4728 d=0% HR 8296.78 / min band 8296.78; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terendah di band
+PASS  M05_RESERVE.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 541b2e98d3c827b6036ed49f dispatch 6f716d7a44233ebd
+PASS  M05_RESERVE.10 reserve blocker: spinning reserve >= minimum pada 48 row  -- allowance reserve minimum 5.56 MW
+PASS  M06_BUSFLOW.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.6644
+PASS  M06_BUSFLOW.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M06_BUSFLOW.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=1 tanpa bukti=0 ["G2@26:REVIEW:CP_LEBIH_RENDAH_DARI_KANDIDAT_VALID INCUMBENT (CP 64.6658, +0.0014)"]
+PASS  M06_BUSFLOW.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 26-37 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M06_BUSFLOW.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":0,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":34,"FAIL":0}
+PASS  M06_BUSFLOW.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.6644 (V11_SUSUN:SWAP:G5>G2:26-37) pemenang 64.6644 d=0% HR 8386.61 / min band 8386.61; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terendah di b
+PASS  M06_BUSFLOW.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 71479b553a2085c8de088002 dispatch 444d23a62fe5a577
+PASS  M06_BUSFLOW.10 Bus Flow blocker: Bus Flow >= minimum pada 48 row  -- allowance Bus Flow minimum 131.02 MW
+PASS  M07_EXPORT_RANGE.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.273
+PASS  M07_EXPORT_RANGE.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M07_EXPORT_RANGE.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M07_EXPORT_RANGE.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 21-32 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M07_EXPORT_RANGE.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":4,"RESOLVED_BY_STOP":0,"PASS_WITH_REASON":9,"FAIL":0}
+PASS  M07_EXPORT_RANGE.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.273 (POLISH_UNIT_PRIORITY_LANJUTAN) pemenang 64.273 d=0% HR 8253.06 / min band 8253.06; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terenda
+PASS  M07_EXPORT_RANGE.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe a37a6dd1fc95c6bb4b5e5770 dispatch aca46477180c58fb
+PASS  M07_EXPORT_RANGE.10 Export tetap di dalam rentang / Dev Dispatch user pada setiap row  -- row di luar band=0; row 23 band bawah 27.00, Export 55.48
+PASS  M08_DEV_DISPATCH.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.4309
+PASS  M08_DEV_DISPATCH.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=403 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M08_DEV_DISPATCH.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M08_DEV_DISPATCH.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G3 21-39 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (STG_S1_MIN"]
+PASS  M08_DEV_DISPATCH.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":24,"RESOLVED_BY_STOP":22,"PASS_WITH_REASON":24,"FAIL":0}
+PASS  M08_DEV_DISPATCH.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.4309 (V11_SUSUN:SWAP:G3>G5:21-39) pemenang 64.4309 d=0% HR 8287.94 / min band 8287.94; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terendah
+PASS  M08_DEV_DISPATCH.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 541b2e98d3c827b6036ed49f dispatch d3bc4c43a8ee7dd7
+PASS  M08_DEV_DISPATCH.10 Export tetap di dalam rentang / Dev Dispatch user pada setiap row  -- row di luar band=0; row 23 band bawah 27.00, Export 52.37
+PASS  M09_REQUIRED_G5.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.7788
+PASS  M09_REQUIRED_G5.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=432 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M09_REQUIRED_G5.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M09_REQUIRED_G5.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=0 belum diuji=0 []
+PASS  M09_REQUIRED_G5.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":0,"RESOLVED_BY_STOP":0,"PASS_WITH_REASON":46,"FAIL":0}
+PASS  M09_REQUIRED_G5.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.7788 (INCUMBENT) pemenang 64.7788 d=0% HR 8412.58 / min band 8412.58; PEMENANG = CP MINIMUM ABSOLUT
+PASS  M09_REQUIRED_G5.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 5c7ffbff4595fe1cd13dcfdc dispatch 5ea0d9548eb59ece
+PASS  M09_REQUIRED_G5.10 forced/required: G5 Start at 10:00 (Required) berjalan mulai row 21, berstatus paksa, tidak dijadikan kandidat stop  -- G5 mulai row 21, 17 row; status ["REQUIRED:start_at"]; interval stop-test G5: 0
+PASS  M10_MULTI_START.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.1256
+PASS  M10_MULTI_START.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M10_MULTI_START.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M10_MULTI_START.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G2 27-38 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M10_MULTI_START.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":13,"RESOLVED_BY_STOP":17,"PASS_WITH_REASON":10,"FAIL":0}
+PASS  M10_MULTI_START.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.1256 (V11_SUSUN:SWAP:G2>G5:27-38) pemenang 64.1256 d=0% HR 8207.16 / min band 8207.16; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terendah 
+PASS  M10_MULTI_START.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 541b2e98d3c827b6036ed49f dispatch 877074c296b6f130
+PASS  M10_MULTI_START.10 start diperlukan: seluruh unit eligible dibandingkan (SWAP ke setiap peer eligible dievaluasi) atau tidak ada start baru  -- peer per unit {"G2":["G5","G3","G4","G6"]}; interval relevan 1
+PASS  M11_GAS_WINDOW.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.4253
+PASS  M11_GAS_WINDOW.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=396 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M11_GAS_WINDOW.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=0 tanpa bukti=0 []
+PASS  M11_GAS_WINDOW.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G2 27-38 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M11_GAS_WINDOW.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":29,"RESOLVED_BY_STOP":10,"PASS_WITH_REASON":23,"FAIL":0}
+PASS  M11_GAS_WINDOW.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.4253 (V11_SUSUN:SWAP:G2>G5:27-38) pemenang 64.4253 d=0% HR 8336.79 / min band 8336.79; PEMENANG = CP MINIMUM ABSOLUT dan Heat Rate terendah d
+PASS  M11_GAS_WINDOW.07 sertifikat reuse kanonik lengkap  -- rute EXACT dirty FULL_HORIZON universe 71479b553a2085c8de088002 dispatch 66a9461f663224d8
+PASS  M11_GAS_WINDOW.10 gas blocker: pemakaian gas di window [kuota-0,04 ; kuota]  -- gas 65.6648 kuota 65.6800
+PASS  M12_ACTUAL_SLOT.01 FINAL 48 row, hard PASS, Export 48/48 dalam rentang/Dev Dispatch, rilis  -- rows=48 hard=PASS in_band=48 rilis=true CP=64.6801
+PASS  M12_ACTUAL_SLOT.02 legal headroom GTG/STG/GE/BBLN dihitung setiap row (<= Effective Max - MW, <= allowance ramp)  -- row=48 catatan=395 kelas=GTG/STG/GE/BBLN pelanggaran=0
+PASS  M12_ACTUAL_SLOT.03 unit prioritas rendah tidak start saat headroom prioritas tinggi cukup (atau bukti counterfactual/status)  -- temuan=1 tanpa bukti=0 ["G5@26:REVIEW:BAND_V11_TIE_BREAK: kandidat valid SWAP:G5>G2:27-38 tanpa G5 pada row ini (CP 64.65"]
+PASS  M12_ACTUAL_SLOT.04 unit prioritas rendah diuji stop pada row legal pertama sesudah minimum runtime (atau berhenti di sana)  -- interval=1 belum diuji=0 ["G5 27-38 stop@- PASS INTERVAL_BERAKHIR_SEBELUM\/PADA_ROW_LEGAL_PERTAMA (MIN_RUNTIM"]
+PASS  M12_ACTUAL_SLOT.05 LOW_LOAD_FRAGMENTATION tanpa FAIL (RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP / PASS_WITH_REASON numerik)  -- PASS_WITH_OUTCOMES {"RESOLVED_BY_CONSOLIDATION":0,"RESOLVED_BY_STOP":0,"PASS_WITH_REASON":35,"FAIL":0}
+PASS  M12_ACTUAL_SLOT.06 comparator CP: CP minimum absolut dilaporkan, pemenang di band 0,2 %, Heat Rate pemenang = minimum band, alasan tie-break  -- CPmin 64.6587 (SWAP:G5>G2:27-38) pemenang 64.6801 d=0.0331% HR 8387.69 / min band 8387.69; TIE-BREAK HEAT RATE: pemenang 8387.69 BTU/kWh vs CP minimu
+PASS  M12_ACTUAL_SLOT.07 sertifikat reuse kanonik lengkap  -- rute INCREMENTAL dirty a25f2957e9d1406a universe 3dc068cea988b5bdadcbc642 dispatch c18e1b66cb747cf8
+95/95 PASS
+=== V12: RANTAI BAHAN BAKAR GAS SHORTAGE PGN 25 (popup -> LNG rek -> LNG lebih -> Distillate -> LNG kurang) ===
+OPS:pgn_pipe=25    first None   final 6.82   cp 61.6371  EXACT              core 11 sig 063fffe3fbac csig ab3a3abfe2 hr 8401.21 cnt [10, 0]
+OPS:pgn_pipe=25;act=add_lng;addlng=4.7385 first 1.49   final 4.41   cp 66.2242  DELTA_FUEL         core 1 sig d3bcbca358e1 csig ab3a3abfe2 hr 8400.27 cnt [17, 4]
+OPS:pgn_pipe=25;act=add_lng;addlng=6.7385 first 1.78   final 2.87   cp 66.5411  DELTA_FUEL         core 1 sig 8137506993c9 csig 357def3f05 hr 8307.17 cnt [12, 3]
+OPS:pgn_pipe=25;act=use_distillate;distlim=132198 first 0.55   final 2.87   cp 77.3295  DELTA_FUEL         core 1 sig d03ebe2a7765 csig ab3a3abfe2 hr 8400.42 cnt [31, 3]
+OPS:pgn_pipe=25;act=add_lng;addlng=2.3693 first None   final 8.42   cp 63.9333  EXACT              core 11 sig 063fffe3fbac csig ab3a3abfe2 hr 8401.21 cnt [7, 0]
+=== INTEGRASI: MERIT DISPATCH 12 STATE (cold, counterfactual tanpa redistribusi, tanpa pembantu, warm) ===
+PASS  MERIT_M01_HEADROOM_BASE
+PASS  MERIT_M02_NEAR_MIN_WB09_3
+PASS  MERIT_M03_CONSOLIDATION_WB09
+PASS  MERIT_M04_MIN_RUNTIME_STOP
+PASS  MERIT_M05_RESERVE
+PASS  MERIT_M06_BUSFLOW
+PASS  MERIT_M07_EXPORT_RANGE
+PASS  MERIT_M08_DEV_DISPATCH
+PASS  MERIT_M09_REQUIRED_G5
+PASS  MERIT_M10_MULTI_START
+PASS  MERIT_M11_GAS_WINDOW
+PASS  MERIT_M12_ACTUAL_SLOT
+=== INTEGRASI: SMOKE CHANGE OVER (B2->B1 dan B1->B2 sim/sim feasible) vs V12 CHECKPOINT ===
+PASS  CO_SMOKE_WB09_3_B2B1_SIMSIM_COLD identik V12 checkpoint  -- f35134e744d3/f35134e744d3 cp 63.9304/63.9304 hr 8212.23/8212.23
+PASS  CO_SMOKE_WB09_3_B1B2_SIMSIM_COLD identik V12 checkpoint  -- d9682af1e648/d9682af1e648 cp 63.8636/63.8636 hr 8197.81/8197.81
+=== INTEGRASI: FASTEST - DEFAULT UI (Change Over OFF dan ON) ===
+PASS  F1  Fastest - Default di atas < 15 detik, default terpilih, kuning; target biasa putih; Maximum Review merah terang  -- {"value":"fast","labels":["Fastest - Default","< 15 detik","< 25 detik","< 35 detik","< 45 detik","< 55 detik","< 60 detik","Maximum R
+PASS  F2  tanpa popup progress besar selama run  -- modal_terlihat=false
+PASS  F3  progres berupa teks biru kecil "Fastest - Default"  -- Fastest - Default — mencari kandidat fully valid pertama · 12,8 s Done. Perhitungan eksak selesai — Anda tidak perlu men
+PASS  F4  selesai dengan hasil fully valid 48 row (FASTEST VALID PLAN atau FINAL OPTIMAL)  -- t=13.25 s rows=48 cp=63.4469 msg=Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang. · FINAL OPTIMAL — Target waktu Fastest - Default | Waktu a
+PASS  F5  label jujur: FASTEST VALID PLAN menyatakan Global optimum proven NO; FINAL OPTIMAL hanya bila exact selesai  -- 
+PASS  F7  tidak ada JavaScript error  -- 
+6/6 PASS t=13.25
+PASS  F1  Fastest - Default di atas < 15 detik, default terpilih, kuning; target biasa putih; Maximum Review merah terang  -- {"value":"fast","labels":["Fastest - Default","< 15 detik","< 25 detik","< 35 detik","< 45 detik","< 55 detik","< 60 detik","Maximum R
+PASS  F0  Change Over ON lewat UI (Block 2 Running -> Block 1, sim/sim)  -- {"enabled":true,"blocks":{"1":{"block":"1","last_status":"Stop","gtg":"g4","stg":"s1","start_other":"sim"},"2":{"block":"2","last_status":"Running","gtg":"g1","stg":"s2","stop_other":"
+PASS  F2  tanpa popup progress besar selama run  -- modal_terlihat=false
+PASS  F3  progres berupa teks biru kecil "Fastest - Default"  -- Fastest - Default — mencari kandidat fully valid pertama · 3,6 s Pratinjau — perhitungan eksak selesai tetapi BELUM leng
+PASS  F4  selesai dengan hasil fully valid 48 row (FASTEST VALID PLAN atau FINAL OPTIMAL)  -- t=4.00 s rows=48 cp=63.9304 msg=Pratinjau — perhitungan eksak selesai tetapi BELUM lengkap. Publish tetap terkunci. · FINAL OPTIMAL — Target waktu Fastest - Defa
+PASS  F5  label jujur: FASTEST VALID PLAN menyatakan Global optimum proven NO; FINAL OPTIMAL hanya bila exact selesai  -- 
+PASS  F6  Change Over aktif: executed dan overlap S1/S2 >= 3 row (1,5 jam)  -- executed=true overlap=9 row
+PASS  F7  tidak ada JavaScript error  -- 
+8/8 PASS t=4.00
+TARGETED_V12_SELESAI

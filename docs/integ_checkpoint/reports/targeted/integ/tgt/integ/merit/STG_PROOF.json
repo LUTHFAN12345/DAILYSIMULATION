@@ -1,0 +1,218 @@
+{
+    "M01_HEADROOM_BASE": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        }
+    },
+    "M02_NEAR_MIN_WB09_3": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 44
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 44
+        }
+    },
+    "M03_CONSOLIDATION_WB09": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 50
+        }
+    },
+    "M04_MIN_RUNTIME_STOP": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        }
+    },
+    "M05_RESERVE": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 51
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 49
+        }
+    },
+    "M06_BUSFLOW": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        }
+    },
+    "M07_EXPORT_RANGE": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 40
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 41
+        }
+    },
+    "M08_DEV_DISPATCH": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 54
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 139,
+            "stg_startup_hold_or_hrsg": 5,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 57
+        }
+    },
+    "M09_REQUIRED_G5": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 47
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 47
+        }
+    },
+    "M10_MULTI_START": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 42
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        }
+    },
+    "M11_GAS_WINDOW": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 51
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 48
+        }
+    },
+    "M12_ACTUAL_SLOT": {
+        "FINAL": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 49
+        },
+        "SEBELUM_REDISTRIBUSI": {
+            "rows_x_stg": 144,
+            "stg_equal_calc": 144,
+            "stg_startup_hold_or_hrsg": 0,
+            "violations": 0,
+            "examples": [],
+            "gtg_feed_changes": 49
+        }
+    }
+}

@@ -1,0 +1,30 @@
+WB09_3 {"wall":24.26,"mode":"EXACT","status":null,"final":true,"cp":63.4469}
+   cp 63.4469 rows 48 sig fdb4be9732 | V9 APPLIED 63.7144 -> 63.4469 ['STOP:G5:26-48:@38', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] w 7.415 sim 6
+WB09_KP72 {"wall":23.55,"mode":"EXACT","status":null,"final":true,"cp":64.1989}
+   cp 64.1989 rows 48 sig f478341c66 | V9 APPLIED 64.4083 -> 64.1989 ['SWAP:G2>G5:26-37', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] w 4.797 sim 6
+WB09 {"wall":23.12,"mode":"EXACT","status":null,"final":true,"cp":64.3644}
+   cp 64.3644 rows 48 sig 28e1ecc895 | V9 APPLIED 64.5788 -> 64.3644 ['SWAP:G2>G5:26-37', 'DELAY:G5:26-37:@27', 'POLISH_UNIT_PRIORITY_LANJUTAN'] w 4.933 sim 6
+QA_pep_-1 {"wall":0.91,"mode":"DELTA_CERTIFICATE","status":"USER_ACTION_REQUIRED","final":false,"cp":65.6235}
+   cp 65.6235 rows 48 sig 326103b7f7 | V9 SKIPPED None -> None [] w None sim None
+QA_pgn_pipe_1 {"wall":39.35,"mode":"INCREMENTAL","status":null,"final":true,"cp":63.8609}
+   cp 63.8609 rows 48 sig ad83bdaa53 | V9 DELTA_REVIEW_BASIS 63.8609 -> 63.8609 [] w 0.07 sim 0
+BASE_PGN30 {"wall":34.13,"mode":"EXACT","status":null,"final":true,"cp":64.6644}
+   cp 64.6644 rows 48 sig cb8667fbed | V9 APPLIED 64.6658 -> 64.6644 ['V11_BAND_HEAT_RATE:V11_SUSUN:SWAP:G5>G2:26-37'] w 10.3 sim 3
+ACT_PGN_DOWN {"wall":38.5,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.5676}
+   cp 64.5676 rows 48 sig 1e4c9f0061 | V9 APPLIED 64.575 -> 64.5676 ['SWAP:G2>G5:26-37'] w 1.462 sim 5
+ACT_FFM_DOWN {"wall":10.38,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   cp 64.6214 rows 48 sig 18894e366c | V9 APPLIED 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] w 1.556 sim 5
+ACT_FFJ_UP {"wall":11.79,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6309}
+   cp 64.6309 rows 48 sig d575f4cd5a | V9 APPLIED 64.644 -> 64.6309 ['SWAP:G2>G5:26-37', 'POLISH_UNIT_PRIORITY_LANJUTAN'] w 2.171 sim 5
+KP72_DOWN {"wall":11.13,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   cp 64.6214 rows 48 sig 065e7b4385 | V9 APPLIED 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] w 1.637 sim 5
+ACT_PGN_2SLOT_C {"wall":9.29,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6987}
+   cp 64.6987 rows 48 sig 9a3d8faeec | V9 APPLIED 64.7119 -> 64.6987 ['SWAP:G2>G5:26-37'] w 1.043 sim 5
+ACT_PGN_UP {"wall":10.23,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6801}
+   cp 64.6801 rows 48 sig 3721317395 | V9 APPLIED 64.6801 -> 64.6801 ['DELAY:G5:26-37:@27', 'SWAP:G5>G2:27-38', 'V11_BAND_HEAT_RATE:INCUMBENT'] w 1.37 sim 4
+BASE_ACT10 {"wall":10.19,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6214}
+   cp 64.6214 rows 48 sig 065e7b4385 | V9 APPLIED 64.634 -> 64.6214 ['SWAP:G2>G5:26-37'] w 1.437 sim 5
+warm ACT_PGN_UP {"wall":0,"mode":"INCREMENTAL","status":null,"final":true,"cp":64.6801}
+warm WB09 {"wall":0,"mode":"EXACT","status":null,"final":true,"cp":64.3644}
+warm QA_pep_-1 {"wall":0,"mode":"DELTA_CERTIFICATE","status":"USER_ACTION_REQUIRED","final":false,"cp":65.6235}
+warm WB09_3 {"wall":0,"mode":"EXACT","status":null,"final":true,"cp":63.4469}

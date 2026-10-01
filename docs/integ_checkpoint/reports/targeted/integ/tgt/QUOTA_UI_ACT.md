@@ -1,0 +1,24 @@
+# UI: perubahan kuota lewat browser — basis Actual 11 jam
+
+JS error: 0
+
+| kasus | perubahan | hasil | valid pertama | FINAL / keputusan | angka rekomendasi | jalur | kandidat (valid) / pruned | core run / simulasi | CP | constraint | rilis |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BASIS | - | FINAL | 2,36 s | 5,63 s | - | INCREMENTAL | 13 (11) / - | 22 / 32 | 64.6214 | hard PASS; Export 48/48; gas 64.5706/64.6; PGN 29.9834/30; residual 0; headroom PASS_WITH_REASON | YA |
+| pgn_pipe:1 | pgn_pipe 30 → 31 | FINAL | 15,05 s | 16,19 s | - | INCREMENTAL | 23 (22) / - | 41 / 32 | 63.8609 | hard PASS; Export 48/48; gas 65.5719/65.6; PGN 30.9846/31; residual 0; headroom PASS_WITH_REASON | YA |
+| pgn_pipe:-1 | pgn_pipe 30 → 29 | GAS_SHORTAGE_POPUP | - s | 11,77 s | 24,91 s | EXACT (V9_JANGKAR_BELUM_ADA) | 9 (0) / - | 24 / 12 | 64.7333 | hard FAIL; Export 48/48; gas 64.353/63.6; PGN 29.7766/29; residual 0.7385; headroom PASS_WITH_REASON | tidak |
+| pgn_pipe:2 | pgn_pipe 30 → 32 | FINAL | 18,21 s | 19,80 s | - | INCREMENTAL | 23 (22) / - | 41 / 38 | 62.9444 | hard PASS; Export 48/48; gas 66.5706/66.6; PGN 31.9834/32; residual 0; headroom PASS_WITH_REASON | YA |
+| pgn_pipe:-2 | pgn_pipe 30 → 28 | GAS_SHORTAGE_POPUP | - s | 10,82 s | 23,95 s | EXACT (V9_JANGKAR_BELUM_ADA) | 9 (0) / - | 24 / 11 | 64.7333 | hard FAIL; Export 48/48; gas 64.353/62.6; PGN 29.7766/28; residual 1.7385; headroom PASS_WITH_REASON | tidak |
+| pgn_pipe:4 | pgn_pipe 30 → 34 | FINAL | 14,86 s | 20,21 s | - | INCREMENTAL | 23 (22) / - | 59 / 48 | 60.277 | hard PASS; Export 48/48; gas 68.5737/68.6; PGN 33.9865/34; residual 0; headroom PASS_WITH_REASON | YA |
+| pgn_pipe:-4 | pgn_pipe 30 → 26 | GAS_SHORTAGE_POPUP | - s | 11,06 s | 30,01 s | EXACT (V9_JANGKAR_BELUM_ADA) | 9 (0) / - | 24 / 12 | 64.7333 | hard FAIL; Export 48/48; gas 64.353/60.6; PGN 29.7766/26; residual 3.7385; headroom PASS_WITH_REASON | tidak |
+| pep:1 | pep 30 → 31 | KEPUTUSAN_KUOTA_OPERATOR | - s | 0,65 s | - | DELTA_CERTIFICATE — PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR | null (null) / - | 1 / 1 | 66.0665 | hard FAIL; Export CHECK; gas 66.1534/65.68; PGN 30.9812/30; residual 0.5222; headroom REVIEW_MINOR | tidak |
+| pep:-1 | pep 30 → 29 | KEPUTUSAN_KUOTA_OPERATOR | - s | 1,04 s | - | DELTA_CERTIFICATE — PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING | null (null) / - | 1 / 1 | 65.6235 | hard FAIL; Export CHECK; gas 66.1171/63.52; PGN 32.1149/30; residual 2.6477; headroom REVIEW_MINOR | tidak |
+| pep:2 | pep 30 → 32 | KEPUTUSAN_KUOTA_OPERATOR | - s | 0,43 s | - | DELTA_CERTIFICATE — PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR | null (null) / - | 1 / 1 | 65.1795 | hard FAIL; Export 48/48; gas 64.3641/66.76; PGN 28.6069/30; residual 0; headroom REVIEW_MINOR | tidak |
+| pep:-2 | pep 30 → 28 | KEPUTUSAN_KUOTA_OPERATOR | - s | 1,25 s | - | DELTA_CERTIFICATE — PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING | null (null) / - | 1 / 1 | 65.3991 | hard FAIL; Export CHECK; gas 66.1171/62.44; PGN 32.6999/30; residual 3.7277; headroom REVIEW_MINOR | tidak |
+| lng:1 | lng 0 → 1 | FINAL | 14,81 s | 16,18 s | - | INCREMENTAL | 23 (22) / - | 41 / 32 | 64.1733 | hard PASS; Export 48/48; gas 65.5719/65.6; PGN 29.9846/30; residual 0; headroom PASS_WITH_REASON | YA |
+| lng:-1 | lng 0 → -1 | GAS_SHORTAGE_POPUP | - s | 11,30 s | 24,44 s | EXACT (V9_JANGKAR_BELUM_ADA) | 9 (0) / - | 24 / 12 | 64.4127 | hard FAIL; Export 48/48; gas 64.353/63.6; PGN 30.7766/30; residual 0.7385; headroom PASS_WITH_REASON | tidak |
+| pep_kp72:1 | pep_kp72 2.2 → 3.2 | KEPUTUSAN_KUOTA_OPERATOR | - s | 1,25 s | - | DELTA_CERTIFICATE — PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR | null (null) / - | 1 / 1 | 65.8037 | hard FAIL; Export CHECK; gas 66.6587/65.6; PGN 31.5299/30; residual 1.5677; headroom REVIEW_MINOR | tidak |
+| pep_kp72:-1 | pep_kp72 2.2 → 1.2 | KEPUTUSAN_KUOTA_OPERATOR | - s | 1,25 s | - | DELTA_CERTIFICATE — PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING | null (null) / - | 1 / 1 | 65.9826 | hard FAIL; Export CHECK; gas 65.5753/63.6; PGN 31.5299/30; residual 1.5677; headroom REVIEW_MINOR | tidak |
+| akasia:1 | akasia 0 → 1 | KEPUTUSAN_KUOTA_OPERATOR | - s | 0,73 s | - | DELTA_CERTIFICATE — PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR | null (null) / - | 1 / 1 | 66.3111 | hard FAIL; Export CHECK; gas 66.1534/65.68; PGN 30.9812/30; residual 0.5222; headroom REVIEW_MINOR | tidak |
+| akasia:-1 | akasia 0 → -1 | KEPUTUSAN_KUOTA_OPERATOR | - s | 1,04 s | - | DELTA_CERTIFICATE — PGN_PIPE_FLOOR_VS_TOTAL_GAS_CEILING | null (null) / - | 1 / 1 | 65.3788 | hard FAIL; Export CHECK; gas 66.1171/63.52; PGN 32.1149/30; residual 2.6477; headroom REVIEW_MINOR | tidak |
+| pgn_pipe:-1+pep:2 | pgn_pipe 30 → 29, pep 30 → 32 | KEPUTUSAN_KUOTA_OPERATOR | - s | 0,63 s | - | DELTA_CERTIFICATE — PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR | null (null) / - | 1 / 1 | 66.2908 | hard FAIL; Export CHECK; gas 66.1534/65.76; PGN 30.3962/29; residual 0.4422; headroom REVIEW_MINOR | tidak |
