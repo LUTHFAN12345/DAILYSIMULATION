@@ -5877,7 +5877,6 @@ async function runTimeLimited(payload, T){
  * terbaik kolam: 48 row, hard constraints + provenance PASS, review Unit Priority selesai, audit merit (legal headroom, start
  * prioritas rendah, stop row legal pertama) PASS, LOW_LOAD_FRAGMENTATION tidak unresolved, Change Over executed + overlap >= 3 row.
  * Bila FINAL exact selesai lebih dulu, alur runSimCore biasa yang menampilkannya (FINAL OPTIMAL). */
-var FASTEST_MSG=null;
 async function fastestPoll(payload,branch,myToken,jobId){
   const url='run.php?mode=tl_best&fast=1&job='+encodeURIComponent(jobId);
   while(myToken===RUN_SEQ[branch] && !V11_SUM_DONE){
@@ -5925,8 +5924,10 @@ async function runSimCore(payload, opts){
    * pada berat rencana, atau pada apakah rencana ini akan berakhir shortage. */
   /* V12 Fastest - Default: tanpa popup progress besar; progres cukup teks biru kecil. */
   if(opts.fastest){ const t0f=performance.now();
-    const tk=setInterval(()=>{ const rmF=$('run-msg'); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||!$('btn-run').disabled){ clearInterval(tk); return; }
-      if(rmF&&(!rmF.textContent||rmF.innerHTML===FASTEST_MSG)){ rmF.innerHTML='<span style="color:#1763d6;font-size:12px">Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s</span>'; FASTEST_MSG=rmF.innerHTML; } },400); }
+    let fm=document.getElementById('fast-msg'); const rm0=$('run-msg');
+    if(!fm&&rm0&&rm0.parentNode){ fm=document.createElement('span'); fm.id='fast-msg'; fm.className='hint'; fm.style.cssText='color:#1763d6;font-size:12px;margin-right:8px'; rm0.parentNode.insertBefore(fm,rm0); }
+    const tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
+      if(f) f.textContent='Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s'; },400); }
   else ppmOpen(reqId,()=>{
     /* Membatalkan = menaikkan nomor urut run. Response yang datang setelah ini gagal pada penjaga
      * anti-stale, sehingga tidak ada satu pun angka dari run yang dibatalkan yang dapat mendarat
