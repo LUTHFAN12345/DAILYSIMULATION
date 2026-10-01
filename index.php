@@ -5722,7 +5722,8 @@ function v11AuditExtra(out){
     const d=ii['V12 Dispatch Merit Audit'];
     if(d&&typeof d==='object'&&d.c2_start_with_headroom) L.push('<b>V12 Dispatch Merit Audit</b>: <b>'+E(d.status)+'</b>; '+E(d.rows_audited)+' row x unit ('+E(d.unit_row_records)+' catatan legal headroom); start dengan headroom unit prioritas tinggi: '
       +E(d.c2_start_with_headroom.findings)+' (tanpa bukti '+E(d.c2_start_with_headroom.fail)+'); stop row legal pertama: '+E(d.c3_first_legal_stop.intervals)+' interval (belum diuji '+E(d.c3_first_legal_stop.fail)+'); headroom prioritas (C1) '
-      +E(d.c1_merit_headroom.findings)+' temuan, beralasan '+E(d.c1_merit_headroom.with_reason));
+      +E(d.c1_merit_headroom.findings)+' temuan, beralasan '+E(d.c1_merit_headroom.with_reason)
+      +(d.c4_cross_group_priority?'; lintas grup prioritas (C4) '+E(d.c4_cross_group_priority.findings)+' temuan: status paksa '+E(d.c4_cross_group_priority.status_forced)+', akun MM2100 terpakai penuh '+E(d.c4_cross_group_priority.mm2100_account_full)+', tanpa alasan '+E(d.c4_cross_group_priority.fail):''));
     const q=ii['V12 Reuse Certificate'];
     if(q&&typeof q==='object'&&q.schema) L.push('<b>V12 Reuse Certificate</b>: rute '+E(q.route)+'; state '+E(q.numerical_state_signature).slice(0,12)+'…; dispatch fisik '+E(q.physical_dispatch_signature)+'; universe '+E(q.candidate_universe_signature)+'; '+E(q.proof_version));
     return L.length?'<br>'+L.join('<br>'):'';

@@ -5607,11 +5607,25 @@ function pp_v12_merit_audit(array $input, array $out): array {
         $C3[] = ['unit' => $U, 'rows' => [$a, $b], 'first_legal_stop_row' => $s0, 'tested_candidate' => $t['id'] ?? null, 'result' => $ok ? 'TESTED' : 'FAIL',
             'outcome' => $t === null ? null : (!empty($t['valid']) ? sprintf('valid CP %.4f (pemenang lebih murah/band)', (float)$t['cp']) : 'tidak valid: ' . implode(',', (array)($t['violations'] ?? [])) . (isset($t['prescreen']['row']) ? sprintf(' (row %d Export maks %.1f < Range Min %.1f)', $t['prescreen']['row'], $t['prescreen']['export_max_mw'] ?? 0, $t['prescreen']['range_min_mw'] ?? 0) : '')),
             'breakpoint_rows' => $iv['need_rows_export'] ?? null]; }
-    $status = ($c2f || $c3f) ? 'FAIL' : 'PASS';
+    /* C4 lintas grup prioritas (independen dari bukti review): unit grup prioritas lebih rendah dibebani di atas minimum sementara
+     * unit grup lebih tinggi yang berjalan masih punya legal headroom. Sah hanya bila unit rendah berstatus paksa, atau unit rendah
+     * berada pada akun bahan bakar terpisah yang wajib terpakai (GE/G10 = akun MM2100: kuota KP72 terpakai penuh; GTG tidak boleh
+     * membakar gas MM2100 menurut provenance). Selain itu FAIL dan memblokir FINAL seperti C2/C3. */
+    $mmQ = (float)($i['MM2100 Quota (BBTUD)'] ?? 0); $mmU = (float)($i['MM2100 Used + Startup (BBTUD)'] ?? 0); $mmFull = $mmQ > 0 && $mmU >= $mmQ - 0.05;
+    $C4 = ['findings' => 0, 'status_forced' => 0, 'mm2100_account_full' => 0, 'fail' => 0, 'detail' => [], 'mm2100_quota_bbtud' => $mmQ, 'mm2100_used_bbtud' => $mmU];
+    foreach ($R as $rw) { $UU = array_values(array_filter($rw['units'], function ($e) { return $e['mw'] > 0.01 && in_array($e['class'], ['GTG', 'GE'], true); }));
+        foreach ($UU as $lo4) { if ($lo4['mw'] <= $lo4['min'] + 0.01) continue; $H4 = [];
+            foreach ($UU as $hi4) if (($hi4['priority_group'] ?? 99) < ($lo4['priority_group'] ?? 99) && $hi4['legal_headroom_mw'] > 0.5) $H4[$hi4['unit']] = $hi4['legal_headroom_mw'];
+            if (!$H4) continue; $C4['findings']++;
+            if ($lo4['status']) $C4['status_forced']++;
+            elseif (in_array($lo4['unit'], ['GE1', 'GE2', 'GE3', 'GE4', 'G10'], true) && $mmFull) $C4['mm2100_account_full']++;
+            else { $C4['fail']++; if (count($C4['detail']) < 40) $C4['detail'][] = ['row' => $rw['row'], 'unit' => $lo4['unit'], 'mw_above_min' => round($lo4['mw'] - $lo4['min'], 3), 'higher_priority_legal_headroom' => $H4]; } } }
+    $status = ($c2f || $c3f || $C4['fail']) ? 'FAIL' : 'PASS';
     return ['schema' => 'co12-v12-merit-audit-v1', 'status' => $status, 'rows_audited' => $n, 'unit_row_records' => array_sum(array_map(function ($x) { return count($x['units']); }, $R)),
         'c1_merit_headroom' => ['findings' => count($C1), 'with_reason' => count(array_filter($C1, function ($x) { return (bool)$x['reasons']; })), 'detail' => array_slice($C1, 0, 60)],
         'c2_start_with_headroom' => ['findings' => count($C2), 'fail' => $c2f, 'detail' => $C2],
         'c3_first_legal_stop' => ['intervals' => count($C3), 'fail' => $c3f, 'detail' => $C3],
+        'c4_cross_group_priority' => $C4,
         'gas_allowance_bbtud' => $gasAllow, 'reserve_min_mw' => $resMin, 'busflow_min_mw' => $busMin, 'export_step_limit_mw' => pp_export_step_limit($m),
         'rows' => $R,
         'rule' => 'C2 dan C3 memblokir FINAL bila FAIL; C1 dilaporkan dengan alasan ekonomi (Heat Rate inkremental) / status. Legal headroom = min(Effective Max - MW, allowance ramp) untuk unit berjalan tanpa Fixed Load.'];
