@@ -4850,6 +4850,7 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
   const expectedRequest=payload._request_id;
   ASYNC_REVIEW[branch]={id,token,request_id:expectedRequest,input_hash:hash};
   if(rm)rm.textContent='Perhitungan eksak sedang diselesaikan…';
+  fastestStart(payload,branch,token,id);   // V12: setiap jalur job (Fastest) dipantau rilis kandidat fully valid pertama
   /* ============================================================================================
    * PERHITUNGAN DIPICU DARI SINI, BUKAN OLEH PROSES OS.
    *
@@ -5881,38 +5882,56 @@ async function runTimeLimited(payload, T){
  * terbaik kolam: 48 row, hard constraints + provenance PASS, review Unit Priority selesai, audit merit (legal headroom, start
  * prioritas rendah, stop row legal pertama) PASS, LOW_LOAD_FRAGMENTATION tidak unresolved, Change Over executed + overlap >= 3 row.
  * Bila FINAL exact selesai lebih dulu, alur runSimCore biasa yang menampilkannya (FINAL OPTIMAL). */
+var FASTEST_CTX=null, FASTEST_TRACE=null;
+function fastestStart(payload,branch,token,jobId){
+  const c=FASTEST_CTX; if(!c||c.branch!==branch||c.token!==token||!jobId||c.jobs[jobId]) return;
+  c.jobs[jobId]=1; fastestPoll(payload,branch,token,jobId).catch(()=>{});
+}
 async function fastestPoll(payload,branch,myToken,jobId){
-  /* V12 FASTEST_RELEASE_READY: proses yang menemukan kandidat valid pertama sudah membawa bukti merit (review Unit Priority,
-   * C1-C4, STG, LLF, Change Over) dan menghentikan job exact. UI hanya membaca berkas siap-rilis (polling 250 ms) lalu
-   * langsung menampilkan; tidak ada finalisasi kedua, tidak menunggu FINAL exact atau kandidat berikutnya. */
-  const url='run.php?mode=fast_ready&job='+encodeURIComponent(jobId); let claimSeen=false, myTok2=myToken, tClaim=null;
+  /* V12 FASTEST_RELEASE_READY. Urutan wajib: SNAPSHOT (server, atomik) -> FETCH -> RENDER -> SHOW SIMULATION DATA -> CANCEL EXACT.
+   * Job ditandai lewat arm=1 (jalur pembuatan job apa pun); kandidat valid pertama membawa bukti merit (review Unit Priority, C1-C4,
+   * STG, LLF, Change Over) saat masuk kolam. Tidak ada finalisasi kedua, tidak menunggu FINAL exact / kandidat berikutnya. */
+  const url='run.php?mode=fast_ready&job='+encodeURIComponent(jobId); let claimSeen=false, myTok2=myToken;
+  const T=FASTEST_TRACE={job:jobId,run_click_ms:V11_RUN_T0!=null?Math.round(performance.timeOrigin+V11_RUN_T0):null};
+  fetch(url+'&arm=1',{cache:'no-store'}).catch(()=>{});            // tidak ditunggu
   while(!V11_SUM_DONE){
-    await new Promise(r=>setTimeout(r,250));
+    await new Promise(r=>setTimeout(r,200));
     if(myTok2!==RUN_SEQ[branch] || V11_SUM_DONE) return;
-    let r=null; try{ r=await tlJson(url,null,3000,1); }catch(e){ r=null; }
+    let r=null; try{ r=await tlJson(url,null,4000,1); }catch(e){ r=null; }
     if(myTok2!==RUN_SEQ[branch] || V11_SUM_DONE) return;
     if(!r||!r.ok) continue;
-    if(r.claimed&&!claimSeen){ claimSeen=true; tClaim=performance.now(); RUN_SEQ[branch]++; myTok2=RUN_SEQ[branch];   // alur runSimCore run ini berhenti; Fastest yang merilis
+    if(r.claimed&&!claimSeen){ claimSeen=true; T.claim_seen_ms=Date.now(); RUN_SEQ[branch]++; myTok2=RUN_SEQ[branch];   // alur runSimCore berhenti; Fastest yang merilis
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan; bukti merit dibawa bersama kandidat…'; }catch(e){} }
     if(!claimSeen){ if(r.job_status==='DONE'||r.job_status==='FAILED'||r.job_status==='CANCELLED') return; continue; }   // FINAL exact lebih dulu: runSimCore
     if(!r.ready) continue;
+    T.browser_poll_received_ms=Date.now(); Object.assign(T,r.trace_server||{});
     if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat pertama gagal gerbang fully valid ('+gsfEsc(String(((r.fast||{}).reasons)||r.error||'?'))+'); melanjutkan pencarian'; }catch(e){}
+      tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,1500).catch(()=>{});
       runSimCore(payload,{fastest:true,noFastFinalize:true}); return; }
+    T.output_snapshot_fetched_ms=Date.now();
     const out=r.output; const cnt=r.counters||{};
-    const st={target:'fast',elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:cnt.candidates_checked!=null?cnt.candidates_checked:1,
+    const st={target:'fast',elapsed:(Date.now()-(T.run_click_ms||Date.now()))/1000,evaluated:cnt.candidates_checked!=null?cnt.candidates_checked:1,
       valid:cnt.candidates_valid!=null?cnt.candidates_valid:1,cp:(out.info||{})['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
-    out.info=out.info||{}; out.info['V12 Fastest Timing']={candidate_claimed_s:tClaim!=null?+((tClaim-V11_RUN_T0)/1000).toFixed(2):null,published_s:+st.elapsed.toFixed(2),finalize_s:r.finalize_s};
     if(typeof ppmClose==='function') ppmClose();
-    INPUT=payload; OUTPUT=out; GSD_GATE=false; PRELIM=null; gsdApplyGate();
-    try{ renderResult(out); refreshOverview(); refreshPills(); refreshGasDecision(); showSimulationDataResult(); }catch(e){}
-    V11_SUM_DONE=true;
-    const f=r.fast||{}; tlBanner('FASTEST VALID PLAN','amber',st,'Kandidat fully valid pertama (FASTEST_RELEASE_READY): 48 row, hard constraints PASS, provenance PASS, audit merit '+gsfEsc(String(f.merit_audit))+' (C4 tanpa alasan '+gsfEsc(String((f.c4||{}).fail))+'), STG = calc_stg '
+    INPUT=payload; OUTPUT=out; GSD_GATE=false; PRELIM=null; gsdApplyGate(); V11_SUM_DONE=true;
+    T.renderResult_start_ms=Date.now();
+    try{ renderResult(out); refreshOverview(); refreshPills(); refreshGasDecision(); }catch(e){ T.render_error=String(e&&e.message||e); }
+    T.renderResult_done_ms=Date.now();
+    try{ showSimulationDataResult(); }catch(e){}
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    T.showSimulationDataResult_done_ms=Date.now();
+    const f=r.fast||{}; st.elapsed=(T.showSimulationDataResult_done_ms-(T.run_click_ms||T.showSimulationDataResult_done_ms))/1000;
+    out.info=out.info||{}; out.info['V12 Fastest Timing']=T;
+    tlBanner('FASTEST VALID PLAN','amber',st,'Kandidat fully valid pertama (FASTEST_RELEASE_READY): 48 row, hard constraints PASS, provenance PASS, audit merit '+gsfEsc(String(f.merit_audit))+' (C4 tanpa alasan '+gsfEsc(String((f.c4||{}).fail))+'), STG = calc_stg '
       +gsfEsc(String((f.stg_proof||{}).equal_calc))+'/'+gsfEsc(String((f.stg_proof||{}).rows_x_stg))+', LOW_LOAD_FRAGMENTATION '+gsfEsc(String(f.llf))+(f.change_over?', Change Over executed + overlap '+f.change_over.overlap_rows+' row':'')
       +'. Pencarian exact dihentikan; bukan CP minimum global — pilih Maximum Review untuk hasil final.'+v11AuditExtra(out));
     const b2=$('btn-run'); if(b2){ b2.disabled=false; b2.innerHTML='▶ Run simulation'; }
     try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
     const rm=$('run-msg'); if(rm) rm.innerHTML='<span style="color:#b45309"><b>FASTEST VALID PLAN</b> — '+tlSummaryHtml(st)+'</span>';
+    /* baru SETELAH hasil tampil di Simulation Data: batalkan job exact/pembantu */
+    T.exact_cancel_sent_ms=Date.now();
+    tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,3000).catch(()=>{});
     return;
   }
 }
@@ -5931,6 +5950,7 @@ async function runSimCore(payload, opts){
   /* MODAL PEMBLOKIR DIBUKA SEBELUM fetch, BUKAN SESUDAH RESPONSE. Ini satu operasi DOM sinkron,
    * sehingga jaraknya dari klik selalu jauh di bawah satu detik — tidak bergantung pada jaringan,
    * pada berat rencana, atau pada apakah rencana ini akan berakhir shortage. */
+  FASTEST_CTX=(opts.fastest&&!opts.noFastFinalize)?{branch,token:myToken,jobs:{}}:null;
   /* V12 Fastest - Default: tanpa popup progress besar; progres cukup teks biru kecil. */
   if(opts.fastest){ const t0f=performance.now();
     let fm=document.getElementById('fast-msg'); const rm0=$('run-msg');
@@ -5982,7 +6002,6 @@ async function runSimCore(payload, opts){
         if(myToken===RUN_SEQ[branch]) $('run-msg').innerHTML='<span style="color:#c0392b">Optimasi exact gagal: '
           +gsfEsc(String(e.message||e))+' — hasil tetap VALID PROVISIONAL dan terkunci.</span>';});
       if(tlTarget()==='max') tlFamilyProvisionalPoll(payload,branch,myToken,data.async_job.job_id).catch(()=>{});
-      if(opts.fastest && !opts.noFastFinalize) fastestPoll(payload,branch,myToken,data.async_job.job_id).catch(()=>{});
       return;
     }
     /* Keputusan bahan bakar adalah state alur kerja yang SUKSES, bukan error terminal.
@@ -6057,7 +6076,6 @@ async function runSimCore(payload, opts){
       else { GSD_GATE=true; gsdApplyGate(); $('run-msg').innerHTML='<span style="color:#1763d6">Perhitungan berjalan — satu job untuk state ini ('
         +gsfEsc(String(bj.job_id||''))+(data.autosave&&data.autosave.ok?'; input sudah tersimpan':'')+').</span>'; }
       if(tlTarget()==='max' && !data.shortage_decision) tlFamilyProvisionalPoll(payload,branch,myToken,bj.job_id).catch(()=>{});
-      if(opts.fastest && !opts.noFastFinalize && !data.shortage_decision) fastestPoll(payload,branch,myToken,bj.job_id).catch(()=>{});
       adoptBackendAsyncJob(payload,branch,myToken,bj,opts).catch(e=>{
         ppmClose();
         if(myToken===RUN_SEQ[branch])

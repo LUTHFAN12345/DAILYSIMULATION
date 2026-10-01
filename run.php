@@ -1431,10 +1431,10 @@ function pp_v12_fast_release_try(string $job, array $a): void {
         foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && !array_key_exists($gk, $saved)) unset($GLOBALS[$gk]);
         foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; $busy = false;
     }
+    /* SNAPSHOT atomik dulu (pp_tl_write = tulis-sementara + rename). Job TIDAK dibatalkan di sini: browser mengambil snapshot,
+     * merender, menampilkan Simulation Data, BARU mengirim pembatalan (urutan SNAPSHOT -> FETCH -> RENDER -> SHOW -> CANCEL). */
+    $res['ready_at'] = microtime(true);
     pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_fast_ready.json', $res);
-    pp_job_update($job, function (array $x): array { $x['cancel_requested'] = true; $x['cancel_abort'] = true;
-        if (in_array((string)($x['status'] ?? ''), ['QUEUED', 'CLAIMED', 'RUNNING'], true)) { $x['status'] = 'CANCELLED'; $x['current_step'] = 'FASTEST_DIRILIS'; $x['finished_at'] = date('c'); }
-        return $x; });
 }
 /* Pengamat job exact: dipanggil setiap core run (lihat pp_run_simulation_core). Hanya MENCATAT —
  * tidak ada nilai engine yang dibaca balik, sehingga hasil exact tidak berubah sedikit pun. */
@@ -2755,6 +2755,8 @@ function pp_v4_helper_main(string $jobId, int $slot): array {
             $w = pp_tl_read(pp_v4_work_file($jobId));
             /* Job yang tidak pernah mulai (QUEUED > 60 s) tidak ditunggu tanpa akhir. */
             if (!is_array($w) && (string)($j['status'] ?? '') === 'QUEUED' && microtime(true) - $t0 > 60.0) break;
+            /* V12 Fastest: rilis sudah ditulis > 30 s (browser seharusnya sudah membatalkan) -> pembantu berhenti */
+            $frH = @filemtime(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v12_fast_ready.json'); if ($frH && microtime(true) - $frH > 30.0) break;
             if ($side && function_exists('pp_v12_side_drain') && pp_v12_side_drain($jobId) > 0) continue;   // V12: tugas samping pemilik lebih dulu
             if (!is_array($w) || (int)($w['rev'] ?? 0) === $rev) { usleep(60000); $idle += 0.06; continue; }
             $rev = (int)$w['rev'];
@@ -7542,8 +7544,24 @@ if (($_GET['mode'] ?? '') === 'fast_ready') {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8');
     $jidR = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['job'] ?? '')); $dR = pp_job_dir($jidR); $jR = $jidR !== '' ? pp_job_read($jidR) : null;
+    /* arm=1: job yang dibuat lewat jalur mana pun ditandai Fastest; kandidat valid yang sudah ada di kolam sebelum tanda dipasang
+     * langsung diklaim dan dibawa bukti meritnya pada request ini (dipanggil browser tanpa ditunggu). */
+    if (!empty($_GET['arm']) && is_array($jR) && in_array((string)($jR['status'] ?? ''), ['QUEUED', 'CLAIMED', 'RUNNING'], true) && is_dir($dR)) {
+        @touch($dR . DIRECTORY_SEPARATOR . 'v12_fast.flag'); @touch($dR . DIRECTORY_SEPARATOR . 'v12_tl.flag');
+        if (!is_file($dR . DIRECTORY_SEPARATOR . 'v12_fast.claim')) { @set_time_limit(180); @ignore_user_abort(true);
+            $inA = json_decode((string)@file_get_contents($dR . DIRECTORY_SEPARATOR . 'input.json'), true);
+            if (is_array($inA)) { $kA = pp_tl_key($inA); $bA = pp_tl_read(pp_tl_file($kA . '_x_best.json'));
+                if (is_array($bA['output']['data'] ?? null) && count($bA['output']['data']) === 48) pp_v12_fast_release_try($jidR, ['output' => $bA['output']]); } }
+    }
     $rR = pp_tl_read($dR . DIRECTORY_SEPARATOR . 'v12_fast_ready.json');
-    $outR = ['ok' => true, 'job_status' => (string)($jR['status'] ?? ''), 'result_available' => !empty($jR['result_available']), 'claimed' => is_file($dR . DIRECTORY_SEPARATOR . 'v12_fast.claim'), 'ready' => is_array($rR)];
+    $outR = ['ok' => true, 'job_status' => (string)($jR['status'] ?? ''), 'result_available' => !empty($jR['result_available']), 'claimed' => is_file($dR . DIRECTORY_SEPARATOR . 'v12_fast.claim'), 'ready' => is_array($rR),
+        'server_now_ms' => round(microtime(true) * 1000)];
+    if (is_array($rR)) { /* timestamp server (epoch ms, jam yang sama dengan browser lokal) */
+        $fc0 = null; $inT0 = json_decode((string)@file_get_contents($dR . DIRECTORY_SEPARATOR . 'input.json'), true);
+        if (is_array($inT0)) foreach ((array)@glob(pp_v11_cnt_dir(pp_tl_key($inT0), $jidR) . DIRECTORY_SEPARATOR . 'c_*') as $cf) { $mt = @filemtime($cf); if ($mt && ($fc0 === null || $mt < $fc0)) $fc0 = $mt; }
+        $outR['trace_server'] = ['job_start_ms' => isset($jR['started_at_ts']) ? round((float)$jR['started_at_ts'] * 1000) : null, 'first_candidate_complete_ms' => $fc0 ? $fc0 * 1000 : null,
+            'first_valid_claimed_ms' => isset($rR['claimed_at']) ? round((float)$rR['claimed_at'] * 1000) : null, 'first_fully_valid_ms' => isset($rR['ready_at']) ? round((float)$rR['ready_at'] * 1000) : null,
+            'FASTEST_RELEASE_READY_ms' => isset($rR['ready_at']) ? round((float)$rR['ready_at'] * 1000) : null]; }
     if (is_array($rR)) { $outR += $rR; if (!empty($rR['ok'])) { $inR = json_decode((string)@file_get_contents($dR . DIRECTORY_SEPARATOR . 'input.json'), true);
         try { $outR['counters'] = pp_v11_cnt_read(pp_tl_key((array)$inR), $jidR, [(string)($rR['candidate_sig'] ?? '')]); } catch (Throwable $e) {} } }
     echo json_encode($outR, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR); exit;
