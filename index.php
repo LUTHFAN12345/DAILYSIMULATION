@@ -1328,14 +1328,15 @@ ul.csverr li{margin:2px 0}
         <span class="spacer"></span>
         <span class="hint" id="run-msg"></span>
         <label class="tl-target" for="f-tl-target">Target Selesai
-          <select id="f-tl-target" title="Batas waktu hasil. Pilihan berbatas waktu menampilkan kandidat constraint-valid dengan Cost Production terendah yang sudah ditemukan saat batas tercapai; Maximum Review menjalankan optimasi exact sampai selesai.">
-            <option value="15">&lt; 15 detik</option>
-            <option value="25">&lt; 25 detik</option>
-            <option value="35">&lt; 35 detik</option>
-            <option value="45">&lt; 45 detik</option>
-            <option value="55">&lt; 55 detik</option>
-            <option value="60">&lt; 60 detik</option>
-            <option value="max" selected>Maximum Review</option>
+          <select id="f-tl-target" title="Fastest - Default: selesai begitu kandidat fully valid pertama tersedia (bukan bukti global optimum bila exact belum selesai). Pilihan berbatas waktu menampilkan kandidat constraint-valid dengan Cost Production terendah yang sudah ditemukan saat batas tercapai; Maximum Review menjalankan optimasi exact sampai selesai.">
+            <option value="fast" selected style="background:#ffd54f;color:#5d3a00;font-weight:800">Fastest - Default</option>
+            <option value="15" style="background:#fff;color:#1f2937">&lt; 15 detik</option>
+            <option value="25" style="background:#fff;color:#1f2937">&lt; 25 detik</option>
+            <option value="35" style="background:#fff;color:#1f2937">&lt; 35 detik</option>
+            <option value="45" style="background:#fff;color:#1f2937">&lt; 45 detik</option>
+            <option value="55" style="background:#fff;color:#1f2937">&lt; 55 detik</option>
+            <option value="60" style="background:#fff;color:#1f2937">&lt; 60 detik</option>
+            <option value="max" style="background:#ff2d2d;color:#fff;font-weight:800">Maximum Review</option>
           </select>
         </label>
       </div>
@@ -5081,6 +5082,7 @@ async function runSim(){
    * dalam request yang sama). Rerun dari popup keputusan bahan bakar tidak membawa penanda ini. */
   payload._autosave=true;
   const __tl=tlTarget();
+  if(__tl==='fast') return runSimCore(payload, {fastest:true});
   if(__tl!=='max') return runTimeLimited(payload, +__tl);
   return runSimCore(payload, {});
 }
@@ -5568,12 +5570,17 @@ function finalizeSimulationUI(payload,data,messageHtml){
      * ditolak — dan alasan penolakan exact dinyatakan apa adanya. */
     const d=gsdProvisionalDiff(GSD_PROVISIONAL.data,data);
     const rg=data.release_gate||{}; const why=(rg.blocking_reasons||[]).join(', ')||String(data.preliminary_reason||'');
+    /* Diagnostik gate (diambil dari kandidat Copilot, tanpa field Change Over): status hard, tipe pelanggaran, status ekonomi. */
+    const ar=data.simulation_acceptance_review||data.acceptance_review||{}; const hv=ar.hard_validation||{}; const er=ar.economic_review||{};
+    const vtypes=Object.keys(hv.types||{}).map(k=>k+':'+hv.types[k]).join(', ');
+    const diag=((hv.status&&hv.status!=='PASS')||er.status==='REVIEW_NOT_PROVEN')
+      ?(' · Detail: hard='+String(hv.status||'-')+(vtypes?', violations='+vtypes:'')+', economic='+String(er.status||'-')+', evaluated='+String(er.candidates_evaluated??'-')+', eligible='+String(er.eligible_candidates??'-')):'';
     const viol=((data.simulation_acceptance_review||{}).hard_validation||{}).violations||[];
     const v0=viol.length?(Array.isArray(viol[0])?String(viol[0][1]||viol[0][0]):JSON.stringify(viol[0])):'';
     GSD_EXACT_BLOCKED=data;
     const rm=document.getElementById('run-msg');
     if(rm) rm.innerHTML='<span style="color:#b45309"><b>VALID PROVISIONAL</b> tetap ditampilkan. Optimasi exact selesai, tetapi '
-      +'rencana pemenangnya <b>tidak lolos release gate</b> ('+gsfEsc(why)+(v0?': '+gsfEsc(v0.slice(0,160)):'')+'). '
+      +'rencana pemenangnya <b>tidak lolos release gate</b> ('+gsfEsc(why)+(v0?': '+gsfEsc(v0.slice(0,160)):'')+').'+gsfEsc(diag)+' '
       +'Perbandingan dengan exact: '+d.html.replace('<b>FINAL OPTIMAL</b> — ','')+' Publish Final tetap terkunci.</span>';
     if(typeof ppmClose==='function') ppmClose();
     return;
@@ -5650,7 +5657,7 @@ function finalizeSimulationUI(payload,data,messageHtml){
  *  ditampilkan: bila belum ada kandidat valid, yang tampil adalah NO VALID RESULT WITHIN TIME
  *  LIMIT dan job exact dibiarkan selesai supaya alur Gas Shortage tetap berjalan seperti biasa.
  * ============================================================================================= */
-function tlTarget(){ const s=document.getElementById('f-tl-target'); const v=s?String(s.value):'max'; return ['15','25','35','45','55','60'].indexOf(v)>=0?v:'max'; }
+function tlTarget(){ const s=document.getElementById('f-tl-target'); const v=s?String(s.value):'fast'; return ['fast','15','25','35','45','55','60'].indexOf(v)>=0?v:'max'; }
 function tlFmtS(x){ return (Math.round((+x||0)*10)/10).toFixed(1).replace('.',','); }
 /* V11 SUMMARY: satu sumber penghitung (backend 'V11 Candidate Counters' / tl_best.counters) dengan invarian UI:
  * CP tersedia + constraints PASS -> Kandidat valid >= 1; tanpa kandidat valid -> Valid 0 dan CP kosong; valid <= diperiksa. */
@@ -5661,7 +5668,7 @@ function v11Norm(st){
   if(!hasCp||va===0){ o.cp=null; }
   if(ev<va) ev=va; o.valid=va; o.evaluated=ev; return o;
 }
-function v11TargetLabel(t){ return (t==null||t==='max')?'Maximum Review':'&lt; '+t+' detik'; }
+function v11TargetLabel(t){ return t==='fast'?'Fastest - Default':((t==null||t==='max')?'Maximum Review':'&lt; '+t+' detik'); }
 function tlSummaryHtml(st){
   const s=v11Norm(st);
   return 'Target waktu '+v11TargetLabel(s.target)+' | Waktu aktual '+tlFmtS(s.elapsed)+' detik | Kandidat diperiksa '+s.evaluated+' | Kandidat valid '+s.valid+' | Cost Production '+(s.cp!=null?fmt(s.cp,4)+' USD/MWh':'—');
@@ -5866,6 +5873,41 @@ async function runTimeLimited(payload, T){
   tlBanner('NO VALID RESULT WITHIN TIME LIMIT','amber',st0,'Belum ada kandidat yang lolos seluruh constraint; hasil invalid tidak ditampilkan. '
     +'Pilih <b>Maximum Review</b> untuk optimasi exact lengkap (termasuk analisis Gas Shortage bila diperlukan).');
 }
+/* V12 FASTEST - DEFAULT: selesai begitu kandidat FULLY VALID pertama tersedia. Server (tl_best&fast=1) memeriksa kandidat
+ * terbaik kolam: 48 row, hard constraints + provenance PASS, review Unit Priority selesai, audit merit (legal headroom, start
+ * prioritas rendah, stop row legal pertama) PASS, LOW_LOAD_FRAGMENTATION tidak unresolved, Change Over executed + overlap >= 3 row.
+ * Bila FINAL exact selesai lebih dulu, alur runSimCore biasa yang menampilkannya (FINAL OPTIMAL). */
+var FASTEST_MSG=null;
+async function fastestPoll(payload,branch,myToken,jobId){
+  const url='run.php?mode=tl_best&fast=1&job='+encodeURIComponent(jobId);
+  while(myToken===RUN_SEQ[branch] && !V11_SUM_DONE){
+    await new Promise(r=>setTimeout(r,400));
+    if(myToken!==RUN_SEQ[branch] || V11_SUM_DONE) return;
+    let b=null; try{ b=await tlJson(url,null,2500,1); }catch(e){ b=null; }
+    if(!b||!b.ok) continue;
+    if(b.exact_final || b.job_status==='DONE' || b.job_status==='FAILED' || b.job_status==='CANCELLED') return;   // runSimCore menyelesaikan
+    if(!(b.fast&&b.fast.ok)) continue;
+    let r=null; try{ r=await tlJson(url+'&with_output=1',null,5000,1); }catch(e){ r=null; }
+    if(myToken!==RUN_SEQ[branch] || V11_SUM_DONE) return;
+    if(!(r&&r.ok&&r.fast&&r.fast.ok&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)) continue;
+    RUN_SEQ[branch]++;                                   // alur runSimCore untuk run ini berhenti (anti-stale)
+    tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,1500).catch(()=>{});
+    const out=r.output; out.result_label='FASTEST VALID PLAN'; out.info=out.info||{};
+    out.info['Result Status']='FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO, exact belum selesai)';
+    out.info['V12 Fastest Check']=r.fast;
+    const st={target:'fast',elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:r.evaluated_total,valid:r.valid_total,
+      cp:(out.info||{})['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
+    if(typeof ppmClose==='function') ppmClose();
+    INPUT=payload; OUTPUT=out; GSD_GATE=false; PRELIM=null; gsdApplyGate();
+    try{ renderResult(out); refreshOverview(); refreshPills(); refreshGasDecision(); showSimulationDataResult(); }catch(e){}
+    V11_SUM_DONE=true;
+    tlBanner('FASTEST VALID PLAN','amber',st,'Kandidat fully valid pertama: 48 row, hard constraints + provenance PASS, review Unit Priority selesai, legal headroom unit prioritas tinggi terpakai, '
+      +'LOW_LOAD_FRAGMENTATION tidak unresolved'+(r.fast.change_over?', Change Over executed + overlap '+r.fast.change_over.overlap_rows+' row':'')+'. Bukan bukti global optimum (exact belum selesai); Publish Final terkunci — pilih Maximum Review untuk hasil final.'+v11AuditExtra(out));
+    const b2=$('btn-run'); if(b2){ b2.disabled=false; b2.innerHTML='▶ Run simulation'; }
+    const rm=$('run-msg'); if(rm) rm.innerHTML='<span style="color:#b45309"><b>FASTEST VALID PLAN</b> — '+tlSummaryHtml(st)+'</span>';
+    return;
+  }
+}
 async function runSimCore(payload, opts){
   opts=opts||{};
   const branch=runBranchKey();                            // §3.8: identifier terpisah Plan vs Monitoring
@@ -5881,7 +5923,11 @@ async function runSimCore(payload, opts){
   /* MODAL PEMBLOKIR DIBUKA SEBELUM fetch, BUKAN SESUDAH RESPONSE. Ini satu operasi DOM sinkron,
    * sehingga jaraknya dari klik selalu jauh di bawah satu detik — tidak bergantung pada jaringan,
    * pada berat rencana, atau pada apakah rencana ini akan berakhir shortage. */
-  ppmOpen(reqId,()=>{
+  /* V12 Fastest - Default: tanpa popup progress besar; progres cukup teks biru kecil. */
+  if(opts.fastest){ const t0f=performance.now();
+    const tk=setInterval(()=>{ const rmF=$('run-msg'); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||!$('btn-run').disabled){ clearInterval(tk); return; }
+      if(rmF&&(!rmF.textContent||rmF.innerHTML===FASTEST_MSG)){ rmF.innerHTML='<span style="color:#1763d6;font-size:12px">Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s</span>'; FASTEST_MSG=rmF.innerHTML; } },400); }
+  else ppmOpen(reqId,()=>{
     /* Membatalkan = menaikkan nomor urut run. Response yang datang setelah ini gagal pada penjaga
      * anti-stale, sehingga tidak ada satu pun angka dari run yang dibatalkan yang dapat mendarat
      * di OUTPUT. Worker latar yang sudah terlanjur dibuat dibiarkan selesai sendiri. */
@@ -5926,6 +5972,7 @@ async function runSimCore(payload, opts){
         if(myToken===RUN_SEQ[branch]) $('run-msg').innerHTML='<span style="color:#c0392b">Optimasi exact gagal: '
           +gsfEsc(String(e.message||e))+' — hasil tetap VALID PROVISIONAL dan terkunci.</span>';});
       if(tlTarget()==='max') tlFamilyProvisionalPoll(payload,branch,myToken,data.async_job.job_id).catch(()=>{});
+      if(opts.fastest) fastestPoll(payload,branch,myToken,data.async_job.job_id).catch(()=>{});
       return;
     }
     /* Keputusan bahan bakar adalah state alur kerja yang SUKSES, bukan error terminal.
@@ -6000,6 +6047,7 @@ async function runSimCore(payload, opts){
       else { GSD_GATE=true; gsdApplyGate(); $('run-msg').innerHTML='<span style="color:#1763d6">Perhitungan berjalan — satu job untuk state ini ('
         +gsfEsc(String(bj.job_id||''))+(data.autosave&&data.autosave.ok?'; input sudah tersimpan':'')+').</span>'; }
       if(tlTarget()==='max' && !data.shortage_decision) tlFamilyProvisionalPoll(payload,branch,myToken,bj.job_id).catch(()=>{});
+      if(opts.fastest && !data.shortage_decision) fastestPoll(payload,branch,myToken,bj.job_id).catch(()=>{});
       adoptBackendAsyncJob(payload,branch,myToken,bj,opts).catch(e=>{
         ppmClose();
         if(myToken===RUN_SEQ[branch])
