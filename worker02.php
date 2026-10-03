@@ -253,7 +253,7 @@ function pp_v12_land_publish(array $orig, array $off, array $seed, int $maxEvals
     $k = substr(md5(json_encode([pp_tl_key($orig), $off, $seed, $maxEvals])), 0, 20);
     $f = pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_land_' . $k . '.task';
     if (is_file($f)) return;
-    pp_tl_write($f, ['orig' => $orig, 'off' => $off, 'seed' => $seed, 'max' => $maxEvals, 'dl' => $dl, 'at' => microtime(true), 'pid' => getmypid()]);
+    pp_tl_write($f, ['orig' => $orig, 'off' => $off, 'seed' => $seed, 'max' => $maxEvals, 'dl' => $dl, 'at' => microtime(true), 'pid' => pp_os_pid(), 'rid' => pp_req_id()]);
 }
 function pp_v12_land_run_one(string $job): bool {
     if ((string)getenv('PP_V12_SIDE') === '0' || $job === '') return false;
@@ -261,7 +261,7 @@ function pp_v12_land_run_one(string $job): bool {
     sort($fs);
     foreach ($fs as $f) {
         $mk = substr($f, 0, -5) . '.claim'; if (is_file($mk)) continue;
-        $t = pp_tl_read($f); if (!is_array($t) || (int)($t['pid'] ?? 0) === getmypid() || microtime(true) > (float)($t['dl'] ?? 0) - 2.0) continue;   // tugas terbitan sendiri tidak diambil
+        $t = pp_tl_read($f); if (!is_array($t) || (isset($t['rid']) ? (string)$t['rid'] === pp_req_id() : (int)($t['pid'] ?? 0) === pp_os_pid()) || microtime(true) > (float)($t['dl'] ?? 0) - 2.0) continue;   // tugas terbitan sendiri tidak diambil
         $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
         $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
         $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true;
@@ -293,11 +293,11 @@ function pp_v12_side_publish_rv(array $orig, array $W, array $cands, ?float $T, 
     $dir = pp_job_dir($job); $tag = substr(md5(json_encode([pp_tl_key($orig), pp_v6_gtg_sig((array)($W['data'] ?? [])), $T])), 0, 12);
     pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_rv_' . $tag . '.ctx.json', ['orig' => $orig, 'W' => $W, 'T' => $T]);
     $list = []; foreach ($cands as $i => $c) $list[] = ['id' => $tag . '_' . substr(md5(json_encode($c['stops'] ?? $c)), 0, 12), 'ctx' => 'v12_rv_' . $tag . '.ctx.json', 'c' => $c, 'dl' => $dl];
-    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_side_rv.json', ['t' => $list, 'at' => microtime(true), 'pid' => getmypid()]);
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_side_rv.json', ['t' => $list, 'at' => microtime(true), 'pid' => pp_os_pid(), 'rid' => pp_req_id()]);
 }
 function pp_v12_side_run_rv(string $job): bool {
     $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side_rv.json'; if (!is_file($lf)) return false;
-    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t']) || (int)($cur['pid'] ?? 0) === getmypid()) return false;
+    $cur = pp_tl_read($lf); if (!is_array($cur) || empty($cur['t']) || (isset($cur['rid']) ? (string)$cur['rid'] === pp_req_id() : (int)($cur['pid'] ?? 0) === pp_os_pid())) return false;
     foreach ((array)$cur['t'] as $e) {
         if (microtime(true) > (float)($e['dl'] ?? 0) - 2.0) continue;
         $mk = $dir . DIRECTORY_SEPARATOR . 'v12_rvdone_' . preg_replace('~[^a-z0-9_]~', '', (string)$e['id']); $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
@@ -1347,7 +1347,7 @@ function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, arra
     $__evW = microtime(true) - $__ev0; $__oc = (int)($GLOBALS['__ppx_once_calls'] ?? 0) - $__oc0;
     $a = pp_tl_assess($orig, $o);
     if (($__lf = getenv('PP_V5_EVLOG')) !== false && $__lf !== '') { $__rv = (array)($o['info']['PGN Supplier Repair Review'] ?? []);
-        @file_put_contents($__lf, json_encode(['pid' => getmypid(), 't' => round(microtime(true), 3), 'wall' => round($__evW, 3), 'assess' => round(microtime(true) - $__ev0 - $__evW, 3), 'once' => $__oc,
+        @file_put_contents($__lf, json_encode(['pid' => pp_os_pid(), 't' => round(microtime(true), 3), 'wall' => round($__evW, 3), 'assess' => round(microtime(true) - $__ev0 - $__evW, 3), 'once' => $__oc,
             'adj' => $adj, 'off' => $off, 'seed' => count($seedStops), 'hint' => $hint, 'sup_att' => $__rv['attempts'] ?? null, 'sup_mode' => $__rv['search_mode'] ?? null, 'obs' => array_map(function ($b) { return [$b['internal_target'], $b['physical_pipe_used'], substr($b['side'], 0, 1)]; }, (array)($__rv['bracket_observations'] ?? [])),
             'valid' => $a['valid'], 'dev' => round((float)$a['dev'], 4), 'cp' => $a['key']['cp'] ?? null, 'viol' => $a['violations'] ?? null, 'mm' => $o['info']['MM2100 Precision']['used_plus_startup_bbtud'] ?? null]) . "\n", FILE_APPEND); }
     pp_tl_clean_globals();
@@ -3844,7 +3844,7 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                 $__tD = microtime(true); $__h0 = (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0);
                 if (!$auditOnly && function_exists('pp_v12_side_mark')) pp_v12_side_mark($in2);
                 $o2 = (function_exists('pp_v12_iso_on') && pp_v12_iso_on()) ? pp_v12_iso_core($in2, $isoDl) : pp_run_simulation_core($in2);
-                if (($__dl = getenv('PP_V12_DECLOG')) !== false && $__dl !== '') @file_put_contents($__dl, json_encode(['pid' => getmypid(), 't' => round(microtime(true), 3), 'unit' => $uu, 'win' => $sw, 'wall' => round(microtime(true) - $__tD, 3),
+                if (($__dl = getenv('PP_V12_DECLOG')) !== false && $__dl !== '') @file_put_contents($__dl, json_encode(['pid' => pp_os_pid(), 't' => round(microtime(true), 3), 'unit' => $uu, 'win' => $sw, 'wall' => round(microtime(true) - $__tD, 3),
                     'hit' => (int)($GLOBALS['__pp_v12_iso_hits'] ?? 0) > $__h0, 'baseOK' => $baseOK, 'cands' => array_keys($lowCands), 'nest' => (int)($GLOBALS['__pp_sim_nest'] ?? 0), 'cost' => [$costA, (float)($o2['info']['Total Cost (USD)'] ?? INF)],
                     'sup' => $o2['info']['PGN Supplier Repair Review']['attempts'] ?? null]) . "\n", FILE_APPEND);
                 $V2 = pp_validate_hard_constraints($in2, $o2);

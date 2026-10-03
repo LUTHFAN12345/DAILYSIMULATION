@@ -86,15 +86,18 @@ function sds_backup(string $path, string $tag): ?string {
 
 /* ---- berkas kerja (input_data.json / output_data.json) ------------------------------------------------- */
 function sds_state_mirror(): string { return sds_dir('saved/state') . DIRECTORY_SEPARATOR . 'input_data.json'; }
-/* Save / auto-save: backup versi lama, tulis atomik berkas kerja, perbarui cermin, sinkronkan record Report. */
-function sds_write_state_input(string $path, array $input, ?string &$why = null, bool $syncRecords = true): bool {
-    if (!sds_atomic_write_json($path, $input, $why, 'input_data')) return false;
-    $w2 = null; sds_atomic_write_json(sds_state_mirror(), $input, $w2);
+/* Save eksplisit ($userSave): backup versi lama, tulis atomik berkas kerja, perbarui cermin, sinkronkan record Report.
+ * Auto-save sebelum Run / persistensi hasil run: HANYA tulis atomik berkas kerja (tanpa backup, tanpa cermin, tanpa sinkron record) —
+ * modul penyimpanan tidak berada di jalur kritis simulasi. */
+function sds_write_state_input(string $path, array $input, ?string &$why = null, bool $userSave = true): bool {
+    $syncRecords = $userSave;
+    if (!sds_atomic_write_json($path, $input, $why, $userSave ? 'input_data' : null)) return false;
+    if ($userSave) { $w2 = null; sds_atomic_write_json(sds_state_mirror(), $input, $w2); }
     /* record Report disinkronkan pada Save eksplisit; auto-save sebelum Run hanya berkas kerja + cermin (Run tetap cepat) */
     if ($syncRecords) { try { $GLOBALS['__sds_sync'] = sds_sync_records($input); } catch (Throwable $e) { $GLOBALS['__sds_sync'] = ['error' => $e->getMessage()]; } }
     return true;
 }
-function sds_write_state_output(string $path, array $output, ?string &$why = null): bool { return sds_atomic_write_json($path, $output, $why, 'output_data'); }
+function sds_write_state_output(string $path, array $output, ?string &$why = null): bool { return sds_atomic_write_json($path, $output, $why); }   // keluaran internal: tanpa backup
 /* index.php: berkas kerja hilang / rusak (mis. folder aplikasi diganti) -> dipulihkan dari cermin data tersimpan. */
 function sds_load_state_input(string $path): ?array {
     $in = is_file($path) ? json_decode((string)@file_get_contents($path), true) : null;

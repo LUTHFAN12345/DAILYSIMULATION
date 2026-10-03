@@ -5921,7 +5921,7 @@ function fastestTraceHtml(T){
   try{
     const K=[['run_click_ms','run_click'],['job_created_ms','job_created'],['first_candidate_complete_ms','first_candidate_complete'],['first_valid_claimed_ms','first_valid_claimed'],
       ['first_fully_valid_ms','first_fully_valid'],['snapshot_persisted_ms','snapshot_persisted'],['browser_received_snapshot_ms','browser_received_snapshot'],['render_start_ms','render_start'],
-      ['render_done_ms','render_done'],['simulation_data_opened_ms','simulation_data_opened'],['exact_cancel_sent_ms','exact_cancel_sent']];
+      ['render_done_ms','render_done'],['simulation_data_opened_ms','simulation_data_opened'],['exact_cancel_sent_ms','exact_cancel_sent'],['helpers_stopped_ms','helpers_stopped']];
     const t0=T.run_click_ms||0; let prev=null; const L=[];
     for(const [k,n] of K){ const v=T[k]; if(!v){ L.push(n+' —'); continue; } const s=(v-t0)/1000; L.push(n+' '+s.toFixed(2)+' s'+(prev!=null?' (+'+(s-prev).toFixed(2)+')':'')); prev=s; }
     const st=T.stages_s||{}; const rc=T.review_counterfactuals||{};
@@ -5949,7 +5949,9 @@ async function fastestPoll(payload,branch,myToken,jobId){
     if(r.claimed&&!claimSeen){ claimSeen=true; T.claim_seen_ms=Date.now(); RUN_SEQ[branch]++; myTok2=RUN_SEQ[branch];   // alur runSimCore berhenti; Fastest yang merilis
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan; bukti merit dibawa bersama kandidat…'; }catch(e){} }
     if(!claimSeen){ if(r.job_status==='DONE'||r.job_status==='FAILED'||r.job_status==='CANCELLED') return; continue; }   // FINAL exact lebih dulu: runSimCore
-    if(!r.ready) continue;
+    if(!r.ready){ /* progres tetap hidup selama bukti merit kandidat pertama dihitung (bukan berhenti diam) */
+      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan ('+((T.claim_seen_ms-(T.run_click_ms||T.claim_seen_ms))/1000).toFixed(1).replace('.',',')+' s); membuktikan merit kandidat itu (counterfactual Unit Priority) · '+((Date.now()-(T.run_click_ms||Date.now()))/1000).toFixed(1).replace('.',',')+' s'; }catch(e){}
+      continue; }
     T.browser_received_snapshot_ms=Date.now(); Object.assign(T,r.trace_server||{}); T.stages_s=r.stages_s||null; T.review_counterfactuals=r.review_counterfactuals||null; T.write_diag=r.write_diag||null;
     if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat pertama gagal gerbang fully valid ('+gsfEsc(String(((r.fast||{}).reasons)||r.error||'?'))+'); melanjutkan pencarian'; }catch(e){}
@@ -5978,6 +5980,10 @@ async function fastestPoll(payload,branch,myToken,jobId){
     /* baru SETELAH hasil tampil di Simulation Data: batalkan job exact/pembantu */
     T.exact_cancel_sent_ms=Date.now();
     tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,3000).catch(()=>{});
+    try{ const ft=document.getElementById('fast-trace'); if(ft) ft.innerHTML=fastestTraceHtml(T); }catch(e){}
+    /* helpers_stopped: pembantu berhenti sesudah pembatalan (hanya pencatatan; hasil sudah tampil) */
+    for(let q=0;q<40;q++){ await new Promise(r=>setTimeout(r,250)); let h=null; try{ h=await tlJson(url,null,2000,1); }catch(e){ h=null; }
+      if(h&&h.ok&&Number(h.helpers_alive||0)===0){ T.helpers_stopped_ms=Date.now(); break; } }
     try{ const ft=document.getElementById('fast-trace'); if(ft) ft.innerHTML=fastestTraceHtml(T); }catch(e){}
     return;
   }
@@ -7257,7 +7263,7 @@ function resultToHTMLTable(){
   if(!OUTPUT) return '';
   const info=OUTPUT.info, rows=OUTPUT.data;
   let s='<table border="1"><tr><th colspan="2">'+(INPUT.data3.modeling.name_plan||'Daily Plan')+'</th></tr>';
-  if(OUTPUT.time_limited===true) s+='<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
+  if(OUTPUT.time_limited===true) s+=(OUTPUT.result_label==='FASTEST VALID PLAN')?'<tr><th colspan="2" style="background:#fef3c7">FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO)</th></tr>':'<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
   Object.keys(info).forEach(k=>{if(k==='Warnings'||k==='Distillate per unit (l)')return;
     s+=`<tr><td>${k}</td><td>${info[k]}</td></tr>`;});
   s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
