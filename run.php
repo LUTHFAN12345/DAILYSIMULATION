@@ -5697,6 +5697,80 @@ function pp_v12_merit_audit(array $input, array $out): array {
         'rows' => $R,
         'rule' => 'C2 dan C3 memblokir FINAL bila FAIL; C1 dilaporkan dengan alasan ekonomi (Heat Rate inkremental) / status. Legal headroom = min(Effective Max - MW, allowance ramp) untuk unit berjalan tanpa Fixed Load.'];
 }
+/* V12 REDISTRIBUSI MERIT C4 (logika merit langkah 5-7 dan 13-15). Berlaku HANYA bila pemenang review gagal C4 — unit grup
+ * prioritas lebih rendah dibebani di atas minimum sementara unit grup lebih tinggi yang berjalan masih punya legal headroom,
+ * tanpa status paksa / akun MM2100 penuh. Pemenang seperti itu diblokir gerbang merit (tidak pernah dirilis), sehingga state
+ * yang lolos C4 tidak tersentuh sama sekali (null dikembalikan, keluaran byte-identik). Per row: beban di atas minimum unit
+ * rendah (urut prioritas terendah dulu) dipindah ke legal headroom C4 unit berjalan berprioritas lebih tinggi (urut grup lalu
+ * rank Unit Priority); commitment start/stop tidak berubah; STG blok, bahan bakar, gas, Export, reserve, Bus Flow dihitung ulang
+ * penuh oleh engine (pp_v10_fz, 48 row), lalu window gas didaratkan (pp_v10_land) bila evaluasi pertama tidak valid. Diterima
+ * hanya bila valid penuh terhadap input asli (hard constraints + provenance) DAN audit merit C2/C3/C4 PASS dengan bukti review
+ * yang sama. Maks 3 putaran (pendaratan dapat memunculkan temuan baru). Tidak ada constraint yang dilonggarkan. Deterministik. */
+function pp_v12_c4_redistribute(array $orig, array $W, float $dl): ?array {
+    if (count((array)($W['data'] ?? [])) !== 48) return null;
+    $ma0 = pp_v12_merit_audit($orig, $W); $f0 = (int)($ma0['c4_cross_group_priority']['fail'] ?? 0);
+    if ($f0 === 0) return null;
+    $t0 = microtime(true); $GT = array_flip(array_map('strtoupper', pp_tl_gt_units()));
+    $rep = ['schema' => 'co12-v12-c4-redistribution-v1', 'applied' => false, 'c4_fail_before' => $f0, 'c4_detail_before' => array_slice((array)$ma0['c4_cross_group_priority']['detail'], 0, 20),
+        'cost_production_before' => $W['info']['Cost Production (USD/MWh)'] ?? null, 'heat_rate_before' => $W['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null, 'rounds' => []];
+    $cur = $W; $ma = $ma0; $sig0 = pp_v6_gtg_sig((array)$W['data']);
+    for ($round = 1; $round <= 3 && (int)($ma['c4_cross_group_priority']['fail'] ?? 0) > 0; $round++) {
+        if (microtime(true) > $dl - 3.0) { $rep['stopped'] = 'BATAS_WAKTU'; break; }
+        $sh = pp_v10_shape((array)$cur['data']); $moves = [];
+        foreach ((array)$ma['rows'] as $rw) { $r = (int)$rw['row'];
+            $UU = array_values(array_filter((array)$rw['units'], function ($e) use ($GT) { return $e['mw'] > 0.01 && $e['class'] === 'GTG' && isset($GT[$e['unit']]); }));
+            usort($UU, function ($a, $b) { return [$a['priority_group'] ?? 99, $a['priority_rank'] ?? 99, $a['unit']] <=> [$b['priority_group'] ?? 99, $b['priority_rank'] ?? 99, $b['unit']]; });
+            $room = []; foreach ($UU as $e) $room[$e['unit']] = (float)$e['legal_headroom_mw'];
+            foreach (array_reverse($UU) as $lo) { if ($lo['status'] || $lo['mw'] <= $lo['min'] + 0.01) continue; $ex = (float)$sh[$r - 1][$lo['unit']] - (float)$lo['min'];
+                foreach ($UU as $hi) { if ($ex <= 0.01) break;
+                    if (($hi['priority_group'] ?? 99) >= ($lo['priority_group'] ?? 99) || $room[$hi['unit']] <= 0.5) continue;
+                    $d = round(min($room[$hi['unit']], $ex), 4); if ($d <= 0.01) continue;
+                    $sh[$r - 1][$hi['unit']] = round((float)$sh[$r - 1][$hi['unit']] + $d, 4); $sh[$r - 1][$lo['unit']] = round((float)$sh[$r - 1][$lo['unit']] - $d, 4);
+                    $room[$hi['unit']] -= $d; $ex -= $d; $moves[] = ['row' => $r, 'from' => $lo['unit'], 'to' => $hi['unit'], 'mw' => $d]; } } }
+        $R = ['round' => $round, 'moves' => $moves, 'moved_mw' => round(array_sum(array_column($moves, 'mw')), 3)];
+        if (!$moves) { $R['result'] = 'TANPA_PERGESERAN_LEGAL'; $rep['rounds'][] = $R; break; }
+        $T = pp_tl_supplier_target($cur); $a = pp_v10_fz($orig, $sh, $T, $dl); $R['first_eval'] = is_array($a) ? (!empty($a['valid']) ? 'VALID' : 'INVALID:' . implode(',', array_values(array_unique(array_map('pp_v8_viol_code', (array)($a['violations'] ?? [])))))) : 'TIDAK_DAPAT_DIEVALUASI';
+        if (is_array($a) && empty($a['valid'])) { $lg = null; $L = pp_v10_land($orig, $sh, $T, $dl, 6, $lg); if (is_array($L)) { $a = $L; $R['gas_window_landing'] = !empty($L['valid']) ? 'VALID' : 'INVALID'; } }
+        if (!is_array($a) || empty($a['valid']) || !is_array($a['output'] ?? null) || count((array)($a['output']['data'] ?? [])) !== 48) {
+            $R['result'] = 'TIDAK_VALID:' . (is_array($a) ? implode(',', array_values(array_unique(array_map('pp_v8_viol_code', (array)($a['violations'] ?? []))))) : 'EVALUASI_GAGAL'); $rep['rounds'][] = $R; break; }
+        $new = $a['output']; foreach ((array)($cur['info'] ?? []) as $k => $x) if (!array_key_exists($k, (array)$new['info'])) $new['info'][$k] = $x;
+        $ma = pp_v12_merit_audit($orig, $new);
+        $R['result'] = 'VALID'; $R['cp'] = $a['key']['cp'] ?? null; $R['heat_rate'] = $a['key']['hr'] ?? null; $R['c4_fail_after'] = (int)($ma['c4_cross_group_priority']['fail'] ?? 0);
+        $rep['rounds'][] = $R; $cur = $new; $aCur = $a;
+    }
+    /* lanjutan polish Unit Priority pada dispatch hasil redistribusi (sama dengan review: counterfactual 48 row, diterima hanya bila
+     * valid dan lebih baik); pendaratan window gas dapat memindah beban antar unit pada row lain -> setiap temuan diuji/diberi bukti. */
+    if (isset($aCur) && ($ma['status'] ?? '') === 'PASS' && function_exists('pp_v6_priority_polish') && microtime(true) < $dl - 2.0) {
+        $audP = pp_v5_headroom_priority_audit($orig, $cur, true); $need = false;
+        foreach ((array)($audP['unresolved'] ?? []) as $fP) if (($fP['type'] ?? '') === 'LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM') { $need = true; break; }
+        if ($need) { $Wp = $cur; $Wp['info']['Unit Priority Polish']['done'] = false;
+            $aP = pp_v6_priority_polish($orig, array_merge($aCur, ['output' => $Wp]), $dl, null, 8); $pp1 = (array)($aP['output']['info']['Unit Priority Polish'] ?? []); $pp1['v12_c4_continued'] = true;
+            $rep['polish'] = ['evaluations' => $pp1['counterfactual_evaluations'] ?? null, 'shifts' => count((array)($pp1['shifts_applied'] ?? [])), 'cp_after' => $aP['key']['cp'] ?? null];
+            if (!empty($aP['valid']) && is_array($aP['output'] ?? null) && pp_v6_gtg_sig((array)$aP['output']['data']) !== pp_v6_gtg_sig((array)$cur['data']) && is_array($aP['key'] ?? null) && pp_global_commitment_better($aP['key'], $aCur['key'])) {
+                $new = $aP['output']; foreach ((array)$cur['info'] as $k => $x) if (!array_key_exists($k, (array)$new['info'])) $new['info'][$k] = $x; $new['info']['Unit Priority Polish'] = $pp1;
+                $maP = pp_v12_merit_audit($orig, $new); if (($maP['status'] ?? '') === 'PASS') { $cur = $new; $aCur = $aP; $ma = $maP; $rep['polish']['applied'] = true; } else $rep['polish']['rejected'] = 'MERIT_' . ($maP['status'] ?? '?');
+            } else $cur['info']['Unit Priority Polish'] = $pp1 + ['rows_sig' => pp_v6_gtg_sig((array)$cur['data'])];
+        }
+    }
+    $ok = isset($aCur) && ($ma['status'] ?? '') === 'PASS';
+    $rep['merit_status_after'] = $ma['status'] ?? null; $rep['c4_fail_after'] = (int)($ma['c4_cross_group_priority']['fail'] ?? 0);
+    $rep['c2_fail_after'] = (int)($ma['c2_start_with_headroom']['fail'] ?? 0); $rep['c3_fail_after'] = (int)($ma['c3_first_legal_stop']['fail'] ?? 0); $rep['wall_s'] = round(microtime(true) - $t0, 3);
+    if (!$ok) { $rep['result'] = 'TIDAK_DITERAPKAN: ' . (isset($aCur) ? 'audit merit sesudah redistribusi ' . ($ma['status'] ?? '?') : 'tidak ada redistribusi valid') . ' -> gerbang merit tetap memblokir FINAL'; return ['applied' => false, 'output' => $W, 'report' => $rep]; }
+    $sig = pp_v6_gtg_sig((array)$cur['data']); $cpN = (float)($aCur['key']['cp'] ?? ($cur['info']['Cost Production (USD/MWh)'] ?? 0)); $hrN = (float)($aCur['key']['hr'] ?? ($cur['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? 0));
+    $rv = (array)($cur['info']['V8 Priority Review'] ?? []); $rv['rows_sig'] = $sig; $rv['cost_production_after'] = round($cpN, 4); $rv['v12_c4_redistribution'] = true; $cur['info']['V8 Priority Review'] = $rv;
+    if (is_array($cur['info']['V11 Candidate Comparison'] ?? null)) { $b = $cur['info']['V11 Candidate Comparison']; $old = $b['winner'] ?? null; $tbl = (array)($b['table'] ?? []);
+        foreach ($tbl as &$x) if (($x['result'] ?? '') === 'MENANG') $x['result'] = 'KALAH:GAGAL_MERIT_C4(unit prioritas rendah di atas minimum, headroom unit prioritas tinggi tersisa)'; unset($x);
+        $cpMin = min((float)($b['cp_min'] ?? $cpN), $cpN); $pct = (float)($b['band_pct'] ?? pp_v11_band_pct());
+        array_unshift($tbl, ['candidate' => 'V12_C4_REDISTRIBUSI:' . (string)$old, 'aliases' => [], 'cp' => round($cpN, 4), 'delta_cp_pct' => round(100.0 * ($cpN - $cpMin) / max(1e-9, $cpMin), 4), 'heat_rate' => round($hrN, 2),
+            'generation_mwh' => $cur['info']['Net Production (MWh)'] ?? null, 'export_mwh' => $cur['info']['Daily PLN Exp (MWh)'] ?? null, 'constraints' => 'PASS', 'in_band' => $cpN <= $cpMin * (1.0 + $pct / 100.0) + 1e-9,
+            'result' => 'MENANG', 'basis' => 'redistribusi merit C4 atas pemenang band ' . (string)$old]);
+        $b['table'] = $tbl; $b['winner'] = 'V12_C4_REDISTRIBUSI:' . (string)$old; $b['winner_cp'] = round($cpN, 4); $b['winner_heat_rate'] = round($hrN, 2); $b['cp_min'] = round($cpMin, 6); $b['band_upper'] = round($cpMin * (1.0 + $pct / 100.0), 6);
+        $b['candidates_valid'] = (int)($b['candidates_valid'] ?? 0) + 1; $cur['info']['V11 Candidate Comparison'] = $b; }
+    $rep['applied'] = true; $rep['cost_production_after'] = round($cpN, 4); $rep['heat_rate_after'] = round($hrN, 2); $rep['rows_sig_before'] = $sig0; $rep['rows_sig_after'] = $sig;
+    $rep['result'] = sprintf('DITERAPKAN: C4 %d -> 0 temuan tanpa alasan, merit PASS, CP %.4f -> %.4f USD/MWh, Heat Rate %.2f -> %.2f BTU/kWh', $f0, (float)$rep['cost_production_before'], $cpN, (float)$rep['heat_rate_before'], $hrN);
+    $rep['rule'] = 'hanya pemenang yang gagal C4; beban di atas minimum unit prioritas rendah -> legal headroom unit prioritas lebih tinggi (grup, lalu rank); commitment tetap; STG/bahan bakar/gas/Export/reserve/Bus Flow dihitung ulang engine 48 row + pendaratan window gas; diterima hanya bila valid penuh dan merit C2/C3/C4 PASS';
+    return ['applied' => true, 'output' => $cur, 'report' => $rep];
+}
 /* V12 HASIL AKHIR SETIAP LOW_LOAD_FRAGMENTATION: RESOLVED_BY_CONSOLIDATION / RESOLVED_BY_STOP (ada sebelum review, hilang pada
  * FINAL), PASS_WITH_REASON (tetap ada, dengan bukti numerik / status paksa), FAIL (tanpa bukti; memblokir FINAL). */
 function pp_v12_llf_outcome(array $input, array $out): array {
@@ -6545,6 +6619,12 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 'cp_min' => $bandV11['cp_min'] ?? null, 'band_upper' => $bandV11['band_upper'] ?? null, 'candidates_valid' => $bandV11['valid'] ?? 0, 'candidates_in_band' => $bandV11['in_band'] ?? 0,
                 'winner' => $bandV11['winner']['id'] ?? null, 'winner_cp' => isset($bandV11['winner']) ? round((float)$bandV11['winner']['m']['cp'], 4) : null, 'winner_heat_rate' => isset($bandV11['winner']) ? round((float)$bandV11['winner']['m']['hr'], 2) : null,
                 'table' => array_slice((array)($bandV11['table'] ?? []), 0, 60)] : null;
+        }
+        /* V12 merit langkah 13-15: pemenang yang gagal C4 (tidak pernah dirilis) -> redistribusi beban ke unit prioritas lebih tinggi. */
+        if (function_exists('pp_v12_on') && pp_v12_on() && (string)getenv('PP_V12_C4_REDIST') !== '0') {
+            $svC4 = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $svC4[$gk] = $gv;
+            try { $c4r = pp_v12_c4_redistribute($orig, $W, max($dl, microtime(true) + 60.0)); } finally { pp_tl_clean_globals(); foreach ($svC4 as $gk => $gv) $GLOBALS[$gk] = $gv; }
+            if ($c4r !== null) { if (!empty($c4r['applied'])) $W = $c4r['output']; $W['info']['V12 C4 Redistribution'] = $c4r['report']; }
         }
         return $W;
     } catch (Throwable $e) {
