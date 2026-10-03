@@ -4,7 +4,7 @@
 $root=$argv[1]; $port=(int)$argv[2]; $in=$argv[3]; $out=$argv[4];
 $B='http://127.0.0.1:'.$port;
 $srv=proc_open('/usr/local/bin/php74 -d max_execution_time=30 -S 127.0.0.1:'.$port.' -t '.escapeshellarg($root),
-  [1=>['file','/dev/null','a'],2=>['file','/dev/null','a']],$pp,$root,['PHP_CLI_SERVER_WORKERS'=>'8']);
+  [1=>['file','/dev/null','a'],2=>['file','/dev/null','a']],$pp,$root,['PHP_CLI_SERVER_WORKERS'=>'16']);
 sleep(2);
 $R=[]; function rec($id,$n,$ok,$d=''){global $R;$R[]=[$id,$n,$ok,$d];printf("%s  %-5s %s  -- %s\n",$ok?'PASS':'FAIL',$id,$n,$d);}
 function get($u,$to=60){$c=curl_init($u);curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>$to]);$b=curl_exec($c);$h=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);$ct=(string)curl_getinfo($c,CURLINFO_CONTENT_TYPE);curl_close($c);return [$h,$b,$ct];}

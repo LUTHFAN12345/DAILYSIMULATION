@@ -3,10 +3,10 @@
 # Fastest UI (CO OFF/ON). Arg: <src> <port> <outdir>
 cd /home/claude/t5; S=$1; P=$2; O=$3; mkdir -p $O; unset PP_LEGACY_TARGET; M=$O/merit; mkdir -p $M
 echo "=== INTEGRASI: MERIT DISPATCH 12 STATE (cold, counterfactual tanpa redistribusi, tanpa pembantu, warm) ==="
-rm -rf $M/out_*; V12_SAVE_OUT=/home/claude/t5/$M/out_cold bash v12/http1.sh $S $((P+1)) $M/COLD.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
-PP_V8_PRIORITY=0 PP_V6_POLISH=0 V12_SAVE_OUT=/home/claude/t5/$M/out_before bash v12/http1.sh $S $((P+2)) $M/BEFORE.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
-PP_V4_HELPERS=0 V12_SAVE_OUT=/home/claude/t5/$M/out_nohelp bash v12/http1.sh $S $((P+3)) $M/NOHELP.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
-V12_SAVE_OUT=/home/claude/t5/$M/out_warm bash v12/http1.sh $S $((P+4)) $M/WARM.jsonl warm v12/merit_cases.txt > /dev/null 2>&1
+rm -rf $M/out_*; V12_SAVE_OUT=$(realpath -m $M)/out_cold bash v12/http1.sh $S $((P+1)) $M/COLD.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
+PP_V8_PRIORITY=0 PP_V6_POLISH=0 V12_SAVE_OUT=$(realpath -m $M)/out_before bash v12/http1.sh $S $((P+2)) $M/BEFORE.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
+PP_V4_HELPERS=0 V12_SAVE_OUT=$(realpath -m $M)/out_nohelp bash v12/http1.sh $S $((P+3)) $M/NOHELP.jsonl cold v12/merit_cases.txt > /dev/null 2>&1
+V12_SAVE_OUT=$(realpath -m $M)/out_warm bash v12/http1.sh $S $((P+4)) $M/WARM.jsonl warm v12/merit_cases.txt > /dev/null 2>&1
 /usr/local/bin/php74 -d memory_limit=2G integ/stg_proof.php $M v12/merit_cases.map $M/STG_PROOF.json > /dev/null 2>&1
 python3 integ/merit_report.py $M v12/merit_cases.map $O/MERIT_REPORT.md $O/MERIT_REPORT.json 2>&1 | grep -E "^(PASS|FAIL)"
 python3 integ/merit_parity.py integ/merit_ref/COLD.jsonl $M $O/MERIT_PARITY.md 2>&1 | grep -E "^(PASS|FAIL)"
