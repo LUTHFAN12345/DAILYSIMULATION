@@ -198,6 +198,9 @@ $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
   .simgrid td.dist-m50{background:#93c5fd !important;color:#1e3a8a !important;box-shadow:inset 0 0 0 1px #60a5fa}
   .simgrid td.dist-m75{background:#3b82f6 !important;color:#ffffff !important;box-shadow:inset 0 0 0 1px #2563eb}
   .simgrid td.dist-m100{background:#1d4ed8 !important;color:#ffffff !important;box-shadow:inset 0 0 0 1px #1e40af}
+  /* V12: gradasi biru proporsional persen Distillate (inline --dpct) + tooltip numerik */
+  .simgrid td.dist-cell{background:var(--dbg) !important;color:var(--dfg) !important;box-shadow:inset 0 0 0 1px var(--dbd)}
+  #dist-tip{position:fixed;z-index:20000;pointer-events:none;background:#0f172a;color:#f8fafc;font:12px/1.45 ui-monospace,Consolas,monospace;padding:7px 10px;border-radius:6px;box-shadow:0 6px 18px rgba(15,23,42,.35);white-space:pre;display:none}
   .simhead{display:flex;align-items:baseline;gap:12px;margin:0 0 10px;flex-wrap:wrap}
   .simhead .simtitle{font-weight:800;font-size:13px;letter-spacing:1.2px;color:var(--accent);text-transform:uppercase}
   .simhead .simsub{font-size:11.5px;color:var(--ink-dim);font-weight:600}
@@ -2502,6 +2505,33 @@ function activateChild(group,cp){
   document.querySelectorAll(`.childtab[data-child="${group}"]`).forEach(t=>t.classList.toggle('active',t.dataset.cp===cp));
   document.querySelectorAll(`.childpanel[data-child="${group}"]`).forEach(p=>p.classList.toggle('active',p.id===cp));
 }
+/* V12 DISTILLATE PER SEL: persen dari data numerik output (DistPct_/GasPct_ dari engine; DistMix_ sebagai cadangan output lama).
+ * 0 % = tanpa biru (warna gas normal), 100 % = biru paling tua, nilai antara = gradasi proporsional. */
+function distPctOf(r,k){ const p=r['DistPct_'+k]; if(p!=null&&p!=='') return Math.max(0,Math.min(100,+p)); const m=+(r['DistMix_'+k]||0); return Math.max(0,Math.min(100,m*100)); }
+function distCellStyle(r,k){
+  const p=distPctOf(r,k)/100; if(!(p>0)) return '';
+  const a=[255,255,255], b=[29,78,216]; const c=a.map((x,i)=>Math.round(x+(b[i]-x)*p));
+  const bd=a.map((x,i)=>Math.round(x+(b[i]-x)*Math.min(1,p+0.15)));
+  return ` style="--dbg:rgb(${c.join(',')});--dfg:${p>=0.55?'#ffffff':'#1e3a8a'};--dbd:rgb(${bd.join(',')})"`;
+}
+function distCellData(r,k){
+  const p=distPctOf(r,k); const g=(r['GasPct_'+k]!=null)?+r['GasPct_'+k]:(100-p);
+  const at=(n,v)=>(v==null||v==='')?'':` data-${n}="${gsfEsc(String(v))}"`;
+  return at('dist-unit',k)+at('dist-time',r.Time)+at('dist-pct',p)+at('gas-pct',g)+at('dist-l',r['Dist_'+k])+at('dist-flow',r['DistFlow_'+k])+at('gas-flow',r['GasFlow_'+k])+at('gas-bbtu',r['GasBBTU_'+k])+at('fuel-src',r['FuelSrc_'+k]);
+}
+function distTipText(td){
+  const d=td.dataset; const f=(v,n)=>(v==null||v==='')?'—':fmt(+v,n);
+  return 'Distillate : '+f(d.distPct,0)+'%\nGas        : '+f(d.gasPct,0)+'%\nDistillate : '+f(d.distL,1)+' l/slot ('+f(d.distFlow,1)+' l/jam)'
+    +'\nGas flow   : '+f(d.gasFlow,4)+' MMSCFD ('+f(d.gasBbtu,4)+' BBTU/slot)\nUnit       : '+(d.distUnit||'—')+'\nTime       : '+(d.distTime||'—')+(d.fuelSrc?'\nSumber     : '+d.fuelSrc:'');
+}
+(function(){
+  let tip=null;
+  const show=(td,e)=>{ if(!tip){ tip=document.createElement('div'); tip.id='dist-tip'; document.body.appendChild(tip); }
+    tip.textContent=distTipText(td); tip.style.display='block';
+    const x=Math.min(window.innerWidth-260,(e.clientX||0)+14), y=Math.min(window.innerHeight-150,(e.clientY||0)+14); tip.style.left=x+'px'; tip.style.top=y+'px'; };
+  document.addEventListener('mouseover',e=>{ const td=e.target&&e.target.closest?e.target.closest('td[data-dist-pct]'):null; if(td){ td.removeAttribute('title'); show(td,e); } else if(tip) tip.style.display='none'; });
+  document.addEventListener('mousemove',e=>{ if(tip&&tip.style.display==='block'){ const td=e.target&&e.target.closest?e.target.closest('td[data-dist-pct]'):null; if(td) show(td,e); else tip.style.display='none'; } });
+})();
 function showSimulationDataResult(){
   const apply=()=>{
     document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.tab==='daily'?'true':'false'));
@@ -6549,8 +6579,9 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
         /* PROMPT GAS SHORTAGE Sec.11: cell BIRU + tooltip bila unit memakai Distillate slot ini
            (DistMix_G{n} per row dari engine: 0.3/0.5/0.75/1.0; liter/row = Dist_G{n}). */
         const dmx=+(r['DistMix_'+k]||0); let dCls='', dTitle='Ctrl+Click to fix/cancel load';
+        let dStyle='', dData='';
         if(dmx>0&&!blankZero){
-          dCls=' dist-m'+Math.round(dmx*100);
+          dCls=' dist-m'+Math.round(dmx*100)+' dist-cell'; dStyle=distCellStyle(r,k); dData=distCellData(r,k);
           const dl=r['Dist_'+k];                                 // Distillate Liter slot (schedule final)
           /* §11 tooltip lengkap: unit, waktu, %, load, Total Fuel Energy, Gas Energy, Distillate Energy, Liter.
              Distillate Energy (BBTU/slot) diturunkan dari liter via faktor project; Total = Dist/frac. */
@@ -6572,7 +6603,7 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
             +(distE!=null?` · dist ${fmt(distE,4)} BBTU`:'')
             +(dl!=null?` · ${fmt(dl,1)} l`:'');
         }
-        return `<td class="g-${g}${sc&&!fixCls?' sc-mode':''}${fixCls}${unitMark}${dCls}"${fixAttr} title="${dTitle}">${blankZero?'':showV}</td>`;
+        return `<td class="g-${g}${sc&&!fixCls?' sc-mode':''}${fixCls}${unitMark}${dCls}"${fixAttr}${dStyle}${dData} title="${dTitle}">${blankZero?'':showV}</td>`;
       }
       if(MARK_KEYS[k]){            // GE1–GE4 and Babelan B1/B2 (G1–G10 handled in the GTG branch above)
         const sv=blankZero?'':(num?fmt(v,dec):(v??''));
@@ -7427,8 +7458,8 @@ function buildSimImageTable(startRow){
         const nxt=ri<rows.length-1?(+(rows[ri+1][k])||0):null;
         if(cur<=1e-9 && !fcls){ if(prv!==null&&prv>1e-9)mk=' cell-stop'; else if(nxt!==null&&nxt>1e-9)mk=' cell-startup'; }
         /* PROMPT GAS SHORTAGE Sec.11: warna Distillate ikut terekam di Image Full/Partial */
-        const dmx2=+(r['DistMix_'+k]||0); const dcls2=(dmx2>0&&cur>1e-9)?(' dist-m'+Math.round(dmx2*100)):'';
-        return `<td class="g-${g}${fcls}${mk}${dcls2}">${(cur<=1e-9)?'':shw}</td>`;
+        const dmx2=+(r['DistMix_'+k]||0); const dist2=(dmx2>0&&cur>1e-9); const dcls2=dist2?(' dist-m'+Math.round(dmx2*100)+' dist-cell'):'';
+        return `<td class="g-${g}${fcls}${mk}${dcls2}"${dist2?distCellStyle(r,k)+distCellData(r,k):''}>${(cur<=1e-9)?'':shw}</td>`;
       }
       return `<td class="g-${g}${fcls}">${shw}</td>`;
     }).join('')+'</tr>';}

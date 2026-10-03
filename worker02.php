@@ -7654,6 +7654,13 @@ function pp_run_simulation_once_raw(array $input): array {
                 }
                 $unitMaxFrac[$u] = $usedFrac;
                 if ($usedFrac > 0) $mixByUnit[$u] = $usedFrac;
+                /* V12 SATU-UNIT-DULU: unit berikutnya hanya dipakai bila unit ini HABIS (setiap slot eligible sudah 100 %). Sisa yang
+                 * lebih kecil daripada langkah diskret terkecil unit ini diserahkan ke langkah penutup (bertingkat, unit yang sudah
+                 * dipakai lebih dulu) — bukan dipecah ke unit lain. */
+                if ($remaining > 1e-9 && $usedFrac > 0 && (string)getenv('PP_V12_DIST_ONEUNIT') !== '0') {
+                    $exh = true; foreach ($eligible as $idxE) if ((float)($data[$idxE]['DistMix_' . $U] ?? 0) < 1.0 - 1e-9) { $exh = false; break; }
+                    if (!$exh) break;
+                }
             }
             /* ==========================================================================================
              * LANGKAH PENUTUP DISKRET — PEMILIHAN KOMBINASI slot x unit x level DENGAN OVERSHOOT MINIMUM.
@@ -7770,19 +7777,35 @@ function pp_run_simulation_once_raw(array $input): array {
                     return ($capLitres === null) || ($dist_total_litres + $litTambahan <= $capLitres + 1e-6);
                 };
                 $__pilih = null; $__mode = null;
+                /* V12 DISTILLATE SATU-UNIT-DULU: pencarian eksak (langkah tunggal lalu pasangan) dijalankan bertingkat pada himpunan
+                 * unit: (1) unit yang SUDAH membawa distillate, lalu (2) ditambah SATU unit berikutnya menurut urutan prioritas
+                 * distillate input, dan seterusnya. Unit kedua hanya dipakai bila unit yang sudah ada tidak dapat menutup sisa di dalam
+                 * pita (batas legal / tidak cukup). Pita, plafon liter, dan tie-break tidak berubah. PP_V12_DIST_ONEUNIT=0 = perilaku lama. */
+                $__tiers = [$__allowUnits];
+                if ((string)getenv('PP_V12_DIST_ONEUNIT') !== '0') {
+                    $__used = []; foreach ($__allowUnits as $x) if (($dist_units[$x] ?? 0) > 0) $__used[] = $x;
+                    $__rest = array_values(array_diff($__allowUnits, $__used)); $__tiers = [];
+                    if ($__used) $__tiers[] = $__used;
+                    $__acc = $__used; foreach ($__rest as $x) { $__acc[] = $x; $__tiers[] = $__acc; }
+                    if (!$__tiers) $__tiers = [$__allowUnits];
+                }
+                $__candP0 = $__cand; $__candA0 = $__candAll; $__tierUsed = null;
+                foreach ($__tiers as $__ti => $__tier) {
+                    $__candT = array_values(array_filter($__candP0, function ($c) use ($__tier) { return in_array($c[3], $__tier, true); }));
+                    $__candAT = array_values(array_filter($__candA0, function ($c) use ($__tier) { return in_array($c[3], $__tier, true); }));
                 /* ---- (3) langkah TUNGGAL ---- */
-                foreach ($__cand as $c) {
+                foreach ($__candT as $c) {
                     if ($c[0] < $__lo || $c[0] > $__hi) continue;
                     if (!$__fits($c[1])) continue;
                     $__pilih = [$c]; $__mode = 'SINGLE'; break;       // terurut menaik -> yang pertama = overshoot terkecil
                 }
                 /* ---- (4) PASANGAN langkah ---- */
-                if ($__pilih === null && count($__candAll) > 1) {
+                if ($__pilih === null && count($__candAT) > 1) {
                     /* Pasangan dicari pada daftar LENGKAP: kandidat bernilai negatif (penurunan
                      * level) dan kandidat besar yang sendirian di luar pita tetap sah sebagai
                      * PASANGAN. Memakai daftar yang sudah dipangkas akan membuang justru kombinasi
                      * yang mampu mendarat di dalam pita. */
-                    $__cand = $__candAll;
+                    $__cand = $__candAT;
                     $__n = count($__cand);
                     $__best = null;
                     for ($i = 0; $i < $__n; $i++) {
@@ -7805,6 +7828,9 @@ function pp_run_simulation_once_raw(array $input): array {
                     }
                     if ($__best !== null) { $__pilih = [$__best[1], $__best[2]]; $__mode = 'PAIR'; }
                 }
+                    if ($__pilih !== null) { $__tierUsed = ['tier' => $__ti, 'units' => array_map('strtoupper', $__tier)]; break; }
+                }
+                $__cand = $__candP0;
                 /* ---- (4b) TIDAK ADA yang mendarat di pita: ambil langkah TERKECIL yang MENUTUPI --
                  * Granularitas distillate bisa lebih KASAR daripada lebar window (terukur: langkah
                  * sah terkecil 0,1405 BBTUD terhadap window selebar 0,04). Pada keadaan itu tidak
@@ -7847,7 +7873,7 @@ function pp_run_simulation_once_raw(array $input): array {
                         'schema' => 'co12-distillate-discrete-closing-v1', 'status' => 'RESOLVED',
                         'mode' => $__mode, 'residual_sebelum_bbtud' => round($__r, 6),
                         'pita_bbtud' => [round($__r, 6), round($__r + $__winBand, 6)],
-                        'kandidat_dievaluasi' => count($__cand), 'langkah' => $__ev];
+                        'kandidat_dievaluasi' => count($__cand), 'langkah' => $__ev, 'tingkat_unit' => $__tierUsed];
                 } else {
                     /* ---- CONFLICT CERTIFICATE: tidak ada kombinasi diskret yang mendarat di pita ---- */
                     $__below = null; $__above = null; $__minStep = null;
@@ -7932,6 +7958,20 @@ function pp_run_simulation_once_raw(array $input): array {
                     $residual, $startCand ? " — next start candidate per Distillate Priority: $startCand (one unit, §8; not auto-started)" : ' — no further G1-G6 start candidate');
             }
             $GLOBALS['__pp_dist_mix'] = $mixByUnit;
+            /* V12 DATA NUMERIK PER SEL CAMPURAN (sumber warna & tooltip UI, bukan tebakan warna): persen distillate/gas, liter dan
+             * laju distillate, energi & laju gas sisa, sumber bahan bakar. Satuan: calc_fuel = BBTU/jam, calc_fuel_dist = liter/slot
+             * 30 menit pada 100 %; MMSCFD = BBTUD x 1000 / GHV Jababeka. */
+            $ghvC = (float)($model['ghv_jababeka'] ?? 1034.7564);
+            foreach ($data as $idxM => $rwM) foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'] as $UM) {
+                $fM = (float)($rwM['DistMix_' . $UM] ?? 0); if ($fM <= 0) continue;
+                $loadM = (float)($rwM[$UM] ?? 0); $gasHr = calc_fuel($d3, strtolower($UM), $loadM) * (1.0 - $fM);
+                $data[$idxM]['DistPct_' . $UM] = round($fM * 100.0, 2);
+                $data[$idxM]['GasPct_' . $UM] = round(100.0 - $fM * 100.0, 2);
+                $data[$idxM]['DistFlow_' . $UM] = round((float)($rwM['Dist_' . $UM] ?? 0) * 2.0, 1);               // liter/jam
+                $data[$idxM]['GasBBTU_' . $UM] = round($gasHr / 2.0, 5);                                             // energi gas slot
+                $data[$idxM]['GasFlow_' . $UM] = round($gasHr * 24.0 * 1000.0 / max(1.0, $ghvC), 4);                // MMSCFD setara
+                $data[$idxM]['FuelSrc_' . $UM] = $fM >= 1.0 - 1e-9 ? 'DISTILLATE' : 'DISTILLATE+GAS_JABABEKA';
+            }
         } else {
             $gas_ok = false;
             /* ===== PROMPT §8/§10: kandidat LNG vs DISTILLATE (rekomendasi — TIDAK auto-switch).
