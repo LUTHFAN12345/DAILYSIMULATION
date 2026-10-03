@@ -1,0 +1,352 @@
+{
+ "P07_T8_WB09_G1STOP": {
+  "before": {
+   "release_allowed": false,
+   "blocking": [
+    "V12_MERIT_DISPATCH_TANPA_BUKTI"
+   ],
+   "cp": 64.5005,
+   "hr": 8349.83,
+   "merit": "FAIL",
+   "c4": {
+    "findings": 5,
+    "status_forced": 0,
+    "mm2100_account_full": 0,
+    "fail": 5,
+    "detail": [
+     {
+      "row": 28,
+      "unit": "G5",
+      "mw_above_min": 6.5,
+      "higher_priority_legal_headroom": {
+       "G8": 2.27,
+       "G9": 2.27
+      }
+     },
+     {
+      "row": 29,
+      "unit": "G5",
+      "mw_above_min": 6,
+      "higher_priority_legal_headroom": {
+       "G8": 2.53,
+       "G9": 2.53
+      }
+     },
+     {
+      "row": 30,
+      "unit": "G5",
+      "mw_above_min": 5.5,
+      "higher_priority_legal_headroom": {
+       "G8": 2.78,
+       "G9": 2.78
+      }
+     },
+     {
+      "row": 31,
+      "unit": "G5",
+      "mw_above_min": 11,
+      "higher_priority_legal_headroom": {
+       "G8": 6.5,
+       "G9": 6.5
+      }
+     },
+     {
+      "row": 32,
+      "unit": "G5",
+      "mw_above_min": 7,
+      "higher_priority_legal_headroom": {
+       "G8": 9,
+       "G9": 9
+      }
+     }
+    ],
+    "mm2100_quota_bbtud": 0,
+    "mm2100_used_bbtud": 0
+   },
+   "c2_fail": 0,
+   "c3_fail": 0,
+   "hpa": "PASS_WITH_REASON",
+   "hpa_unresolved": 0,
+   "fuel_provenance": "PASS",
+   "hard": "PASS",
+   "export": "OK"
+  },
+  "after": {
+   "release_allowed": true,
+   "blocking": [],
+   "cp": 64.4089,
+   "hr": 8328.71,
+   "merit": "PASS",
+   "c4": {
+    "findings": 0,
+    "status_forced": 0,
+    "mm2100_account_full": 0,
+    "fail": 0,
+    "detail": [],
+    "mm2100_quota_bbtud": 0,
+    "mm2100_used_bbtud": 0
+   },
+   "c2_fail": 0,
+   "c3_fail": 0,
+   "hpa": "PASS_WITH_REASON",
+   "hpa_unresolved": 0,
+   "fuel_provenance": "PASS",
+   "hard": "PASS",
+   "export": "OK"
+  },
+  "redistribution": {
+   "schema": "co12-v12-c4-redistribution-v1",
+   "applied": true,
+   "c4_fail_before": 5,
+   "c4_detail_before": [
+    {
+     "row": 28,
+     "unit": "G5",
+     "mw_above_min": 6.5,
+     "higher_priority_legal_headroom": {
+      "G8": 2.27,
+      "G9": 2.27
+     }
+    },
+    {
+     "row": 29,
+     "unit": "G5",
+     "mw_above_min": 6,
+     "higher_priority_legal_headroom": {
+      "G8": 2.53,
+      "G9": 2.53
+     }
+    },
+    {
+     "row": 30,
+     "unit": "G5",
+     "mw_above_min": 5.5,
+     "higher_priority_legal_headroom": {
+      "G8": 2.78,
+      "G9": 2.78
+     }
+    },
+    {
+     "row": 31,
+     "unit": "G5",
+     "mw_above_min": 11,
+     "higher_priority_legal_headroom": {
+      "G8": 6.5,
+      "G9": 6.5
+     }
+    },
+    {
+     "row": 32,
+     "unit": "G5",
+     "mw_above_min": 7,
+     "higher_priority_legal_headroom": {
+      "G8": 9,
+      "G9": 9
+     }
+    }
+   ],
+   "cost_production_before": 64.5005,
+   "heat_rate_before": 8349.83,
+   "rounds": [
+    {
+     "round": 1,
+     "moves": [
+      {
+       "row": 28,
+       "from": "G5",
+       "to": "G8",
+       "mw": 2.27
+      },
+      {
+       "row": 28,
+       "from": "G5",
+       "to": "G9",
+       "mw": 2.27
+      },
+      {
+       "row": 29,
+       "from": "G5",
+       "to": "G8",
+       "mw": 2.53
+      },
+      {
+       "row": 29,
+       "from": "G5",
+       "to": "G9",
+       "mw": 2.53
+      },
+      {
+       "row": 30,
+       "from": "G5",
+       "to": "G8",
+       "mw": 2.78
+      },
+      {
+       "row": 30,
+       "from": "G5",
+       "to": "G9",
+       "mw": 2.72
+      },
+      {
+       "row": 31,
+       "from": "G5",
+       "to": "G8",
+       "mw": 6.5
+      },
+      {
+       "row": 31,
+       "from": "G5",
+       "to": "G9",
+       "mw": 4.5
+      },
+      {
+       "row": 32,
+       "from": "G5",
+       "to": "G8",
+       "mw": 7
+      }
+     ],
+     "moved_mw": 33.1,
+     "first_eval": "INVALID:GAS_WINDOW",
+     "gas_window_landing": "VALID",
+     "result": "VALID",
+     "cp": 64.4089,
+     "heat_rate": 8328.71,
+     "c4_fail_after": 0
+    }
+   ],
+   "merit_status_after": "PASS",
+   "c4_fail_after": 0,
+   "c2_fail_after": 0,
+   "c3_fail_after": 0,
+   "wall_s": 0.164,
+   "cost_production_after": 64.4089,
+   "heat_rate_after": 8328.71,
+   "rows_sig_before": "cf94c4a8362dcd40ce4cf94a7003ccd2",
+   "rows_sig_after": "3d8edffec4f43a0aca6ce578321236f6",
+   "result": "DITERAPKAN: C4 5 -> 0 temuan tanpa alasan, merit PASS, CP 64.5005 -> 64.4089 USD/MWh, Heat Rate 8349.83 -> 8328.71 BTU/kWh",
+   "rule": "hanya pemenang yang gagal C4; beban di atas minimum unit prioritas rendah -> legal headroom unit prioritas lebih tinggi (grup, lalu rank); commitment tetap; STG/bahan bakar/gas/Export/reserve/Bus Flow dihitung ulang engine 48 row + pendaratan window gas; diterima hanya bila valid penuh dan merit C2/C3/C4 PASS"
+  }
+ },
+ "P03_WB09_RESERVE20": {
+  "before": {
+   "release_allowed": false,
+   "blocking": [
+    "V12_MERIT_DISPATCH_TANPA_BUKTI"
+   ],
+   "cp": 64.7133,
+   "hr": 8398.07,
+   "merit": "FAIL",
+   "c4": {
+    "findings": 2,
+    "status_forced": 1,
+    "mm2100_account_full": 0,
+    "fail": 1,
+    "detail": [
+     {
+      "row": 23,
+      "unit": "G2",
+      "mw_above_min": 5.5,
+      "higher_priority_legal_headroom": {
+       "G8": 3.75,
+       "G9": 3.75
+      }
+     }
+    ],
+    "mm2100_quota_bbtud": 0,
+    "mm2100_used_bbtud": 0
+   },
+   "c2_fail": 0,
+   "c3_fail": 0,
+   "hpa": "PASS_WITH_REASON",
+   "hpa_unresolved": 0,
+   "fuel_provenance": "PASS",
+   "hard": "PASS",
+   "export": "OK"
+  },
+  "after": {
+   "release_allowed": true,
+   "blocking": [],
+   "cp": 64.686,
+   "hr": 8391.53,
+   "merit": "PASS",
+   "c4": {
+    "findings": 0,
+    "status_forced": 0,
+    "mm2100_account_full": 0,
+    "fail": 0,
+    "detail": [],
+    "mm2100_quota_bbtud": 0,
+    "mm2100_used_bbtud": 0
+   },
+   "c2_fail": 0,
+   "c3_fail": 0,
+   "hpa": "PASS_WITH_REASON",
+   "hpa_unresolved": 0,
+   "fuel_provenance": "PASS",
+   "hard": "PASS",
+   "export": "OK"
+  },
+  "redistribution": {
+   "schema": "co12-v12-c4-redistribution-v1",
+   "applied": true,
+   "c4_fail_before": 1,
+   "c4_detail_before": [
+    {
+     "row": 23,
+     "unit": "G2",
+     "mw_above_min": 5.5,
+     "higher_priority_legal_headroom": {
+      "G8": 3.75,
+      "G9": 3.75
+     }
+    }
+   ],
+   "cost_production_before": 64.7133,
+   "heat_rate_before": 8398.07,
+   "rounds": [
+    {
+     "round": 1,
+     "moves": [
+      {
+       "row": 23,
+       "from": "G2",
+       "to": "G8",
+       "mw": 3.75
+      },
+      {
+       "row": 23,
+       "from": "G2",
+       "to": "G9",
+       "mw": 1.75
+      }
+     ],
+     "moved_mw": 5.5,
+     "first_eval": "INVALID:GAS_WINDOW",
+     "gas_window_landing": "VALID",
+     "result": "VALID",
+     "cp": 64.6919,
+     "heat_rate": 8392.72,
+     "c4_fail_after": 0
+    }
+   ],
+   "polish": {
+    "evaluations": 1,
+    "shifts": 1,
+    "cp_after": 64.686,
+    "applied": true
+   },
+   "merit_status_after": "PASS",
+   "c4_fail_after": 0,
+   "c2_fail_after": 0,
+   "c3_fail_after": 0,
+   "wall_s": 0.325,
+   "cost_production_after": 64.686,
+   "heat_rate_after": 8391.53,
+   "rows_sig_before": "d255db14e556b4aa74abbbb87fcf91b5",
+   "rows_sig_after": "065988c58c6565e166f3eed1cc917580",
+   "result": "DITERAPKAN: C4 1 -> 0 temuan tanpa alasan, merit PASS, CP 64.7133 -> 64.6860 USD/MWh, Heat Rate 8398.07 -> 8391.53 BTU/kWh",
+   "rule": "hanya pemenang yang gagal C4; beban di atas minimum unit prioritas rendah -> legal headroom unit prioritas lebih tinggi (grup, lalu rank); commitment tetap; STG/bahan bakar/gas/Export/reserve/Bus Flow dihitung ulang engine 48 row + pendaratan window gas; diterima hanya bila valid penuh dan merit C2/C3/C4 PASS"
+  }
+ }
+}

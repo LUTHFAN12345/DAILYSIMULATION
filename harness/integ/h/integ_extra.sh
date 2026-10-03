@@ -9,6 +9,7 @@ PP_V4_HELPERS=0 V12_SAVE_OUT=/home/claude/t5/$M/out_nohelp bash v12/http1.sh $S 
 V12_SAVE_OUT=/home/claude/t5/$M/out_warm bash v12/http1.sh $S $((P+4)) $M/WARM.jsonl warm v12/merit_cases.txt > /dev/null 2>&1
 /usr/local/bin/php74 -d memory_limit=2G integ/stg_proof.php $M v12/merit_cases.map $M/STG_PROOF.json > /dev/null 2>&1
 python3 integ/merit_report.py $M v12/merit_cases.map $O/MERIT_REPORT.md $O/MERIT_REPORT.json 2>&1 | grep -E "^(PASS|FAIL)"
+python3 integ/merit_parity.py integ/merit_ref/COLD.jsonl $M $O/MERIT_PARITY.md 2>&1 | grep -E "^(PASS|FAIL)"
 echo "=== INTEGRASI: SMOKE CHANGE OVER (B2->B1 dan B1->B2 sim/sim feasible) vs V12 CHECKPOINT ==="
 bash v12/http1.sh $S $((P+5)) $O/CO_SMOKE.jsonl cold integ/co_smoke.txt v12/snap_empty > /dev/null 2>&1
 python3 - $O/CO_SMOKE.jsonl integ/CO3_ckpt.jsonl <<'PY'
