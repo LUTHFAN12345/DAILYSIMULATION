@@ -21,3 +21,23 @@ for l in open(sys.argv[1]):
 PY
 echo "=== INTEGRASI: FASTEST - DEFAULT UI (Change Over OFF dan ON) ==="
 bash integ/fast_ui.sh $S $((P+6)) $O 2>&1
+echo "=== FASTEST - DEFAULT: 5 INPUT (PGN25+PEP30+KP72 0, PGN29, PGN30, PGN31, PGN32) — klik Run -> Simulation Data ==="
+CASES="PGN25_PEP30_KP0 PGN29 PGN30 PGN31 PGN32" bash integ/fast5.sh $S $((P+7)) $O/FASTEST_5.jsonl > /dev/null 2>&1
+python3 - $O/FASTEST_5.jsonl <<'PY'
+import json,sys
+for l in open(sys.argv[1]):
+    r=json.loads(l); T=r.get('trace') or {}; t0=T.get('run_click_ms') or 0
+    if r['case'].startswith('PGN25'):
+        ok = r['label'].startswith('GAS_SHORTAGE') and not r.get('modal'); print(('PASS' if ok else 'FAIL')+'  FAST_%s keputusan Gas Shortage (tanpa kandidat fully valid), tanpa hasil invalid  -- %.2f s' % (r['case'], r['t_show_s'])); continue
+    gap=(T['simulation_data_opened_ms']-T['first_fully_valid_ms'])/1000 if T.get('simulation_data_opened_ms') and T.get('first_fully_valid_ms') else 99
+    ok = r['label']=='FASTEST VALID PLAN' and r.get('rows')==48 and r.get('hard')=='PASS' and r.get('merit')=='PASS' and r.get('c4')==0 and str(r.get('stg','')).endswith('langgar 0') and r.get('simdata_shown') and gap<=1.0 and not r.get('modal')
+    print(('PASS' if ok else 'FAIL')+'  FAST_%s kandidat fully valid pertama -> Simulation Data (<= 1 s), hard/merit/C4/STG PASS  -- %.2f s, gap %.2f s, %s/%s, CP %s' % (r['case'], (T.get('simulation_data_opened_ms',0)-t0)/1000, gap, r.get('checked'), r.get('valid'), r.get('cp')))
+PY
+echo "=== DISTILLATE: SATU UNIT DULU + WARNA/TOOLTIP NUMERIK (PGN25+PEP30+KP72 0, aksi Distillate) ==="
+DR=/tmp/claude-0/distui_$P; rm -rf $DR; mkdir -p $DR/jobs; cp $S/*.php $DR/; python3 -c "
+import json,sys; d=json.load(open('/home/claude/t5/integ/dist/D_rec.json')); [d.pop(k) for k in list(d) if k.startswith('_')]; json.dump(d,open(sys.argv[1]+'/input_data.json','w'))" $DR
+(setsid node v3/proxy.js $((P+8)) $DR 6 >/dev/null 2>&1 </dev/null &); sleep 3
+NODE_PATH=/home/claude/.npm-global/lib/node_modules timeout 600 node integ/dist_ui.js http://127.0.0.1:$((P+8)) $O/DIST_UI.md 2>&1 | grep -E "^(PASS|FAIL)" | cut -c1-260
+bash v4/kill_port.sh $((P+8)) >/dev/null 2>&1
+echo "=== SAVED_DATA_STORE: 8 UJI + HAPUS/METADATA/MIGRASI/PEMULIHAN ==="
+timeout 900 /usr/local/bin/php74 integ/store_test.php $S $((P+9)) $O/STORE_TEST.md 2>&1 | grep -E "^(PASS|FAIL)" | cut -c1-260
