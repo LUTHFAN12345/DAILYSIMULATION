@@ -31,7 +31,7 @@ echo "=== EXACT PENUH STATE ACTUAL (BASE_ACT10 dari nol) ==="; rm -f $OUT/EXACT_
 E=$S/ex; SRC=$SRC SNAP=v3/snap_empty bash v3/prep_ui.sh $E > /dev/null
 timeout 1800 $PHP $H7 $E $((P+3)) $OUT/EXACT_ACT10.jsonl warm BASE_ACT10 /home/claude/t5/v3/snap_empty 2>&1 | cut -c1-220
 if [ -z "$SKIPUI" ]; then
-  R=$S/ui; mkdir -p $R; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $R/
+  R=$S/ui; mkdir -p $R; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $SRC/saved_data_store.php $R/
   SKIP12=${SKIP12:-} bash integ/h/targeted_ui_v12.sh $R $OUT $((P+4))
   echo "=== SAVE UI (C1-C7, S1) ==="
   U=$S/save; SRC=$SRC SNAP=$SNAPA bash v3/prep_ui.sh $U > /dev/null
@@ -50,13 +50,13 @@ if [ -z "$SKIPUI" ]; then
     "pgn_pipe:1,pgn_pipe:-1,pgn_pipe:2,pgn_pipe:-2,pgn_pipe:4,pgn_pipe:-4,pep:1,pep:-1,pep:2,pep:-2,lng:1,lng:-1,pep_kp72:1,pep_kp72:-1,akasia:1,akasia:-1,pgn_pipe:-1+pep:2" 2>&1 | cut -c1-240
   bash v4/kill_port.sh $((P+8))
   echo "=== V7 UI: PERUBAHAN KUOTA (basis PGN 30 tanpa Actual) ==="
-  K2=$S/quotaui30; rm -rf $K2; mkdir -p $K2/jobs; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $K2/; cp fixtures/input_actual.json $K2/input_data.json
+  K2=$S/quotaui30; rm -rf $K2; mkdir -p $K2/jobs; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $SRC/saved_data_store.php $K2/; cp fixtures/input_actual.json $K2/input_data.json
   (setsid node v3/proxy.js $((P+9)) $K2 6 >/dev/null 2>&1 </dev/null &); sleep 3
   NODE_PATH=$N timeout 7200 node $T7/quota_ui.js http://127.0.0.1:$((P+9)) $OUT/QUOTA_UI_PGN30.md $OUT/QUOTA_UI_PGN30.jsonl "PGN 30 tanpa Actual" \
     "pgn_pipe:1,pgn_pipe:-1,pgn_pipe:2,pgn_pipe:-2,pgn_pipe:4,pgn_pipe:-4,pep:1,pep:-1,pep:2,pep:-2,lng:1,lng:-1,pep_kp72:1,pep_kp72:-1,akasia:1,akasia:-1,pgn_pipe:-1+pep:2" 30 2>&1 | cut -c1-240
   bash v4/kill_port.sh $((P+9))
   echo "=== V7 UI: FORCED STOP/START DAN CHANGE OVER ==="
-  O=$S/opsui; rm -rf $O; mkdir -p $O/jobs; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $O/; cp fixtures/input_actual.json $O/input_data.json
+  O=$S/opsui; rm -rf $O; mkdir -p $O/jobs; cp $SRC/run.php $SRC/worker02.php $SRC/worker_functions.php $SRC/index.php $SRC/saved_data_store.php $O/; cp fixtures/input_actual.json $O/input_data.json
   (setsid node v3/proxy.js $((P+7)) $O 6 >/dev/null 2>&1 </dev/null &); sleep 3
   CASE_MS=300000 NODE_PATH=$N timeout 5400 node $T/ops_ui.js http://127.0.0.1:$((P+7)) $O /home/claude/t5/fixtures/input_actual.json $OUT/OPS_UI.md $OUT/OPS_UI.jsonl 2>&1 | cut -c1-240
   bash v4/kill_port.sh $((P+7))

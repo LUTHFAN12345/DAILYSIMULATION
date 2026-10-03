@@ -6,7 +6,10 @@
  * ========================================================================= */
 $inputPath  = __DIR__ . '/input_data.json';
 $outputPath = __DIR__ . '/output_data.json';
-$INPUT  = file_exists($inputPath)  ? json_decode(file_get_contents($inputPath), true)  : null;
+/* V12: berkas kerja dibaca lewat saved_data_store.php — bila hilang/rusak (mis. folder aplikasi diganti) dipulihkan dari
+ * cermin data tersimpan (<data>/saved/state). index.php tidak menulis berkas penyimpanan apa pun selain lewat modul ini. */
+if (is_file(__DIR__ . '/saved_data_store.php')) require_once __DIR__ . '/saved_data_store.php';
+$INPUT  = function_exists('sds_load_state_input') ? sds_load_state_input($inputPath) : (file_exists($inputPath) ? json_decode(file_get_contents($inputPath), true) : null);
 $OUTPUT = file_exists($outputPath) ? json_decode(file_get_contents($outputPath), true) : null;
 $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
 ?>

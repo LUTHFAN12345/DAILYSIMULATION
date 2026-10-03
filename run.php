@@ -106,6 +106,7 @@ register_shutdown_function(function () {
 });
 header('Cache-Control: no-store');
 
+require_once __DIR__ . '/saved_data_store.php';   // V12: SATU-SATUNYA modul penulis data pengguna (input/output kerja, record Report, backup)
 require_once __DIR__ . '/worker02.php';   // defines pp_run_simulation(), pp_release_gate(), pp_validate_hard_constraints()
 
 /* ---- PROMPT SAVE-FI §A2 — ATOMIC WRITE (ALL OR NOTHING) ---------------------------------------
@@ -116,31 +117,8 @@ require_once __DIR__ . '/worker02.php';   // defines pp_run_simulation(), pp_rel
  *   + decode) -> atomic rename. Bila SATU langkah gagal: temp dibersihkan, FILE LAMA TETAP UTUH,
  *   dan pemanggil mendapat alasan spesifik (bukan sekadar false). ------------------------------ */
 function pp_atomic_write_json(string $path, $data, ?string &$why = null): bool {
-    $why  = null;
-    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    if ($json === false) { $why = 'json_encode gagal: ' . json_last_error_msg(); return false; }
-    $lock = @fopen($path . '.lock', 'c');
-    if ($lock === false) { $why = 'tidak bisa membuka lock file ' . basename($path) . '.lock (permission?)'; return false; }
-    if (!flock($lock, LOCK_EX)) { fclose($lock); $why = 'tidak bisa memperoleh exclusive lock'; return false; }
-    $tmp = $path . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(4));
-    $ok = false;
-    try {
-        $fh = @fopen($tmp, 'wb');
-        if ($fh === false) { $why = 'tidak bisa membuat temp file di direktori ' . dirname($path); return false; }
-        $w = fwrite($fh, $json);
-        fflush($fh);
-        if (function_exists('fsync')) @fsync($fh);
-        fclose($fh);
-        if ($w === false || $w !== strlen($json)) { $why = 'write terpotong (' . var_export($w, true) . ' dari ' . strlen($json) . ' bytes)'; return false; }
-        $chk = json_decode((string)@file_get_contents($tmp), true);
-        if (!is_array($chk)) { $why = 'validasi ulang temp file gagal (JSON tidak terbaca kembali)'; return false; }
-        if (!pp_atomic_replace($tmp, $path)) { $why = 'atomic rename gagal (permission / cross-device?)'; return false; }
-        $ok = true;
-        return true;
-    } finally {
-        if (!$ok && is_file($tmp)) @unlink($tmp);
-        flock($lock, LOCK_UN); fclose($lock);
-    }
+    /* V12: implementasi dipindah ke saved_data_store.php (lock -> temp -> fsync -> validasi -> rename tahan Windows). */
+    return sds_atomic_write_json($path, $data, $why);
 }
 
 /* ---- PROMPT SAVE-FI §A — SANITASI REKURSI SNAPSHOT --------------------------------------------
@@ -150,27 +128,40 @@ function pp_atomic_write_json(string $path, $data, ?string &$why = null): bool {
  * Klien sudah berhenti membuat nesting baru; helper ini MIGRASI data lama: setiap snapshot.input
  * dilucuti report_planning-nya (rekursif). Idempoten; tidak menyentuh field lain. --------------- */
 function pp_sanitize_report_planning(array &$input): int {
+    /* V12 PERBAIKAN KORUPSI DIAM-DIAM: versi lama hanya mengenal bentuk bersarang legacy (tahun/bulan/tanggal/rencana) dan
+     * mengambil REFERENSI ke $rec['snapshot']['input']['data3']['modeling'] pada tingkat yang salah untuk bentuk
+     * 'records'/'list' — PHP membuat kunci baru lewat referensi, sehingga setiap Save menyisipkan
+     * snapshot.input.snapshot = {input:{data3:{modeling:null}}} ke dalam data rencana tersimpan. Kini setiap bentuk dikenali
+     * (pp_rp_shape) dan kunci hanya dihapus bila benar-benar ada (tanpa referensi yang membuat kunci). */
     $stripped = 0;
-    $rp = &$input['data3']['modeling']['report_planning'];
+    $rp = $input['data3']['modeling']['report_planning'] ?? null;
     if (!is_array($rp)) return 0;
-    $walk = function (array &$rpx) use (&$walk, &$stripped): void {
-        foreach ($rpx as &$months) { if (!is_array($months)) continue;
-            foreach ($months as &$dates) { if (!is_array($dates)) continue;
-                foreach ($dates as &$plans) { if (!is_array($plans)) continue;
-                    foreach ($plans as &$rec) {
-                        if (!is_array($rec)) continue;
-                        $inner = &$rec['snapshot']['input']['data3']['modeling'];
-                        if (is_array($inner) && isset($inner['report_planning'])) {
-                            if (is_array($inner['report_planning'])) $walk($inner['report_planning']);   // hitung level lebih dalam juga
-                            unset($inner['report_planning']); $stripped++;
-                        }
-                        unset($inner);
-                    } unset($rec);
-                } unset($plans);
-            } unset($dates);
-        } unset($months);
+    $fix = function (&$rec) use (&$stripped, &$fixRp): void {
+        /* artefak yang sudah tersimpan oleh versi lama dibersihkan (hanya bentuk persis artefak itu) */
+        if (is_array($rec) && isset($rec['snapshot']['input']['snapshot']) && json_encode($rec['snapshot']['input']['snapshot']) === '{"input":{"data3":{"modeling":null}}}') { unset($rec['snapshot']['input']['snapshot']); $stripped++; }
+        if (!is_array($rec) || !isset($rec['snapshot']['input']['data3']['modeling']) || !is_array($rec['snapshot']['input']['data3']['modeling'])) return;
+        if (!array_key_exists('report_planning', $rec['snapshot']['input']['data3']['modeling'])) return;
+        $inner = $rec['snapshot']['input']['data3']['modeling']['report_planning'];
+        if (is_array($inner)) { $tmp = ['data3' => ['modeling' => ['report_planning' => $inner]]]; $fixRp($tmp); }   // hitung level lebih dalam
+        unset($rec['snapshot']['input']['data3']['modeling']['report_planning']); $stripped++;
     };
-    $walk($rp);
+    $fixRp = function (array &$in) use (&$fix): void {
+        $rp = &$in['data3']['modeling']['report_planning']; $shape = pp_rp_shape($rp);
+        if ($shape === 'records') { foreach ($rp['records'] as &$r) $fix($r); unset($r); }
+        elseif ($shape === 'list') { foreach ($rp as &$r) $fix($r); unset($r); }
+        elseif ($shape === 'nested') {
+            foreach ($rp as &$months) { if (!is_array($months)) continue;
+                foreach ($months as &$dates) { if (!is_array($dates)) continue;
+                    foreach ($dates as &$plans) { if (!is_array($plans)) continue;
+                        if (isset($plans['snapshot']) || isset($plans['plan_type'])) { $fix($plans); continue; }
+                        foreach ($plans as &$r) $fix($r); unset($r);
+                    } unset($plans);
+                } unset($dates);
+            } unset($months);
+        }
+        unset($rp);
+    };
+    $fixRp($input);
     return $stripped;
 }
 
@@ -1761,7 +1752,7 @@ function pp_v3_autosave(array &$input): array {
     $old = is_file($f) ? json_decode((string)@file_get_contents($f), true) : null;
     $same = is_array($old) && is_array($norm) && json_encode($old) === json_encode($norm);
     $why = null; $ok = true;
-    if (!$same) $ok = pp_atomic_write_json($f, $save, $why);
+    if (!$same) $ok = sds_write_state_input($f, $save, $why, false);
     $r = ['ok' => (bool)$ok, 'file' => 'input_data.json', 'skipped_identical' => $same,
           'ms' => round((microtime(true) - $t) * 1000, 1), 'error' => $ok ? null : $why,
           'old_file_intact' => $ok ? null : true, 'sanitized_nested_snapshots' => $nStrip,
@@ -7568,6 +7559,8 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
  * (review Unit Priority V8 + polish lanjutan, audit penerimaan: hard constraints kanonik, provenance, audit merit C1-C4, LLF),
  * lalu gerbang fully valid (pp_v12_fast_check + bukti STG per row). Tidak mencari CP minimum global; hasil di-cache per
  * tanda tangan dispatch kandidat. Maximum Review tidak memakai jalur ini. */
+/* V12: API penyimpanan data (saved_data_store.php) */
+if (in_array(($_GET['mode'] ?? ''), ['store_list', 'store_load', 'store_meta', 'store_delete', 'store_integrity'], true)) sds_http((string)$_GET['mode']);
 if (($_GET['mode'] ?? '') === 'fast_ready') {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8');
@@ -8022,13 +8015,13 @@ if (($_GET['mode'] ?? '') === 'shortage_probe') {
 if (($_GET['mode'] ?? '') === 'save') {
     pp_merge_report_planning($input, __DIR__ . '/input_data.json', $rpDiag);   // PROMPT ISOLATION §10: anti-overwrite antar user
     $nStrip = pp_sanitize_report_planning($input);                    // PROMPT SAVE-FI §A: migrasi nesting lama
-    if (!pp_atomic_write_json(__DIR__ . '/input_data.json', $input, $whyW))
+    if (!sds_write_state_input(__DIR__ . '/input_data.json', $input, $whyW))
         pp_fail(500, 'Save DITOLAK, file lama TETAP UTUH — ' . $whyW, ['old_file_intact' => true]);
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }   // §11
     /* Diagnostik merge report_planning: bentuk payload/disk, tindakan yang diambil, dan catatan
        untuk struktur malformed. Field diagnostik tambahan; field lama tidak berubah. */
     echo json_encode(['result' => 'ok', 'mode' => 'save', '_saved' => ['input' => true], '_sanitized_nested_snapshots' => $nStrip,
-        '_report_planning_merge' => $rpDiag],
+        '_report_planning_merge' => $rpDiag, '_store' => ['records' => $GLOBALS['__sds_sync'] ?? null, 'root' => sds_root()]],
         JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -8054,9 +8047,9 @@ if (($_GET['mode'] ?? '') === 'release_validate') {
 
     pp_merge_report_planning($input, __DIR__ . '/input_data.json');   // PROMPT ISOLATION §10: anti-overwrite antar user
     pp_sanitize_report_planning($input);                              // PROMPT SAVE-FI §A
-    $okIn  = pp_atomic_write_json(__DIR__ . '/input_data.json', $input, $whyIn) ? 1 : false;
+    $okIn  = sds_write_state_input(__DIR__ . '/input_data.json', $input, $whyIn) ? 1 : false;
     if ($okIn === false) pp_fail(500, 'Could not write input_data.json — ' . $whyIn . ' (file lama tetap utuh).');
-    $okOut = pp_atomic_write_json(__DIR__ . '/output_data.json', $output);
+    $okOut = sds_write_state_output(__DIR__ . '/output_data.json', $output);
     $output['_saved'] = ['input' => $okIn !== false, 'output' => $okOut !== false];
     if (!$released) http_response_code(422);   // Unprocessable: ran fine, but the release gate rejected it
     echo pp_json_out($output);
@@ -8529,8 +8522,8 @@ $accept=pp_attach_or_reject_acceptance($input,$output);
 if(in_array(($output['status']??''),['FUEL_SELECTION_REQUIRED','USER_FUEL_DECISION_REQUIRED'],true)&&($output['fuel_estimate_ready']??false)===true){http_response_code(200);$output['_saved']=['input'=>false,'output'=>false];if(function_exists('ob_get_level')){while(ob_get_level()>0)ob_end_clean();}echo pp_json_out($output);exit;}
 if(empty($accept['publish_allowed'])){http_response_code(422);$output['_saved']=['input'=>false,'output'=>false];if(function_exists('ob_get_level')){while(ob_get_level()>0)ob_end_clean();}echo pp_json_out($output);exit;}
 pp_merge_report_planning($input, __DIR__ . '/input_data.json');   // PROMPT ISOLATION §10: anti-overwrite antar user
-$okIn  = pp_atomic_write_json(__DIR__ . '/input_data.json', $input);
-$okOut = pp_atomic_write_json(__DIR__ . '/output_data.json', $output);
+$okIn  = sds_write_state_input(__DIR__ . '/input_data.json', $input);
+$okOut = sds_write_state_output(__DIR__ . '/output_data.json', $output);
 
 $output['_saved'] = ['input' => $okIn !== false, 'output' => $okOut !== false];
 if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }   // §11

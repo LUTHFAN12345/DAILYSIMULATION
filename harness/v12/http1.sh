@@ -1,7 +1,7 @@
 #!/bin/bash
 # V12: jalankan skenario HTTP (v7_http, cold per skenario dari snapshot) pada salinan source. Arg: <src> <port> <out.jsonl> <mode cold|warm> <SC,...> [snap]
 cd /home/claude/t5; SRC=$1; P=$2; OUT=$3; M=$4; SC=$5; SN=${6:-/home/claude/t5/v10/snap_act}
-H=/tmp/claude-0/h12_$P; rm -rf $H; mkdir -p $H; cp -L $SRC/{run,worker02,worker_functions,index}.php $H/
+H=/tmp/claude-0/h12_$P; rm -rf $H; mkdir -p $H; cp -L $SRC/{run,worker02,worker_functions,index,saved_data_store}.php $H/
 bash v4/kill_port.sh $P >/dev/null 2>&1
 timeout 3600 /usr/local/bin/php74 v12/v12_http.php $H $P $OUT $M "$SC" $SN > /dev/null 2>&1
 python3 - "$OUT" <<'PY'

@@ -14,7 +14,7 @@ echo "=== SNAPSHOT BASIS ACTUAL (engine beku, sebelum suite yang memakainya) ===
 clean; echo "=== SMOKE ==="; timeout 3600 $PHP -d max_execution_time=0 tools/target_php_smoke.php $R $((P+1)) fixtures/input_actual.json $OUT/SMOKE.md 2>&1 | tail -3
 clean; echo "=== FUEL RECOMPUTE ==="; timeout 3600 $PHP -d max_execution_time=0 tools/fuel_recompute.php $R $((P+2)) fixtures/input_actual.json $OUT/FUEL_RECOMPUTE.md 2>&1 | tail -17
 clean; echo "=== DISPATCH RELIABILITY ==="; timeout 2400 $PHP tools/dispatch_reliability.php $R $((P+3)) fixtures/input_actual.json $OUT/DISPATCH_RELIABILITY.md 2>&1 | tail -26
-L=$S/lk_$P; rm -rf $L; mkdir -p $L; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $L/; cp fixtures/input_actual.json $L/input_data.json
+L=$S/lk_$P; rm -rf $L; mkdir -p $L; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $R/saved_data_store.php $L/; cp fixtures/input_actual.json $L/input_data.json
 echo "=== EXEC LOCK UNIT ==="; $PHP tools/exec_lock_unit.php $L $OUT/EXEC_LOCK_UNIT.md 2>&1 | tail -13
 clean; echo "=== A/B PEMAKAIAN ULANG STATE (memo mati vs hidup) ==="; timeout 3600 $PHP tools/ab_state_reuse.php "$R#nomemo" $R fixtures/input_actual.json $OUT/AB_STATE_REUSE.md 20,25,27 2>&1 | tail -14
 clean; echo "=== GAS MATRIX ==="; timeout 5400 $PHP -d max_execution_time=0 tools/matrix.php $R $((P+4)) fixtures/input_actual.json $OUT/gas_matrix.csv 2>&1 | tail -40
@@ -69,7 +69,7 @@ V=$S/slotui_$P; rm -rf $V; SRC=$R bash v3/prep_ui.sh $V > /dev/null
 NODE_PATH=$N timeout 5400 node $T/slot_ui.js http://127.0.0.1:$((P+11)) $OUT/SLOT_UI.md $OUT/SLOT_UI.jsonl 2>&1 | cut -c1-240
 bash /home/claude/t5/v4/kill_port.sh $((P+11))
 echo "=== UI: FORCED STOP/START DAN CHANGE OVER ==="
-O=$S/opsui_$P; rm -rf $O; mkdir -p $O/jobs; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $O/; cp fixtures/input_actual.json $O/input_data.json
+O=$S/opsui_$P; rm -rf $O; mkdir -p $O/jobs; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $R/saved_data_store.php $O/; cp fixtures/input_actual.json $O/input_data.json
 (setsid node v3/proxy.js $((P+12)) $O 6 >/dev/null 2>&1 </dev/null &); sleep 3
 CASE_MS=300000 NODE_PATH=$N timeout 5400 node $T/ops_ui.js http://127.0.0.1:$((P+12)) $O /home/claude/t5/fixtures/input_actual.json $OUT/OPS_UI.md $OUT/OPS_UI.jsonl 2>&1 | cut -c1-240
 bash /home/claude/t5/v4/kill_port.sh $((P+12))
@@ -84,7 +84,7 @@ echo "=== V8: REPRODUCER + GAS GE + UNIT PRIORITY (jalur job) ==="
 timeout 3600 $PHP -d max_execution_time=0 v8/v8_cases.php $R $OUT/V8_CASES.md $OUT/V8_CASES.jsonl 2>&1 | grep -E "^(PASS|FAIL)" | cut -c1-300
 clean
 echo "=== V8 UI: REPRODUCER Daily_Plan_09_Jul_26_Baru ==="
-W=$S/wbui_$P; rm -rf $W; mkdir -p $W/jobs; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $W/; cp v8/input_WB09.json $W/input_data.json
+W=$S/wbui_$P; rm -rf $W; mkdir -p $W/jobs; cp $R/run.php $R/worker02.php $R/worker_functions.php $R/index.php $R/saved_data_store.php $W/; cp v8/input_WB09.json $W/input_data.json
 (setsid node v3/proxy.js $((P+14)) $W 6 >/dev/null 2>&1 </dev/null &); sleep 3
 NODE_PATH=$N timeout 1800 node /home/claude/t5/v8/tests/wb09_ui.js http://127.0.0.1:$((P+14)) $OUT/WB09_UI.md $OUT/WB09_UI.jsonl 2>&1 | grep -E "^(PASS|FAIL)" | cut -c1-300
 bash /home/claude/t5/v4/kill_port.sh $((P+14))
