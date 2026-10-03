@@ -7,7 +7,7 @@ const [,, PORT, ROOT, NB] = process.argv; const N = +(NB || 6); const base = +PO
 const be = []; for (let i = 0; i < N; i++) {
   const port = base + i;
   const env = Object.assign({}, process.env); delete env.PHP_CLI_SERVER_WORKERS;
-  const pr = spawn('/usr/local/bin/php74', ['-d', 'max_execution_time=30', '-S', '127.0.0.1:' + port, '-t', ROOT], { cwd: ROOT, env, stdio: 'ignore' });
+  const pr = spawn('/usr/local/bin/php74', [...(process.env.PP_PROXY_NOOPCACHE ? ['-d', 'opcache.enable=0', '-d', 'opcache.enable_cli=0'] : []), '-d', 'max_execution_time=30', '-S', '127.0.0.1:' + port, '-t', ROOT], { cwd: ROOT, env, stdio: 'ignore' });
   be.push({ port, busy: 0, pr });
 }
 const pick = () => { let b = be[0]; for (const x of be) if (x.busy < b.busy) b = x; return b; };

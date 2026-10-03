@@ -4871,7 +4871,7 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
   let tanpaHasil=0;
   for(let n=0;n<3600;n++){
     /* V10: interval baca status 250 ms selama 60 detik pertama (FINAL tampil <= 0,25 s sesudah job selesai), lalu 1 s. */
-    await new Promise(r=>setTimeout(r,n<400?150:1000));   // V11: 150 ms selama 60 detik pertama
+    await new Promise(r=>setTimeout(r,(FASTEST_CTX&&FASTEST_CTX.branch===branch&&FASTEST_CTX.token===token)?600:(n<400?150:1000)));   // V11: 150 ms selama 60 detik pertama   /* V12 Fastest: rilis dibaca fastestPoll; job_poll 600 ms agar polling tidak merebut CPU engine (tanpa OPcache tiap request mengompilasi ~2,2 MB PHP) */
     const live=ASYNC_REVIEW[branch];
     if(token!==RUN_SEQ[branch]||!live||live.id!==id||live.request_id!==expectedRequest)return true;
     const sr=await fetch('run.php?mode=job_poll&job='+encodeURIComponent(id)
@@ -5883,6 +5883,19 @@ async function runTimeLimited(payload, T){
  * prioritas rendah, stop row legal pertama) PASS, LOW_LOAD_FRAGMENTATION tidak unresolved, Change Over executed + overlap >= 3 row.
  * Bila FINAL exact selesai lebih dulu, alur runSimCore biasa yang menampilkannya (FINAL OPTIMAL). */
 var FASTEST_CTX=null, FASTEST_TRACE=null;
+/* Timestamp Fastest (detik sejak klik Run; server dan browser memakai jam epoch yang sama di mesin lokal) + durasi tiap tahap. */
+function fastestTraceHtml(T){
+  try{
+    const K=[['run_click_ms','run_click'],['job_created_ms','job_created'],['first_candidate_complete_ms','first_candidate_complete'],['first_valid_claimed_ms','first_valid_claimed'],
+      ['first_fully_valid_ms','first_fully_valid'],['snapshot_persisted_ms','snapshot_persisted'],['browser_received_snapshot_ms','browser_received_snapshot'],['render_start_ms','render_start'],
+      ['render_done_ms','render_done'],['simulation_data_opened_ms','simulation_data_opened'],['exact_cancel_sent_ms','exact_cancel_sent']];
+    const t0=T.run_click_ms||0; let prev=null; const L=[];
+    for(const [k,n] of K){ const v=T[k]; if(!v){ L.push(n+' —'); continue; } const s=(v-t0)/1000; L.push(n+' '+s.toFixed(2)+' s'+(prev!=null?' (+'+(s-prev).toFixed(2)+')':'')); prev=s; }
+    const st=T.stages_s||{}; const rc=T.review_counterfactuals||{};
+    return '<b>Fastest timestamp</b>: '+gsfEsc(L.join(' · '))+'<br>finalisasi merit: review Unit Priority '+gsfEsc(String(st.merit_review_unit_priority))+' s ('+gsfEsc(String(rc.simulated))+' counterfactual, '+gsfEsc(String(rc.rounds))+' putaran, '+gsfEsc(String(rc.helpers))+' pembantu), audit C1-C4/LLF/provenance '
+      +gsfEsc(String(st.acceptance_audits_c1_c4_llf_provenance))+' s, gerbang+STG '+gsfEsc(String(st.fully_valid_gate_stg))+' s; tulis berkas: ulang '+gsfEsc(String((T.write_diag||{}).retries||0))+', gagal '+gsfEsc(String((T.write_diag||{}).failed||0));
+  }catch(e){ return ''; }
+}
 function fastestStart(payload,branch,token,jobId){
   const c=FASTEST_CTX; if(!c||c.branch!==branch||c.token!==token||!jobId||c.jobs[jobId]) return;
   c.jobs[jobId]=1; fastestPoll(payload,branch,token,jobId).catch(()=>{});
@@ -5904,34 +5917,35 @@ async function fastestPoll(payload,branch,myToken,jobId){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan; bukti merit dibawa bersama kandidat…'; }catch(e){} }
     if(!claimSeen){ if(r.job_status==='DONE'||r.job_status==='FAILED'||r.job_status==='CANCELLED') return; continue; }   // FINAL exact lebih dulu: runSimCore
     if(!r.ready) continue;
-    T.browser_poll_received_ms=Date.now(); Object.assign(T,r.trace_server||{});
+    T.browser_received_snapshot_ms=Date.now(); Object.assign(T,r.trace_server||{}); T.stages_s=r.stages_s||null; T.review_counterfactuals=r.review_counterfactuals||null; T.write_diag=r.write_diag||null;
     if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat pertama gagal gerbang fully valid ('+gsfEsc(String(((r.fast||{}).reasons)||r.error||'?'))+'); melanjutkan pencarian'; }catch(e){}
+      T.fallback={reasons:((r.fast||{}).reasons)||null,error:r.error||null,ready_flag:!!r.FASTEST_RELEASE_READY,rows:r.output&&r.output.data?r.output.data.length:null,stages_s:r.stages_s||null,fast:r.fast||null};
       tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,1500).catch(()=>{});
       runSimCore(payload,{fastest:true,noFastFinalize:true}); return; }
-    T.output_snapshot_fetched_ms=Date.now();
     const out=r.output; const cnt=r.counters||{};
     const st={target:'fast',elapsed:(Date.now()-(T.run_click_ms||Date.now()))/1000,evaluated:cnt.candidates_checked!=null?cnt.candidates_checked:1,
       valid:cnt.candidates_valid!=null?cnt.candidates_valid:1,cp:(out.info||{})['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
     if(typeof ppmClose==='function') ppmClose();
     INPUT=payload; OUTPUT=out; GSD_GATE=false; PRELIM=null; gsdApplyGate(); V11_SUM_DONE=true;
-    T.renderResult_start_ms=Date.now();
+    T.render_start_ms=Date.now();
     try{ renderResult(out); refreshOverview(); refreshPills(); refreshGasDecision(); }catch(e){ T.render_error=String(e&&e.message||e); }
-    T.renderResult_done_ms=Date.now();
+    T.render_done_ms=Date.now();
     try{ showSimulationDataResult(); }catch(e){}
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    T.showSimulationDataResult_done_ms=Date.now();
-    const f=r.fast||{}; st.elapsed=(T.showSimulationDataResult_done_ms-(T.run_click_ms||T.showSimulationDataResult_done_ms))/1000;
+    T.simulation_data_opened_ms=Date.now();
+    const f=r.fast||{}; st.elapsed=(T.simulation_data_opened_ms-(T.run_click_ms||T.simulation_data_opened_ms))/1000;
     out.info=out.info||{}; out.info['V12 Fastest Timing']=T;
     tlBanner('FASTEST VALID PLAN','amber',st,'Kandidat fully valid pertama (FASTEST_RELEASE_READY): 48 row, hard constraints PASS, provenance PASS, audit merit '+gsfEsc(String(f.merit_audit))+' (C4 tanpa alasan '+gsfEsc(String((f.c4||{}).fail))+'), STG = calc_stg '
       +gsfEsc(String((f.stg_proof||{}).equal_calc))+'/'+gsfEsc(String((f.stg_proof||{}).rows_x_stg))+', LOW_LOAD_FRAGMENTATION '+gsfEsc(String(f.llf))+(f.change_over?', Change Over executed + overlap '+f.change_over.overlap_rows+' row':'')
-      +'. Pencarian exact dihentikan; bukan CP minimum global — pilih Maximum Review untuk hasil final.'+v11AuditExtra(out));
+      +'. Pencarian exact dihentikan; bukan CP minimum global — pilih Maximum Review untuk hasil final.'+v11AuditExtra(out)+'<div id="fast-trace">'+fastestTraceHtml(T)+'</div>');
     const b2=$('btn-run'); if(b2){ b2.disabled=false; b2.innerHTML='▶ Run simulation'; }
     try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
     const rm=$('run-msg'); if(rm) rm.innerHTML='<span style="color:#b45309"><b>FASTEST VALID PLAN</b> — '+tlSummaryHtml(st)+'</span>';
     /* baru SETELAH hasil tampil di Simulation Data: batalkan job exact/pembantu */
     T.exact_cancel_sent_ms=Date.now();
     tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,3000).catch(()=>{});
+    try{ const ft=document.getElementById('fast-trace'); if(ft) ft.innerHTML=fastestTraceHtml(T); }catch(e){}
     return;
   }
 }

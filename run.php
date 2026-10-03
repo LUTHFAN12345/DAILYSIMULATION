@@ -134,7 +134,7 @@ function pp_atomic_write_json(string $path, $data, ?string &$why = null): bool {
         if ($w === false || $w !== strlen($json)) { $why = 'write terpotong (' . var_export($w, true) . ' dari ' . strlen($json) . ' bytes)'; return false; }
         $chk = json_decode((string)@file_get_contents($tmp), true);
         if (!is_array($chk)) { $why = 'validasi ulang temp file gagal (JSON tidak terbaca kembali)'; return false; }
-        if (!@rename($tmp, $path)) { $why = 'atomic rename gagal (permission / cross-device?)'; return false; }
+        if (!pp_atomic_replace($tmp, $path)) { $why = 'atomic rename gagal (permission / cross-device?)'; return false; }
         $ok = true;
         return true;
     } finally {
@@ -546,7 +546,7 @@ function pp_sim_memo_run(array $input): array {
                         $raw['output'] = $hitOut;
                         $enc2 = json_encode($raw, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION);
                         if (is_string($enc2)) { $tmp2 = $f . '.' . bin2hex(random_bytes(4)) . '.tmp';
-                            if (@file_put_contents($tmp2, $enc2) === strlen($enc2)) { if (pp_is_windows() && is_file($f)) @unlink($f); if (!@rename($tmp2, $f)) @unlink($tmp2); } else @unlink($tmp2); }
+                            if (@file_put_contents($tmp2, $enc2) === strlen($enc2)) pp_atomic_replace($tmp2, $f); else @unlink($tmp2); }
                     }
                 }
                 return $hitOut;
@@ -574,9 +574,7 @@ function pp_sim_memo_run(array $input): array {
             if (!is_dir($dir)) @mkdir($dir, 0777, true);
             $tmp = $f . '.' . bin2hex(random_bytes(4)) . '.tmp';
             if (@file_put_contents($tmp, $enc) === strlen($enc)) {
-                if (pp_is_windows() && is_file($f)) @unlink($f);
-                $stored = @rename($tmp, $f);
-                if (!$stored) @unlink($tmp);
+                $stored = pp_atomic_replace($tmp, $f);
             }
             pp_memo_sweep();
         }
@@ -654,8 +652,9 @@ function pp_job_write(string $id, array $job): bool {
     $fin = $d . '/job.json';
     $tmp = $d . '/job.json.tmp.' . getmypid() . '.' . bin2hex(random_bytes(4));
     if (@file_put_contents($tmp, $enc) === false) return false;
+    $emuJ = (float)(getenv('PP_EMU_WIN_RENAME_FAIL') ?: 0);
     for ($i = 0; $i < 40; $i++) {
-        if (@rename($tmp, $fin)) return true;
+        if (!($emuJ > 0 && is_file($fin) && (mt_rand() / mt_getrandmax()) < $emuJ) && @rename($tmp, $fin)) { if ($i > 0) $GLOBALS['__ppv12_wr']['retries'] = ($GLOBALS['__ppv12_wr']['retries'] ?? 0) + $i; return true; }
         usleep(25000);
     }
     @unlink($tmp);
@@ -729,6 +728,24 @@ function pp_job_progress(string $id, string $step, ?float $percent = null, array
  *  kesehatannya dinilai dari kunci berkas `exec.lock` yang dipegang request penghitungnya.
  * ============================================================================================== */
 function pp_is_windows(): bool { return stripos(PHP_OS_FAMILY ?? PHP_OS, 'WIN') === 0; }
+/* V12 PENGGANTIAN BERKAS ATOMIK YANG TAHAN WINDOWS. Di Windows rename() menimpa berkas tujuan hanya bila tidak ada proses lain
+ * yang sedang membukanya (MoveFileEx tanpa FILE_SHARE_DELETE); request polling browser (150-250 ms) dan pembantu (60 ms) terus
+ * membaca berkas kolam, work.json, tugas samping, dan snapshot Fastest. Versi lama menghapus tujuan lebih dulu lalu rename SATU
+ * kali tanpa ulang: penulisan gagal diam-diam (kandidat kolam hilang, pembantu tidak menerima tugas, snapshot Fastest tidak
+ * tertulis) dan selama celah hapus-rename pembaca melihat berkas tidak ada. Kini: rename diulang (maks. ~1,5 s), tujuan TIDAK
+ * dihapus lebih dulu; hapus+rename hanya upaya terakhir. Jumlah ulang/gagal dicatat (diagnostik). PP_EMU_WIN_RENAME_FAIL=p
+ * (uji saja) meniru kegagalan rename Windows dengan peluang p bila tujuan sudah ada. */
+function pp_atomic_replace(string $tmp, string $f): bool {
+    $emu = (float)(getenv('PP_EMU_WIN_RENAME_FAIL') ?: 0);
+    for ($i = 0; $i < 60; $i++) {
+        $blocked = $emu > 0 && is_file($f) && (mt_rand() / mt_getrandmax()) < $emu;
+        if (!$blocked && @rename($tmp, $f)) { if ($i > 0) $GLOBALS['__ppv12_wr']['retries'] = ($GLOBALS['__ppv12_wr']['retries'] ?? 0) + $i; return true; }
+        if (!is_file($tmp)) break;
+        usleep(25000);
+    }
+    if (pp_is_windows() && is_file($f) && @unlink($f) && @rename($tmp, $f)) { $GLOBALS['__ppv12_wr']['last_resort'] = ($GLOBALS['__ppv12_wr']['last_resort'] ?? 0) + 1; return true; }
+    $GLOBALS['__ppv12_wr']['failed'] = ($GLOBALS['__ppv12_wr']['failed'] ?? 0) + 1; @unlink($tmp); return false;
+}
 
 /* ==============================================================================================
  *  PEMILIK PERHITUNGAN DIKENALI DARI KUNCI BERKAS, BUKAN DARI PID.
@@ -884,7 +901,7 @@ function pp_job_start(array $input, string $kind, ?string $requestId, bool $forc
         'schema' => 'co12-async-job-v1',
         'job_id' => $id, 'kind' => $kind, 'input_hash' => $hash,
         'request_id' => $requestId, 'status' => 'QUEUED',
-        'created_at' => date('c'), 'updated_at' => date('c'),
+        'created_at' => date('c'), 'created_at_ts' => microtime(true), 'updated_at' => date('c'),
         'started_at' => null, 'started_at_ts' => null, 'finished_at' => null,
         'pid' => null, 'percent' => 0.0, 'current_step' => 'ANTRE',
         'progress' => [], 'result_available' => false, 'error' => null,
@@ -1051,9 +1068,8 @@ function pp_job_worker_main(string $id): int {
                     /* rename() menimpa atomik di POSIX; di Windows ia gagal bila tujuan ada,
                      * sehingga tujuan dihapus lebih dulu. */
                     $fin = $d . DIRECTORY_SEPARATOR . 'result.json';
-                    if (pp_is_windows() && is_file($fin)) @unlink($fin);
-                    $okWrite = @rename($tmp, $fin);
-                    if (!$okWrite) { $whyWrite = 'rename hasil ke berkas final gagal'; @unlink($tmp); }
+                    $okWrite = pp_atomic_replace($tmp, $fin);
+                    if (!$okWrite) { $whyWrite = 'rename hasil ke berkas final gagal'; }
                 }
             }
         }
@@ -1168,8 +1184,7 @@ function pp_final_save(array $input, array $output, ?array $v3 = null): void {
     $f = $dir . DIRECTORY_SEPARATOR . substr(hash('sha256', json_encode($c)), 0, 32) . '.json';
     $tmp = $f . '.' . bin2hex(random_bytes(4)) . '.tmp';
     if (@file_put_contents($tmp, $enc) !== strlen($enc)) { @unlink($tmp); return; }
-    if (pp_is_windows() && is_file($f)) @unlink($f);
-    if (!@rename($tmp, $f)) @unlink($tmp);
+    pp_atomic_replace($tmp, $f);
     $fs = glob($dir . DIRECTORY_SEPARATOR . '*.json') ?: [];
     if (count($fs) > 48) { usort($fs, fn($a, $b) => (int)@filemtime($a) <=> (int)@filemtime($b));      // V9: 12 -> 48 (jangkar kanonik tetap tersedia)
         foreach (array_slice($fs, 0, count($fs) - 48) as $x) @unlink($x); }
@@ -1362,9 +1377,7 @@ function pp_tl_write(string $f, array $data): bool {
     if (!is_string($enc)) return false;
     $tmp = $f . '.' . bin2hex(random_bytes(4)) . '.tmp';
     if (@file_put_contents($tmp, $enc) !== strlen($enc)) { @unlink($tmp); return false; }
-    if (pp_is_windows() && is_file($f)) @unlink($f);
-    if (!@rename($tmp, $f)) { @unlink($tmp); return false; }
-    return true;
+    return pp_atomic_replace($tmp, $f);
 }
 function pp_tl_read(string $f): ?array {
     for ($i = 0; $i < 4; $i++) {
@@ -1393,7 +1406,7 @@ function pp_tl_pool_offer(string $key, array $a, string $source, string $owner):
         else $better = false;
     }
     if ($lk) { @flock($lk, LOCK_UN); fclose($lk); }
-    if ($better && $owner !== '' && function_exists('pp_v12_fast_release_try')) pp_v12_fast_release_try($owner, $a);
+    if ($better && $owner !== '' && function_exists('pp_v12_fast_release_try')) pp_v12_fast_release_try($owner, $a, $key);
     return $better;
 }
 /* V12 FASTEST_RELEASE_READY: pada job Fastest, proses yang menawarkan kandidat valid PERTAMA ke kolam mengklaimnya (berkas
@@ -1401,23 +1414,32 @@ function pp_tl_pool_offer(string $key, array $a, string $source, string $owner):
  * Priority V8 (+ polish lanjutan) dan audit penerimaan (hard constraints kanonik, provenance, merit C1-C4, LLF) serta gerbang
  * fully valid (bukti STG per row, Change Over). Hasil ditulis ke v12_fast_ready.json; UI hanya membacanya (tanpa finalisasi
  * kedua, tanpa menunggu exact). Global engine proses ini disimpan dan dipulihkan persis. */
-function pp_v12_fast_release_try(string $job, array $a): void {
-    static $busy = false; if ($busy) return;
+function pp_v12_fast_release_try(string $job, array $a, ?string $poolKey = null): void {
+    static $busy = false, $stateKey = []; if ($busy) return;
     $dir = pp_job_dir($job); if (!is_file($dir . DIRECTORY_SEPARATOR . 'v12_fast.flag')) return;
+    /* Hanya kandidat milik STATE job ini (bukan kandidat jangkar kanonik tanpa Actual yang dihitung lebih dulu oleh job yang sama). */
+    if ($poolKey !== null) { if (!isset($stateKey[$job])) { $inK = json_decode((string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'input.json'), true); $stateKey[$job] = is_array($inK) ? pp_tl_key($inK) : ''; }
+        if ($stateKey[$job] === '' || preg_replace('~_[xq]$~', '', $poolKey) !== $stateKey[$job]) return; }
     $cl = @fopen($dir . DIRECTORY_SEPARATOR . 'v12_fast.claim', 'x'); if (!$cl) return; fwrite($cl, (string)getmypid()); fclose($cl);
     $busy = true; $t0 = microtime(true);
     $pid = (int)getmypid(); pp_job_update($job, function (array $x) use ($pid): array { $x['fastest_claimed'] = true; $x['fastest_claim_pid'] = $pid; return $x; });
-    $isEng = function ($gk): bool { return is_string($gk) && (strpos($gk, '__') === 0 || in_array($gk, ['ppV6StgLife', 'ppV10Inc', 'ppExactTrack', 'ppFamilyBusy', 'ppV10ReviewFast', 'ppV10ReviewRound', 'ppTlHook', 'ppV12RvT'], true)); };
+    $isEng = function ($gk): bool { return is_string($gk) && (strpos($gk, '__') === 0 || in_array($gk, ['ppV6StgLife', 'ppV10Inc', 'ppExactTrack', 'ppFamilyBusy', 'ppV10ReviewFast', 'ppV10ReviewRound', 'ppTlHook', 'ppV12RvT', 'ppV12FastReview'], true)); };
     $saved = []; foreach ($GLOBALS as $gk => $gv) if ($isEng($gk)) $saved[$gk] = $gv;
     $res = null;
     try {
         foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && $gk !== '__pp_budget_deadline') unset($GLOBALS[$gk]);   // tanpa hook abort
         $GLOBALS['__pp_v8_job'] = $job;                                                                                  // kandidat review dikerjakan paralel oleh pembantu job
+        $GLOBALS['ppV12FastReview'] = true;                                                                              // review tersusun (V10) pada jalur Fastest
         $inF = json_decode((string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'input.json'), true);
-        $oF = pp_v8_priority_review($inF, (array)$a['output'], microtime(true) + 90.0); pp_tl_clean_globals();
-        pp_attach_or_reject_acceptance($inF, $oF); pp_tl_clean_globals();
-        $fc = pp_v12_fast_check(pp_normalize_copy($inF), $oF);
-        $res = ['ok' => !empty($fc['ok']), 'FASTEST_RELEASE_READY' => !empty($fc['ok']), 'fast' => $fc, 'finalize_s' => round(microtime(true) - $t0, 3), 'claimed_at' => $t0, 'candidate_sig' => pp_v6_gtg_sig((array)($oF['data'] ?? $a['output']['data']))];
+        $wr0 = (array)($GLOBALS['__ppv12_wr'] ?? []);
+        $oF = pp_v8_priority_review($inF, (array)$a['output'], microtime(true) + 90.0); pp_tl_clean_globals(); $t1 = microtime(true);
+        pp_attach_or_reject_acceptance($inF, $oF); pp_tl_clean_globals(); $t2 = microtime(true);
+        $fc = pp_v12_fast_check(pp_normalize_copy($inF), $oF); $t3 = microtime(true);
+        $rvI = (array)($oF['info']['V8 Priority Review'] ?? []);
+        $res = ['ok' => !empty($fc['ok']), 'FASTEST_RELEASE_READY' => !empty($fc['ok']), 'fast' => $fc, 'finalize_s' => round(microtime(true) - $t0, 3), 'claimed_at' => $t0,
+            'stages_s' => ['merit_review_unit_priority' => round($t1 - $t0, 3), 'acceptance_audits_c1_c4_llf_provenance' => round($t2 - $t1, 3), 'fully_valid_gate_stg' => round($t3 - $t2, 3)],
+            'review_counterfactuals' => ['simulated' => $rvI['candidates_simulated'] ?? null, 'rounds' => $rvI['rounds'] ?? null, 'helpers' => function_exists('pp_v4_helper_slots') ? pp_v4_helper_slots() : null],
+            'write_retries_claimer' => array_diff_key((array)($GLOBALS['__ppv12_wr'] ?? []), []), 'candidate_sig' => pp_v6_gtg_sig((array)($oF['data'] ?? $a['output']['data']))];
         if (!empty($fc['ok'])) { $o = $oF;
             $o['time_limited'] = true; $o['status'] = 'FASTEST_VALID_PLAN'; $o['result_label'] = 'FASTEST VALID PLAN'; $o['global_optimum_proven'] = false; $o['ok'] = true;
             $o['preliminary'] = true; $o['final_result_visible'] = true; $o['save_allowed'] = false; $o['publish_allowed'] = false;
@@ -1434,7 +1456,8 @@ function pp_v12_fast_release_try(string $job, array $a): void {
     /* SNAPSHOT atomik dulu (pp_tl_write = tulis-sementara + rename). Job TIDAK dibatalkan di sini: browser mengambil snapshot,
      * merender, menampilkan Simulation Data, BARU mengirim pembatalan (urutan SNAPSHOT -> FETCH -> RENDER -> SHOW -> CANCEL). */
     $res['ready_at'] = microtime(true);
-    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_fast_ready.json', $res);
+    $okW = pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_fast_ready.json', $res);
+    pp_tl_write($dir . DIRECTORY_SEPARATOR . 'v12_fast_persist.json', ['snapshot_persisted_at' => microtime(true), 'ok' => $okW, 'write' => (array)($GLOBALS['__ppv12_wr'] ?? [])]);
 }
 /* Pengamat job exact: dipanggil setiap core run (lihat pp_run_simulation_core). Hanya MENCATAT —
  * tidak ada nilai engine yang dibaca balik, sehingga hasil exact tidak berubah sedikit pun. */
@@ -5279,7 +5302,7 @@ function pp_v10_library(string $jobId, array $ancOrig, array $F, float $dl): ?ar
     $lib = ['schema' => 'co12-v10-library-v1', 'engine' => pp_engine_fingerprint(), 'anchor' => $F['_file'] ?? null, 'spec' => $spec, 'commitments' => array_column($K, 'id'), 'K' => $K, 'grid' => $P,
             'grid_evaluations' => $n, 'grid_valid' => $nv, 'entries' => array_values($E), 'built_s' => round(microtime(true) - $t0, 2)];
     $enc = json_encode($lib, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION);
-    if (is_string($enc)) { $tmp = $f . '.' . bin2hex(random_bytes(4)) . '.tmp'; if (@file_put_contents($tmp, $enc) === strlen($enc)) { if (pp_is_windows() && is_file($f)) @unlink($f); if (!@rename($tmp, $f)) @unlink($tmp); } else @unlink($tmp); }
+    if (is_string($enc)) { $tmp = $f . '.' . bin2hex(random_bytes(4)) . '.tmp'; if (@file_put_contents($tmp, $enc) === strlen($enc)) pp_atomic_replace($tmp, $f); else @unlink($tmp); }
     return $lib + ['reused' => false];
 }
 function pp_v10_res_file(array $S0, string $id): string { return pp_cs_file('v10_' . substr(hash('sha256', pp_tl_key($S0) . '|' . $id), 0, 40)); }
@@ -5711,11 +5734,13 @@ function pp_v12_fast_check(array $input, array $out): array {
     $rv = (array)($i['V8 Priority Review'] ?? []); $rvs = strtoupper((string)($rv['status'] ?? $rv['final_status'] ?? ''));
     $coOn = !empty($input['data3']['modeling']['change_over']['enabled']);
     if (!($coOn && ($rv['reason'] ?? '') === 'CHANGE_OVER_PUNYA_RUANG_KANDIDAT_SENDIRI') && ($rvs === '' || strpos($rvs, 'SKIP') !== false || $rvs === 'ERROR')) return ['ok' => false, 'reasons' => ['REVIEW_UNIT_PRIORITY_BELUM_SELESAI']];
-    try { $pv = pp_v9_fuel_provenance($input, $out); if (($pv['status'] ?? '') !== 'PASS') $why[] = 'PROVENANCE_BAHAN_BAKAR_' . ($pv['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'PROVENANCE_ERROR'; }
-    try { $pm = pp_v8_mm2100_provenance($input, $out); if (($pm['status'] ?? '') !== 'PASS') $why[] = 'PROVENANCE_MM2100_' . ($pm['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'PROVENANCE_MM2100_ERROR'; }
+    /* Audit yang SUDAH dilampirkan pada kandidat (pp_attach_or_reject_acceptance) dipakai apa adanya — tidak dihitung kedua kali. */
+    try { $pv = is_array($i['Fuel Provenance'] ?? null) ? $i['Fuel Provenance'] : pp_v9_fuel_provenance($input, $out); if (!in_array((string)($pv['status'] ?? ''), ['PASS', 'PASS_WITH_NOTE'], true)) $why[] = 'PROVENANCE_BAHAN_BAKAR_' . ($pv['status'] ?? '?');   /* definisi kanonik FINAL: tanpa pelanggaran (PASS_WITH_NOTE = selisih identitas akun pada row Actual, sama dengan FINAL yang dirilis) */ } catch (Throwable $e) { $why[] = 'PROVENANCE_ERROR'; }
+    try { $pm = is_array($i['MM2100 Gas Provenance'] ?? null) ? $i['MM2100 Gas Provenance'] : pp_v8_mm2100_provenance($input, $out); if (($pm['status'] ?? '') !== 'PASS') $why[] = 'PROVENANCE_MM2100_' . ($pm['status'] ?? '?'); } catch (Throwable $e) { $why[] = 'PROVENANCE_MM2100_ERROR'; }
     $o2 = $out; $co = null;
-    try { $o2['info']['V11 Low Load Fragmentation Audit'] = pp_v11_frag_audit($input, $o2); $ll = pp_v12_llf_outcome($input, $o2); if (($ll['status'] ?? '') === 'FAIL') $why[] = 'LOW_LOAD_FRAGMENTATION_UNRESOLVED'; } catch (Throwable $e) { $why[] = 'LLF_ERROR'; }
-    try { $ma = pp_v12_merit_audit($input, $o2); if (($ma['status'] ?? '') !== 'PASS') $why[] = 'MERIT_DISPATCH_' . ($ma['status'] ?? '?');
+    try { if (!is_array($i['V11 Low Load Fragmentation Audit'] ?? null)) $o2['info']['V11 Low Load Fragmentation Audit'] = pp_v11_frag_audit($input, $o2);
+        $ll = is_array($i['V12 Low Load Fragmentation Outcome'] ?? null) ? $i['V12 Low Load Fragmentation Outcome'] : pp_v12_llf_outcome($input, $o2); if (($ll['status'] ?? '') === 'FAIL') $why[] = 'LOW_LOAD_FRAGMENTATION_UNRESOLVED'; } catch (Throwable $e) { $why[] = 'LLF_ERROR'; }
+    try { $ma = is_array($i['V12 Dispatch Merit Audit']['c4_cross_group_priority'] ?? null) ? $i['V12 Dispatch Merit Audit'] : pp_v12_merit_audit($input, $o2); if (($ma['status'] ?? '') !== 'PASS') $why[] = 'MERIT_DISPATCH_' . ($ma['status'] ?? '?');
         if ((int)($ma['c4_cross_group_priority']['fail'] ?? 0) > 0) $why[] = 'C4_LINTAS_GRUP_TANPA_ALASAN'; } catch (Throwable $e) { $why[] = 'MERIT_ERROR'; }
     $sp = null; try { $sp = pp_v12_stg_proof($input, $out); if ($sp['violations'] > 0) $why[] = 'STG_TIDAK_SESUAI_CALC_STG'; } catch (Throwable $e) { $why[] = 'STG_PROOF_ERROR'; }
     $hv = (array)($out['simulation_acceptance_review']['hard_validation'] ?? []); if ($hv && ($hv['status'] ?? '') !== 'PASS') $why[] = 'HARD_CONSTRAINTS_' . ($hv['status'] ?? '?');
@@ -6304,6 +6329,9 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 /* Evaluasi first-improvement berurutan (urutan deterministik), batch 2 kandidat (pemilik + pembantu).
                  * Kandidat removal yang pasti melanggar Export ditolak lewat bukti kapasitas tanpa simulasi. */
                 $best = null; $bi = null; $pos = 0; $nC = count($C); $runnerUp = null;
+                /* V12 Fastest: finalisasi kandidat valid pertama mengevaluasi satu batch selebar jumlah proses (pengklaim + pembantu) secara
+                 * paralel dan menerapkan perbaikan terbaik batch itu -> lebih sedikit putaran berurutan. Maximum Review tetap batch 2. */
+                $bsz = !empty($GLOBALS['ppV12FastReview']) ? max(2, (function_exists('pp_v4_helper_slots') ? pp_v4_helper_slots() : 1) + 1) : 2;
                 $rec = function (int $i, array $a) use (&$final, &$all, &$nSim, &$nPre, &$truncated, $C, $round, &$poolV11) {
                     $c = $C[$i]; $pre = $a['prescreen'] ?? null; $skp = $a['skipped'] ?? null; $ev = $pre === null && $skp === null;
                     if ($ev && !empty($a['valid']) && is_array($a['output'] ?? null) && is_array($a['key'] ?? null)) $poolV11[] = ['id' => $c['id'], 'a' => $a];
@@ -6321,7 +6349,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 };
                 while ($pos < $nC) {
                     $batch = [];
-                    while ($pos < $nC && count($batch) < 2) {
+                    while ($pos < $nC && count($batch) < $bsz) {
                         $i = $pos++; $c = $C[$i];
                         if (!empty($c['keep'])) continue;
                         if (in_array($c['kind'], ['DECOMMIT', 'STOP', 'EARLY_STOP', 'DELAY'], true) && $c['off_rows'][1] >= $c['off_rows'][0]) {
@@ -6515,7 +6543,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 'competitors_reevaluated_by_incremental' => $nearD ?? [], 'rule' => 'commitment identik dengan FINAL jangkar yang ditinjau; kandidat pembanding jangkar dibawa sebagai pesaing inkremental (dievaluasi ulang pada state baru bila dapat menyalip); bukti per row dipakai ulang'],
             'cost_production_before' => $cp0, 'cost_production_after' => $aW['key']['cp'] ?? null, 'applied' => $applied, 'rounds' => $rounds,
             'truncated' => $truncated, 'relevant_intervals' => $final['relevant'], 'final_candidates' => $cands, 'candidates_total' => count($all),
-            'candidates_simulated' => $nSim, 'candidates_prescreened' => $nPre, 'polish_continued' => $polish ?? null, 'v12_phase_times' => array_merge((array)($GLOBALS['ppV12RvT'] ?? []), [['end', round(microtime(true) - $t0, 3)]]),
+            'candidates_simulated' => $nSim, 'candidates_prescreened' => $nPre, 'polish_continued' => $polish ?? null, 'v12_batch' => $bsz ?? 2, 'v12_phase_times' => array_merge((array)($GLOBALS['ppV12RvT'] ?? []), [['end', round(microtime(true) - $t0, 3)]]),
             'history' => array_slice(array_map(function ($x) { unset($x['deficit_rows'], $x['stops']); return $x; }, $all), 0, 80),
             'start_repair' => $repair, 'rescan' => $rescan ?? null, 'carry' => pp_v8_carry($all, $applied), 'row_evidence' => $ev, 'rows_sig' => pp_v6_gtg_sig((array)$W['data']), 'wall_s' => round(microtime(true) - $t0, 3),
             'method' => 'kandidat row-local dari commitment pemenang (SWAP peer prioritas lebih tinggi, TRUNC row legal pertama, DELAY start, OFF); prasaring kapasitas Export (batas atas sah); dispatch 48 row engine + pendaratan window gas; validasi penuh terhadap input asli; pemenang diganti hanya bila valid dan lebih baik (comparator engine)'];
@@ -7561,7 +7589,9 @@ if (($_GET['mode'] ?? '') === 'fast_ready') {
         if (is_array($inT0)) foreach ((array)@glob(pp_v11_cnt_dir(pp_tl_key($inT0), $jidR) . DIRECTORY_SEPARATOR . 'c_*') as $cf) { $mt = @filemtime($cf); if ($mt && ($fc0 === null || $mt < $fc0)) $fc0 = $mt; }
         $outR['trace_server'] = ['job_start_ms' => isset($jR['started_at_ts']) ? round((float)$jR['started_at_ts'] * 1000) : null, 'first_candidate_complete_ms' => $fc0 ? $fc0 * 1000 : null,
             'first_valid_claimed_ms' => isset($rR['claimed_at']) ? round((float)$rR['claimed_at'] * 1000) : null, 'first_fully_valid_ms' => isset($rR['ready_at']) ? round((float)$rR['ready_at'] * 1000) : null,
-            'FASTEST_RELEASE_READY_ms' => isset($rR['ready_at']) ? round((float)$rR['ready_at'] * 1000) : null]; }
+            'FASTEST_RELEASE_READY_ms' => isset($rR['ready_at']) ? round((float)$rR['ready_at'] * 1000) : null];
+        $pR = pp_tl_read($dR . DIRECTORY_SEPARATOR . 'v12_fast_persist.json'); if (is_array($pR)) { $outR['trace_server']['snapshot_persisted_ms'] = round((float)$pR['snapshot_persisted_at'] * 1000); $outR['write_diag'] = $pR['write'] ?? null; }
+        $outR['trace_server']['job_created_ms'] = isset($jR['created_at_ts']) ? round((float)$jR['created_at_ts'] * 1000) : (isset($jR['created_at']) ? round(strtotime((string)$jR['created_at']) * 1000) : null); }
     if (is_array($rR)) { $outR += $rR; if (!empty($rR['ok'])) { $inR = json_decode((string)@file_get_contents($dR . DIRECTORY_SEPARATOR . 'input.json'), true);
         try { $outR['counters'] = pp_v11_cnt_read(pp_tl_key((array)$inR), $jidR, [(string)($rR['candidate_sig'] ?? '')]); } catch (Throwable $e) {} } }
     echo json_encode($outR, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR); exit;
