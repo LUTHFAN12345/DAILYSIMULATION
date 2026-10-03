@@ -1,7 +1,7 @@
 #!/bin/bash
 # V11 helper: satu state pada akar baru. Arg: <src> <tag> <SC> [snap|none]
 cd /home/claude/t5; SRC=$1; TAG=$2; SC=$3; SN=${4:-none}; S=/tmp/claude-0/v11one_$TAG; rm -rf $S; mkdir -p $S/jobs
-cp -L $SRC/{run,worker02,worker_functions,index}.php $S/
+cp -L $SRC/{run,worker02,worker_functions,index,saved_data_store}.php $S/
 if [ "$SN" = snap ]; then SRC=$S SNAP=/home/claude/t5/v10/snap_act bash v3/prep_ui.sh $S >/dev/null 2>&1; fi
 timeout 1500 /usr/local/bin/php74 -d max_execution_time=0 v8/job_dump.php $S $SC /tmp/claude-0/v11one_$TAG.json 2>/dev/null | tail -1
 python3 - /tmp/claude-0/v11one_$TAG.json <<'PY'

@@ -1,6 +1,5 @@
 <?php
-/* V11 salinan v10_cases.php — perubahan yang disengaja (manifest §8): invarian CP V03/V06 memakai band CP 0,2 %.
- * V10 targeted: rute cepat kanonik (pustaka jangkar + screening dua tingkat + sertifikat), screening exact (GCR dicakup
+/* V10 targeted: rute cepat kanonik (pustaka jangkar + screening dua tingkat + sertifikat), screening exact (GCR dicakup
  * keluarga, bukti kapasitas Export), invarian CP, determinisme pustaka dingin/hangat, fallback.
  * php v10_cases.php <src-root> <out.md> <out.jsonl>   (jalur job economic_review, akar baru per kasus) */
 ini_set('memory_limit', '3G');
@@ -47,7 +46,7 @@ foreach (['ACT_PGN_UP', 'KP72_DOWN', 'ACT_PGN_2SLOT_C', 'ACT_FFM_DOWN'] as $k =>
     $okC = !empty($c['universe_signature']) && isset($c['candidates_generated'], $c['candidates_pruned'], $c['pruned_by_reason'], $c['incumbent_canonical_key'], $c['fingerprints']['engine'], $c['fingerprints']['constraints'], $c['fingerprints']['fuel'], $c['fingerprints']['priority']) && is_array($c['dirty_rows'] ?? null);
     $pass("V02 $sc sertifikat optimalitas cepat lengkap (universe, kunci incumbent, alasan pruning, baris kotor, sidik jari engine/constraint/fuel/priority)", $okC,
         sprintf('universe %s, dibangkitkan %s, dipangkas %s %s, tier2a %s, tier2b %s', $c['universe_signature'] ?? '-', $c['candidates_generated'] ?? '-', $c['candidates_pruned'] ?? '-', json_encode($c['pruned_by_reason'] ?? []), $c['candidates_evaluated_tier2a'] ?? '-', $c['candidates_full_run_tier2b'] ?? '-'));
-    $pass("V03 $sc invarian V11: FINAL_CP <= CP kandidat valid termurah x 1,002 (band CP 0,2 %)", $n > 0 && $cp($d) <= $mn * 1.002 + 1e-6, sprintf('FINAL %.4f, kandidat valid termurah %.4f (%d kandidat valid)', $cp($d), $mn, $n));
+    $pass("V03 $sc invarian FINAL_CP <= CP kandidat valid termurah yang ditemukan", $n > 0 && $cp($d) <= $mn + 1e-6, sprintf('FINAL %.4f, kandidat valid termurah %.4f (%d kandidat valid)', $cp($d), $mn, $n));
 }
 /* ---- V04: determinisme pustaka (dibangun ulang vs dipakai ulang) ---- */
 $A = $prep('det_lib', 'snap'); $dA = $run($A, 'ACT_FFJ_UP'); $B = $prep('det_nolib', 'nolib'); $dB = $run($B, 'ACT_FFJ_UP');
@@ -67,8 +66,8 @@ foreach ($ref as $sc => $cpRef) {
     $S = $prep('ex_' . $sc, null); $d = $run($S, $sc); $rec('V06_' . $sc, $d, ['cp_v9' => $cpRef]); $i = $d['output']['info'] ?? []; $g = $i['Global Commitment Review'] ?? [];
     $scr = (array)($g['candidates_screened_v10'] ?? []); $el = array_map('strtoupper', (array)($i['Exact Candidate Space']['eligible_units'] ?? []));
     $cov = true; foreach ($scr as $u) if (!in_array($u, $el, true)) $cov = false;
-    $pass("V06 $sc exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP V11 <= referensi V9 x 1,002 (band)",
-        $fin($d) && $cov && (!$scr || ($g['v10_family_coverage'] ?? '') === 'LENGKAP') && ($i['Run Status']['economic_review_completed'] ?? false) === true && $cp($d) <= $cpRef * 1.002 + 5e-4,
+    $pass("V06 $sc exact: kandidat comparator global yang dicakup node keluarga off:{u} tidak di-full-run; keluarga lengkap; CP = referensi V9",
+        $fin($d) && $cov && (!$scr || ($g['v10_family_coverage'] ?? '') === 'LENGKAP') && ($i['Run Status']['economic_review_completed'] ?? false) === true && abs($cp($d) - $cpRef) < 5e-4,
         sprintf('dipangkas %s, cakupan %s, keluarga %s node, CP %.4f (V9 %.4f), %.1f s CLI', json_encode($scr), $g['v10_family_coverage'] ?? '-', $i['Exact Candidate Space']['family_nodes'] ?? '-', $cp($d), $cpRef, $d['_wall']));
 }
 /* ---- V07: bukti kapasitas Export sah (batas atas) ---- */
@@ -95,7 +94,7 @@ $pass('V08 KP72_DOWN lewat rantai (sesudah ACT_PGN_DOWN) vs langsung (akar baru)
     sprintf('rantai %s CP %.4f / langsung %s CP %.4f; ulang %.2f s', substr($md5($d2), 0, 10), $cp($d2), substr($md5($d4), 0, 10), $cp($d4), $d3['_wall']));
 
 $np = count(array_filter($T, function ($t) { return $t[1]; }));
-$md = "# V10 targeted (versi V11, band CP 0,2 %): rute cepat kanonik, sertifikat, screening dua tingkat\n\nPASS $np / " . count($T) . "\n\n| id | hasil | bukti |\n|---|---|---|\n";
+$md = "# V10 targeted: rute cepat kanonik, sertifikat, screening dua tingkat\n\nPASS $np / " . count($T) . "\n\n| id | hasil | bukti |\n|---|---|---|\n";
 foreach ($T as $t) $md .= '| ' . str_replace('|', '/', $t[0]) . ' | ' . ($t[1] ? 'PASS' : 'FAIL') . ' | ' . str_replace('|', '/', $t[2]) . " |\n";
 file_put_contents($OUT, $md); file_put_contents($JL, implode("\n", array_map('json_encode', $J)) . "\n");
 echo "SELESAI PASS $np / " . count($T) . "\n";

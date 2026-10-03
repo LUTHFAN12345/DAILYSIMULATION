@@ -4,7 +4,7 @@
 #   + snapshot V10 (engine SRC) + battery V8/V7 (HTTP runtime + UI) + UI Target Selesai V11 (SUMMARY lima field).
 # Arg: <folder-laporan> <port-dasar>. Env: SRC
 cd /home/claude/t5; OUT=$1; P=$2; SRC=${SRC:-tgs11}; mkdir -p $OUT; PHP=/usr/local/bin/php74; N=/home/claude/.npm-global/lib/node_modules
-echo "=== LINT PHP 7.4 ==="; for f in run.php worker02.php worker_functions.php index.php; do $PHP -l $SRC/$f; done
+echo "=== LINT PHP 7.4 ==="; for f in run.php worker02.php worker_functions.php index.php saved_data_store.php; do $PHP -l $SRC/$f; done
 echo "=== SNAPSHOT BASIS ACTUAL (FINAL jangkar PGN 30 + pustaka dispatch + BASE_ACT10, engine SRC) — SEBELUM suite yang memakainya ==="
 SRC=$SRC bash v10/mk_snap.sh 2>&1 | tail -4
 echo "=== V11: REPRODUCER WB09_3 + AUDIT V11 + BAND CP/HEAT RATE + COUNTER ==="

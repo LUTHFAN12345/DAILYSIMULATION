@@ -7,7 +7,7 @@ H7=v7/v7_http.php
 SLOTS="ACT_PGN_UP,ACT_PGN_DOWN,ACT_FFJ_UP,ACT_FFJ_DOWN,ACT_FFM_UP,ACT_FFM_DOWN,KP72_UP,KP72_DOWN,ACT_PGN_2SLOT_C,ACT_PGN_BIG"
 QA="QA_pgn_pipe_1,QA_pgn_pipe_-1,QA_pgn_pipe_2,QA_pgn_pipe_-2,QA_pgn_pipe_4,QA_pgn_pipe_-4,QA_pep_1,QA_pep_-1,QA_pep_2,QA_pep_-2,QA_lng_1,QA_lng_-1,QA_pep_kp72_1,QA_pep_kp72_-1,QA_akasia_1,QA_akasia_-1"
 INCOK="ACT_PGN_UP,ACT_PGN_DOWN,ACT_FFJ_UP,ACT_FFM_DOWN,KP72_DOWN,ACT_PGN_2SLOT_C,QA_pgn_pipe_1,QA_lng_1"
-echo "=== LINT ==="; for f in run.php worker02.php worker_functions.php index.php; do $PHP -l $SRC/$f; done
+echo "=== LINT ==="; for f in run.php worker02.php worker_functions.php index.php saved_data_store.php; do $PHP -l $SRC/$f; done
 H=$S/slot; SRC=$SRC SNAP=$SNAPA bash v3/prep_ui.sh $H > /dev/null
 echo "=== SIMULATION DATA + KUOTA (basis Actual 11 jam): COLD ==="; rm -f $OUT/SLOT_COLD.jsonl
 timeout 9000 $PHP $H7 $H $P $OUT/SLOT_COLD.jsonl cold $SLOTS,$QA,"PGN29_PEP32_ACT|QAX:pgn_pipe=-1;pep=2" $SNAPA 2>&1 | cut -c1-220

@@ -6,8 +6,8 @@ R=$1; OUT=$2; P=$3; mkdir -p $OUT
 N=/home/claude/.npm-global/lib/node_modules; S=/tmp/claude-0/scratch
 T=/home/claude/t5/v6/tests
 clean(){ cp fixtures/input_actual.json $R/input_data.json; rm -f $R/output_data.json $R/input_data.json.lock; rm -rf $R/input_data.json.lock; rm -rf $R/jobs; mkdir -p $R/jobs; }
-echo "=== HASH AWAL ==="; (cd $R && sha256sum run.php worker02.php worker_functions.php index.php) | tee $OUT/_hash_awal.txt
-echo "=== LINT PHP 7.4 ==="; for f in run.php worker02.php worker_functions.php index.php; do $PHP -l $R/$f; done
+echo "=== HASH AWAL ==="; (cd $R && sha256sum run.php worker02.php worker_functions.php index.php saved_data_store.php) | tee $OUT/_hash_awal.txt
+echo "=== LINT PHP 7.4 ==="; for f in run.php worker02.php worker_functions.php index.php saved_data_store.php; do $PHP -l $R/$f; done
 echo "=== JS SYNTAX ==="; (cd $R && $PHP index.php > $S/_r_$P.html 2>/dev/null); $PHP tools/jscheck.php $S/_r_$P.html $S/_js_$P.js >/dev/null && perl -0pi -e 's/<\?php.*?\?>/0/gs' $S/_js_$P.js && node --check $S/_js_$P.js && echo "JS OK"
 echo "=== PEMINDAIAN CMD / PROSES OS ==="; grep -nE "\b(exec|shell_exec|proc_open|popen|passthru|system)\s*\(|cmd /C|start \"\" /B" $R/run.php $R/worker02.php $R/worker_functions.php | grep -v "^\s*//" | head -5; echo "(akhir pemindaian)"
 echo "=== SNAPSHOT BASIS ACTUAL (engine beku, sebelum suite yang memakainya) ==="; SRC=$R bash v10/mk_snap.sh 2>&1 | tail -4
@@ -113,7 +113,7 @@ ok=len(a)==len(b)==4 and all(x['sc']==y['sc'] and x['cp']==y['cp'] and x.get('si
 for x,y in zip(a,b): print(x['sc'], 'cp', x['cp'], y['cp'], 'sig', x.get('sig'), y.get('sig'), 'final', x['t_final_s'], y['t_final_s'], 'helpers', x.get('helpers'), y.get('helpers'))
 print('V12_DETERMINISME_IDENTIK' if ok else 'V12_DETERMINISME_BEDA')
 PY
-echo "=== HASH AKHIR ==="; (cd $R && sha256sum run.php worker02.php worker_functions.php index.php) | tee $OUT/_hash_akhir.txt
+echo "=== HASH AKHIR ==="; (cd $R && sha256sum run.php worker02.php worker_functions.php index.php saved_data_store.php) | tee $OUT/_hash_akhir.txt
 cmp -s <(awk '{print $1}' $OUT/_hash_awal.txt) <(awk '{print $1}' $OUT/_hash_akhir.txt) && echo "HASH TIDAK BERUBAH SELAMA REGRESSION" || echo "HASH BERUBAH!"
 bash integ/h/integ_extra.sh $R $((P+40)) $OUT/integ
 echo SELESAI

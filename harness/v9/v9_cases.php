@@ -1,5 +1,4 @@
 <?php
-/* V11 salinan v9_cases.php — perubahan yang disengaja (manifest §8): invarian CP memakai band CP 0,2 % (tie-break Heat Rate). */
 /* V9 targeted: unit priority generik (10 konfigurasi) + provenance bahan bakar.
  * php v9_cases.php <src-root> <out.md> <out.jsonl>   (jalur job economic_review, akar baru per konfigurasi) */
 ini_set('memory_limit', '3G');
@@ -31,8 +30,8 @@ $rec = function (string $id, $d) use (&$J, $minValid, $hpa, $prov) { [$cp, $mn, 
 $GTG = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10'];
 $common = function (string $id, $d) use ($pass, $fin, $hpa, $prov, $minValid) {
     [$hs, $hu] = $hpa($d); [$ps, $p] = $prov($d); [$cp, $mn] = $minValid($d);
-    $pass("$id FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah x 1,002 (band V11)",
-        $fin($d) && preg_match('~^PASS~', $hs) && $hu === 0 && preg_match('~^PASS~', $ps) && (!is_finite($mn) || $cp <= $mn * 1.002 + 1e-4),
+    $pass("$id FINAL: 48 row, hard PASS, Export 48/48, residual 0, Unit Priority PASS/PASS_WITH_REASON, provenance bahan bakar PASS, CP <= kandidat valid termurah",
+        $fin($d) && preg_match('~^PASS~', $hs) && $hu === 0 && preg_match('~^PASS~', $ps) && (!is_finite($mn) || $cp <= $mn + 1e-4),
         "wall {$d['_wall']} s, CP $cp, kandidat valid termurah " . (is_finite($mn) ? $mn : '-') . ", audit $hs/$hu, provenance $ps");
 };
 

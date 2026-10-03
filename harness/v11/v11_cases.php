@@ -9,7 +9,7 @@ $src = rtrim($argv[1], '/'); if (!is_file($src . '/run.php')) { fwrite(STDERR, "
 $abs = function ($f) { return ($f !== '' && $f[0] === '/') ? $f : getcwd() . '/' . $f; }; $OUT = $abs($argv[2]); $JL = $abs($argv[3]); $T = []; $J = [];
 $run = function (string $sc, string $tag, array $env = []) use ($src) {
     $S = "/tmp/claude-0/v11case_" . $sc . $tag; exec('rm -rf ' . escapeshellarg($S)); mkdir("$S/jobs", 0777, true);
-    foreach (['run.php', 'worker02.php', 'worker_functions.php', 'index.php'] as $f) copy("$src/$f", "$S/$f");
+    foreach (['run.php', 'worker02.php', 'worker_functions.php', 'index.php', 'saved_data_store.php'] as $f) if (is_file("$src/$f")) copy("$src/$f", "$S/$f");
     $o = "/tmp/claude-0/v11case_$sc$tag.json"; @unlink($o); $t = microtime(true); $e = '';
     foreach ($env as $k => $v) $e .= escapeshellarg($k) . '=' . escapeshellarg($v) . ' ';
     exec('env ' . $e . 'timeout 1500 /usr/local/bin/php74 -d max_execution_time=0 /home/claude/t5/v8/job_dump.php ' . escapeshellarg($S) . ' ' . escapeshellarg($sc) . ' ' . escapeshellarg($o) . ' 2>/dev/null');

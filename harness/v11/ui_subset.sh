@@ -1,7 +1,7 @@
 #!/bin/bash
 # Subset UI regression V11 (baris 22-33 _full_v11.sh) pada salinan source. Arg: <src> <out> <port>
 cd /home/claude/t5; export PP_PHP=/usr/local/bin/php74; SRC=$1; OUT=$2; P=$3; mkdir -p $OUT
-N=/home/claude/.npm-global/lib/node_modules; T=/home/claude/t5/v6/tests; R=/tmp/claude-0/uisub_$P; rm -rf $R; mkdir -p $R; cp -L $SRC/{run,worker02,worker_functions,index}.php $R/
+N=/home/claude/.npm-global/lib/node_modules; T=/home/claude/t5/v6/tests; R=/tmp/claude-0/uisub_$P; rm -rf $R; mkdir -p $R; cp -L $SRC/{run,worker02,worker_functions,index,saved_data_store}.php $R/
 clean(){ cp fixtures/input_actual.json $R/input_data.json; rm -f $R/output_data.json; rm -rf $R/input_data.json.lock $R/jobs; mkdir -p $R/jobs; }
 clean; (setsid node v3/proxy.js $P $R 6 >/dev/null 2>&1 </dev/null &); sleep 3
 echo "=== POPUP ==="; NODE_PATH=$N timeout 1200 node $T/browser_popup_responsiveness.js http://127.0.0.1:$P $OUT/shots $OUT/POPUP.md 2>&1 | tail -10

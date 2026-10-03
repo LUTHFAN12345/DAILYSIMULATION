@@ -4,7 +4,7 @@
 cd /home/claude/t5; PHP=/usr/local/bin/php74; N=/home/claude/.npm-global/lib/node_modules; T=/home/claude/t5/v6/tests
 R=$1; OUT=$2; P=$3; mkdir -p $OUT
 clean(){ cp fixtures/input_actual.json $R/input_data.json; rm -f $R/output_data.json; rm -rf $R/input_data.json.lock $R/jobs; mkdir -p $R/jobs; }
-for f in run.php worker02.php worker_functions.php index.php; do $PHP -l $R/$f; done
+for f in run.php worker02.php worker_functions.php index.php saved_data_store.php; do $PHP -l $R/$f; done
 clean; (setsid node v3/proxy.js $P $R 6 >/dev/null 2>&1 </dev/null &); sleep 3
 clean; echo "=== POPUP PGN20 ==="; NODE_PATH=$N timeout 1200 node /home/claude/t5/v12/tests/browser_popup_responsiveness_v12.js http://127.0.0.1:$P $OUT/shots $OUT/POPUP.md 2>&1 | tail -9
 clean; echo "=== GAS SHORTAGE PGN 25 ==="; NODE_PATH=$N timeout 3600 node $T/targeted_gs.js http://127.0.0.1:$P $R/jobs $OUT/GAS_SHORTAGE_PGN25.md 25 2>&1 | grep -E "^(PASS|FAIL)" | cut -c1-260
