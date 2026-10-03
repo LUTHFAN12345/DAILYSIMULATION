@@ -22,4 +22,8 @@ const { chromium } = require('playwright'); const [,, BASE, LABEL, WARM] = proce
       prov: (i['Fuel Provenance'] || {}).status, fast_ok: f.ok, reasons: f.reasons, trace: (typeof FASTEST_TRACE !== 'undefined' && FASTEST_TRACE) || null,
       simdata_shown: !!(document.getElementById('panel-daily') || {}).classList && document.getElementById('panel-daily').classList.contains('active') && (document.getElementById('cp-simdata') || { classList: { contains: () => false } }).classList.contains('active'),
       simdata_rows: document.querySelectorAll('#result-simdata tr, #cp-simdata tbody tr').length, msg: ((document.getElementById('run-msg') || {}).innerText || '').slice(0, 160) }; });
+  for (let q = 0; q < 50; q++) { const hs = await p.evaluate(() => (typeof FASTEST_TRACE !== 'undefined' && FASTEST_TRACE && FASTEST_TRACE.helpers_stopped_ms) || null); if (hs) break; await sleep(200); }
+  r.trace = await p.evaluate(() => (typeof FASTEST_TRACE !== 'undefined' && FASTEST_TRACE) || null);
+  r.units = await p.evaluate(() => { const D = (OUTPUT || {}).data || []; const U = {}; for (const u of ['G1', 'G2', 'G5', 'G8', 'G9', 'S2', 'S3']) { const on = []; let mx = 0; D.forEach((x, k) => { const v = +x[u] || 0; if (v > 0.01) on.push(k + 1); mx = Math.max(mx, v); });
+    U[u] = on.length ? { rows: on[0] + '-' + on[on.length - 1], n: on.length, max_mw: Math.round(mx * 100) / 100 } : null; } return U; });
   console.log(JSON.stringify(Object.assign({ case: LABEL, target_default: tgt, t_show_s: tShow, modal, js_errors: errs.length }, r))); await b.close(); })();

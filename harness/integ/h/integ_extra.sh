@@ -23,7 +23,7 @@ PY
 echo "=== INTEGRASI: FASTEST - DEFAULT UI (Change Over OFF dan ON) ==="
 bash integ/fast_ui.sh $S $((P+6)) $O 2>&1
 echo "=== FASTEST - DEFAULT: 5 INPUT (PGN25+PEP30+KP72 0, PGN29, PGN30, PGN31, PGN32) — klik Run -> Simulation Data ==="
-CASES="PGN25_PEP30_KP0 PGN29 PGN30 PGN31 PGN32" bash integ/fast5.sh $S $((P+7)) $O/FASTEST_5.jsonl > /dev/null 2>&1
+CASES="PGN25_PEP30_KP0 PGN29 PGN30 PGN31 PGN32 U31 U30" bash integ/fast5.sh $S $((P+7)) $O/FASTEST_5.jsonl > /dev/null 2>&1
 python3 - $O/FASTEST_5.jsonl <<'PY'
 import json,sys
 for l in open(sys.argv[1]):
