@@ -5482,7 +5482,7 @@ function pp_v11_band_select(array $orig, array $cands): array {
             : ($mt['fragmentation_rows'] > $W['m']['fragmentation_rows'] ? 'KALAH:FRAGMENTATION_LEBIH_BANYAK' : 'KALAH:PRIORITY/KUNCI_KANONIK'))))));
         $tbl[] = ['candidate' => $x['id'], 'aliases' => $x['aliases'], 'cp' => round($mt['cp'], 4), 'delta_cp_pct' => round(100.0 * ($mt['cp'] - $cpMin) / max(1e-9, $cpMin), 4), 'heat_rate' => round($mt['hr'], 2),
             'generation_mwh' => $mt['generation_mwh'], 'export_mwh' => $mt['export_mwh'], 'starts' => $mt['starts'], 'low_priority_running_rows' => $mt['low_priority_rows'],
-            'fragmentation_rows' => $mt['fragmentation_rows'], 'priority_score' => round($mt['priority_score'], 1), 'constraints' => 'PASS', 'in_band' => $in, 'result' => $why]; }
+            'fragmentation_rows' => $mt['fragmentation_rows'], 'priority_score' => round($mt['priority_score'], 1), 'start_priority_ranks' => (array)($mt['start_ranks'] ?? []), 'constraints' => 'PASS', 'in_band' => $in, 'result' => $why]; }
     usort($tbl, function ($p, $q) { return [$p['result'] !== 'MENANG', !$p['in_band'], $p['cp'], $p['candidate']] <=> [$q['result'] !== 'MENANG', !$q['in_band'], $q['cp'], $q['candidate']]; });
     return ['winner' => $W, 'table' => $tbl, 'cp_min' => round($cpMin, 6), 'band_upper' => round($cpMin * (1.0 + $pct / 100.0), 6), 'band_pct' => $pct, 'in_band' => count($band), 'valid' => count($V)];
 }
@@ -5880,12 +5880,15 @@ function pp_v12_cp_report(array $out): array {
     $b = (array)($out['info']['V11 Candidate Comparison'] ?? []); $t = (array)($b['table'] ?? []); $cpF = $out['info']['Cost Production (USD/MWh)'] ?? null; $hrF = $out['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null;
     if (!$t) return ['schema' => 'co12-v12-cp-report-v1', 'status' => 'TANPA_TABEL_BAND', 'final_cp' => $cpF, 'final_heat_rate' => $hrF,
         'note' => 'Rute ini tidak membentuk himpunan band (mis. rute bahan bakar / inkremental delta); CP FINAL = CP minimum kandidat yang dievaluasi rute.'];
-    $minRow = null; $hrBand = null; $win = null;
+    $minRow = null; $hrBand = null; $win = null; $hrSame = null;
     foreach ($t as $x) { if ($minRow === null || $x['cp'] < $minRow['cp']) $minRow = $x; if (!empty($x['in_band'])) $hrBand = $hrBand === null ? $x['heat_rate'] : min($hrBand, $x['heat_rate']); if (($x['result'] ?? '') === 'MENANG') $win = $x; }
+    /* Heat Rate minimum di antara kandidat band dengan Unit Priority start yang sama dengan pemenang */
+    if ($win !== null) foreach ($t as $x) if (!empty($x['in_band']) && (array)($x['start_priority_ranks'] ?? []) === (array)($win['start_priority_ranks'] ?? [])) $hrSame = $hrSame === null ? $x['heat_rate'] : min($hrSame, $x['heat_rate']);
+    $prioWin = $win !== null && $hrBand !== null && (float)$win['heat_rate'] > (float)$hrBand + 0.01;
     $cpMin = (float)($b['cp_min'] ?? $minRow['cp']); $wcp = $win['cp'] ?? $b['winner_cp'] ?? null;
-    $why = $win === null ? null : (abs((float)$wcp - $cpMin) < 1e-6 ? 'PEMENANG = CP MINIMUM ABSOLUT' . ((int)($b['candidates_in_band'] ?? 1) > 1 ? ' dan Heat Rate terendah di band' : '')
-        : sprintf('TIE-BREAK HEAT RATE: pemenang %.2f BTU/kWh vs CP minimum %s %.2f BTU/kWh; selisih CP %+.4f USD/MWh (%.4f %% <= %s %%)', (float)$win['heat_rate'], $minRow['candidate'], (float)$minRow['heat_rate'], (float)$wcp - $cpMin, 100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), str_replace('.', ',', (string)($b['band_pct'] ?? 0.2))));
-    return ['schema' => 'co12-v12-cp-report-v1', 'status' => 'OK', 'absolute_cp_min' => round($cpMin, 4), 'absolute_cp_min_candidate' => $minRow['candidate'] ?? null,
+    $why = $win === null ? null : ($prioWin ? sprintf('UNIT PRIORITY START: kandidat band dengan Heat Rate lebih rendah (%.2f BTU/kWh) men-start unit prioritas lebih rendah; pemenang %.2f BTU/kWh = Heat Rate minimum di antara kandidat band dengan Unit Priority start yang sama; selisih CP %+.4f USD/MWh (%.4f %% <= %s %%)', (float)$hrBand, (float)$win['heat_rate'], (float)$wcp - $cpMin, 100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), str_replace('.', ',', (string)($b['band_pct'] ?? 0.2))) : (abs((float)$wcp - $cpMin) < 1e-6 ? 'PEMENANG = CP MINIMUM ABSOLUT' . ((int)($b['candidates_in_band'] ?? 1) > 1 ? ' dan Heat Rate terendah di band' : '')
+        : sprintf('TIE-BREAK HEAT RATE: pemenang %.2f BTU/kWh vs CP minimum %s %.2f BTU/kWh; selisih CP %+.4f USD/MWh (%.4f %% <= %s %%)', (float)$win['heat_rate'], $minRow['candidate'], (float)$minRow['heat_rate'], (float)$wcp - $cpMin, 100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), str_replace('.', ',', (string)($b['band_pct'] ?? 0.2)))));
+    return ['schema' => 'co12-v12-cp-report-v1', 'min_heat_rate_same_start_priority' => $hrSame, 'status' => 'OK', 'absolute_cp_min' => round($cpMin, 4), 'absolute_cp_min_candidate' => $minRow['candidate'] ?? null,
         'winner' => $b['winner'] ?? null, 'winner_cp' => $wcp, 'delta_winner_vs_min_usd_mwh' => $wcp === null ? null : round((float)$wcp - $cpMin, 4),
         'delta_winner_vs_min_pct' => $wcp === null ? null : round(100.0 * ((float)$wcp - $cpMin) / max(1e-9, $cpMin), 4), 'band_upper' => $b['band_upper'] ?? null,
         'winner_heat_rate' => $win['heat_rate'] ?? ($b['winner_heat_rate'] ?? null), 'min_heat_rate_in_band' => $hrBand, 'candidates_valid' => $b['candidates_valid'] ?? null,
