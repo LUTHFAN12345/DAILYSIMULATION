@@ -56,7 +56,7 @@ if (!function_exists('array_is_list')) {
 }
 
 
-include_once __DIR__ . '/worker_functions.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'worker_functions.php';
 
 /* ============================================================================================
  * pp_run_simulation() — WRAPPER: LANGKAH 6/7 "start hanya SATU unit priority berikutnya".

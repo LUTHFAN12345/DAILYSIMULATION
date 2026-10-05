@@ -30,8 +30,33 @@ function sds_root(): string {
 }
 function sds_dir(string $sub): string {
     $d = sds_root() . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $sub);
-    if (!is_dir($d)) @mkdir($d, 0777, true);
+    if (!is_dir($d)) @mkdir($d, 0775, true);   // grup web server (www-data / apache) dapat menulis; tanpa 0777
     return $d;
+}
+/* Pemeriksaan tulis folder data (Save/Report): data/, data/saved/{records,state}, data/backups dapat dibuat DAN ditulisi
+ * oleh user proses PHP (Apache mod_php / PHP-FPM / XAMPP). Tanpa efek samping selain membuat folder yang belum ada. */
+function sds_writable(): array {
+    $bad = null;
+    foreach (['', 'saved', 'saved/records', 'saved/state', 'backups'] as $sub) {
+        $d = $sub === '' ? sds_root() : sds_root() . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $sub);
+        if (!is_dir($d)) @mkdir($d, 0775, true);
+        if (!is_dir($d)) { $bad = ['path' => $d, 'reason' => 'TIDAK_DAPAT_DIBUAT']; break; }
+        $t = $d . DIRECTORY_SEPARATOR . '.wtest_' . bin2hex(random_bytes(4));
+        $ok = @file_put_contents($t, 'x') === 1; if ($ok) @unlink($t);
+        if (!$ok) { $bad = ['path' => $d, 'reason' => 'TIDAK_DAPAT_DITULIS']; break; }
+    }
+    return ['ok' => $bad === null, 'root' => sds_root(), 'failed' => $bad,
+            'process_user' => function_exists('posix_geteuid') && function_exists('posix_getpwuid') ? ((posix_getpwuid(posix_geteuid())['name'] ?? null)) : (getenv('USERNAME') ?: null)];
+}
+/* Respons JSON standar bila folder data tidak dapat ditulisi (dipakai Save dan API penyimpanan yang menulis). */
+function sds_fail_not_writable(array $w): void {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) @ob_end_clean(); }
+    if (!headers_sent()) { http_response_code(500); header('Content-Type: application/json; charset=utf-8'); }
+    @error_log('[opr-simulation] DATASTORE_NOT_WRITABLE ' . json_encode($w));
+    echo json_encode(['ok' => false, 'result' => 'error', 'error' => 'DATASTORE_NOT_WRITABLE', 'code' => 'DATASTORE_NOT_WRITABLE', 'path' => $w['failed']['path'] ?? null,
+        'reason' => $w['failed']['reason'] ?? null, 'process_user' => $w['process_user'] ?? null,
+        'message' => 'Folder data penyimpanan tidak dapat ditulisi oleh user web server (' . (string)($w['process_user'] ?? '?') . '): ' . (string)($w['failed']['path'] ?? '?') . '. Simpan/Report dinonaktifkan; simulasi tetap dapat dijalankan. Lihat CARA_PASANG (izin folder data).'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit;
 }
 function sds_is_windows(): bool { return stripos(PHP_OS_FAMILY ?? PHP_OS, 'WIN') === 0; }
 function sds_engine_version(): string {
@@ -221,6 +246,7 @@ function sds_http(string $mode): void {
     header('Content-Type: application/json; charset=utf-8'); $why = null;
     $body = json_decode((string)file_get_contents('php://input'), true); $body = is_array($body) ? $body : [];
     $id = (string)($_GET['id'] ?? $body['id'] ?? '');
+    if (in_array($mode, ['store_meta', 'store_delete'], true)) { $w = sds_writable(); if (!$w['ok']) sds_fail_not_writable($w); }
     if ($mode === 'store_list') $r = ['ok' => true, 'records' => sds_list(['plan_type' => $_GET['plan_type'] ?? null])];
     elseif ($mode === 'store_load') { $x = sds_load($id); $r = $x ? ['ok' => true, 'record' => $x, 'note' => 'Jalankan input_payload dengan engine terbaru (run.php?mode=run); record tidak membawa engine.'] : ['ok' => false, 'error' => 'TIDAK_DITEMUKAN']; }
     elseif ($mode === 'store_meta') { $x = sds_update_meta($id, (array)($body['meta'] ?? []), $why); $r = $x ? ['ok' => true, 'record_id' => $x['record_id'], 'meta' => $x['meta']] : ['ok' => false, 'error' => $why]; }

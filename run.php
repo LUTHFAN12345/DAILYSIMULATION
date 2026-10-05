@@ -106,8 +106,24 @@ register_shutdown_function(function () {
 });
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/saved_data_store.php';   // V12: SATU-SATUNYA modul penulis data pengguna (input/output kerja, record Report, backup)
-require_once __DIR__ . '/worker02.php';   // defines pp_run_simulation(), pp_release_gate(), pp_validate_hard_constraints()
+/* DEPLOYMENT LINTAS PLATFORM (XAMPP/Windows, Apache/PHP-FPM Linux). Kontrak: lima berkas PHP adalah SATU paket.
+ * Dependensi yang hilang/tak terbaca -> JSON terstruktur HTTP 500 MISSING_DEPENDENCY (bukan warning HTML, bukan fatal),
+ * detail dicatat ke error log server. Endpoint JSON tidak pernah menampilkan error PHP ke response. */
+if (PHP_SAPI !== 'cli') { @ini_set('display_errors', '0'); @ini_set('log_errors', '1'); }
+foreach (['saved_data_store.php', 'worker02.php', 'worker_functions.php'] as $__dep) {
+    $__p = __DIR__ . DIRECTORY_SEPARATOR . $__dep;
+    if (!is_file($__p) || !is_readable($__p)) {
+        @error_log('[opr-simulation] MISSING_DEPENDENCY ' . $__p . ' (paket tidak lengkap: run.php, worker02.php, worker_functions.php, index.php, saved_data_store.php)');
+        if (PHP_SAPI !== 'cli' && !headers_sent()) { http_response_code(500); header('Content-Type: application/json; charset=utf-8'); }
+        if (function_exists('ob_get_level')) { while (ob_get_level() > 0) @ob_end_clean(); }
+        echo json_encode(['ok' => false, 'result' => 'error', 'error' => 'MISSING_DEPENDENCY', 'code' => 'MISSING_DEPENDENCY', 'file' => $__dep,
+            'message' => 'Instalasi tidak lengkap: berkas ' . $__dep . ' tidak ditemukan/tidak terbaca di folder aplikasi. Salin kelima berkas PHP paket (run.php, worker02.php, worker_functions.php, index.php, saved_data_store.php).'], JSON_UNESCAPED_SLASHES);
+        exit(1);
+    }
+}
+unset($__dep, $__p);
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'saved_data_store.php';   // V12: SATU-SATUNYA modul penulis data pengguna (input/output kerja, record Report, backup)
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'worker02.php';   // defines pp_run_simulation(), pp_release_gate(), pp_validate_hard_constraints()
 
 /* ---- PROMPT SAVE-FI §A2 — ATOMIC WRITE (ALL OR NOTHING) ---------------------------------------
  * ROOT CAUSE "seluruh input hilang setelah reload": file_put_contents() langsung ke file aktif.
@@ -7686,6 +7702,33 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
  * (review Unit Priority V8 + polish lanjutan, audit penerimaan: hard constraints kanonik, provenance, audit merit C1-C4, LLF),
  * lalu gerbang fully valid (pp_v12_fast_check + bukti STG per row). Tidak mencari CP minimum global; hasil di-cache per
  * tanda tangan dispatch kandidat. Maximum Review tidak memakai jalur ini. */
+/* PREFLIGHT DEPLOYMENT (XAMPP/Windows dan Apache/PHP-FPM Linux, path dari __DIR__): kelima berkas ada & terbaca, versi PHP,
+ * fungsi/ekstensi wajib, folder aplikasi (input_data.json + berkas sementara atomik) dan jobs/ dapat ditulisi, folder data
+ * (Save/Report) dapat dibuat & ditulisi. HTTP 200 bila siap, 500 + kode error pertama bila tidak. Tidak menyentuh engine. */
+function pp_preflight(): array {
+    $C = []; $err = null; $set = function (string $code) use (&$err) { if ($err === null) $err = $code; };
+    foreach (['run.php', 'worker02.php', 'worker_functions.php', 'index.php', 'saved_data_store.php'] as $f) { $p = __DIR__ . DIRECTORY_SEPARATOR . $f;
+        $ok = is_file($p) && is_readable($p); $C[] = ['check' => 'file:' . $f, 'ok' => $ok, 'sha256' => $ok ? hash_file('sha256', $p) : null]; if (!$ok) $set('MISSING_DEPENDENCY'); }
+    $v = version_compare(PHP_VERSION, '7.4.0', '>='); $C[] = ['check' => 'php_version', 'ok' => $v, 'value' => PHP_VERSION, 'sapi' => PHP_SAPI, 'binary' => PHP_BINARY, 'ini' => php_ini_loaded_file() ?: null]; if (!$v) $set('PHP_VERSION');
+    foreach (['json_encode', 'json_decode', 'hash', 'hash_file', 'random_bytes', 'flock', 'microtime', 'array_column', 'mb_substr'] as $fn) { $ok = function_exists($fn); if (!$ok) { $C[] = ['check' => 'function:' . $fn, 'ok' => false]; $set('MISSING_EXTENSION'); } }
+    $C[] = ['check' => 'functions', 'ok' => $err !== 'MISSING_EXTENSION'];
+    $wt = function (string $d): bool { if (!is_dir($d)) @mkdir($d, 0775, true); if (!is_dir($d)) return false; $t = $d . DIRECTORY_SEPARATOR . '.wtest_' . bin2hex(random_bytes(4)); $ok = @file_put_contents($t, 'x') === 1; if ($ok) @unlink($t); return $ok; };
+    $okA = $wt(__DIR__); $C[] = ['check' => 'app_dir_writable', 'ok' => $okA, 'path' => __DIR__]; if (!$okA) $set('APP_DIR_NOT_WRITABLE');
+    $okJ = $wt(pp_job_root()); $C[] = ['check' => 'jobs_dir_writable', 'ok' => $okJ, 'path' => pp_job_root()]; if (!$okJ) $set('JOBS_NOT_WRITABLE');
+    $w = sds_writable(); $C[] = ['check' => 'datastore_writable', 'ok' => $w['ok'], 'path' => $w['root'], 'failed' => $w['failed']]; if (!$w['ok']) $set('DATASTORE_NOT_WRITABLE');
+    $user = function_exists('posix_geteuid') && function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? null) : (getenv('USERNAME') ?: null);
+    return ['ok' => $err === null, 'error' => $err, 'code' => $err, 'checks' => $C,
+        'environment' => ['os' => PHP_OS_FAMILY, 'php' => PHP_VERSION, 'sapi' => PHP_SAPI, 'dir' => __DIR__, 'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? null, 'process_user' => $user,
+            'opcache' => function_exists('opcache_get_status') ? (bool)(@opcache_get_status(false)['opcache_enabled'] ?? false) : false, 'helpers' => function_exists('pp_v4_helper_slots') ? pp_v4_helper_slots() : null,
+            'cores' => function_exists('pp_v4_cores') ? pp_v4_cores() : null, 'jobs_dir' => pp_job_root(), 'data_dir' => $w['root'], 'max_execution_time' => ini_get('max_execution_time'), 'memory_limit' => ini_get('memory_limit')],
+        'note' => $err === null ? 'Siap.' : ($err === 'DATASTORE_NOT_WRITABLE' ? 'Simulasi dapat dijalankan; Save/Report dinonaktifkan sampai folder data dapat ditulisi.' : 'Instalasi belum siap.')];
+}
+if (($_GET['mode'] ?? '') === 'preflight') {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) @ob_end_clean(); }
+    $pf = pp_preflight(); http_response_code($pf['ok'] ? 200 : 500); header('Content-Type: application/json; charset=utf-8');
+    if (!$pf['ok']) @error_log('[opr-simulation] PREFLIGHT ' . $pf['error'] . ' ' . json_encode($pf['checks']));
+    echo json_encode($pf, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); exit;
+}
 /* V12: API penyimpanan data (saved_data_store.php) */
 if (in_array(($_GET['mode'] ?? ''), ['store_list', 'store_load', 'store_meta', 'store_delete', 'store_integrity'], true)) sds_http((string)$_GET['mode']);
 if (($_GET['mode'] ?? '') === 'fast_ready') {
@@ -8143,6 +8186,9 @@ if (($_GET['mode'] ?? '') === 'shortage_probe') {
     exit;
 }
 if (($_GET['mode'] ?? '') === 'save') {
+    /* Save = satu-satunya jalur yang menulis folder data (record Report, backup, cermin). Folder tak dapat ditulisi -> JSON
+     * DATASTORE_NOT_WRITABLE sebelum apa pun ditulis (berkas lama utuh). Run simulasi tidak bergantung pada folder ini. */
+    $wS = sds_writable(); if (!$wS['ok']) sds_fail_not_writable($wS);
     pp_merge_report_planning($input, __DIR__ . '/input_data.json', $rpDiag);   // PROMPT ISOLATION §10: anti-overwrite antar user
     $nStrip = pp_sanitize_report_planning($input);                    // PROMPT SAVE-FI §A: migrasi nesting lama
     if (!sds_write_state_input(__DIR__ . '/input_data.json', $input, $whyW))

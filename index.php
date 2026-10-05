@@ -8,7 +8,13 @@ $inputPath  = __DIR__ . '/input_data.json';
 $outputPath = __DIR__ . '/output_data.json';
 /* V12: berkas kerja dibaca lewat saved_data_store.php — bila hilang/rusak (mis. folder aplikasi diganti) dipulihkan dari
  * cermin data tersimpan (<data>/saved/state). index.php tidak menulis berkas penyimpanan apa pun selain lewat modul ini. */
-if (is_file(__DIR__ . '/saved_data_store.php')) require_once __DIR__ . '/saved_data_store.php';
+/* Kelengkapan paket (lima berkas PHP satu paket): berkas yang hilang -> halaman tetap terbuka dengan pesan instalasi dan
+ * tombol Run dinonaktifkan; tidak ada warning PHP di halaman, tidak ada simulasi yang "berjalan" tanpa backend. */
+$PP_MISSING = [];
+foreach (['run.php', 'worker02.php', 'worker_functions.php', 'saved_data_store.php'] as $__f) if (!is_file(__DIR__ . DIRECTORY_SEPARATOR . $__f) || !is_readable(__DIR__ . DIRECTORY_SEPARATOR . $__f)) $PP_MISSING[] = $__f;
+unset($__f);
+if (!$PP_MISSING) require_once __DIR__ . DIRECTORY_SEPARATOR . 'saved_data_store.php';
+else @error_log('[opr-simulation] MISSING_DEPENDENCY index.php: ' . implode(', ', $PP_MISSING));
 $INPUT  = function_exists('sds_load_state_input') ? sds_load_state_input($inputPath) : (file_exists($inputPath) ? json_decode(file_get_contents($inputPath), true) : null);
 $OUTPUT = file_exists($outputPath) ? json_decode(file_get_contents($outputPath), true) : null;
 $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
@@ -1327,12 +1333,12 @@ ul.csverr li{margin:2px 0}
 
       <!-- persistent run bar -->
       <div class="runbar no-print" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)">
-        <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
+        <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)"<?= $PP_MISSING ? ' disabled title="Instalasi tidak lengkap"' : '' ?>>▶ Run simulation</button>
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
         <button class="btn ghost" id="btn-save" title="Save Input — menyimpan input ke input_data.json (selalu aktif)">💾 Save</button>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
-        <span class="hint" id="run-msg"></span>
+        <span class="hint" id="run-msg"><?php if ($PP_MISSING): ?><span id="install-err" style="color:#c0392b"><b>Instalasi tidak lengkap</b> (MISSING_DEPENDENCY): <?= htmlspecialchars(implode(', ', $PP_MISSING)) ?> tidak ditemukan di folder aplikasi. Salin kelima berkas PHP paket; Run dinonaktifkan.</span><?php endif; ?></span>
         <label class="tl-target" for="f-tl-target">Target Selesai
           <select id="f-tl-target" title="Fastest - Default: selesai begitu kandidat fully valid pertama tersedia (bukan bukti global optimum bila exact belum selesai). Pilihan berbatas waktu menampilkan kandidat constraint-valid dengan Cost Production terendah yang sudah ditemukan saat batas tercapai; Maximum Review menjalankan optimasi exact sampai selesai.">
             <option value="fast" selected style="background:#ffd54f;color:#5d3a00;font-weight:800">Fastest - Default</option>
@@ -1623,6 +1629,16 @@ function validateMaxLoadRules(){
   return '';
 }
 document.addEventListener('DOMContentLoaded',buildUnitLastStatus);
+/* Preflight deployment (sekali saat halaman dibuka): instalasi tidak siap -> pesan singkat; Run dinonaktifkan bila backend tidak dapat
+ * menjalankan simulasi (berkas hilang, folder aplikasi/jobs tidak dapat ditulisi). Folder data tidak dapat ditulisi -> hanya Save dinonaktifkan. */
+document.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('install-err')) return;
+  fetch('run.php?mode=preflight',{cache:'no-store'}).then(r=>r.text().then(t=>[r,t])).then(([r,t])=>{ let j=null; try{ j=JSON.parse(t); }catch(e){}
+    const rm=document.getElementById('run-msg'); const b=document.getElementById('btn-run');
+    if(!j){ if(rm) rm.innerHTML='<span id="install-err" style="color:#c0392b"><b>Server error (HTTP '+r.status+', bukan JSON)</b> pada pemeriksaan instalasi — Run dinonaktifkan.</span>'; if(b) b.disabled=true; return; }
+    window.PP_PREFLIGHT=j; if(j.ok) return;
+    const code=String(j.code||j.error||'?'); const runOk=code==='DATASTORE_NOT_WRITABLE';
+    if(rm) rm.innerHTML='<span id="install-err" style="color:'+(runOk?'#b45309':'#c0392b')+'"><b>'+(runOk?'Penyimpanan tidak dapat ditulisi':'Instalasi belum siap')+'</b> ('+code+') — '+String(j.note||'').replace(/</g,'&lt;')+'</span>';
+    if(!runOk&&b) b.disabled=true; }).catch(()=>{}); });
 const CMP = [];
 
 const UNIT_ORDER = ['b1','b2','g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','ge1','ge2','ge3','ge4'];
@@ -6005,11 +6021,18 @@ async function runSimCore(payload, opts){
    * pada berat rencana, atau pada apakah rencana ini akan berakhir shortage. */
   FASTEST_CTX=(opts.fastest&&!opts.noFastFinalize)?{branch,token:myToken,jobs:{}}:null;
   /* V12 Fastest - Default: tanpa popup progress besar; progres cukup teks biru kecil. */
-  if(opts.fastest){ const t0f=performance.now();
+  /* Fail-fast: timer Fastest RESMI baru berjalan setelah backend mengembalikan job_id yang valid (acknowledgement). HTTP 500,
+   * response non-JSON, error JSON (mis. MISSING_DEPENDENCY), kegagalan jaringan, atau timeout bootstrap -> timer & progres
+   * dihentikan, tombol Run aktif lagi, pesan instalasi singkat; tidak ada polling dan tidak ada cancel ke job yang tidak pernah dibuat. */
+  let tk=null; const t0f=performance.now();
+  const stopFast=()=>{ if(tk){ clearInterval(tk); tk=null; } FASTEST_CTX=null; const f=document.getElementById('fast-msg'); if(f) f.textContent=''; };
+  const failFast=(html)=>{ stopFast(); try{ ppmClose(); }catch(e){} const rmF=$('run-msg'); if(rmF) rmF.innerHTML=html; };
+  const startTicker=()=>{ if(!opts.fastest||tk) return; tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage|Error|tidak dimulai|Instalasi/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
+      if(f) f.textContent='Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s'; },400); };
+  if(opts.fastest){
     let fm=document.getElementById('fast-msg'); const rm0=$('run-msg');
     if(!fm&&rm0&&rm0.parentNode){ fm=document.createElement('span'); fm.id='fast-msg'; fm.className='hint'; fm.style.cssText='color:#1763d6;font-size:12px;margin-right:8px'; rm0.parentNode.insertBefore(fm,rm0); }
-    const tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
-      if(f) f.textContent='Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s'; },400); }
+    if(fm) fm.textContent='Fastest - Default — mengirim permintaan ke server…'; }
   else ppmOpen(reqId,()=>{
     /* Membatalkan = menaikkan nomor urut run. Response yang datang setelah ini gagal pada penjaga
      * anti-stale, sehingga tidak ada satu pun angka dari run yang dibatalkan yang dapat mendarat
@@ -6021,19 +6044,30 @@ async function runSimCore(payload, opts){
   try{
     /* §3.1/§13.7: Run memakai ?mode=run -> engine dari payload LIVE, TIDAK menulis input_data.json.
        §11: baca RAW TEXT dulu untuk diagnostics, lalu parse aman (tangani HTML/empty/BOM/truncated). */
-    const res=await fetch('run.php?mode=run'+(opts.fastest&&!opts.noFastFinalize?'&fast=1':''),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const rawText=await res.text();
+    const acB=(typeof AbortController!=='undefined')?new AbortController():null; const tB=acB?setTimeout(()=>acB.abort(),45000):null;   // timeout bootstrap
+    let res, rawText;
+    try{ res=await fetch('run.php?mode=run'+(opts.fastest&&!opts.noFastFinalize?'&fast=1':''),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:acB?acB.signal:undefined});
+      rawText=await res.text(); }
+    catch(eB){ if(tB) clearTimeout(tB); if(myToken!==RUN_SEQ[branch]) return;
+      failFast('<span style="color:#c0392b"><b>Server tidak merespons</b> ('+(eB&&eB.name==='AbortError'?'timeout 45 s':gsfEsc(String(eB&&eB.message||eB)))+'). Simulasi tidak dimulai; periksa server/instalasi lalu tekan Run lagi.</span>'); return; }
+    if(tB) clearTimeout(tB);
     let data=null, parseErr=null;
     try{ data=JSON.parse(rawText.replace(/^\uFEFF/,'')); }catch(e){ parseErr=e; }
     if(myToken!==RUN_SEQ[branch]){                         // §3.5/§10: sudah ada request lebih baru -> STALE
       return;        // jangan render, jangan timpa OUTPUT terbaru, dan JANGAN tutup modal run baru
     }
     if(parseErr){                                          // §11: response bukan JSON valid -> diagnostik jelas, input user TETAP
-      ppmClose();
       const snip=(rawText||'').slice(0,180).replace(/</g,'&lt;');
-      $('run-msg').innerHTML='<span style="color:#c0392b">Server returned non-JSON (HTTP '+res.status+'). '+(snip?('Response starts: '+snip):'Empty response')+'</span>';
+      failFast('<span style="color:#c0392b"><b>Error server (HTTP '+res.status+', bukan JSON)</b> — simulasi tidak dimulai. '+(/saved_data_store\.php|failed to open stream|require/i.test(rawText||'')?'Instalasi tidak lengkap (berkas PHP hilang). ':'')+(snip?('Awal response: '+snip):'Response kosong')+'</span>');
       return;
     }
+    /* Error instalasi/bootstrap terstruktur (tanpa job): hentikan segera — tidak ada job yang dipantau. */
+    if(data && data.ok===false && !(data.async_job&&data.async_job.job_id) && (!res.ok || ['MISSING_DEPENDENCY','APP_DIR_NOT_WRITABLE','JOBS_NOT_WRITABLE','JOB_START_FAILED','PHP_VERSION','MISSING_EXTENSION'].includes(String(data.code||(data.error&&data.error.code)||data.error||'')))){
+      const code=String(data.code||(data.error&&data.error.code)||data.error||('HTTP_'+res.status));
+      failFast('<span style="color:#c0392b"><b>'+gsfEsc(code==='MISSING_DEPENDENCY'?'Instalasi tidak lengkap':'Server menolak permintaan')+'</b> ('+gsfEsc(code)+(data.file?': '+gsfEsc(String(data.file)):'')+') — '+gsfEsc(String(data.message||(data.error&&data.error.message)||''))+'</span>');
+      return;
+    }
+    if(opts.fastest && data && data.async_job && data.async_job.job_id) startTicker();   // acknowledgement job valid -> timer resmi mulai
     /* §10: response harus cocok context+revision terbaru (buang balasan basah/nyasar antar-cabang). */
     if(data.state_revision!=null && data.state_revision!==STATE_REVISION[branch]) return;   // modal milik revisi terbaru
     if(v3AutosaveOutcome(payload,data)===false){ ppmClose(); return; }
@@ -6174,7 +6208,7 @@ async function runSimCore(payload, opts){
     } else finalizeSimulationUI(payload,data,null);
   }catch(err){
     ppmClose();
-    if(myToken===RUN_SEQ[branch]) $('run-msg').innerHTML='<span style="color:#c0392b">Request failed: '+err.message+'</span>';
+    if(myToken===RUN_SEQ[branch]){ stopFast(); $('run-msg').innerHTML='<span style="color:#c0392b">Request failed: '+err.message+'</span>'; }
     throw err;
   }
   finally{                                                 // §3.10/§11: spinner SELALU berhenti (hanya reset bila kita run terakhir)
