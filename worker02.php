@@ -6043,6 +6043,7 @@ function pp_run_simulation_once_raw(array $input): array {
         $actL=strtolower(trim((string)($model['gas_shortage_action']??'none')));if($actL==='flag shortage only'||$actL==='flag_shortage_only')$actL='none';elseif($actL==='add lng to cover'||$actL==='add_lng_to_cover')$actL='add_lng';elseif($actL==='use distillate to cover'||$actL==='use_distillate_to_cover')$actL='use_distillate';
         $effQL  = $gasQuotaTotal + (in_array($actL, ['add_lng','mixed_lng_distillate'], true) ? (float)($model['additional_lng'] ?? 0) : 0.0);
         $gasNowL = $gasTotalOf($genRows);
+        $pgnCtxL = pp_pgn_floor_ctx($model);
         $winLoL  = 0.0;
         $gasCapL = $effQL - $penOf($genRows);
         for ($rf = 0; $rf < 800 && $gasNowL < $winLoL; $rf++) {
@@ -6219,6 +6220,7 @@ function pp_run_simulation_once_raw(array $input): array {
                 $ok = $gasNowL < $gasBefore - 1e-9;                        // net gas harus turun
                 if ($ok) foreach (array_unique(array_merge($compRows, array_keys($snapT))) as $r) {   // PATCH G05: rows segmen yg dimatikan ikut dicek (BusFlow!)
                     if ($expAtL($r) < $fL[$r] - 1e-3 || !$rampOK($r)
+                        || (isset($snapT[$r]) && pp_pgn_step_bad($pgnCtxL, $snapT[$r], $genRows[$r], $d3, $r))   // lantai FLOW PGN RT (hard)
                         || calc_busflow($genRows[$r], $busUnit, (float)$ieVals[$r]) < ((float)($model['busflow_min'] ?? 0)) - 1e-6) { $ok = false; break; }
                 }
                 if (!$ok) {
@@ -6245,10 +6247,10 @@ function pp_run_simulation_once_raw(array $input): array {
                         if (pp_get_fixed_load($model, $cu, $r + 1) >= 0) continue;   // PATCH G33: row fixed operator otoritatif
                     if (isset($suWinL[$cu][$r])) continue;                        // PATCH H08: langkah startup EXACT
                     if (!$uRampOk($cu, $r, max($mccT, $g0 - 1.0))) continue;   // PATCH B03
-                        $rg0 = $rowGas($genRows[$r]);
+                        $rg0 = $rowGas($genRows[$r]); $rowB4T = $genRows[$r];
                         $genRows[$r][$cu] = max($mccT, $g0 - 1.0);
                         pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
-                        if ($expAtL($r) < $fL[$r] - 1e-3 || !$rampOK($r)
+                        if ($expAtL($r) < $fL[$r] - 1e-3 || !$rampOK($r) || pp_pgn_step_bad($pgnCtxL, $rowB4T, $genRows[$r], $d3, $r)
                             || calc_busflow($genRows[$r], $busUnit, (float)$ieVals[$r]) < ((float)($model['busflow_min'] ?? 0)) - 1e-6) {
                             $genRows[$r][$cu] = $g0; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
                             continue;

@@ -1496,6 +1496,31 @@ function calc_house_load(array $gen): float {
  *  GTG / GE gas use (BBTU per 30-min slot).  Numeric behaviour preserved
  *  from the calibrated original (incl. the large-SC-GTG curve convention).
  * ------------------------------------------------------------------------- */
+/* LANTAI FLOW PGN REAL TIME (hard, validator pgn_rt_min) untuk pass PENURUNAN gas hilir (over-trim, export-ramp
+ * repair). Konteks dibangun sekali per run; energi row = 24 x Σ calc_fuel(G1..G9) - FixedFlow_J(row) x GHV_J/1000
+ * (Manual Fixed Flow Jababeka per row menggantikan fixed flow kuota — sama dengan kolom FixedFlow_J validator).
+ * Langkah penurunan ditolak bila row jatuh di bawah lantai DAN memburuk dibanding sebelum langkah. */
+function pp_pgn_floor_ctx(array $model): ?array {
+    if ((string)getenv('PP_BS_PGN_GUARD') === '0') return null;
+    $minF = (float)($model['min_pgn_flow'] ?? 0); if ($minF <= 0) return null;
+    $ghvJ = (float)($model['ghv_jababeka'] ?? 1034.7564); if ($ghvJ <= 1e-9) $ghvJ = 1034.7564;
+    $ghvP = (float)($model['ghv_pgn'] ?? 0); if ($ghvP <= 1e-9) $ghvP = $ghvJ;
+    $q = (array)($model['gas_quota'] ?? []);
+    $ff = (float)(($q['pep'] ?? 0) + ($q['akasia'] ?? 0) + ($q['baskara'] ?? 0) + ($q['bbg'] ?? 0)) * $ghvJ / 1000.0;
+    $ffR = [];
+    foreach ((array)($model['manual_fixed_flows'] ?? []) as $mf) { $ri = (int)($mf['row'] ?? 0) - 1;
+        if ($ri >= 0 && strtoupper((string)($mf['area'] ?? '')) === 'JABABEKA') $ffR[$ri] = (float)($mf['value_mmscfd'] ?? $mf['value'] ?? 0) * $ghvJ / 1000.0; }
+    return ['min' => $minF * $ghvP / 1000.0, 'ff' => $ff, 'ffr' => $ffR];
+}
+function pp_pgn_row_energy(array $row, array $d3, array $ctx, int $r): float {
+    $s = 0.0; foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9'] as $u) $s += calc_fuel($d3, $u, (float)($row[$u] ?? 0));
+    return 24.0 * $s - ($ctx['ffr'][$r] ?? $ctx['ff']);
+}
+function pp_pgn_step_bad(?array $ctx, array $before, array $after, array $d3, int $r): bool {
+    if ($ctx === null) return false;
+    $ea = pp_pgn_row_energy($after, $d3, $ctx, $r); if ($ea >= $ctx['min'] - 1e-6) return false;
+    return $ea < pp_pgn_row_energy($before, $d3, $ctx, $r) - 1e-9;
+}
 function calc_fuel(array $d3, string $gtg, float $load): float {
     if ($load < 1) return 0.0;
     /* ==========================================================================================
@@ -3301,6 +3326,7 @@ function pp_export_ramp_repair(array &$genRows, array $d3, array $model, array $
             $prevOn = $on;
         }
     }
+    $pgnCtxX = pp_pgn_floor_ctx($model);                                         // lantai FLOW PGN RT (hard)
     $moves = 0;
     for ($it = 0; $it < 700; $it++) {
         if (pp_budget_exceeded('export_ramp_repair')) break;                       // deadline budget
@@ -3332,7 +3358,7 @@ function pp_export_ramp_repair(array &$genRows, array $d3, array $model, array $
                 pp_recompute_stgs($genRows[$H], $d3, $model, $H + 1);
                 $eL = $expOf($genRows[$L], (float)$ieVals[$L]); $eH = $expOf($genRows[$H], (float)$ieVals[$H]);
                 $dA = abs($expOf($genRows[$wi + 1], (float)$ieVals[$wi + 1]) - $expOf($genRows[$wi], (float)$ieVals[$wi]));
-                if ($eL > $rMax + 1e-6 || $eH < $rMin - 1e-6 || $dA >= abs($wd) - 1e-9) {
+                if ($eL > $rMax + 1e-6 || $eH < $rMin - 1e-6 || $dA >= abs($wd) - 1e-9 || pp_pgn_step_bad($pgnCtxX, $svH, $genRows[$H], $d3, $H)) {
                     $genRows[$L] = $svL; $genRows[$H] = $svH;
                     pp_recompute_stgs($genRows[$L], $d3, $model, $L + 1);
                     pp_recompute_stgs($genRows[$H], $d3, $model, $H + 1); continue;
@@ -3362,7 +3388,7 @@ function pp_export_ramp_repair(array &$genRows, array $d3, array $model, array $
                     foreach ([$D - 1, $D + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
                         if (abs($eD - $expOf($genRows[$nb], (float)$ieVals[$nb])) > pp_export_step_limit($model) + 1e-6) $okD = false; }
                     $dA = abs($expOf($genRows[$wi + 1], (float)$ieVals[$wi + 1]) - $expOf($genRows[$wi], (float)$ieVals[$wi]));
-                    if (!$okD || $dA >= abs($wd) - 1e-9) {
+                    if (!$okD || $dA >= abs($wd) - 1e-9 || pp_pgn_step_bad($pgnCtxX, $svD, $genRows[$D], $d3, $D)) {
                         $genRows[$L] = $svL; $genRows[$D] = $svD;
                         pp_recompute_stgs($genRows[$L], $d3, $model, $L + 1);
                         pp_recompute_stgs($genRows[$D], $d3, $model, $D + 1); continue;
@@ -7771,6 +7797,25 @@ function pp_validate_hard_constraints(array $input, array $output): array {
             $V[] = ['mandatory_stop', sprintf('%s mandatory stop too short: OFF %d row(s) from row %d, minimum downtime is %d row(s)', $key, $best, $bestFirst + 1, $downRows)];
     }
 
+    /* 8a-ter. STOP STATUS = "Unit Continuous Running" (continuous_to_end): sesudah baris pertama berbeban unit WAJIB
+     * berbeban pada setiap row sampai row terakhir (00:00). Satu-satunya pengecualian: row yang dihentikan oleh input
+     * hard operator yang terpisah (Stop Schedule unit_stop/unit_stop_time) — tidak ada pengecualian lain. */
+    foreach (($model['stop_mode'] ?? []) as $u => $cfg) {
+        if (!is_array($cfg) || strtolower((string)($cfg['mode'] ?? '')) !== 'continuous_to_end') continue;
+        $key = strtoupper((string)$u); if (!isset($rows[0][$key])) continue;
+        $lu = strtolower((string)$u); $first = null;
+        for ($ridx = 0; $ridx < $n; $ridx++) if ((float)($rows[$ridx][$key] ?? 0) > 0.01) { $first = $ridx; break; }
+        if ($first === null) continue;                                   // belum start: aturan berlaku sesudah start
+        $opStop = function (int $row1) use ($model, $lu): bool {
+            foreach ((array)($model['unit_stop'] ?? []) as $x) if (strtolower((string)$x) === $lu) return true;
+            foreach ((array)($model['unit_stop_time'] ?? []) as $e) {
+                if (strtolower((string)($e['unit'] ?? $e['name'] ?? '')) !== $lu) continue;
+                if ($row1 >= (int)($e['start'] ?? 1) && $row1 <= (int)($e['stop'] ?? 48)) return true; }
+            return false; };
+        $bad = []; for ($ridx = $first; $ridx < $n; $ridx++) if ((float)($rows[$ridx][$key] ?? 0) <= 0.01 && !$opStop($ridx + 1)) $bad[] = $ridx + 1;
+        if ($bad) $V[] = ['continuous_to_end', sprintf('%s STOP STATUS = Unit Continuous Running tetapi 0 MW pada %d row sebelum 00:00 (row pertama %d; start row %d)', $key, count($bad), $bad[0], $first + 1)];
+    }
+
     // 8b. STOP STATUS = Stop Based on Request (stop_mode.stop_at): the unit must be 0 MW at the Stop At row
     //     and stay off for the rest of the day; for a committed (required) unit the row BEFORE Stop At must
     //     still carry load (the stop is a transition, not a whole-day off).
@@ -12008,7 +12053,15 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 $s += calc_fuel($d3, $u, (float)($genRows[$r][$u] ?? 0));
             return $s;
         };
-        $pgnRTof = fn(int $r): float => 24.0 * $gasJRowF($r) - $ffJDf;
+        /* Manual Fixed Flow Jababeka per row (Ctrl+Click) menggantikan fixed flow kuota pada row itu —
+         * sama dengan kolom FixedFlow_J yang dinilai validator pgn_rt_min. */
+        $ffJRowF = [];
+        foreach ((array)($model['manual_fixed_flows'] ?? []) as $mfF) {
+            $riF = (int)($mfF['row'] ?? 0) - 1;
+            if ($riF >= 0 && strtoupper((string)($mfF['area'] ?? '')) === 'JABABEKA')
+                $ffJRowF[$riF] = (float)($mfF['value_mmscfd'] ?? $mfF['value'] ?? 0) * ((float)($model['ghv_jababeka'] ?? 1034.7564)) / 1000.0;
+        }
+        $pgnRTof = fn(int $r): float => 24.0 * $gasJRowF($r) - ($ffJRowF[$r] ?? $ffJDf);
         /* §4.2 closure donor: turunkan 0.5 MW unit gas di row donor (FLOW surplus, export > Range Min,
          * ramp/bus aman) — dipakai jalur lift utama & kaskade tetangga. */
         $shiftDonor = function (int $exclude) use (&$genRows, $d3, $model, $n, $expOf, $busOf, $ieVals, $rMinR, &$suCap, $isFixed, $actualRows, $GMIN, &$pgnRTof, &$pgnMinF, &$busMin, &$needBus): bool {
@@ -12038,6 +12091,11 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         $busUnitF = $model['bus_unit'] ?? [];
         $isBusA = fn(string $u): bool => strtoupper((string)($busUnitF[$u . '_bus'] ?? 'A')) === 'A';
         $needBus = $busMin > -1e8;
+        /* REQUIRED START + GAS SHORTAGE (use_distillate): kuota shaper adalah kuota gas BARE — kekurangannya
+         * ditutup Distillate SESUDAH dispatch. Lantai FLOW PGN REAL TIME (hard) tidak boleh ditolak hanya
+         * karena gas sudah di atas kuota bare: tambahan gas pada row itu ikut ditutup Distillate. Plafon
+         * Distillate operator yang tidak cukup muncul sebagai residual dan diputuskan terminal. */
+        $pgnFuelCovers = (strtolower((string)($model['gas_shortage_action'] ?? 'none')) === 'use_distillate');
         if ($pgnMinF > 0 || $needBus) {
             for ($swF = 0; $swF < 3; $swF++) {
                 $movedF = false;
@@ -12148,7 +12206,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                             $swapOK = true; break;
                         }
                         if ($swapOK) { $movedF = true; continue; }                        // re-evaluasi floor
-                        if ($trueGasNow() + 0.02 > $quota - 0.0005) {
+                        if (!$pgnFuelCovers && $trueGasNow() + 0.02 > $quota - 0.0005) {
                             /* §4.2 DAILY-HORIZON REBALANCING: quota penuh — alihkan gas dari periode donor
                              * (FLOW PGN masih surplus & export bisa turun tanpa keluar Range Min) ke periode
                              * gagal. Total harian tetap dlm [quota-0.04, quota]; export/ramp/bus dijaga. */
@@ -12218,7 +12276,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                                         if ((float)($genRows[$nb3][$ug2] ?? 0) >= 1) $cap2 = min($cap2, (float)$genRows[$nb3][$ug2] + 30.0); }
                                     if ($cg2 >= $cap2 - 1e-6) continue;
                                     if ($expOf($genRows[$nb2], $ieVals[$nb2]) > $rMaxR[$nb2] - 0.6) continue;
-                                    if ($trueGasNow() + 0.02 > $quota - 0.0005) { if (!$shiftDonor($r)) break 2; }
+                                    if (!$pgnFuelCovers && $trueGasNow() + 0.02 > $quota - 0.0005) { if (!$shiftDonor($r)) break 2; }
                                     $genRows[$nb2][$ug2] = min($cap2, $cg2 + 0.5);
                                     pp_recompute_stgs($genRows[$nb2], $d3, $model, $nb2 + 1);
                                     $rel2 = true; break;

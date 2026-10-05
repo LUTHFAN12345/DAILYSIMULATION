@@ -1273,7 +1273,7 @@ ul.csverr li{margin:2px 0}
               • <b>Start Based On Simulation</b> — unit wajib start minimal satu kali; waktu dipilih optimizer (feasibility &amp; cost). Last Data Status otomatis Stop, Start At kosong.<br>
               • <b>Start Based on Request</b> — unit wajib start pada <b>Start At</b> (cell Start At bertanda kuning/oranye di hasil); mulai berbeban 30&nbsp;menit setelahnya mengikuti startup sequence (G1–G6: 5·30′→15·30′; G8/G9: 40·60′→50·30′→60·60′→70). Last Data Status otomatis Stop.<br>
               • <b>Unit Continuous Running</b> — unit wajib berbeban penuh 00:30–00:00 (tidak boleh stop); Last Data Status otomatis Running; Stop Status &amp; Stop At disabled; backend <code>unit_cannot_stop</code> digenerate otomatis dari mode ini.<br>
-              <b>Stop Status</b>: • <b>Stop Based On Simulation or Continuous Running</b> — waktu stop bebas dipilih optimizer, atau unit tetap running sampai akhir hari (constraint &amp; cost terbaik). • <b>Stop Based on Request</b> — unit wajib 0&nbsp;MW pertama kali tepat pada <b>Stop At</b> (cell Stop At berwarna hitam di hasil); row sebelumnya masih berbeban.
+              <b>Stop Status</b>: • <b>Stop Based on Simulation or Unit Continuous Running</b> — dua family dievaluasi penuh: stop pada row legal terbaik vs tetap running sampai 00:00; hanya kandidat hard-valid yang dibandingkan, Cost Production terendah dipilih (Heat Rate tie-break dalam pita 0,2%), bukti STOP_SELECTED / CONTINUOUS_SELECTED. • <b>Unit Continuous Running</b> — sesudah start unit wajib berbeban sampai 00:00 dan tidak pernah menjadi kandidat stop/decommit (min/max load, ramp, fuel, STG tetap berlaku). • <b>Stop Based on Request</b> — unit wajib 0&nbsp;MW pertama kali tepat pada <b>Stop At</b> (cell Stop At berwarna hitam di hasil); row sebelumnya masih berbeban.
             </div>
           </div></details>
 
@@ -2304,7 +2304,10 @@ const COMMIT_MODES=[['-','-'],['simulation','Start Based On Simulation'],['reque
    optimizer) | Stop Based On Request (waktu ditentukan user) | Stop Based On Simulation or
    Continuous Running (OPTIONAL: optimizer membandingkan stop vs continuous). Enum internal
    'sim_must' baru; 'sim'/'request' dipertahankan agar data lama tetap terbaca. */
-const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based On Simulation or Continuous Running']];
+/* Token internal stabil (stop_mode[u].mode): 'cont_end' -> continuous_to_end ("Unit Continuous Running": sesudah start
+   wajib berbeban sampai 00:00, tidak pernah kandidat stop) dan 'sim' -> stop_or_continuous_sim (dua family STOP vs
+   CONTINUOUS dibandingkan, bukti STOP_SELECTED/CONTINUOUS_SELECTED). Token lama 'based_on_sim' tetap terbaca sebagai 'sim'. */
+const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based on Simulation or Unit Continuous Running'],['cont_end','Unit Continuous Running']];
 const STOPAT_TIMES=(()=>{const a=[];for(let m=30;m<24*60;m+=30){const h=String(Math.floor(m/60)).padStart(2,'0'),mm=String(m%60).padStart(2,'0');a.push(h+':'+mm);}a.push('00:00');return a;})();
 let REQUIRED_ORDER=[];   // units committed via Request/Simulation (run at least once)
 let CANNOT_STOP=[];      // units in Continuous Running (cannot stop) — auto-generated, no UI column
@@ -2327,7 +2330,8 @@ function buildStopModeObj(){
     if(COMMIT_MODE[u]==='continuous') return;                      // continuous: Stop Status/Stop At disabled
     if(STOP_MODE[u]==='request') sm[u]={mode:'stop_at',at:STOP_AT[u]||''};
     else if(STOP_MODE[u]==='sim_must') sm[u]={mode:'based_on_sim_must'};   // mandatory stop
-    else if(STOP_MODE[u]==='sim') sm[u]={mode:'based_on_sim'};              // optional stop-or-continuous
+    else if(STOP_MODE[u]==='sim') sm[u]={mode:'stop_or_continuous_sim'};    // dua family: stop vs continuous
+    else if(STOP_MODE[u]==='cont_end') sm[u]={mode:'continuous_to_end'};     // Unit Continuous Running sampai 00:00
   });
   return sm;
 }
@@ -2442,7 +2446,8 @@ function initUnitFlags(){
     if(COMMIT_MODE[u]==='continuous') STOP_MODE[u]='-';
     else if(smode==='stop_at'){ STOP_MODE[u]='request'; STOP_AT[u]=s.at||s.stop_at||''; }
     else if(smode==='based_on_sim_must') STOP_MODE[u]='sim_must';
-    else if(smode==='based_on_sim') STOP_MODE[u]='sim';
+    else if(smode==='based_on_sim'||smode==='stop_or_continuous_sim') STOP_MODE[u]='sim';
+    else if(smode==='continuous_to_end') STOP_MODE[u]='cont_end';
     else STOP_MODE[u]='-';
   });
   syncFlagArrays();
@@ -4423,6 +4428,7 @@ let GSF_VO = null;          // hasil job validated_options terakhir
 let GSF_VO_TIMER = null;    // handle polling
 let GSF_VO_JOB = null;      // {job_id, input_hash}
 let GSF_VO_NORES = 0;       // jumlah polling DONE tanpa hasil terbaca
+let GSF_VO_Q0 = 0;          // awal status QUEUED job opsi (watchdog)
 
 function gsfStopPolling(){ if(GSF_VO_TIMER){ clearInterval(GSF_VO_TIMER); GSF_VO_TIMER=null; } }
 
@@ -4670,6 +4676,11 @@ function gsfStartPolling(){
         gsfRenderOptions(null,false);
         const d=document.getElementById('gsf-detail-panel'); if(d&&d.dataset.built){ d.dataset.built=''; d.innerHTML=''; }
         return; }
+      /* Watchdog: job opsi yang tidak pernah diklaim (QUEUED) tidak boleh membuat popup menunggu tanpa akhir. */
+      if(job.status==='QUEUED'){ GSF_VO_Q0=GSF_VO_Q0||Date.now(); if(Date.now()-GSF_VO_Q0>60000){ gsfStopPolling(); GSF_VO_Q0=0;
+        GSF_VO={action_status:'VALIDATION_FAILED',lng:{validated:false,reason:'Validasi opsi tidak pernah mulai dalam 60 detik (QUEUED). Gunakan Input Manual atau Run ulang.'},
+          distillate:{validated:false,reason:'Validasi opsi tidak pernah mulai dalam 60 detik (QUEUED). Gunakan Input Manual atau Run ulang.'}};
+        gsfRenderOptions(null,false); return; } } else GSF_VO_Q0=0;
       if(job.status==='CANCELLED'&&job.fastest_claimed){ gsfStopPolling(); return; }
       if(job.status==='FAILED'||job.status==='CANCELLED'){ gsfStopPolling();
         GSF_VO={action_status:'VALIDATION_FAILED',
@@ -4918,6 +4929,10 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
     ppFireHelpers(id,tok,job&&job.helpers);
   }
   let tanpaHasil=0;
+  /* WATCHDOG STATUS TERMINAL: polling tidak boleh berjalan tanpa akhir. Job QUEUED (tidak pernah diklaim — request
+   * job_exec hilang/tertahan) dipicu ulang sekali setelah 15 s dan dinyatakan gagal setelah 60 s; job tanpa status
+   * terminal melewati plafon engine + 120 s dinyatakan gagal. Keduanya membatalkan job dan berhenti di sini. */
+  const tWd0=Date.now(); let tQ0=null, refired=false;
   for(let n=0;n<3600;n++){
     /* V10: interval baca status 250 ms selama 60 detik pertama (FINAL tampil <= 0,25 s sesudah job selesai), lalu 1 s. */
     await new Promise(r=>setTimeout(r,(FASTEST_CTX&&FASTEST_CTX.branch===branch&&FASTEST_CTX.token===token)?600:(n<400?150:1000)));   // V11: 150 ms selama 60 detik pertama   /* V12 Fastest: rilis dibaca fastestPoll; job_poll 600 ms agar polling tidak merebut CPU engine (tanpa OPcache tiap request mengompilasi ~2,2 MB PHP) */
@@ -4934,6 +4949,15 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
     if(!sr.ok||!sj.ok)throw new Error((sj.error&&sj.error.message)||sj.error||'gagal membaca async job');
     if(sj.stale)throw new Error('Async job identity mismatch: '+(sj.stale_reason||'input hash berbeda'));
     const j=sj.job||{};
+    if(j.status==='QUEUED'){ if(tQ0==null) tQ0=Date.now();
+      if(!refired && Date.now()-tQ0>15000 && tok){ refired=true;
+        fetch('run.php?mode=job_exec&job='+encodeURIComponent(id)+'&token='+encodeURIComponent(tok),{cache:'no-store'}).catch(()=>{}); }
+      if(Date.now()-tQ0>60000){ fetch('run.php?mode=job_cancel&job='+encodeURIComponent(id),{cache:'no-store'}).catch(()=>{});
+        throw new Error('job tidak pernah mulai dalam 60 detik (status QUEUED, request job_exec tidak diterima server) — dibatalkan; tekan Run lagi'); } }
+    else tQ0=null;
+    if(!['DONE','FAILED','CANCELLED'].includes(String(j.status||'')) && Date.now()-tWd0>(((+j.ceiling_s)||1800)+120)*1000){
+      fetch('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(id),{cache:'no-store'}).catch(()=>{});
+      throw new Error('job tidak mencapai status terminal dalam plafon engine ('+((+j.ceiling_s)||1800)+' s) — dibatalkan'); }
     const langkah=String(j.current_step||j.status||'').replace(/_/g,' ').toLowerCase();
     if(rm)rm.textContent='Perhitungan eksak: '+langkah+' '+Math.round(+j.percent||0)+'%';
     ppmSetWorker(langkah,j.percent);
@@ -5110,14 +5134,21 @@ async function runSim(){
      pendahuluan, engine menjalankan add_lng yang pasti menyisakan kekurangan lalu ditolak, alih-alih
      membentuk bahan bakar campuran. Pendahuluan menjadikan ketiga keputusan (cukup, kurang, kosong)
      dapat dibedakan sebelum rerun final dijalankan. */
+  /* REQUIRED START + GAS SHORTAGE (root cause "engine selesai, UI menunggu"): `Use distillate` yang SUDAH dipilih
+   * operator DIKIRIM LANGSUNG ke backend dalam SATU job. Dahulu pilihan ini diubah menjadi `recommendation`
+   * (job pendahuluan), lalu UI menjalankan rerun kedua dengan jumlah rekomendasi job pertama sebagai plafon —
+   * dua pipeline + keluarga basis yang dibuang, dan rerun ditolak bila kebutuhan Distillate rencana bahan bakar
+   * sedikit lebih besar dari rekomendasi basis tanpa bahan bakar. Engine menghitung sendiri kebutuhan Distillate
+   * (alokasi satu-unit-dulu); `Distillate limit` diisi = plafon operator (dihormati, residual dinyatakan terminal),
+   * kosong = tanpa plafon. Add LNG tetap melewati analisis pendahuluan (jumlah LNG perlu kebutuhan terukur). */
   var __pending = null;
-  if(__act==='add_lng' || __act==='use_distillate') { __pending=__act; __act='recommendation'; }
+  if(__act==='add_lng') { __pending=__act; __act='recommendation'; }
   try{ GSD_PENDING_CHOICE = __pending; }catch(e){}
 
   payload.data3.modeling.gas_shortage_action=__act;
   payload.data3.modeling.additional_lng = (__act==='add_lng') ? __lngAmt : 0;
   delete payload.data3.modeling.distillate_user_limit_litres;
-  if(__act==='use_distillate') payload.data3.modeling.distillate_user_limit_litres = __distAmt;
+  if(__act==='use_distillate' && isFinite(__distAmt) && __distAmt>0) payload.data3.modeling.distillate_user_limit_litres = __distAmt;
   GSF_BASE_PAYLOAD=JSON.parse(JSON.stringify(payload));
   delete payload.data3.modeling.validated_options;
   delete payload.data3.modeling.validated_shortage_options;
@@ -5512,8 +5543,31 @@ function gsdAutoResolveIfChosen(payload,data){
  * keputusan bahan bakar, operator justru kehilangan satu-satunya jalan untuk memutuskannya.
  * Satu tempat ini dipakai oleh jalur sinkron maupun jalur worker background, supaya perilakunya
  * tidak bisa berbeda antar-jalur. */
+/* KEPUTUSAN TERMINAL BACKEND (sertifikat feasibility): input tidak mempunyai rencana valid. Ditampilkan sebagai
+ * hasil akhir run — tidak ada polling, popup bahan bakar, maupun rerun otomatis; tombol Run aktif kembali. */
+function gsdTerminalDecisionHtml(data){
+  const d=data.terminal_decision||{}; const c=d.certificate||{}; const g=d.gas||{}; const ds=d.distillate||{}; const st=d.startup||{};
+  const f=(v,n)=>(v==null||!isFinite(+v))?'—':(+v).toLocaleString('id-ID',{maximumFractionDigits:n==null?3:n});
+  const su=Object.keys(st).filter(u=>st[u]&&st[u].required).map(u=>u+' row '+st[u].first_load_row+' ('+(st[u].first_rows_mw||[]).slice(0,6).join(', ')+' MW)').join('; ');
+  return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||data.status||'TIDAK FEASIBLE'))+'</b> — keputusan terminal, TIDAK FEASIBLE secara matematis. '
+    +'Row '+gsfEsc(String(c.row||'?'))+' ('+gsfEsc(String(c.time||''))+'): FLOW PGN REAL TIME maksimum '+f(c.max_achievable_flow_mmscfd)+' &lt; Min PGN Flow '+f(c.min_pgn_flow_mmscfd,2)
+    +' MMSCFD (kurang '+f(c.deficit_mmscfd)+' MMSCFD ≈ '+f(c.deficit_mw_equivalent,1)+' MW unit gas); unit online row 1: '+gsfEsc((c.units_online_row1||[]).map(o=>o.unit+' maks '+o.max_mw+' MW').join(', ')||'-')
+    +'; required start paling awal row 2 (Last Data = Stop). Gas: kuota '+f(g.quota_bbtud,2)+', kebutuhan '+f(g.required_bbtud,4)+', kekurangan '+f(g.shortage_bbtud,4)+' BBTUD. '
+    +'Distillate ('+gsfEsc(String(ds.action||'-'))+'): plafon '+f(ds.user_limit_litres,1)+' l, kebutuhan '+f(ds.required_litres,0)+' l, terjadwal '+f(ds.scheduled_litres,1)+' l; Distillate tidak menaikkan flow PGN. '
+    +(su?('Startup required (pratinjau): '+gsfEsc(su)+'. '):'')
+    +'Feasible bila: '+gsfEsc((c.feasible_if||[]).join('; '))+'. Save/Export/Publish terkunci.</span>';
+}
 function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
   gsdHoldPreliminary(payload,data);
+  if(data && data.terminal_decision && data.terminal_decision.terminal===true){
+    try{ V11_SUM_DONE=true; }catch(e){}
+    if(typeof ppmClose==='function') ppmClose();
+    if(typeof gsfStopPolling==='function') gsfStopPolling();
+    const rmT=document.getElementById('run-msg');
+    if(rmT) rmT.innerHTML=gsdTerminalDecisionHtml(data);   // tanpa prefiks "Done": ini keputusan terminal, bukan rencana
+    try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
+    return;
+  }
   const dec=data.shortage_decision||null;
   /* Popup HANYA dibuka ketika backend sendiri menyatakan estimasi bahan bakarnya sudah siap
    * (status keputusan bahan bakar). `shortage_decision.action_required` TIDAK cukup: pada hasil
@@ -6027,7 +6081,7 @@ async function runSimCore(payload, opts){
   let tk=null; const t0f=performance.now();
   const stopFast=()=>{ if(tk){ clearInterval(tk); tk=null; } FASTEST_CTX=null; const f=document.getElementById('fast-msg'); if(f) f.textContent=''; };
   const failFast=(html)=>{ stopFast(); try{ ppmClose(); }catch(e){} const rmF=$('run-msg'); if(rmF) rmF.innerHTML=html; };
-  const startTicker=()=>{ if(!opts.fastest||tk) return; tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage|Error|tidak dimulai|Instalasi/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
+  const startTicker=()=>{ if(!opts.fastest||tk) return; tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage|Error|tidak dimulai|Instalasi|FEASIBLE|terminal/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
       if(f) f.textContent='Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s'; },400); };
   if(opts.fastest){
     let fm=document.getElementById('fast-msg'); const rm0=$('run-msg');
