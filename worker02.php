@@ -1209,7 +1209,7 @@ function pp_global_commitment_key(array $in, array $o): array {
     foreach (($o['data'] ?? []) as $ri => $r) {
         if ((float)($r['Export_PLN'] ?? 0) < $rMin - 1e-6) $expU++;
         $g = []; foreach ($UN as $u) $g[$u] = (float)($r[$colf($u)] ?? 0);
-        if (pp_spinning_reserve($g, $in['data3'], $m, $ri + 1) < $need - 1e-6) $resU++;
+        if (pp_spinning_reserve($g, $in['data3'], $m, $ri + 1) < pp_reserve_min_row($m, (int)$ri) - 1e-6) $resU++;
         if (calc_busflow($g, (array)($m['bus_unit'] ?? []), (float)($r['IE'] ?? 0)) < $busMin - 1e-6) $busU++;
         foreach ($UN as $u) { if (($prev[$u] ?? 0) <= 0.01 && $g[$u] > 0.01) $starts++; $prev[$u] = $g[$u]; }
     }
@@ -2184,6 +2184,7 @@ function pp_run_simulation(array $input): array {
         if ($__ppOuter && function_exists('pp_v12_step')) pp_v12_step('V12_PIPELINE_SELESAI');
         if ($__ppOuter && function_exists('pp_exact_family_stage')) $out = pp_exact_family_stage($input, $out);   // ruang kandidat exact lengkap
         if ($__ppOuter && function_exists('pp_v12_step')) pp_v12_step('V12_KELUARGA_SELESAI');
+        try { $out['info']['Spinning Reserve Requirement'] = pp_reserve_audit((array)($input['data3']['modeling'] ?? [])); } catch (Throwable $e) {}
         if ($__ppOuter && function_exists('pp_v6_priority_polish') && empty($input['data3']['modeling']['change_over']['enabled']) && empty($input['data3']['modeling']['__tl_no_auto_start'])
             && ($GLOBALS['__pp_econ_review_skipped'] ?? null) === null && empty($GLOBALS['__pp_budget_aborts'])) {
             $oP = $input; foreach (array_keys((array)$oP['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($oP['data3']['modeling'][$mk]);
@@ -6915,7 +6916,7 @@ function pp_run_simulation_once_raw(array $input): array {
                          * requirement. Tanpa guard ini, pass biaya ini membatalkan hasil
                          * pp_babelan_energy_redispatch_for_reserve() yang berjalan lebih awal. */
                         if ($okRM && $needRM > 0
-                            && pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1) < $needRM - 1e-6) $okRM = false;
+                            && pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1) < pp_reserve_min_row($model, $r) - 1e-6) $okRM = false;
                         if (!$okRM) { $genRows[$r] = $svRM; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); continue; }
                         $movedRM = true;
                     }
@@ -8294,6 +8295,7 @@ function pp_run_simulation_once_raw(array $input): array {
         $ffJDaily = ((float)$rw['FixedFlow_J'] * $ghvJ) / 1000.0;
         $energyPgnRT = $jbbkGasDisp - $ffJDaily;
         $rw['EnergyPGN_RT'] = round($energyPgnRT, 5);                 // 32 ENERGY PGN REAL TIME (daily-equiv)
+        $rw['SR_Min'] = round(pp_reserve_min_row($model, (int)$i), 3);  // SR minimum efektif row ini (fixed / max(fixed, PV))
         /* §3.1 PROMPT PGN_FLOW_REBALANCE: FLOW PGN REAL TIME (MMSCFD) = EnergyPGN_RT / GHV PGN * 1000.
          * GHV PGN kosong/invalid -> fallback GHV From Tegalgede to Jababeka (warning di engine). */
         $ghvPgnC = (float)($model['ghv_pgn'] ?? 0); if ($ghvPgnC <= 1e-9) $ghvPgnC = $ghvJ;

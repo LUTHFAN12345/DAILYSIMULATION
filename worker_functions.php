@@ -5010,8 +5010,36 @@ function pp_spinning_reserve(array $gen, array $d3, array $model, int $row1): fl
     }
     return $res;
 }
+/* SPINNING RESERVE PER ROW (token stabil):
+ *   sr_mode = 'fixed'     -> SR_min[row] = sr_fixed_mw (seluruh 48 row);
+ *   sr_mode = 'follow_pv' -> SR_min[row] = max(sr_fixed_mw, PV[row]); PV kosong/invalid -> sr_fixed_mw (+ warning audit).
+ * Input lama tanpa sr_mode/sr_fixed_mw: 'fixed' dengan nilai spinning_reserve_min (perilaku lama, identik).
+ * SATU sumber array untuk validator, repair, screening, release gate, merit audit, dan tampilan (sr_effective_rows). */
+function pp_reserve_rows(array $model, int $n = 48): array {
+    static $cache = [];
+    $fx = isset($model['sr_fixed_mw']) && is_numeric($model['sr_fixed_mw']) ? (float)$model['sr_fixed_mw']
+        : (float)($model['spinning_reserve_min'] ?? $model['reserve_min'] ?? 0);
+    $mode = strtolower((string)($model['sr_mode'] ?? 'fixed'));
+    if ($mode !== 'follow_pv') return array_fill(0, $n, $fx);
+    $pv = (array)($model['pv_rows'] ?? []);
+    $k = md5($fx . '|' . json_encode($pv) . '|' . $n); if (isset($cache[$k])) return $cache[$k];
+    $out = [];
+    for ($r = 0; $r < $n; $r++) { $v = $pv[$r] ?? null; $out[] = (is_numeric($v) && (float)$v >= 0) ? max($fx, (float)$v) : $fx; }
+    if (count($cache) > 64) $cache = [];
+    return $cache[$k] = $out;
+}
+function pp_reserve_min_row(array $model, int $r0): float { $a = pp_reserve_rows($model); return (float)($a[$r0] ?? ($a ? max($a) : 0.0)); }
+function pp_reserve_audit(array $model): array {
+    $mode = strtolower((string)($model['sr_mode'] ?? 'fixed')); $pv = (array)($model['pv_rows'] ?? []); $bad = [];
+    if ($mode === 'follow_pv') for ($r = 0; $r < 48; $r++) { $v = $pv[$r] ?? null; if (!(is_numeric($v) && (float)$v >= 0)) $bad[] = $r + 1; }
+    $rows = pp_reserve_rows($model);
+    return ['sr_mode' => $mode === 'follow_pv' ? 'follow_pv' : 'fixed', 'sr_fixed_mw' => isset($model['sr_fixed_mw']) && is_numeric($model['sr_fixed_mw']) ? (float)$model['sr_fixed_mw'] : (float)($model['spinning_reserve_min'] ?? 0),
+            'formula' => $mode === 'follow_pv' ? 'SR_min[row] = max(sr_fixed_mw, PV[row])' : 'SR_min[row] = sr_fixed_mw',
+            'sr_effective_rows' => $rows, 'min_mw' => $rows ? min($rows) : 0, 'max_mw' => $rows ? max($rows) : 0,
+            'pv_invalid_rows' => $bad, 'warning' => $bad ? sprintf('PV kosong/invalid pada %d row (row %s) — memakai sr_fixed_mw', count($bad), implode(',', array_slice($bad, 0, 12))) : null];
+}
 function pp_reserve_min(array $model): float {
-    return (float)($model['spinning_reserve_min'] ?? $model['reserve_min'] ?? 0);
+    $a = pp_reserve_rows($model); return $a ? (float)max($a) : 0.0;   // guard lama ("ada requirement?"); pembanding per row memakai pp_reserve_min_row
 }
 /* Headroom tambahan yang bisa didapat bila unit OFF dinyalakan (untuk keputusan commitment). */
 function pp_reserve_potential_from_start(array $gen, array $d3, array $model, string $u, int $row1): float {
@@ -5082,7 +5110,7 @@ function pp_reserve_repair(array &$genRows, array $d3, array $model, array $ieVa
         $r = -1;
         for ($i = 0; $i < $n; $i++) {
             if (isset($actualRows[$i]) || !empty($exhausted[$i])) continue;
-            if (pp_spinning_reserve($genRows[$i], $d3, $model, $i + 1) < $need - 1e-6) { $r = $i; break; }
+            if (pp_spinning_reserve($genRows[$i], $d3, $model, $i + 1) < pp_reserve_min_row($model, $i) - 1e-6) { $r = $i; break; }
         }
         if ($r < 0) break;
         $before = pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1);
@@ -5327,7 +5355,7 @@ function pp_babelan_energy_redispatch_for_reserve(array &$genRows, array $d3, ar
         $guard = 0;
         while ($guard++ < 30) {
             $res = pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1);
-            $want = $need - $res;
+            $want = pp_reserve_min_row($model, $r) - $res;
             if ($want <= $EPS) break;
             $moved = false;
             /* Turunkan GTG/GEG eligible yang loadnya PALING JAUH di atas Effective Min lebih dulu. */
@@ -5456,7 +5484,7 @@ function pp_anticipatory_commit_for_reserve(array &$genRows, array $d3, array $m
         $deficit = null;
         for ($r = 0; $r < $n; $r++) {
             if (isset($actualRows[$r])) continue;
-            if (pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1) < $need - $EPS) { $deficit = $r; break; }
+            if (pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1) < pp_reserve_min_row($model, $r) - $EPS) { $deficit = $r; break; }
         }
         if ($deficit === null) break;
         /* kandidat: unit eligible yang OFF pada row defisit; non-skrip lebih dulu */
@@ -5618,7 +5646,7 @@ function pp_reserve_certificate(array $genRows, array $d3, array $model, array $
     $rows = []; $worst = null;
     for ($r = 0; $r < $n; $r++) {
         $res = pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1);
-        if ($res >= $need - 1e-6) continue;
+        $needR = pp_reserve_min_row($model, $r); if ($res >= $needR - 1e-6) continue;
         $sumMaxOnline = 0.0; $sumLoad = 0.0; $offPot = []; $gasExtra = 0.0;
         foreach (pp_reserve_units($d3) as $u) {
             $v = (float)($genRows[$r][$u] ?? 0);
@@ -5635,7 +5663,7 @@ function pp_reserve_certificate(array $genRows, array $d3, array $model, array $
         }
         $maxTheoretical = $sumMaxOnline - $sumLoad;
         foreach ($offPot as $o) $maxTheoretical += (float)($o['headroom'] ?? 0);
-        $deficit = $need - $res;
+        $deficit = $needR - $res;
         /* gas minimum tambahan: pilih unit OFF dgn gas/MW-headroom terbaik sampai defisit tertutup */
         $sorted = array_values(array_filter($offPot, fn($o) => ($o['headroom'] ?? 0) > 0));
         usort($sorted, fn($a, $b) => (($a['gas_full_day_bbtud'] ?? INF) / max(0.01, $a['headroom']))
@@ -5643,7 +5671,7 @@ function pp_reserve_certificate(array $genRows, array $d3, array $model, array $
         $acc = 0.0; $picked = [];
         foreach ($sorted as $o) { if ($acc >= $deficit) break; $acc += (float)$o['headroom'];
                                   $gasExtra += (float)($o['gas_full_day_bbtud'] ?? 0); $picked[] = $o['unit']; }
-        $row = ['row' => $r + 1, 'reserve' => round($res, 2), 'requirement' => $need,
+        $row = ['row' => $r + 1, 'reserve' => round($res, 2), 'requirement' => $needR,
                 'deficit_mw' => round($deficit, 2),
                 'sigma_max_online' => round($sumMaxOnline, 2), 'sigma_load_online' => round($sumLoad, 2),
                 'reserve_max_theoretical_all_units_online' => round($maxTheoretical, 2),
@@ -5793,7 +5821,8 @@ function pp_export_peak_shift(array &$genRows, array $d3, array $model, array $i
                 $resAfter = ($need > 0) ? pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1) : INF;
                 /* KUNCI RESERVE: refill tidak boleh menjatuhkan reserve di bawah requirement, dan
                  * untuk row yang sudah kurang tidak boleh membuatnya makin buruk. */
-                $resOK = ($need <= 0) || ($resBefore >= $need - 1e-6 ? $resAfter >= $need - 1e-6
+                $needR = pp_reserve_min_row($model, $r);
+                $resOK = ($needR <= 0) || ($resBefore >= $needR - 1e-6 ? $resAfter >= $needR - 1e-6
                                                                      : $resAfter >= $resBefore - 1e-6);
                 if (!$rowOK($r) || $gasProxy() > $gas0 + 1e-6 || !$resOK) {
                     $genRows[$r] = $sv; /* E10 site 10: recompute pasca-restore DIHAPUS (terbukti redundan) */ continue;
@@ -8078,10 +8107,11 @@ function pp_validate_hard_constraints(array $input, array $output): array {
                 $__c = strtoupper($__u); if ($__c === 'B1') $__c = 'BB1'; if ($__c === 'B2') $__c = 'BB2';
                 $__gen[$__u] = (float)($__r[$__c] ?? 0);
             }
-            if ($__resMin > 0) {
+            $__resMinR = pp_reserve_min_row($__mR, (int)$__i);
+            if ($__resMinR > 0) {
                 $__res = pp_spinning_reserve($__gen, $__d3R, $__mR, $__i + 1);
-                if ($__res < $__resMin - 1e-6)
-                    $V[] = ['spinning_reserve', sprintf('row %d: Spinning Reserve %.2f MW < requirement %.2f MW (headroom unit online tidak cukup)', $__i + 1, $__res, $__resMin)];
+                if ($__res < $__resMinR - 1e-6)
+                    $V[] = ['spinning_reserve', sprintf('row %d: Spinning Reserve %.2f MW < requirement %.2f MW (headroom unit online tidak cukup)', $__i + 1, $__res, $__resMinR)];
             }
             if ($__busMin > 0) {
                 $__bf = calc_busflow($__gen, $__busUnit, (float)($__r['IE'] ?? 0));
@@ -8228,7 +8258,7 @@ function pp_reserve_infeasibility_proof(array $genRows, array $d3, array $model,
     foreach ($genRows as $i => $g) {
         $row = $i + 1;
         $res = pp_spinning_reserve($g, $d3, $model, $row);
-        if ($res >= $need - 1e-6) continue;
+        $needR = pp_reserve_min_row($model, $i); if ($res >= $needR - 1e-6) continue;
         /* KOREKSI DOMAIN: Babelan BUKAN unit reserve, jadi penurunan coal TIDAK menambah reserve.
          * Batas atas reserve pada row ini hanya dari dua sumber:
          *   downPot  = menurunkan load unit eligible yang SUDAH online sampai Effective Min
@@ -8253,12 +8283,12 @@ function pp_reserve_infeasibility_proof(array $genRows, array $d3, array $model,
         }
         $coalPot = 0.0;   /* Babelan tidak pernah menyumbang reserve */
         $maxPossible = $res + $downPot + $startPot;
-        if ($maxPossible < $need - 1e-6) {
+        if ($maxPossible < $needR - 1e-6) {
             $proofs[] = ['row' => $row, 'proof' => 'A', 'reserve_mw' => round($res, 2),
-                         'max_possible_mw' => round($maxPossible, 2), 'requirement_mw' => $need,
+                         'max_possible_mw' => round($maxPossible, 2), 'requirement_mw' => $needR,
                          'down_potential_mw' => round($downPot, 2), 'start_potential_mw' => round($startPot, 2),
                          'reason' => 'seluruh lever habis: menurunkan unit online ke Effective Min + menyalakan semua unit eligible tetap tidak mencapai requirement (Babelan tidak menyumbang reserve)'];
-        } elseif ($gasNeed > $gasRoom + 1e-9 && $res + $downPot < $need - 1e-6) {
+        } elseif ($gasNeed > $gasRoom + 1e-9 && $res + $downPot < $needR - 1e-6) {
             $proofs[] = ['row' => $row, 'proof' => 'B', 'reserve_mw' => round($res, 2),
                          'gas_extra_required_bbtud' => round($gasNeed, 4), 'gas_room_bbtud' => round($gasRoom, 4),
                          'units_needed' => $offU,
@@ -13061,7 +13091,13 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     foreach (['g9', 'g8'] as $uQ) {
                         if ($isFixed($uQ, $r) || isset($suCap[$uQ][$r]) || pp_is_unit_stopped($d3, $model, $uQ, $r + 1)) continue;
                         $cQ = (float)($genRows[$r][$uQ] ?? 0); if ($cQ <= $GMIN + 1e-6) continue;
-                        $genRows[$r][$uQ] = max($GMIN, $cQ - 0.4);
+                        /* ramp unit G8/G9 30 MW/30 menit (hard): clamp kuota tidak boleh memutus tangga ke row tetangga
+                         * (terukur: row 2 diturunkan ke 65 sementara row 1 diangkat lantai PGN ke 108 -> unit_ramp). */
+                        $nQ = max($GMIN, $cQ - 0.4); $rampQ = false;
+                        foreach ([$r - 1, $r + 1] as $nbQ) { if ($nbQ < 0 || $nbQ >= $n) continue;
+                            $xQ = (float)($genRows[$nbQ][$uQ] ?? 0); if ($xQ >= 1 && abs($nQ - $xQ) > 30.0 + 1e-6 && abs($nQ - $xQ) > abs($cQ - $xQ) - 1e-9) $rampQ = true; }
+                        if ($rampQ) continue;
+                        $genRows[$r][$uQ] = $nQ;
                         pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
                         $dn2 = true; break;
                     }

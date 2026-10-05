@@ -1099,7 +1099,7 @@ ul.csverr li{margin:2px 0}
       <div class="childtabs" role="tablist">
         <button type="button" class="childtab active" data-child="frequent" data-cp="cp-nameplan">Name Plan &amp; IE/Dispatch</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-pln">PLN Export Priority</button>
-        <button type="button" class="childtab" data-child="frequent" data-cp="cp-sr">SR &amp; Bus Flow</button>
+        <button type="button" class="childtab" data-child="frequent" data-cp="cp-sr">Bus Flow &amp; Spinning Reserve</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-gas">Gas Data</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-stgstartup">STG Start Up Mode</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-babelan">Babelan &amp; Biomass</button>
@@ -1118,15 +1118,15 @@ ul.csverr li{margin:2px 0}
         <div class="fcard"><div class="fh"><span class="fi">▤</span><span class="ft">IE prediction &amp; dispatch</span><span class="fhint">48 half-hour rows</span></div>
           <div class="fb">
             <div class="runbar no-print">
-              <label class="btn ghost" style="cursor:pointer">Import CSV…<input type="file" id="csv-file" accept=".csv,text/csv" hidden></label>
+              <label class="btn ghost" style="cursor:pointer">Import CSV / Excel…<input type="file" id="csv-file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>
               <button type="button" class="btn ghost" id="csv-validate" title="Validasi ulang CSV terakhir tanpa menerapkannya">Validate</button>
-              <button type="button" class="btn" id="csv-apply" disabled title="Terapkan CSV valid ke 48 slot">Apply</button>
-              <button type="button" class="btn ghost" id="csv-clear" title="Bersihkan preview (data existing tidak diubah)">Clear</button>
+              <button type="button" class="btn" id="csv-apply" disabled title="Terapkan file valid ke 48 slot (IE, Dispatch, PV)">Apply Import</button>
+              <button type="button" class="btn ghost" id="csv-clear" title="Batalkan preview (data existing tidak diubah)">Cancel</button>
               <button type="button" class="btn ghost" id="csv-reset" title="Kembalikan IE/Dispatch ke kondisi sebelum Apply">Reset</button>
               <div id="csv-status" class="csv-status" style="display:none"></div>
               <div id="csv-preview" class="csv-preview" style="display:none"></div>
               <button class="btn ghost" id="btn-paste">Paste from clipboard</button>
-              <span class="hint">CSV columns: <code>time,ie,dispatch</code> or two columns <code>ie,dispatch</code>.</span>
+              <span class="hint">Row 1 = header (dilewati). Data row 2–49: A <code>Tanggal</code>, B <code>IE (MW)</code>, C <code>Dispatch</code>, D <code>PV (MW)</code> → Spinning Reserve › Follow PV. CSV &amp; Excel (.xlsx) memakai mapping yang sama.</span>
               <span class="spacer"></span><span class="hint" id="ied-sum"></span>
             </div>
             <div class="scroll" style="max-height:380px"><table class="data" id="tbl-ied"></table></div>
@@ -1183,13 +1183,26 @@ ul.csverr li{margin:2px 0}
           </div></div>
       </div>
 
-      <!-- C. SR & Bus Flow -->
+      <!-- C. Bus Flow (atas) & Spinning Reserve (bawah) — dua section terpisah -->
       <div class="childpanel" data-child="frequent" id="cp-sr">
-        <div class="fcard"><div class="fh"><span class="fi">⚙</span><span class="ft">Spinning reserve &amp; bus flow</span><span class="fhint">reliability constraints</span></div>
+        <div class="fcard" id="sec-busflow"><div class="fh"><span class="fi">⚙</span><span class="ft">BUS FLOW</span><span class="fhint">reliability constraint · semantics &amp; token tidak berubah</span></div>
           <div class="fb"><div class="grid g3">
-            <label class="fld">Spinning reserve min <span class="u">units</span><input type="number" step="1" id="f-spinning_reserve_min"></label>
             <label class="fld">Bus flow min <span class="u">MW</span><input type="number" step="0.1" id="f-busflow_min"></label>
           </div></div></div>
+        <div class="fcard" id="sec-sr"><div class="fh"><span class="fi">⚡</span><span class="ft">SPINNING RESERVE</span><span class="fhint">SR minimum per row 30 menit</span></div>
+          <div class="fb">
+            <div class="grid g3" style="align-items:end">
+              <div class="fld" role="radiogroup" aria-label="Spinning Reserve mode">
+                <span>Mode</span>
+                <label style="font-weight:600;display:flex;gap:6px;align-items:center"><input type="radio" name="sr-mode" id="sr-mode-fixed" value="fixed"> Fix Spinning Reserve</label>
+                <label style="font-weight:600;display:flex;gap:6px;align-items:center"><input type="radio" name="sr-mode" id="sr-mode-pv" value="follow_pv"> Follow PV</label>
+              </div>
+              <label class="fld"><span id="sr-fixed-label">Fix Spinning Reserve</span> <span class="u">MW</span><input type="number" step="0.01" min="0" id="f-spinning_reserve_min"></label>
+              <div class="hint" id="sr-sum"></div>
+            </div>
+            <div class="hint" style="margin:6px 0">Fix Spinning Reserve: SR minimum = nilai fix pada 48 row. Follow PV: SR minimum = max(nilai fix sebagai floor, PV[row]); PV kosong/invalid memakai floor (warning audit). PV diisi dari kolom D import IE Prediction &amp; Dispatch dan dapat diedit per 30 menit.</div>
+            <div class="scroll" style="max-height:380px"><table class="data" id="tbl-srpv"></table></div>
+          </div></div>
       </div>
 
       <!-- D. Gas Data -->
@@ -4099,7 +4112,8 @@ function buildFrequent(){
   { const pd=$('f-plan_date'); if(pd) pd.value=(m.plan_date&&/^\d{4}-\d{2}-\d{2}$/.test(m.plan_date))?m.plan_date:new Date().toISOString().slice(0,10); }
   { const rk=$('f-plan_remark'); if(rk) rk.value=m.plan_remark||''; }
   autoNamePlan();   // Name Plan is auto-generated (readonly) from plan_date + plan_remark
-  val('f-house_load',m.house_load); val('f-spinning_reserve_min',m.spinning_reserve_min);
+  val('f-house_load',m.house_load); val('f-spinning_reserve_min',(m.sr_fixed_mw!=null&&m.sr_fixed_mw!=='')?m.sr_fixed_mw:m.spinning_reserve_min);
+  try{ srInit(m); }catch(e){}
   const p=m.pln_export_priority||{};
   val('f-pln-range-min',p.range?.min); val('f-pln-range-max',p.range?.max); chk('f-pln-range-req',true); // Range is always required
   val('f-pln-dt-val',p.daily_target?.value); chk('f-pln-dt-req',p.daily_target?.required);
@@ -4211,6 +4225,7 @@ function assembleInput(){
   { const rk=$('f-plan_remark'); m.plan_remark=rk?rk.value:''; }
   { const nm=computeNamePlan(m.plan_date||'', m.plan_remark||''); m.plan_name=nm; m.name_plan=nm; m.note=nm; }
   m.house_load=num($('f-house_load').value); m.spinning_reserve_min=num($('f-spinning_reserve_min').value);
+  { const fx=srFixed(); m.sr_mode=SR_MODE; m.sr_fixed_mw=fx; m.spinning_reserve_min=fx; m.pv_rows=SR_PV.slice(0,48); m.sr_effective_rows=srEffectiveRows(); }
   const ddOn=$('f-pln-dd-req').checked;
   const ddRules = ddOn ? DD_RULES.map(r=>({min:num(r.min),max:num(r.max),start:+r.start,stop:+r.stop,required:true})) : [];
   m.pln_export_priority={
@@ -5158,6 +5173,7 @@ async function runSim(){
   delete payload._shortage_resolution;
   delete payload._validated_option;
   delete payload._run_source;
+  if(PGN_REC_NEXT){ payload._run_source='pgn_recommendation_apply'; PGN_REC_NEXT=false; }   // satu rerun, tanpa loop rekomendasi
   try{ ASYNC_REVIEW.plan=null; ASYNC_REVIEW.monitoring=null; }catch(e){}
   if(typeof gsfStopPolling==='function') gsfStopPolling();
   GSF_VO=null; GSF_VO_JOB=null;
@@ -5555,7 +5571,92 @@ function gsdTerminalDecisionHtml(data){
     +'; required start paling awal row 2 (Last Data = Stop). Gas: kuota '+f(g.quota_bbtud,2)+', kebutuhan '+f(g.required_bbtud,4)+', kekurangan '+f(g.shortage_bbtud,4)+' BBTUD. '
     +'Distillate ('+gsfEsc(String(ds.action||'-'))+'): plafon '+f(ds.user_limit_litres,1)+' l, kebutuhan '+f(ds.required_litres,0)+' l, terjadwal '+f(ds.scheduled_litres,1)+' l; Distillate tidak menaikkan flow PGN. '
     +(su?('Startup required (pratinjau): '+gsfEsc(su)+'. '):'')
-    +'Feasible bila: '+gsfEsc((c.feasible_if||[]).join('; '))+'. Save/Export/Publish terkunci.</span>';
+    +'Feasible bila: '+gsfEsc((c.feasible_if||[]).join('; '))+'. '
+    +((d.pgn_recommendation&&d.pgn_recommendation.code==='PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE')?(()=>{ const r=d.pgn_recommendation.redistribution||{};
+      return '<br><b>PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE</b>: volume yang perlu dipindahkan '+f(r.total_reduction_mmscfd_rows,4)+' MMSCFD-slot, kapasitas aman tersedia '+f(r.total_safe_capacity_mmscfd_rows,4)
+        +', defisit '+f(r.deficit_mmscfd_rows,4)+'; row sumber '+gsfEsc((r.source_rows||[]).map(x=>x.time).join(', '))+'; recipient dievaluasi '+gsfEsc(String(r.recipient_rows_evaluated))
+        +'; pembatas utama: '+gsfEsc(String(r.limiting_constraint||'-'))+'. Kuota harian tidak dikurangi; rekomendasi tidak diterapkan. '; })():'')
+    +'Save/Export/Publish terkunci.</span>';
+}
+/* ===================== LOW PGN FLOW RECOMMENDATION (popup, English) =====================
+ * Apply Recommendation : hanya Fixed Flow JBBK pada row terdampak diubah (Manual Fixed Flow), audit before/after
+ *                        disimpan di modeling.pgn_fixed_flow_recommendation_applied, simulasi dijalankan ulang SATU kali.
+ * Keep Current Input   : input tidak diubah; run berakhir terminal PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW. */
+let PGN_REC_NEXT=false;
+function pgnF2(v){ return (v==null||!isFinite(+v))?'—':(+v).toFixed(2); }
+function pgnRecClose(){ const m=document.getElementById('pgnrec-mask'); if(m) m.remove(); }
+function pgnRecOpen(payload,data,rec){
+  pgnRecClose();
+  const per=(rec.periods||[]); const p0=per[0]||{}; const rd=rec.redistribution||{};
+  const span=per.map(p=>p.from===p.to?p.from:(p.from+'-'+p.to)).join(', ');
+  const units=(rec.required_blocks||[]).filter(b=>(b.running_gas_units||[]).length).map(b=>b.block+' (running: '+(b.running_units||[]).join(', ')+')').join('; ');
+  const rcp=(rd.recipient_rows||[]); const f4=v=>(v==null||!isFinite(+v))?'—':(+v).toFixed(4);
+  const shareMax=rd.max_single_row_share!=null?(100*rd.max_single_row_share).toFixed(1)+'%':'—';
+  const mk=document.createElement('div'); mk.id='pgnrec-mask';
+  mk.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:10060;display:flex;align-items:center;justify-content:center';
+  mk.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="pgnrec-title" style="background:#fff;max-width:680px;width:94%;max-height:92vh;overflow:auto;border-radius:12px;padding:20px 22px;box-shadow:0 18px 50px rgba(0,0,0,.3);font:14px system-ui">'
+    +'<h3 id="pgnrec-title" style="margin:0 0 10px">Low PGN Flow Recommendation</h3>'
+    +'<p style="margin:6px 0">PGN flow is below the required minimum '+(per.length===1&&p0.from===p0.to?('at '+gsfEsc(p0.from)):('from '+gsfEsc(span)))+'.</p>'
+    +'<p style="margin:6px 0">All required blocks already have at least one running unit and cannot be shut down'+(units?(' ('+gsfEsc(units)+')'):'')+'.</p>'
+    +'<p style="margin:6px 0">To keep PGN flow at or above '+pgnF2(rec.min_pgn_flow_mmscfd)+' MMSCFD, Fixed Flow JBBK must be reduced during the affected period. '
+    +'The reduced volume will be redistributed proportionally to other safe time slots, so the total daily Fixed Flow JBBK quota remains unchanged.</p>'
+    +'<p style="margin:8px 0;line-height:1.6" id="pgnrec-summary">Affected period: <b>'+gsfEsc(span)+'</b><br>'
+    +'Current Fixed Flow JBBK: <b>'+pgnF2(rec.current_fixed_flow_mmscfd)+' MMSCFD</b><br>'
+    +'Recommended Fixed Flow JBBK: <b>'+pgnF2(rec.recommended_max_fixed_flow_mmscfd)+' MMSCFD</b><br>'
+    +'Temporary reduction: <b>'+pgnF2(rec.required_reduction_mmscfd)+' MMSCFD</b><br>'
+    +'Daily quota before: <b>'+f4(rd.daily_total_before_mmscfd)+' MMSCFD</b> ('+f4(rd.daily_total_before_mmscf)+' MMSCF)<br>'
+    +'Daily quota after redistribution: <b>'+f4(rd.daily_total_after_mmscfd)+' MMSCFD</b> ('+f4(rd.daily_total_after_mmscf)+' MMSCF)</p>'
+    +'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.55" id="pgnrec-preview">'
+    +'<b>Redistribution preview</b><br>'
+    +'Affected rows: '+gsfEsc((rd.source_rows||[]).map(x=>x.time+' (row '+x.row+')').join(', '))+'<br>'
+    +'Total reduction volume: '+f4(rd.total_reduction_mmscfd_rows)+' MMSCFD-slot ('+(rd.redistributed_volume_mmscf!=null?(+rd.redistributed_volume_mmscf).toFixed(6):'—')+' MMSCF)<br>'
+    +'Recipient rows: '+rcp.length+' (largest single share '+shareMax+')<br>'
+    +'Additional Fixed Flow per recipient row: '+(rcp.length?(f4(Math.min(...rcp.map(x=>x.additional_mmscfd)))+' – '+f4(Math.max(...rcp.map(x=>x.additional_mmscfd)))+' MMSCFD'):'—')+'<br>'
+    +'Daily total before / after: '+f4(rd.daily_total_before_mmscfd)+' / '+f4(rd.daily_total_after_mmscfd)+' MMSCFD<br>'
+    +'PGN minimum before: '+pgnF2(p0.actual_min_pgn_flow_mmscfd)+' MMSCFD · Expected PGN minimum after: '+pgnF2(rd.expected_pgn_min_after_mmscfd)+' MMSCFD<br>'
+    +'Validation of redistributed plan: '+gsfEsc(String(((rd.constraint_validation||{}).status)||'—'))+'</div>'
+    +'<details style="margin-top:8px;font-size:12.5px"><summary>Per-row detail ('+(rcp.length+(rd.source_rows||[]).length)+' rows)</summary>'
+    +'<table class="mini" id="pgnrec-rows" style="margin-top:6px"><tr><th>Row</th><th>Time</th><th>Role</th><th>Before</th><th>After</th><th>Change</th><th>Safe capacity</th><th>Weight</th></tr>'
+    +(rd.source_rows||[]).map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>source</td><td>'+f4(x.fixed_flow_before)+'</td><td>'+f4(x.fixed_flow_after)+'</td><td>-'+f4(x.reduction_mmscfd)+'</td><td>—</td><td>—</td></tr>').join('')
+    +rcp.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>recipient</td><td>'+f4(x.fixed_flow_before)+'</td><td>'+f4(x.fixed_flow_after)+'</td><td>+'+f4(x.additional_mmscfd)+'</td><td>'+f4(x.safe_capacity_mmscfd)+'</td><td>'+(100*x.weight).toFixed(2)+'%</td></tr>').join('')
+    +'</table></details>'
+    +'<p style="margin:12px 0 14px">Apply this recommendation and redistribute the reduced volume?</p>'
+    +'<div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="btn ghost" id="pgnrec-keep">Keep Current Input</button><button type="button" class="btn" id="pgnrec-apply">Apply Recommendation</button></div></div>';
+  document.body.appendChild(mk);
+  const rm=document.getElementById('run-msg');
+  if(rm) rm.innerHTML='<span style="color:#b45309"><b>Low PGN Flow Recommendation</b> — menunggu keputusan operator (Apply Recommendation / Keep Current Input). Tidak ada perhitungan yang berjalan.</span>';
+  document.getElementById('pgnrec-keep').addEventListener('click',()=>{ pgnRecClose(); pgnRecKeep(data,rec); });
+  document.getElementById('pgnrec-apply').addEventListener('click',()=>{ pgnRecClose(); pgnRecApply(payload,data,rec); });
+}
+function pgnRecKeep(data,rec){
+  const rm=document.getElementById('run-msg');
+  if(rm) rm.innerHTML='<span style="color:#c0392b"><b>PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW</b> — keputusan terminal; input tidak diubah. '
+    +gsdTerminalDecisionHtml(Object.assign({},data,{terminal_decision:Object.assign({},data.terminal_decision||{},{code:'PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW'})}))+'</span>';
+  const b=document.getElementById('btn-run'); if(b) b.disabled=false;
+}
+function pgnRecApply(payload,data,rec){
+  const at=new Date().toISOString(); const rd=rec.redistribution||{};
+  const after=(rd.fixed_flow_after||[]).map(Number), before=(rd.fixed_flow_before||[]).map(Number);
+  if(after.length!==48||before.length!==48){ const rm0=document.getElementById('run-msg'); if(rm0) rm0.innerHTML='<span style="color:#c0392b">Rekomendasi tidak memuat 48 nilai redistribusi — tidak diterapkan.</span>'; return; }
+  const changed=[];
+  for(let k=0;k<48;k++){ if(Math.abs(after[k]-before[k])>1e-9||(rd.source_rows||[]).some(x=>x.row===k+1)){ setFixedFlow('JABABEKA',k,after[k]); changed.push(k+1); } }
+  const sb=before.reduce((a,b)=>a+b,0), sa=after.reduce((a,b)=>a+b,0);
+  const audit={schema:'co12-pgn-fixed-flow-recommendation-applied-v2',applied_at:at,user_decision:'APPLY',round:1,
+    source_rows:rd.source_rows||[],recipient_rows:rd.recipient_rows||[],changed_rows:changed,
+    fixed_flow_before:before,fixed_flow_after:after,
+    redistributed_volume:{mmscfd_rows:rd.redistributed_mmscfd_rows,mmscf:rd.redistributed_volume_mmscf},
+    daily_total_before:{mmscfd:+(sb/48).toFixed(6),mmscf:+(sb*0.5/24).toFixed(6)},daily_total_after:{mmscfd:+(sa/48).toFixed(6),mmscf:+(sa*0.5/24).toFixed(6)},
+    daily_total_difference_mmscf:+((sa-sb)*0.5/24).toFixed(9),tolerance_mmscf:1e-6,
+    constraint_validation:rd.constraint_validation||null,recommended_max_fixed_flow_mmscfd:rec.recommended_max_fixed_flow_mmscfd,
+    required_reduction_mmscfd:rec.required_reduction_mmscfd,min_pgn_flow_mmscfd:rec.min_pgn_flow_mmscfd,periods:(rec.periods||[]).map(p=>p.label),
+    expected_pgn_min_after_mmscfd:rd.expected_pgn_min_after_mmscfd,verification:rec.verification||null};
+  try{ if(INPUT&&INPUT.data3&&INPUT.data3.modeling){ INPUT.data3.modeling.manual_fixed_flows=(FF_ROWS||[]).map(e=>({area:e.area,row:+e.row,value_mmscfd:+e.value_mmscfd}));
+    INPUT.data3.modeling.pgn_fixed_flow_recommendation_applied=audit; } }catch(e){}
+  PGN_REC_NEXT=true;
+  const rm=document.getElementById('run-msg');
+  if(rm) rm.innerHTML='<span class="spin"></span> Rekomendasi diterapkan: '+((rd.source_rows||[]).length)+' row sumber '+pgnF2(rec.current_fixed_flow_mmscfd)+' → '+pgnF2(rec.recommended_max_fixed_flow_mmscfd)
+    +' MMSCFD, volume dipindahkan ke '+((rd.recipient_rows||[]).length)+' row penerima; total harian '+(sb/48).toFixed(4)+' → '+(sa/48).toFixed(4)+' MMSCFD — menjalankan ulang simulasi satu kali…';
+  setTimeout(()=>{ try{ runSim(); }catch(e){} },0);
 }
 function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
   gsdHoldPreliminary(payload,data);
@@ -5563,6 +5664,13 @@ function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
     try{ V11_SUM_DONE=true; }catch(e){}
     if(typeof ppmClose==='function') ppmClose();
     if(typeof gsfStopPolling==='function') gsfStopPolling();
+    /* Low PGN Flow Recommendation: hanya bila backend membuktikan seluruh alternatif legal habis (available) dan
+     * run ini BUKAN rerun hasil Apply (tidak ada loop rekomendasi). */
+    const rec=data.pgn_recommendation||null;
+    if(rec && rec.available===true && !(payload && payload._run_source==='pgn_recommendation_apply')){
+      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
+      pgnRecOpen(payload,data,rec); return;
+    }
     const rmT=document.getElementById('run-msg');
     if(rmT) rmT.innerHTML=gsdTerminalDecisionHtml(data);   // tanpa prefiks "Done": ini keputusan terminal, bukan rencana
     try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
@@ -6342,7 +6450,7 @@ const COLS=[
   ['G7','','G7 (MW)','gtg2'],['G10','','G10 (MW)','gtg2'],
   ['Jababeka','','JABABEKA','jbbk'],['BB1','','BBLN1 (MW)','bbln'],['BB2','','BBLN2 (MW)','bbln'],['BB_Total','','TOTAL BBLN (MW)','bbln'],
   ['GE1','','GE1 (MW)','ge'],['GE2','','GE2 (MW)','ge'],['GE3','','GE3 (MW)','ge'],['GE4','','GE4 (MW)','ge'],['Total_GE','','TOTAL GE (MW)','ge'],
-  ['Spin_Res','','SPINNING RESERVE (MW)','spin'],['BusFlow','','BUSFLOW (MW)','bus'],
+  ['Spin_Res','','SPINNING RESERVE (MW)','spin'],['SR_Min','','SR MINIMUM (MW)','srmin'],['BusFlow','','BUSFLOW (MW)','bus'],
   ['Total_Coal','','COAL','coal'],['Dist_Total','','DISTILLATE','dist'],['Total_Gas','g','TOTAL GAS (BBTUD)','gas'],
   ['Total_Gas_JBBK','','TOTAL GAS JBBK (BBTUD)','gas'],['Total_Gas_MM','','TOTAL GAS MM2100 (BBTUD)','gas'],   /* §6: TOTAL GAS = JBBK + MM2100 */
   ['EnergyPGN_RT','g','ENERGY PGN REAL TIME (BBTUD)','pgn'],
@@ -6715,7 +6823,7 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
         return `<td class="g-bus ${bc}">${fmt(v,2)}</td>`;
       }
       if(g==='spin' && num){
-        const mn=+(INPUT.data3?.modeling?.spinning_reserve_min)||0;
+        const mn=(r&&r.SR_Min!=null)?(+r.SR_Min):(+(INPUT.data3?.modeling?.spinning_reserve_min)||0);   // SR minimum per row (Follow PV)
         let sc2='bs-green'; if(v<mn-1e-6)sc2='bs-red'; else if(v<mn+10)sc2='bs-yellow';
         return `<td class="g-spin ${sc2}">${fmt(v,2)}</td>`;
       }
@@ -7173,6 +7281,55 @@ function refreshOverview(){
  *  Nilai : 0 SAH. Empty / NaN / teks nonnumerik DITOLAK.
  *  CSV dua kolom lama DITOLAK dengan pesan eksplisit.
  * ========================================================================================== */
+/* ===================== SPINNING RESERVE: Fix / Follow PV (token stabil) =====================
+ * sr_mode = 'fixed' | 'follow_pv' · sr_fixed_mw · pv_rows[48] · sr_effective_rows[48]
+ * fixed     : SR_min[row] = sr_fixed_mw
+ * follow_pv : SR_min[row] = max(sr_fixed_mw, PV[row]); PV kosong/invalid -> sr_fixed_mw (warning audit)
+ * Input lama tanpa token: mode fixed dengan spinning_reserve_min (perilaku lama). Rumus identik dengan backend
+ * pp_reserve_rows(); spinning_reserve_min tetap ditulis = sr_fixed_mw untuk konsumen lama. */
+let SR_MODE='fixed', SR_PV=new Array(48).fill(null);
+function srNum(v){ if(v===null||v===undefined) return null; const t=String(v).trim(); if(t==='') return null; const n=Number(t.replace(',','.')); return (isFinite(n)&&n>=0)?n:null; }
+function srFixed(){ const el=document.getElementById('f-spinning_reserve_min'); const v=el?srNum(el.value):null; return v==null?0:v; }
+function srEffectiveRows(){ const fx=srFixed(); return SR_PV.map(p=> SR_MODE==='follow_pv' ? (p==null?fx:Math.max(fx,p)) : fx); }
+function srInit(m){
+  m=m||{}; SR_MODE=(m.sr_mode==='follow_pv')?'follow_pv':'fixed';
+  const pv=Array.isArray(m.pv_rows)?m.pv_rows:[]; SR_PV=new Array(48).fill(null).map((_,i)=>srNum(pv[i]));
+  const el=document.getElementById('f-spinning_reserve_min');
+  if(el){ const fx=(m.sr_fixed_mw!=null&&m.sr_fixed_mw!=='')?m.sr_fixed_mw:m.spinning_reserve_min; el.value=(fx==null?'':fx); }
+  srRender();
+}
+function srSlotDate(i){
+  const t=String(((INPUT.data1||[])[i]||{}).time||''); const mm=t.match(/^(\d{1,2}-[A-Za-z]{3}-\d{2,4})/);
+  if(mm) return mm[1];
+  const pd=(INPUT.data3&&INPUT.data3.modeling&&INPUT.data3.modeling.plan_date)||''; const d=pd?new Date(pd+'T00:00:00'):null;
+  if(!d||isNaN(d)) return ''; if(i===47) d.setDate(d.getDate()+1); return csvFmtDate(d);
+}
+function srWriteModel(){
+  if(!(INPUT&&INPUT.data3&&INPUT.data3.modeling)) return;
+  const m=INPUT.data3.modeling; const fx=srFixed();
+  m.sr_mode=SR_MODE; m.sr_fixed_mw=fx; m.spinning_reserve_min=fx;
+  m.pv_rows=SR_PV.slice(0,48); m.sr_effective_rows=srEffectiveRows();
+}
+function srRender(){
+  const rf=document.getElementById('sr-mode-fixed'), rp=document.getElementById('sr-mode-pv');
+  if(rf) rf.checked=(SR_MODE==='fixed'); if(rp) rp.checked=(SR_MODE==='follow_pv');
+  const lb=document.getElementById('sr-fixed-label'); if(lb) lb.textContent=(SR_MODE==='follow_pv')?'SR floor (Fix)':'Fix Spinning Reserve';
+  const t=document.getElementById('tbl-srpv'); if(!t) return;
+  const eff=srEffectiveRows(); const pvOn=(SR_MODE==='follow_pv');
+  let h='<tr><th>#</th><th>Date</th><th>Time</th><th>PV (MW)</th><th>Effective SR Minimum (MW)</th></tr>';
+  for(let i=0;i<48;i++){
+    const p=SR_PV[i];
+    h+='<tr><td>'+(i+1)+'</td><td>'+srSlotDate(i)+'</td><td>'+csvSlotTime(i)+'</td>'
+      +'<td><input class="srpv" data-i="'+i+'" type="text" inputmode="decimal" value="'+(p==null?'':p)+'" style="width:90px;text-align:right'+(pvOn&&p==null?';background:#fff7e6':'')+'" aria-label="PV row '+(i+1)+'"></td>'
+      +'<td class="r" data-sreff="'+i+'">'+(+eff[i]).toFixed(2)+'</td></tr>';
+  }
+  t.innerHTML=h;
+  t.querySelectorAll('input.srpv').forEach(el=>el.addEventListener('change',e=>{ const i=+e.target.dataset.i; SR_PV[i]=srNum(e.target.value); srRender(); }));
+  const miss=SR_PV.filter(x=>x==null).length; const s=document.getElementById('sr-sum');
+  if(s) s.textContent=(pvOn?'Follow PV aktif':'Fix aktif')+' · SR min '+Math.min(...eff).toFixed(2)+'–'+Math.max(...eff).toFixed(2)+' MW'
+    +(pvOn&&miss?(' · PV kosong '+miss+' row → memakai floor'):'');
+  srWriteModel();
+}
 const CSV_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function csvFmtDate(d){ return String(d.getDate()).padStart(2,'0')+'-'+CSV_MON[d.getMonth()]+'-'+String(d.getFullYear()%100).padStart(2,'0'); }
 /* dd-mmm-yy -> Date (yy: 70..99 = 19xx, selain itu 20xx). null bila tidak valid. */
@@ -7200,62 +7357,57 @@ function csvTimeLabel(baseDate,i){
 function csvNum(v){ const t=String(v==null?'':v).trim(); if(t==='') return null;
   const n=Number(t.replace(',','.')); return isFinite(n)?n:null; }
 
-/* Parser + validator. Mengembalikan report; TIDAK memutasi apa pun. */
-function parseCSV3(text){
-  const rep={ok:false,rows:[],errors:[],dates:[],validRows:0,errorRows:0,expected:'Date,IE,Dispatch (Date = dd-mmm-yy)'};
+/* Parser + validator IE Prediction & Dispatch (+ PV). Mengembalikan report; TIDAK memutasi apa pun.
+ * Kontrak file (CSV maupun Excel, mapping SAMA):
+ *   Row 1      = header/judul — SELALU dilewati, tidak pernah dibaca sebagai data.
+ *   Row 2..49  = tepat 48 data row: A = Tanggal, B = IE (MW), C = Dispatch, D = PV (MW, opsional).
+ *   Jam tidak dibaca: slot dibentuk berurutan 00:30, 01:00, ..., 00:00 sesuai nomor row.
+ * Angka aman untuk format lokal: delimiter dideteksi dari header (';' / tab / ','), desimal koma diterima. */
+function csvTextToAoa(text){
   const raw=String(text==null?'':text).replace(/^\uFEFF/,'');
   const lines=raw.split(/\r?\n/).filter(l=>l.trim()!=='');
-  if(!lines.length){ rep.errors.push('File CSV kosong.'); return rep; }
-  const split=l=>l.split(/[,;\t]/).map(x=>x.trim());
-  const head=split(lines[0]).map(x=>x.toLowerCase());
-  const hasHeader=head.some(h=>/^(date|tanggal|ie|dispatch)$/.test(h));
-  let iD=0,iI=1,iP=2,start=0;
-  if(hasHeader){
-    start=1;
-    const f=n=>head.findIndex(h=>n.test(h));
-    const d=f(/^(date|tanggal)$/), a=f(/^ie$/), b=f(/^dispatch$/);
-    if(d<0&&a>=0&&b>=0){
-      /* Header lama dua kolom (IE,Dispatch) — tolak dengan pesan format baru yang eksplisit. */
-      rep.errors.push('Format CSV dua kolom TIDAK didukung lagi. Format baru membutuhkan tiga kolom: Date, IE, Dispatch (Date = dd-mmm-yy).');
-      return rep;
-    }
-    if(d<0||a<0||b<0){
-      rep.errors.push('Header tidak lengkap. Wajib ada kolom Date (atau Tanggal), IE, dan Dispatch. Ditemukan: '+split(lines[0]).join(', '));
-      return rep;
-    }
-    iD=d; iI=a; iP=b;
-  } else {
-    const c0=split(lines[0]);
-    if(c0.length<3){
-      rep.errors.push('Format CSV dua kolom TIDAK didukung lagi. Format baru membutuhkan tiga kolom: Date, IE, Dispatch (Date = dd-mmm-yy).');
-      return rep;
-    }
-  }
-  const body=lines.slice(start);
-  if(!body.length){ rep.errors.push('Tidak ada baris data setelah header.'); return rep; }
-  body.forEach((ln,k)=>{
-    const c=split(ln); const rowNo=k+1+start;
-    if(c.length<3){
-      rep.errors.push('Baris '+rowNo+': hanya '+c.length+' kolom. Format baru membutuhkan Date, IE, Dispatch.');
-      rep.errorRows++; return;
-    }
-    const d=csvParseDate(c[iD]); const ie=csvNum(c[iI]); const dp=csvNum(c[iP]);
+  if(!lines.length) return [];
+  const h=lines[0]; const dl=(h.indexOf(';')>=0)?';':((h.indexOf('\t')>=0)?'\t':',');
+  return lines.map(l=>l.split(dl).map(x=>x.trim().replace(/^"(.*)"$/,'$1')));
+}
+function csvCellDate(v){
+  if(v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number' && isFinite(v) && v>20000 && v<80000){   // serial tanggal Excel
+    const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()); }
+  const t=String(v==null?'':v).trim(); if(/^\d{5}(\.\d+)?$/.test(t)) return csvCellDate(+t);
+  let d=csvParseDate(t); if(d) return d;
+  let m=t.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){ d=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(d)?null:d; }
+  m=t.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})$/); if(m){ let y=+m[3]; if(m[3].length===2) y=2000+y; d=new Date(y,+m[2]-1,+m[1]); return (d.getDate()===+m[1])?d:null; }
+  return null;
+}
+function parseRowsAD(aoa,src){
+  const rep={ok:false,rows:[],errors:[],dates:[],validRows:0,errorRows:0,pvLoaded:false,pvMin:null,pvMax:null,source:src||'csv',
+             header:null,expected:'Row 1 = header; row 2-49 = A Tanggal (dd-mmm-yy), B IE (MW), C Dispatch, D PV (MW)'};
+  if(!Array.isArray(aoa)||!aoa.length){ rep.errors.push('File kosong.'); return rep; }
+  rep.header=(aoa[0]||[]).map(x=>String(x==null?'':x));
+  const body=aoa.slice(1).filter(r=>Array.isArray(r)&&r.some(c=>String(c==null?'':c).trim()!==''));
+  if(!body.length){ rep.errors.push('Tidak ada data row setelah header (row 1).'); return rep; }
+  const hasD=body.some(r=>r.length>=4&&String(r[3]==null?'':r[3]).trim()!=='');
+  body.forEach((c,k)=>{
+    const rowNo=k+2;
+    if(c.length<3){ rep.errors.push('Row '+rowNo+': hanya '+c.length+' kolom (wajib A Tanggal, B IE, C Dispatch).'); rep.errorRows++; return; }
+    const d=csvCellDate(c[0]); const ie=csvNum(c[1]); const dp=csvNum(c[2]); const pv=hasD?csvNum(c[3]):null;
     const bad=[];
-    if(!d)  bad.push('Date "'+c[iD]+'" tidak valid (format dd-mmm-yy)');
-    if(ie===null) bad.push('IE "'+c[iI]+'" bukan numerik');
-    if(dp===null) bad.push('Dispatch "'+c[iP]+'" bukan numerik');
-    if(bad.length){ rep.errors.push('Baris '+rowNo+': '+bad.join('; ')); rep.errorRows++; return; }
-    rep.rows.push({date:d,dateStr:csvFmtDate(d),ie:ie,disp:dp});
-    rep.validRows++;
-    const ds=csvFmtDate(d); if(rep.dates.indexOf(ds)<0) rep.dates.push(ds);
+    if(!d) bad.push('Tanggal "'+c[0]+'" tidak valid');
+    if(ie===null) bad.push('IE "'+c[1]+'" bukan numerik');
+    if(dp===null) bad.push('Dispatch "'+c[2]+'" bukan numerik');
+    if(hasD&&(pv===null||pv<0)) bad.push('PV "'+(c[3]==null?'':c[3])+'" bukan numerik >= 0');
+    if(bad.length){ rep.errors.push('Row '+rowNo+': '+bad.join('; ')); rep.errorRows++; return; }
+    rep.rows.push({date:d,dateStr:csvFmtDate(d),ie:ie,disp:dp,pv:pv});
+    rep.validRows++; const ds=csvFmtDate(d); if(rep.dates.indexOf(ds)<0) rep.dates.push(ds);
   });
-  if(rep.dates.length>1)
-    rep.errors.push('File memuat lebih dari satu tanggal ('+rep.dates.join(', ')+'). Satu file hanya boleh untuk satu hari.');
-  if(rep.errorRows===0 && rep.dates.length===1 && rep.validRows!==48)
-    rep.errors.push('Jumlah baris data = '+rep.validRows+', wajib tepat 48 baris untuk satu hari.');
+  if(rep.dates.length>1) rep.errors.push('File memuat lebih dari satu tanggal ('+rep.dates.join(', ')+'). Satu file hanya boleh untuk satu hari.');
+  if(rep.errorRows===0 && rep.validRows!==48) rep.errors.push('Jumlah data row sesudah header = '+rep.validRows+', wajib tepat 48.');
+  if(hasD && rep.rows.length){ rep.pvLoaded=true; const pvs=rep.rows.map(r=>r.pv); rep.pvMin=Math.min(...pvs); rep.pvMax=Math.max(...pvs); }
   rep.ok = rep.errors.length===0 && rep.validRows===48 && rep.dates.length===1;
   return rep;
 }
+function parseCSV3(text){ return parseRowsAD(csvTextToAoa(text),'csv'); }
 /* kompatibilitas nama lama: selalu lewat validator baru */
 function parseCSV(text){ const r=parseCSV3(text); return r.ok?r.rows.map(x=>({ie:x.ie,disp:x.disp,date:x.date})):[]; }
 
@@ -7281,9 +7433,12 @@ function csvApplyRows(rows){
     INPUT.data1[i].value=rows[i].ie;                        /* 0 tetap 0 */
     INPUT.data2[i].dispatch=rows[i].disp;
   }
+  /* Kolom D -> Spinning Reserve > Follow PV (48 nilai). Mode SR TIDAK diubah: Follow PV OFF -> PV disimpan, bukan constraint. */
+  const pvIn=rows.every(r=>r.pv!=null&&isFinite(r.pv));
+  if(pvIn){ SR_PV=rows.map(r=>+r.pv); if(INPUT.data3&&INPUT.data3.modeling) INPUT.data3.modeling.pv_rows=SR_PV.slice(0,48); try{ srRender(); }catch(e){} }
   if(typeof buildIED==='function') buildIED();
   if(typeof updateIEDsum==='function') updateIEDsum();
-  csvSetStatus('Applied: '+csvFmtDate(base)+' · 48 slot (00:30 → 00:00) · IE & Dispatch diperbarui.',false);
+  csvSetStatus('Applied: '+csvFmtDate(base)+' · 48 slot (00:30 → 00:00) · IE & Dispatch diperbarui'+(pvIn?' · PV (kolom D) → Spinning Reserve › Follow PV (mode SR tidak diubah)':'')+'.',false);
   return true;
 }
 /* ---- UX: status, preview, validate, apply, clear, reset ---- */
@@ -7299,15 +7454,19 @@ function csvSetStatus(msg,isErr){
 }
 function csvRenderPreview(rep,fileName){
   const box=document.getElementById('csv-preview'); if(!box) return;
-  const head='<div style="font-weight:700;margin-bottom:4px">'+(fileName?('File: '+fileName+' · '):'')
-    +'tanggal terdeteksi: '+(rep.dates.length?rep.dates.join(', '):'-')
-    +' · valid '+rep.validRows+' row · error '+rep.errorRows+' row</div>';
+  const f2=v=>(v==null?'-':(+v).toFixed(2));
+  const head='<div style="font-weight:700;margin-bottom:4px">'+(fileName?('File: '+String(fileName).replace(/</g,'&lt;')+'<br>'):'')
+    +'Rows detected: '+rep.validRows+(rep.errorRows?(' (error '+rep.errorRows+')'):'')+'<br>'
+    +'Date: '+(rep.dates.length?rep.dates.join(', '):'-')+'<br>'
+    +'IE: '+(rep.validRows?'loaded':'-')+'<br>Dispatch: '+(rep.validRows?'loaded':'-')+'<br>'
+    +'PV: '+(rep.pvLoaded?'loaded':'not present (kolom D kosong)')+'<br>'
+    +(rep.pvLoaded?('PV min/max: '+f2(rep.pvMin)+' / '+f2(rep.pvMax)+' MW'):'')+'</div>';
   let body='';
   if(rep.rows.length){
     const base=rep.rows[0].date;
-    body='<table class="csvprev"><tr><th>#</th><th>Time</th><th>IE</th><th>Dispatch</th></tr>'
-      + rep.rows.slice(0,5).map((r,k)=>'<tr><td>'+(k+1)+'</td><td>'+csvTimeLabel(base,k)+'</td><td>'+r.ie+'</td><td>'+r.disp+'</td></tr>').join('')
-      + (rep.rows.length>5?('<tr><td colspan="4">… '+(rep.rows.length-5)+' baris lain</td></tr>'):'')
+    body='<table class="csvprev"><tr><th>#</th><th>Time</th><th>IE</th><th>Dispatch</th><th>PV</th></tr>'
+      + rep.rows.slice(0,5).map((r,k)=>'<tr><td>'+(k+1)+'</td><td>'+csvTimeLabel(base,k)+'</td><td>'+r.ie+'</td><td>'+r.disp+'</td><td>'+(r.pv==null?'-':r.pv)+'</td></tr>').join('')
+      + (rep.rows.length>5?('<tr><td colspan="5">… '+(rep.rows.length-5)+' baris lain</td></tr>'):'')
       + '</table>';
   }
   const errs=rep.errors.length
@@ -7317,6 +7476,14 @@ function csvRenderPreview(rep,fileName){
   box.style.display='block';
   box.innerHTML=head+body+errs
     +'<div style="margin-top:6px;color:#5b6b7a;font-size:11px">Format diharapkan: '+rep.expected+'</div>';
+}
+function csvHandleAoa(rep,fileName){
+  CSV_PENDING=rep;
+  csvRenderPreview(rep,fileName);
+  if(rep.ok) csvSetStatus('File valid — tekan Apply Import untuk menerapkan ke 48 slot, atau Cancel.',false);
+  else csvSetStatus('File DITOLAK ('+rep.errors.length+' masalah). Data existing TIDAK diubah.',true);
+  const ab=document.getElementById('csv-apply'); if(ab) ab.disabled=!rep.ok;
+  return rep;
 }
 function csvHandleText(text,fileName){
   const rep=parseCSV3(text);
@@ -7329,7 +7496,7 @@ function csvHandleText(text,fileName){
 }
 function csvApplyPending(){
   if(!CSV_PENDING||!CSV_PENDING.ok){ csvSetStatus('Tidak ada CSV valid untuk di-apply. Data existing TIDAK diubah.',true); return false; }
-  CSV_SNAPSHOT={d1:JSON.parse(JSON.stringify(INPUT.data1||[])),d2:JSON.parse(JSON.stringify(INPUT.data2||[]))};
+  CSV_SNAPSHOT={d1:JSON.parse(JSON.stringify(INPUT.data1||[])),d2:JSON.parse(JSON.stringify(INPUT.data2||[])),pv:SR_PV.slice(0,48)};
   return csvApplyRows(CSV_PENDING.rows);
 }
 function csvClear(){
@@ -7342,6 +7509,7 @@ function csvReset(){
   if(!CSV_SNAPSHOT){ csvSetStatus('Tidak ada apply sebelumnya untuk di-reset.',true); return false; }
   INPUT.data1=JSON.parse(JSON.stringify(CSV_SNAPSHOT.d1));
   INPUT.data2=JSON.parse(JSON.stringify(CSV_SNAPSHOT.d2));
+  if(Array.isArray(CSV_SNAPSHOT.pv)){ SR_PV=CSV_SNAPSHOT.pv.slice(0,48); try{ srRender(); }catch(e){} }
   CSV_SNAPSHOT=null;
   if(typeof buildIED==='function') buildIED();
   if(typeof updateIEDsum==='function') updateIEDsum();
@@ -7812,8 +7980,17 @@ if(HAVE_INPUT){
   { const rx=$('btn-report-xls'); if(rx) rx.addEventListener('click',downloadExcel); }
   { const cf=$('csv-file'); if(cf) cf.addEventListener('change',ev=>{const f=ev.target.files[0];if(!f)return;
       const rd=new FileReader(); CSV_LAST_TEXT=null; CSV_LAST_NAME=f.name;
-      rd.onload=()=>{ CSV_LAST_TEXT=String(rd.result); csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME); };
-      rd.readAsText(f); ev.target.value='';}); }
+      if(/\.xlsx$/i.test(f.name)){
+        rd.onload=()=>{ let aoa=null; try{ aoa=XLSXMini.read(new Uint8Array(rd.result)); }catch(e){ csvSetStatus('File .xlsx tidak dapat dibaca: '+(e.message||e),true); return; }
+          csvHandleAoa(parseRowsAD(aoa,'xlsx'),CSV_LAST_NAME); };
+        rd.readAsArrayBuffer(f);
+      } else {
+        rd.onload=()=>{ CSV_LAST_TEXT=String(rd.result); csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME); };
+        rd.readAsText(f);
+      }
+      ev.target.value='';}); }
+  { ['sr-mode-fixed','sr-mode-pv'].forEach(id=>{ const r=$(id); if(r) r.addEventListener('change',e=>{ if(e.target.checked){ SR_MODE=e.target.value==='follow_pv'?'follow_pv':'fixed'; srRender(); } }); });
+    const fx=$('f-spinning_reserve_min'); if(fx){ fx.addEventListener('input',()=>srRender()); fx.addEventListener('change',()=>srRender()); } }
   { const b=$('csv-validate'); if(b) b.addEventListener('click',()=>{
       if(CSV_LAST_TEXT==null){ csvSetStatus('Belum ada CSV yang dimuat.',true); return; }
       csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME); }); }
