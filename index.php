@@ -6062,7 +6062,7 @@ async function runSimCore(payload, opts){
       return;
     }
     /* Error instalasi/bootstrap terstruktur (tanpa job): hentikan segera — tidak ada job yang dipantau. */
-    if(data && data.ok===false && !(data.async_job&&data.async_job.job_id) && (!res.ok || ['MISSING_DEPENDENCY','APP_DIR_NOT_WRITABLE','JOBS_NOT_WRITABLE','JOB_START_FAILED','PHP_VERSION','MISSING_EXTENSION'].includes(String(data.code||(data.error&&data.error.code)||data.error||'')))){
+    if(data && data.ok===false && !(data.async_job&&data.async_job.job_id) && ['MISSING_DEPENDENCY','APP_DIR_NOT_WRITABLE','JOBS_NOT_WRITABLE','JOB_START_FAILED','PHP_VERSION','MISSING_EXTENSION','FATAL'].includes(String(data.code||(data.error&&data.error.code)||data.error||''))){
       const code=String(data.code||(data.error&&data.error.code)||data.error||('HTTP_'+res.status));
       failFast('<span style="color:#c0392b"><b>'+gsfEsc(code==='MISSING_DEPENDENCY'?'Instalasi tidak lengkap':'Server menolak permintaan')+'</b> ('+gsfEsc(code)+(data.file?': '+gsfEsc(String(data.file)):'')+') — '+gsfEsc(String(data.message||(data.error&&data.error.message)||''))+'</span>');
       return;
@@ -6213,6 +6213,8 @@ async function runSimCore(payload, opts){
   }
   finally{                                                 // §3.10/§11: spinner SELALU berhenti (hanya reset bila kita run terakhir)
     if(myToken===RUN_SEQ[branch]){ btn.disabled=false; btn.innerHTML=old; }
+    /* tidak ada job yang diakui backend -> teks "mengirim permintaan" tidak boleh tertinggal */
+    if(!tk){ const fz=document.getElementById('fast-msg'); if(fz&&/mengirim permintaan/.test(fz.textContent||'')) fz.textContent=''; }
   }
 }
 
