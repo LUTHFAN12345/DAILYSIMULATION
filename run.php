@@ -1464,7 +1464,12 @@ function pp_v12_fast_release_try(string $job, array $a, ?string $poolKey = null)
                 $xS = pp_bs_soc_alt_input($inF, (array)$a['output'], strtolower((string)$uS)); if (isset($xS['altR'])) $specS[] = ['kind' => 'soc', 'mode' => 'fast', 'altR' => $xS['altR'], 'dl' => microtime(true) + 600.0,
                     'main_cmp' => ['valid' => true, 'cp' => $a['output']['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $a['output']['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null]]; }
             $GLOBALS['ppV12C4Job'] = $job; pp_v12_side_publish_vz($inF, $specS, microtime(true) + 600.0); }
+        $GLOBALS['ppHxT'] = ['t0' => $t0, 'marks' => [['claim', 0.0], ['review_start', round(microtime(true) - $t0, 3)]]];   // timestamp jalur finalisasi (diagnosa)
+        /* progres job bergerak selama finalisasi (pemilik berada di dalam hook core run; tanpa ini label tertahan di fase pipeline terakhir,
+         * mis. "gas window correction 40%") */
+        $GLOBALS['ppHxT']['job'] = $job; pp_job_progress($job, 'FASTEST_FINALISASI_REVIEW_KANDIDAT_PERTAMA', 50.0);
         $oF = pp_v8_priority_review($inF, (array)$a['output'], microtime(true) + 90.0); pp_tl_clean_globals(); $t1 = microtime(true);
+        pp_job_progress($job, 'FASTEST_FINALISASI_GERBANG_FULLY_VALID', 90.0);
         pp_attach_or_reject_acceptance($inF, $oF); pp_tl_clean_globals(); $t2 = microtime(true);
         $fc = pp_v12_fast_check(pp_normalize_copy($inF), $oF); $t3 = microtime(true); $socT = null;
         /* Stop-or-Continuous: kandidat baru fully valid sesudah keputusan STOP vs CONTINUOUS (family alternatif tiap unit dievaluasi
@@ -1476,6 +1481,8 @@ function pp_v12_fast_release_try(string $job, array $a, ?string $poolKey = null)
         $rvI = (array)($oF['info']['V8 Priority Review'] ?? []);
         $res = ['ok' => !empty($fc['ok']), 'FASTEST_RELEASE_READY' => !empty($fc['ok']), 'fast' => $fc, 'finalize_s' => round(microtime(true) - $t0, 3), 'claimed_at' => $t0,
             'stages_s' => ['merit_review_unit_priority' => round($t1 - $t0, 3), 'acceptance_audits_c1_c4_llf_provenance' => round($t2 - $t1, 3), 'fully_valid_gate_stg' => round($t3 - $t2, 3), 'stop_or_continuous' => $socT],
+            'timeline_s' => array_merge((array)($GLOBALS['ppHxT']['marks'] ?? []), [['review_end', round($t1 - $t0, 3)], ['acceptance_end', round($t2 - $t0, 3)], ['gate_soc_end', round($t3 - $t0, 3)]]),
+            'polish_trace' => $GLOBALS['ppHxT']['polish'] ?? null,
             'review_counterfactuals' => ['simulated' => $rvI['candidates_simulated'] ?? null, 'rounds' => $rvI['rounds'] ?? null, 'helpers' => function_exists('pp_v4_helper_slots') ? pp_v4_helper_slots() : null],
             'write_retries_claimer' => array_diff_key((array)($GLOBALS['__ppv12_wr'] ?? []), []), 'candidate_sig' => pp_v6_gtg_sig((array)($oF['data'] ?? $a['output']['data'])),
             'c4_redistribution' => is_array($oF['info']['V12 C4 Redistribution'] ?? null) ? array_diff_key($oF['info']['V12 C4 Redistribution'], ['c4_detail_before' => 1]) : null];
@@ -1493,6 +1500,7 @@ function pp_v12_fast_release_try(string $job, array $a, ?string $poolKey = null)
             $res['output'] = $o; }
     } catch (Throwable $e) { $res = ['ok' => false, 'FASTEST_RELEASE_READY' => false, 'error' => 'FINALISASI_GAGAL: ' . $e->getMessage(), 'finalize_s' => round(microtime(true) - $t0, 3)]; }
     finally {
+        unset($GLOBALS['ppHxT']);
         foreach (array_keys($GLOBALS) as $gk) if ($isEng($gk) && !array_key_exists($gk, $saved)) unset($GLOBALS[$gk]);
         foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; $busy = false;
     }
@@ -6543,6 +6551,24 @@ function pp_v12_c4_rowwise(array $orig, array $data, array $moves, ?float $T, fl
     $last = $FZ($S); $rep['evaluations']++;      // dispatch akhir (seluruh pergeseran yang diterima) dievaluasi ulang penuh
     $rep['search_s'] = round(microtime(true) - $tR0, 3);
     if (!is_array($last) || empty($last['valid'])) return ['a' => null, 'proof' => null, 'report' => $rep + ['result' => 'DISPATCH_AKHIR_TIDAK_VALID']];
+    /* Transfer legal sisa pada dispatch AKHIR (terukur PGN30/PEP34 Follow PV: pencarian per row terhadap dispatch dasar yang sama
+     * menyisakan ruang legal sesudah digabung; tambahan 0,5 MW row 29-31 VALID). Setiap temuan C4 tersisa dicari transfer legal
+     * maksimumnya (binary search yang sama) terhadap dispatch akhir, diterapkan, lalu diaudit ulang (maks. 3 lintasan). Bukti
+     * counterfactual di bawah dihitung pada dispatch final sesudah langkah ini. */
+    $GT3 = array_flip(array_map('strtoupper', pp_tl_gt_units())); $rep['residual_legal_transfers'] = [];
+    for ($pass = 0; $pass < 8 && microtime(true) < $dl - 5.0; $pass++) {
+        $maR = pp_v12_merit_audit($orig, $last['output']); $moved = 0;
+        foreach ((array)($maR['c4_cross_group_priority']['detail'] ?? []) as $d) {
+            $r = (int)$d['row']; $u = strtoupper((string)$d['unit']); if (!isset($GT3[$u]) || microtime(true) > $dl - 5.0) continue;
+            $left = (float)$d['mw_above_min']; $ms = [];
+            foreach ((array)$d['higher_priority_legal_headroom'] as $hu => $hr) { $hu = strtoupper((string)$hu); if ($left <= 0.01 || !isset($GT3[$hu])) continue;
+                $dd = round(min($left, (float)$hr), 4); if ($dd <= 0.01) continue; $ms[] = ['row' => $r, 'from' => $u, 'to' => $hu, 'mw' => $dd]; $left -= $dd; }
+            if (!$ms) continue;
+            $x = pp_v12_c4_row_search($orig, $S, $r, $ms, $T, $dl, $bbFix); $rep['evaluations'] += $x['evals'];
+            if ($x['lo'] > 0 && is_array($x['last'])) { $S = pp_v12_c4_row_shape($S, $r, $ms, $x['lo'], $x['M']); $last = $x['last']; $moved++;
+                $rep['residual_legal_transfers'][] = ['pass' => $pass + 1, 'row' => $r, 'time' => pp_bs_slot_hhmm($r), 'donor' => $u, 'receivers' => array_column($ms, 'to'), 'planned_mw' => $x['M'], 'applied_mw' => $x['lo']]; } }
+        if (!$moved) break; }
+    if (!$rep['residual_legal_transfers']) unset($rep['residual_legal_transfers']);
     $iB = (array)$last['output']['info']; $gB = (float)($iB['Total Gas Used (BBTUD)'] ?? 0); $qB = (float)($iB['Total Gas Quota (BBTUD)'] ?? 0); [$wLo, $wHi] = pp_gas_window($qB);
     $proofs = [];
     if (function_exists('pp_v12_side_publish_vz')) { $spec = [];   // bukti per row independen satu sama lain (dispatch akhir sama): diterbitkan sekaligus
@@ -6567,6 +6593,36 @@ function pp_v12_c4_rowwise(array $orig, array $data, array $moves, ?float $T, fl
                     'gas_window_impact' => $rw['gas_window_impact'], 'export_impact' => $rw['export_impact'], 'evaluation_mode' => $rep['evaluation_mode']]; }
             else $rw['outcome'] = $okD || $okL ? 'TRANSFER_FEASIBLE_NOT_PROVEN_INFEASIBLE' : 'EVALUASI_TIDAK_LENGKAP'; }
         $rep['rows'][] = $rw; }
+    /* Temuan C4 tersisa TANPA bukti pada dispatch akhir (terukur PGN30/PEP34 row 28-31: G3/G2/G5 masing-masing 31 MW,
+     * headroom G8/G9 habis direncanakan untuk G3 dan G2, sehingga G5 tidak pernah masuk daftar pergeseran dan tidak pernah
+     * diuji -> 4 FAIL -> seluruh redistribusi ditolak, kandidat Fastest gagal gerbang, job jatuh ke exact penuh).
+     * Setiap temuan seperti itu diuji SENDIRI dengan aturan yang sama: tambahan <= 0,5 MW dari unit itu ke unit prioritas
+     * lebih tinggi yang punya legal headroom, langsung + pendaratan window gas. Valid -> temuan tetap FAIL. */
+    $GT2 = array_flip(array_map('strtoupper', pp_tl_gt_units())); $extra = 0;
+    $tmp = $last['output']; $tmp['info']['V12 C4 Counterfactual Proof'] = ['rows_sig' => pp_v6_gtg_sig((array)$tmp['data']), 'proofs' => $proofs];
+    $maX = pp_v12_merit_audit($orig, $tmp);
+    foreach ((array)($maX['c4_cross_group_priority']['detail'] ?? []) as $d) {
+        $r = (int)$d['row']; $u = strtoupper((string)$d['unit']); if (isset($proofs[$r . '#' . $u]) || !isset($GT2[$u]) || microtime(true) > $dl - 2.0) continue;
+        $step = round(min(0.5, (float)$d['mw_above_min']), 4); $ms = []; $left = $step;
+        foreach ((array)$d['higher_priority_legal_headroom'] as $hu => $hr) { $hu = strtoupper((string)$hu); if ($left <= 1e-9 || !isset($GT2[$hu])) continue;
+            $dd = round(min($left, (float)$hr), 4); if ($dd <= 0) continue; $ms[] = ['row' => $r, 'from' => $u, 'to' => $hu, 'mw' => $dd]; $left -= $dd; }
+        if (!$ms) continue;
+        $Sx = $put($S, $r, $ms, 1.0); $ad = $FZ($Sx); $rep['evaluations']++; $okD = is_array($ad) && !empty($ad['valid']); $okL = false; $cl = null; $L = null;
+        if (!$okD) { $lg = null; $L = pp_v10_land($orig, $Sx, $T, $dl, 6, $lg, null, $bbFix); $rep['evaluations']++; $okL = is_array($L) && !empty($L['valid']); $cl = $codes($L); }
+        $iD = is_array($ad) ? (array)$ad['output']['info'] : []; $dD = is_array($ad) ? (array)$ad['output']['data'] : [];
+        $rw = ['row' => $r, 'time' => pp_bs_slot_hhmm($r), 'donor' => [$u], 'receivers' => array_map(fn($mv) => ['unit' => $mv['to'], 'planned_mw' => $mv['mw']], $ms), 'total_mw' => 0, 'accepted_mw' => 0,
+            'legal_headroom' => $d['higher_priority_legal_headroom'], 'source' => 'TEMUAN_SISA_DISPATCH_AKHIR', 'tested_additional_mw' => $step,
+            'direct' => $okD ? 'VALID' : 'INVALID:' . $codes($ad), 'gas_window_landing' => $okD ? null : ($okL ? 'VALID' : 'INVALID:' . $cl),
+            'gas_window_impact' => ['gas_used_before_bbtud' => round($gB, 4), 'gas_used_after_bbtud' => isset($iD['Total Gas Used (BBTUD)']) ? round((float)$iD['Total Gas Used (BBTUD)'], 4) : null, 'window_bbtud' => [round($wLo, 4), round($wHi, 4)]],
+            'export_impact' => ['export_before_mw' => round((float)($last['output']['data'][$r - 1]['Export_PLN'] ?? 0), 3), 'export_after_mw' => isset($dD[$r - 1]['Export_PLN']) ? round((float)$dD[$r - 1]['Export_PLN'], 3) : null,
+                'range_mw' => [(float)($dD[$r - 1]['pln_lo'] ?? 0), (float)($dD[$r - 1]['pln_hi'] ?? 0)]]];
+        if (is_array($ad) && is_array($L) && !$okD && !$okL) { $rw['outcome'] = 'PASS_WITH_REASON'; $extra++;
+            $rw['reason'] = sprintf('tambahan %.3f MW %s -> %s pada row %d tidak valid langsung (%s) maupun dengan pendaratan window gas (%s); gas %.4f -> %s BBTUD, window [%.4f, %.4f]', $step, $u, implode('/', array_column($ms, 'to')), $r, $codes($ad), $cl, $gB, $rw['gas_window_impact']['gas_used_after_bbtud'] ?? '-', $wLo, $wHi);
+            $proofs[$r . '#' . $u] = ['row' => $r, 'unit' => $u, 'to' => array_column($ms, 'to'), 'tested_additional_mw' => $step, 'direct' => $rw['direct'], 'gas_window_landing' => $rw['gas_window_landing'], 'result' => 'PASS_WITH_REASON',
+                'reason' => $rw['reason'], 'gas_window_impact' => $rw['gas_window_impact'], 'export_impact' => $rw['export_impact'], 'evaluation_mode' => $rep['evaluation_mode'], 'source' => 'TEMUAN_SISA_DISPATCH_AKHIR']; }
+        else $rw['outcome'] = $okD || $okL ? 'TRANSFER_FEASIBLE_NOT_PROVEN_INFEASIBLE' : 'EVALUASI_TIDAK_LENGKAP';
+        $rep['rows'][] = $rw; }
+    if ($extra) $rep['residual_finding_proofs'] = $extra;
     $rep['proof_s'] = round(microtime(true) - $tR0 - $rep['search_s'], 3);
     $rep['result'] = sprintf('%d row dievaluasi, %.3f MW digeser, %d bukti counterfactual (%s)', count($acc), array_sum(array_column($acc, 'accepted')), count($proofs), $rep['evaluation_mode']);
     return ['a' => $last, 'report' => $rep, 'proof' => ['schema' => 'co12-v12-c4-counterfactual-v2', 'rows_sig' => pp_v6_gtg_sig((array)$last['output']['data']), 'proofs' => $proofs, 'evaluation_mode' => $rep['evaluation_mode'],
@@ -7191,7 +7247,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
         try {
             $rescan = null; $round0 = 1;
             for ($pass = 0; $pass < 2; $pass++) {      // V9: putaran tambahan hanya bila PINDAI ULANG mengganti pemenang
-            for ($round = $round0; $round <= $maxRounds; $round++) { $GLOBALS['ppV12RvT'][] = ['r' . $round, round(microtime(true) - $t0, 3)];
+            for ($round = $round0; $round <= $maxRounds; $round++) { $GLOBALS['ppV12RvT'][] = ['r' . $round, round(microtime(true) - $t0, 3)]; if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['rv:' . 'r' . $round, round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
                 $G = pp_v8_candidates($orig, $W); $C = $G['candidates']; $rounds = $round; $GLOBALS['ppV10ReviewRound'] = $round;
                 $final = ['relevant' => $G['relevant'], 'results' => [], 'cp' => $aW['key']['cp'] ?? null];
                 if (!$C) break;
@@ -7298,7 +7354,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
             /* Lanjutan polish Unit Priority pada pemenang final: temuan "unit prioritas rendah dibebani di atas minimum
              * sementara unit prioritas lebih tinggi punya headroom" yang belum diuji karena batas putaran polish diuji
              * counterfactual (dispatch GTG dibekukan, dihitung ulang penuh, divalidasi 48 row, diterima hanya bila lebih baik). */
-            $polish = null; $GLOBALS['ppV12RvT'][] = ['polish', round(microtime(true) - $t0, 3)];
+            $polish = null; $GLOBALS['ppV12RvT'][] = ['polish', round(microtime(true) - $t0, 3)]; if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['rv:' . 'polish', round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
             if (function_exists('pp_v6_priority_polish') && microtime(true) < $dl - 2.0) {
                 $audP = pp_v5_headroom_priority_audit($orig, $W, true); $need = false;
                 foreach ((array)($audP['unresolved'] ?? []) as $fP) if (($fP['type'] ?? '') === 'LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM') { $need = true; break; }
@@ -7346,7 +7402,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
             }
         } finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; unset($GLOBALS['ppV10ReviewFast']); }
         /* V11: sapuan konsolidasi LOW_LOAD_FRAGMENTATION + seleksi band CP 0,2 % (tie-break Heat Rate). */
-        $sweepV11 = null; $bandV11 = null; $GLOBALS['ppV12RvT'][] = ['sweep', round(microtime(true) - $t0, 3)];
+        $sweepV11 = null; $bandV11 = null; $GLOBALS['ppV12RvT'][] = ['sweep', round(microtime(true) - $t0, 3)]; if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['rv:' . 'sweep', round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
         if (pp_v11_on()) {
             try { $sweepV11 = pp_v11_consolidation_sweep($orig, $W, $all, $dl, $poolV11); } catch (Throwable $e) { $sweepV11 = ['error' => $e->getMessage()]; }
             pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
@@ -7421,6 +7477,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
             'history' => array_slice(array_map(function ($x) { unset($x['deficit_rows'], $x['stops']); return $x; }, $all), 0, 80),
             'start_repair' => $repair, 'rescan' => $rescan ?? null, 'carry' => pp_v8_carry($all, $applied), 'row_evidence' => $ev, 'rows_sig' => pp_v6_gtg_sig((array)$W['data']), 'wall_s' => round(microtime(true) - $t0, 3),
             'method' => 'kandidat row-local dari commitment pemenang (SWAP peer prioritas lebih tinggi, TRUNC row legal pertama, DELAY start, OFF); prasaring kapasitas Export (batas atas sah); dispatch 48 row engine + pendaratan window gas; validasi penuh terhadap input asli; pemenang diganti hanya bila valid dan lebih baik (comparator engine)'];
+        if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['review_report_built', round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3), 'review_wall_s' => round(microtime(true) - $t0, 3)];
         if (pp_v11_on()) $W['info']['V8 Priority Review']['fragmentation_before'] = $frag0V12 ?? [];
         if (pp_v11_on()) {
             $W['info']['V11 Consolidation Sweep'] = $sweepV11;
@@ -7432,7 +7489,10 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
         /* V12 merit langkah 13-15: pemenang yang gagal C4 (tidak pernah dirilis) -> redistribusi beban ke unit prioritas lebih tinggi. */
         if (function_exists('pp_v12_on') && pp_v12_on() && (string)getenv('PP_V12_C4_REDIST') !== '0') {
             $svC4 = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $svC4[$gk] = $gv;
-            try { $c4r = pp_v12_c4_redistribute($orig, $W, max($dl, microtime(true) + 60.0)); } finally { pp_tl_clean_globals(); foreach ($svC4 as $gk => $gv) $GLOBALS[$gk] = $gv; }
+            if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['review_core_end_c4_start', round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
+            if (!empty($GLOBALS['ppHxT']['job'])) pp_job_progress((string)$GLOBALS['ppHxT']['job'], 'FASTEST_FINALISASI_MERIT_C4', 75.0);
+            try { $c4r = pp_v12_c4_redistribute($orig, $W, max($dl, microtime(true) + 180.0)); } finally { pp_tl_clean_globals(); foreach ($svC4 as $gk => $gv) $GLOBALS[$gk] = $gv; }
+            if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['c4_end', round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
             if ($c4r !== null) { if (!empty($c4r['applied'])) $W = $c4r['output']; $W['info']['V12 C4 Redistribution'] = $c4r['report']; }
         }
         return $W;
@@ -7478,7 +7538,11 @@ function pp_v6_priority_polish(array $orig, array $a, float $dl, ?callable $eval
     if (!empty($pp0['done']) && ($pp0['rows_sig'] ?? '') === pp_v6_gtg_sig((array)$o['data'])) return $a;
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $t0 = microtime(true); $d3 = (array)($orig['data3'] ?? []); $m = (array)($d3['modeling'] ?? []);
-    $ev = $evalFn ?? function (array $bd) use ($orig, $dl) { return pp_v3_frozen_eval($orig, $bd, $dl); };
+    $ev0 = $evalFn ?? function (array $bd) use ($orig, $dl) { return pp_v3_frozen_eval($orig, $bd, $dl); };
+    $trace = [];   // jejak tiap evaluasi: putaran, hash kandidat (dispatch GTG), hasil, CP, durasi
+    $ev = function (array $bd) use ($ev0, &$trace, &$rounds): ?array { $h = pp_v6_gtg_sig($bd); $tE = microtime(true); $A = $ev0($bd);
+        $trace[] = ['round' => $rounds, 'hash' => substr($h, 0, 12), 'valid' => is_array($A) && !empty($A['valid']), 'cp' => is_array($A) ? ($A['key']['cp'] ?? null) : null, 's' => round(microtime(true) - $tE, 3)];
+        return $A; };
     $cp0 = $a['key']['cp'] ?? null; $applied = []; $evidence = []; $evals = 0; $rounds = 0;
     /* V9: Cost Production sama pada presisi model (1e-4) -> beban pada unit prioritas lebih tinggi lebih baik (tie-break Unit Priority,
      * skor = sum rank x MW). Tanpa ini, pergeseran netral biaya ke unit prioritas lebih tinggi tidak pernah diterima. */
@@ -7543,8 +7607,9 @@ function pp_v6_priority_polish(array $orig, array $a, float $dl, ?callable $eval
     foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
     $o['info']['Unit Priority Polish'] = ['schema' => 'co12-v6-priority-polish-v1', 'done' => true, 'rows_sig' => pp_v6_gtg_sig((array)$o['data']),
         'cost_production_before' => $cp0, 'cost_production_after' => $a['key']['cp'] ?? null, 'shifts_applied' => $applied, 'rounds' => $rounds,
-        'counterfactual_evaluations' => $evals, 'wall_s' => round(microtime(true) - $t0, 3), 'evidence' => $evidence,
+        'counterfactual_evaluations' => $evals, 'wall_s' => round(microtime(true) - $t0, 3), 'evidence' => $evidence, 'trace' => array_slice($trace, 0, 200),
         'method' => 'dispatch GTG dibekukan + pergeseran beban unit prioritas rendah -> tinggi dengan keluaran blok tetap; dihitung ulang penuh oleh engine dan divalidasi 48 row; diterima hanya bila valid dan lebih murah'];
+    if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['polish'][] = ['rounds' => $rounds, 'evals' => $evals, 'wall_s' => round(microtime(true) - $t0, 3), 'applied' => count($applied), 'trace' => array_slice($trace, 0, 200)];
     $a['output'] = $o;
     return $a;
 }

@@ -205,10 +205,11 @@ function pp_v12_iso_compute(array $in, float $dl, ?string $k, $lk): array {
  * pekerja pembantu yang menganggur / di sela node keluarga mengambil satu per satu (kunci kolam non-blocking, tidak
  * pernah menunggu) dan menyimpan hasilnya ke kolam kandidat-state. Pemilik tetap mengevaluasi berurutan dan hanya
  * memakai hasil yang kuncinya identik; pembantu tidak memutuskan apa pun. PP_V12_SIDE=0 mematikan. */
+function pp_hx_side_log(string $job, string $what): void { if ($job === '' || !function_exists('pp_job_dir')) return; @file_put_contents(pp_job_dir($job) . DIRECTORY_SEPARATOR . 'side_log.txt', sprintf("%.3f %s %s\n", microtime(true), pp_req_id(), $what), FILE_APPEND); }
 function pp_v12_side_job(): string { $h = $GLOBALS['ppTlHook'] ?? null; return is_array($h) ? (string)($h['job'] ?? '') : ''; }
 function pp_v12_side_publish(array $inputs, float $dl): void {
     if ((string)getenv('PP_V12_SIDE') === '0' || !$inputs || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
-    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $job = pp_v12_side_job_any(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
     $dir = pp_job_dir($job); $lf = $dir . DIRECTORY_SEPARATOR . 'v12_side.json';
     $list = []; $have = [];                                        // daftar diganti per pass (tugas pass lama dipensiunkan)
     foreach ($inputs as $in) { $k = pp_v12_iso_key($in); if ($k === null || isset($have[$k]) || pp_cs_get($k) !== null) continue;
@@ -218,7 +219,7 @@ function pp_v12_side_publish(array $inputs, float $dl): void {
 }
 /* Posisi pemilik pada daftar tugas samping (pembantu hanya mengambil tugas dalam jarak pandang ke depan). */
 function pp_v12_side_mark(array $in): void {
-    if ((string)getenv('PP_V12_SIDE') === '0') return; $job = pp_v12_side_job(); if ($job === '') return;
+    if ((string)getenv('PP_V12_SIDE') === '0') return; $job = pp_v12_side_job_any(); if ($job === '') return;
     $k = pp_v12_iso_key($in); if ($k !== null) @file_put_contents(pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_side_pos.json', $k);
 }
 function pp_v12_side_clear(): void {
@@ -272,17 +273,19 @@ function pp_v12_side_run_vz(string $job): bool {
         if (microtime(true) > (float)($e['dl'] ?? 0) - 2.0) continue;
         $mk = $dir . DIRECTORY_SEPARATOR . 'v12_vzdone_' . preg_replace('~[^a-z0-9]~', '', (string)$e['id']); $h = @fopen($mk, 'x'); if (!$h) continue; @fclose($h);
         $orig = pp_tl_read($dir . DIRECTORY_SEPARATOR . basename((string)$e['o'])); $it = pp_tl_read($dir . DIRECTORY_SEPARATOR . basename((string)$e['f']));
+        pp_hx_side_log($job, 'vz_take ' . (is_array($it) ? (string)($it['kind'] ?? 'fz') : 'NO_ITEM') . (is_array($orig) ? '' : ':NO_ORIG'));
         if (!is_array($orig) || !is_array($it) || (!is_array($it['bd'] ?? null) && ($it['kind'] ?? '') !== 'soc')) continue;
         $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
         $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true; $GLOBALS['__ppv12_in_side'] = true;
         try { $T = isset($it['T']) ? (float)$it['T'] : null; $bb = is_array($it['bb'] ?? null) ? $it['bb'] : null; $dlE = (float)$e['dl'];
-            $kd = (string)($it['kind'] ?? 'fz');
+            $kd = (string)($it['kind'] ?? 'fz'); $tSd = microtime(true); pp_hx_side_log($job, 'vz_start ' . $kd); if (isset($GLOBALS['ppHxT']['t0'])) $GLOBALS['ppHxT']['marks'][] = ['side_task_start:' . $kd, round($tSd - $GLOBALS['ppHxT']['t0'], 3)];
             if ($kd === 'land') { $lg = null; pp_v10_land($orig, (array)$it['bd'], $T, $dlE, 6, $lg, null, $bb); }
             elseif ($kd === 'c4row' && function_exists('pp_v12_c4_row_search')) pp_v12_c4_row_search($orig, (array)$it['bd'], (int)$it['r'], (array)$it['ms'], $T, $dlE, $bb);
             elseif ($kd === 'soc' && function_exists('pp_bs_soc_side_run')) pp_bs_soc_side_run($job, $it);
             else pp_v10_fz($orig, (array)$it['bd'], $T, $dlE, null, $bb); }
         catch (PpJobAborted $x) { throw $x; } catch (Throwable $x) {}
         finally { unset($GLOBALS['__ppv12_in_side']); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+        if (isset($GLOBALS['ppHxT']['t0'], $tSd)) $GLOBALS['ppHxT']['marks'][] = ['side_task_end:' . ($kd ?? '?'), round(microtime(true) - $GLOBALS['ppHxT']['t0'], 3)];
         $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
         return true;
     }
@@ -311,7 +314,7 @@ function pp_v12_side_drain_nested(): void {
 function pp_v12_land_publish(array $orig, array $off, array $seed, int $maxEvals, float $dl, bool $always = false): void {
     if ((string)getenv('PP_V12_SIDE') === '0' || (!$always && (string)getenv('PP_V12_LAND') !== '1') || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0) return;
     if (!empty($GLOBALS['__ppv12_in_side'])) return;
-    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $job = pp_v12_side_job_any(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
     $k = substr(md5(json_encode([pp_tl_key($orig), $off, $seed, $maxEvals])), 0, 20);
     $f = pp_job_dir($job) . DIRECTORY_SEPARATOR . 'v12_land_' . $k . '.task';
     if (is_file($f)) return;
@@ -340,7 +343,7 @@ function pp_v12_land_run_one(string $job): bool {
 /* Tugas samping evaluasi beku (counterfactual polish / review): daftar terpisah, diganti per terbitan. */
 function pp_v12_side_publish_fz(array $orig, array $bds, float $dl): void {
     if ((string)getenv('PP_V12_SIDE') === '0' || !$bds || !function_exists('pp_v4_helper_slots') || pp_v4_helper_slots() <= 0 || !function_exists('pp_v12_fz_input')) return;
-    $job = pp_v12_side_job(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
+    $job = pp_v12_side_job_any(); if ($job === '' || !function_exists('pp_job_dir') || !is_dir(pp_job_dir($job))) return;
     $dir = pp_job_dir($job); $of = 'v12_fzorig_' . substr(md5(json_encode($orig)), 0, 12) . '.json'; if (!is_file($dir . DIRECTORY_SEPARATOR . $of)) pp_tl_write($dir . DIRECTORY_SEPARATOR . $of, $orig);
     $list = [];
     foreach ($bds as $bd) { $k = pp_v12_fz_key(pp_v12_fz_input($orig, $bd)); if ($k === null || is_file(pp_cs_file($k))) continue;
@@ -388,8 +391,10 @@ function pp_v12_side_run_fz(string $job): bool {
         $in = pp_v12_fz_input($orig, $bd); if (pp_v12_fz_key($in) !== $k) { pp_cs_release($h); continue; }
         $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
         $hasHook = is_array($GLOBALS['ppTlHook'] ?? null); if ($hasHook) $GLOBALS['ppTlHook']['spec'] = true; $GLOBALS['__ppv12_in_side'] = true;
+        pp_hx_side_log($job, 'fz_start ' . $k);
         try { pp_v12_fz_compute($orig, $in, $dl, $k, $h); } catch (PpJobAborted $x) { throw $x; } catch (Throwable $x) {}
         finally { unset($GLOBALS['__ppv12_in_side']); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if ($hasHook && is_array($GLOBALS['ppTlHook'] ?? null)) unset($GLOBALS['ppTlHook']['spec']); }
+        pp_hx_side_log($job, 'fz_end ' . $k);
         $GLOBALS['__ppv12_side_done'] = (int)($GLOBALS['__ppv12_side_done'] ?? 0) + 1;
         return true;
     }
