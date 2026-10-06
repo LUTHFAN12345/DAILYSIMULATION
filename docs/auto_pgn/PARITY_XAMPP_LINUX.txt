@@ -1,0 +1,8 @@
+A: IDENTIK · cp 90.0739 / 90.0739 · xls_len 41816 / 41816 · checks 26/26 vs 26/26
+A2: IDENTIK · cp 85.3183 / 85.3183 · xls_len 41609 / 41609 · checks 19/19 vs 19/19
+B: IDENTIK · cp 49.8002 / 49.8002 · xls_len 0 / 0 · checks 7/7 vs 7/7
+C: IDENTIK · cp 89.9882 / 89.9882 · xls_len 42636 / 42636 · checks 24/24 vs 24/24
+D: IDENTIK · cp 90.0877 / 90.0877 · xls_len 43321 / 43321 · checks 28/28 vs 28/28
+E: IDENTIK · cp 90.0877 / 90.0877 · xls_len 43813 / 43813 · checks 25/25 vs 25/25
+CM: IDENTIK · cp 89.9882 / 89.9882 · xls_len 43128 / 43128 · checks 20/20 vs 20/20
+PARITY PASS

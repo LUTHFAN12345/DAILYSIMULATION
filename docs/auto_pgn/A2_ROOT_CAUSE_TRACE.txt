@@ -1,0 +1,35 @@
+A2 parity failure on freeze-1 (run.php 6028223a...0dca) — trace
+
+Symptom (UI, Fastest - Default, same payload):
+  XAMPP (2 runs)          CP 84.9942
+  Linux (matrix)          CP 84.9175
+  Linux (rerun, ui_lin2)  CP 84.9156
+  all checks PASS (19/19) — results valid but platform/timing dependent.
+
+Linux job economic_review-4055a1c63cc6dc1c0b14 (ui_lin2), v12_fast_ready.json:
+  finalize_s 192.627
+  stages_s {merit_review_unit_priority 101.868, acceptance_audits 0.046, fully_valid_gate_stg 90.713, stop_or_continuous 90.671}
+  Stop Or Continuous Decision:
+    G4: main (CONTINUOUS) first-valid CP 90.0388 -> reviewed 85.3183
+        alternative STOP first-valid CP 87.6374 (lower) -> picked (fast, first-valid level)
+        alternative rv (review + gate): FASTEST_FIRST_VALID_REVIEWED_NOT_FULLY_VALID, CP 86.1931 (review wall 69.9 s, truncated false)
+        -> fallback pp_bs_soc_get(..., 'full'): PIPELINE_EXACT_TANPA_KELUARGA, CP 84.9156
+           its V8 Priority Review: NO_BETTER_VALID_CANDIDATE, wall 0.698 s, simulated 1, truncated TRUE,
+           methods: TIDAK_DIEVALUASI:BATAS_WAKTU_REVIEW x10   <- wall-clock truncation => timing dependent
+        released_cp 84.9156 (replaced main plan)
+    G8: main 84.9156 vs alternative STOP first-valid 94.0168 -> main kept
+  Stop Or Continuous Timing: mode fast, wall 90.67 s
+
+Replay without Stop-or-Continuous conversion (fast_replay.py, payload fixtures/pl/A2_corr.json):
+  lin1.json (Linux)  CP 85.3183, review wall 77.383 s, truncated false, rows_sig 903ec0bcc98484f5b0ece479c1dabcef
+  xa1.json  (XAMPP)  CP 85.3183, review wall 76.886 s, truncated false, rows_sig 903ec0bcc98484f5b0ece479c1dabcef
+  -> the claimed candidate + review are deterministic; the divergence comes only from the exact fallback.
+
+Fix (freeze final, run.php c74ced7d...8995, pp_bs_stop_or_continuous):
+  Fastest mode no longer falls back to the exact pipeline when the alternative family's reviewed version is not fully valid;
+  the main plan (already fully valid) is kept and the reason is recorded in Stop Or Continuous Decision[].rule.
+
+Result on freeze final (UI):
+  XAMPP A2  CP 85.3183  151.397 s  PASS 19/19
+  Linux A2  CP 85.3183  114.518 s  PASS 19/19   parity IDENTIK
+  A, C, D unchanged vs freeze-1 (parity IDENTIK on both platforms).

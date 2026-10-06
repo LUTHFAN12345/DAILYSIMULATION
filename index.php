@@ -277,6 +277,8 @@ $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
   table.simgrid thead th.g-diff{color:#b0392b}
   table.simgrid thead th.g-spin{color:#0e6aa8}
   table.simgrid thead th.g-bus{color:#4a5a82}
+  table.simgrid thead th.g-pv{color:#1d4ed8}
+  table.simgrid td.g-pv{color:#1d4ed8}
   table.simgrid thead th.g-coal{color:#9a5b2b}
   table.simgrid thead th.g-dist{color:#9a6b00}
   table.simgrid thead th.g-gas{color:#0d7a6f}
@@ -1202,6 +1204,14 @@ ul.csverr li{margin:2px 0}
             </div>
             <div class="hint" style="margin:6px 0">Fix Spinning Reserve: SR minimum = nilai fix pada 48 row. Follow PV: SR minimum = max(nilai fix sebagai floor, PV[row]); PV kosong/invalid memakai floor (warning audit). PV diisi dari kolom D import IE Prediction &amp; Dispatch dan dapat diedit per 30 menit.</div>
             <div class="scroll" style="max-height:380px"><table class="data" id="tbl-srpv"></table></div>
+            <div id="sr-pv-chart-wrap" style="display:none;margin-top:14px">
+              <div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline">
+                <span style="font-weight:700;color:#1f2937;font-size:13px">PV (MW) per 30 menit</span>
+                <span class="hint" style="font-size:11.5px">dynamic SR floor saat Follow PV aktif</span>
+              </div>
+              <div id="sr-pv-stats" style="display:flex;flex-wrap:wrap;gap:4px 18px;margin:6px 0 4px;font-size:12px;color:#475569"></div>
+              <div id="sr-pv-chart" style="position:relative;width:100%;height:230px"></div>
+            </div>
           </div></div>
       </div>
 
@@ -4114,6 +4124,7 @@ function buildFrequent(){
   autoNamePlan();   // Name Plan is auto-generated (readonly) from plan_date + plan_remark
   val('f-house_load',m.house_load); val('f-spinning_reserve_min',(m.sr_fixed_mw!=null&&m.sr_fixed_mw!=='')?m.sr_fixed_mw:m.spinning_reserve_min);
   try{ srInit(m); }catch(e){}
+  try{ pgnAutoNoteRender(); }catch(e){}
   const p=m.pln_export_priority||{};
   val('f-pln-range-min',p.range?.min); val('f-pln-range-max',p.range?.max); chk('f-pln-range-req',true); // Range is always required
   val('f-pln-dt-val',p.daily_target?.value); chk('f-pln-dt-req',p.daily_target?.required);
@@ -5173,7 +5184,7 @@ async function runSim(){
   delete payload._shortage_resolution;
   delete payload._validated_option;
   delete payload._run_source;
-  if(PGN_REC_NEXT){ payload._run_source='pgn_recommendation_apply'; PGN_REC_NEXT=false; }   // satu rerun, tanpa loop rekomendasi
+  if(PGN_REC_NEXT){ payload._run_source='pgn_auto_correction'; PGN_REC_NEXT=false; }   // satu rerun otomatis, tanpa loop koreksi
   try{ ASYNC_REVIEW.plan=null; ASYNC_REVIEW.monitoring=null; }catch(e){}
   if(typeof gsfStopPolling==='function') gsfStopPolling();
   GSF_VO=null; GSF_VO_JOB=null;
@@ -5566,96 +5577,93 @@ function gsdTerminalDecisionHtml(data){
   const f=(v,n)=>(v==null||!isFinite(+v))?'—':(+v).toLocaleString('id-ID',{maximumFractionDigits:n==null?3:n});
   const su=Object.keys(st).filter(u=>st[u]&&st[u].required).map(u=>u+' row '+st[u].first_load_row+' ('+(st[u].first_rows_mw||[]).slice(0,6).join(', ')+' MW)').join('; ');
   return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||data.status||'TIDAK FEASIBLE'))+'</b> — keputusan terminal, TIDAK FEASIBLE secara matematis. '
+    +((c.rows&&c.rows.length>1)?('Constrained period '+gsfEsc(String((c.period||{}).label||''))+' (row '+gsfEsc(c.rows.join(','))+'); '):'')
     +'Row '+gsfEsc(String(c.row||'?'))+' ('+gsfEsc(String(c.time||''))+'): FLOW PGN REAL TIME maksimum '+f(c.max_achievable_flow_mmscfd)+' &lt; Min PGN Flow '+f(c.min_pgn_flow_mmscfd,2)
-    +' MMSCFD (kurang '+f(c.deficit_mmscfd)+' MMSCFD ≈ '+f(c.deficit_mw_equivalent,1)+' MW unit gas); unit online row 1: '+gsfEsc((c.units_online_row1||[]).map(o=>o.unit+' maks '+o.max_mw+' MW').join(', ')||'-')
-    +'; required start paling awal row 2 (Last Data = Stop). Gas: kuota '+f(g.quota_bbtud,2)+', kebutuhan '+f(g.required_bbtud,4)+', kekurangan '+f(g.shortage_bbtud,4)+' BBTUD. '
+    +' MMSCFD (kurang '+f(c.deficit_mmscfd)+' MMSCFD ≈ '+f(c.deficit_mw_equivalent,1)+' MW unit gas); unit online row '+gsfEsc(String(c.row||1))+': '+gsfEsc((c.units_online_row1||[]).map(o=>o.unit+' maks '+o.max_mw+' MW').join(', ')||'-')
+    +'; required start paling awal '+gsfEsc(((c.required_start_earliest||[]).map(e=>e.unit+' row '+e.earliest_load_row).join(', '))||'row 2')+' (Last Data = Stop). Gas: kuota '+f(g.quota_bbtud,2)+', kebutuhan '+f(g.required_bbtud,4)+', kekurangan '+f(g.shortage_bbtud,4)+' BBTUD. '
     +'Distillate ('+gsfEsc(String(ds.action||'-'))+'): plafon '+f(ds.user_limit_litres,1)+' l, kebutuhan '+f(ds.required_litres,0)+' l, terjadwal '+f(ds.scheduled_litres,1)+' l; Distillate tidak menaikkan flow PGN. '
     +(su?('Startup required (pratinjau): '+gsfEsc(su)+'. '):'')
     +'Feasible bila: '+gsfEsc((c.feasible_if||[]).join('; '))+'. '
     +((d.pgn_recommendation&&d.pgn_recommendation.code==='PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE')?(()=>{ const r=d.pgn_recommendation.redistribution||{};
-      return '<br><b>PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE</b>: volume yang perlu dipindahkan '+f(r.total_reduction_mmscfd_rows,4)+' MMSCFD-slot, kapasitas aman tersedia '+f(r.total_safe_capacity_mmscfd_rows,4)
-        +', defisit '+f(r.deficit_mmscfd_rows,4)+'; row sumber '+gsfEsc((r.source_rows||[]).map(x=>x.time).join(', '))+'; recipient dievaluasi '+gsfEsc(String(r.recipient_rows_evaluated))
-        +'; pembatas utama: '+gsfEsc(String(r.limiting_constraint||'-'))+'. Kuota harian tidak dikurangi; rekomendasi tidak diterapkan. '; })():'')
+      const cp=r.constrained_period||{}; const ev=r.recipient_rows_evaluated_range||null;
+      return '<br><b>PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE</b> — automatic correction not applied (no partial change). Constrained period: '+gsfEsc(String(cp.from||''))+(cp.to&&cp.to!==cp.from?'–'+gsfEsc(String(cp.to)):'')
+        +' (row '+gsfEsc((cp.rows||[]).join(','))+'); volume to move: '+f(r.total_reduction_mmscfd_rows,4)+' MMSCFD-slot ('+f(r.total_reduction_volume_mmscf,6)+' MMSCF); safe recipient capacity: '+f(r.total_safe_capacity_mmscfd_rows,4)
+        +' MMSCFD-slot ('+gsfEsc(String(r.recipient_rows_evaluated))+' later rows evaluated'+(ev?(', row '+ev[0]+'–'+ev[1]):'')+'); unallocated: '+f(r.deficit_mmscfd_rows,4)+' MMSCFD-slot ('+f(r.unallocated_volume_mmscf,6)+' MMSCF); limiting constraint: '
+        +gsfEsc(String(r.limiting_constraint||'-'))+'. Daily quota unchanged. '; })():'')
     +'Save/Export/Publish terkunci.</span>';
 }
-/* ===================== LOW PGN FLOW RECOMMENDATION (popup, English) =====================
- * Apply Recommendation : hanya Fixed Flow JBBK pada row terdampak diubah (Manual Fixed Flow), audit before/after
- *                        disimpan di modeling.pgn_fixed_flow_recommendation_applied, simulasi dijalankan ulang SATU kali.
- * Keep Current Input   : input tidak diubah; run berakhir terminal PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW. */
+/* ===================== PGN MINIMUM-FLOW CORRECTION (otomatis, tanpa popup) =====================
+ * Backend membuktikan periode terkendala (sertifikat 8 syarat) dan menghitung koreksi: Fixed Flow JBBK row terdampak
+ * diturunkan seminimal mungkin, volume yang sama dibagi RATA (water-filling) ke row aman SESUDAH periode itu (total harian
+ * identik), diverifikasi engine + validator. UI langsung menerapkan 48 nilai sebagai Manual Fixed Flow JBBK, menyimpan audit
+ * (correction_mode=automatic) di modeling.pgn_fixed_flow_recommendation_applied, lalu menjalankan ulang SATU kali
+ * (_run_source=pgn_auto_correction). Rerun yang masih terkendala tidak dikoreksi lagi (tanpa loop) -> keputusan terminal. */
 let PGN_REC_NEXT=false;
+const PGN_AUTO_MSG='PGN minimum-flow correction applied automatically. Fixed Flow JBBK was reduced during the constrained period and redistributed to later safe periods. The daily total remains unchanged.';
 function pgnF2(v){ return (v==null||!isFinite(+v))?'—':(+v).toFixed(2); }
-function pgnRecClose(){ const m=document.getElementById('pgnrec-mask'); if(m) m.remove(); }
-function pgnRecOpen(payload,data,rec){
-  pgnRecClose();
-  const per=(rec.periods||[]); const p0=per[0]||{}; const rd=rec.redistribution||{};
-  const span=per.map(p=>p.from===p.to?p.from:(p.from+'-'+p.to)).join(', ');
-  const units=(rec.required_blocks||[]).filter(b=>(b.running_gas_units||[]).length).map(b=>b.block+' (running: '+(b.running_units||[]).join(', ')+')').join('; ');
-  const rcp=(rd.recipient_rows||[]); const f4=v=>(v==null||!isFinite(+v))?'—':(+v).toFixed(4);
-  const shareMax=rd.max_single_row_share!=null?(100*rd.max_single_row_share).toFixed(1)+'%':'—';
-  const mk=document.createElement('div'); mk.id='pgnrec-mask';
-  mk.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:10060;display:flex;align-items:center;justify-content:center';
-  mk.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="pgnrec-title" style="background:#fff;max-width:680px;width:94%;max-height:92vh;overflow:auto;border-radius:12px;padding:20px 22px;box-shadow:0 18px 50px rgba(0,0,0,.3);font:14px system-ui">'
-    +'<h3 id="pgnrec-title" style="margin:0 0 10px">Low PGN Flow Recommendation</h3>'
-    +'<p style="margin:6px 0">PGN flow is below the required minimum '+(per.length===1&&p0.from===p0.to?('at '+gsfEsc(p0.from)):('from '+gsfEsc(span)))+'.</p>'
-    +'<p style="margin:6px 0">All required blocks already have at least one running unit and cannot be shut down'+(units?(' ('+gsfEsc(units)+')'):'')+'.</p>'
-    +'<p style="margin:6px 0">To keep PGN flow at or above '+pgnF2(rec.min_pgn_flow_mmscfd)+' MMSCFD, Fixed Flow JBBK must be reduced during the affected period. '
-    +'The reduced volume will be redistributed proportionally to other safe time slots, so the total daily Fixed Flow JBBK quota remains unchanged.</p>'
-    +'<p style="margin:8px 0;line-height:1.6" id="pgnrec-summary">Affected period: <b>'+gsfEsc(span)+'</b><br>'
-    +'Current Fixed Flow JBBK: <b>'+pgnF2(rec.current_fixed_flow_mmscfd)+' MMSCFD</b><br>'
-    +'Recommended Fixed Flow JBBK: <b>'+pgnF2(rec.recommended_max_fixed_flow_mmscfd)+' MMSCFD</b><br>'
-    +'Temporary reduction: <b>'+pgnF2(rec.required_reduction_mmscfd)+' MMSCFD</b><br>'
-    +'Daily quota before: <b>'+f4(rd.daily_total_before_mmscfd)+' MMSCFD</b> ('+f4(rd.daily_total_before_mmscf)+' MMSCF)<br>'
-    +'Daily quota after redistribution: <b>'+f4(rd.daily_total_after_mmscfd)+' MMSCFD</b> ('+f4(rd.daily_total_after_mmscf)+' MMSCF)</p>'
-    +'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.55" id="pgnrec-preview">'
-    +'<b>Redistribution preview</b><br>'
-    +'Affected rows: '+gsfEsc((rd.source_rows||[]).map(x=>x.time+' (row '+x.row+')').join(', '))+'<br>'
-    +'Total reduction volume: '+f4(rd.total_reduction_mmscfd_rows)+' MMSCFD-slot ('+(rd.redistributed_volume_mmscf!=null?(+rd.redistributed_volume_mmscf).toFixed(6):'—')+' MMSCF)<br>'
-    +'Recipient rows: '+rcp.length+' (largest single share '+shareMax+')<br>'
-    +'Additional Fixed Flow per recipient row: '+(rcp.length?(f4(Math.min(...rcp.map(x=>x.additional_mmscfd)))+' – '+f4(Math.max(...rcp.map(x=>x.additional_mmscfd)))+' MMSCFD'):'—')+'<br>'
-    +'Daily total before / after: '+f4(rd.daily_total_before_mmscfd)+' / '+f4(rd.daily_total_after_mmscfd)+' MMSCFD<br>'
-    +'PGN minimum before: '+pgnF2(p0.actual_min_pgn_flow_mmscfd)+' MMSCFD · Expected PGN minimum after: '+pgnF2(rd.expected_pgn_min_after_mmscfd)+' MMSCFD<br>'
-    +'Validation of redistributed plan: '+gsfEsc(String(((rd.constraint_validation||{}).status)||'—'))+'</div>'
-    +'<details style="margin-top:8px;font-size:12.5px"><summary>Per-row detail ('+(rcp.length+(rd.source_rows||[]).length)+' rows)</summary>'
-    +'<table class="mini" id="pgnrec-rows" style="margin-top:6px"><tr><th>Row</th><th>Time</th><th>Role</th><th>Before</th><th>After</th><th>Change</th><th>Safe capacity</th><th>Weight</th></tr>'
-    +(rd.source_rows||[]).map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>source</td><td>'+f4(x.fixed_flow_before)+'</td><td>'+f4(x.fixed_flow_after)+'</td><td>-'+f4(x.reduction_mmscfd)+'</td><td>—</td><td>—</td></tr>').join('')
-    +rcp.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>recipient</td><td>'+f4(x.fixed_flow_before)+'</td><td>'+f4(x.fixed_flow_after)+'</td><td>+'+f4(x.additional_mmscfd)+'</td><td>'+f4(x.safe_capacity_mmscfd)+'</td><td>'+(100*x.weight).toFixed(2)+'%</td></tr>').join('')
-    +'</table></details>'
-    +'<p style="margin:12px 0 14px">Apply this recommendation and redistribute the reduced volume?</p>'
-    +'<div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="btn ghost" id="pgnrec-keep">Keep Current Input</button><button type="button" class="btn" id="pgnrec-apply">Apply Recommendation</button></div></div>';
-  document.body.appendChild(mk);
-  const rm=document.getElementById('run-msg');
-  if(rm) rm.innerHTML='<span style="color:#b45309"><b>Low PGN Flow Recommendation</b> — menunggu keputusan operator (Apply Recommendation / Keep Current Input). Tidak ada perhitungan yang berjalan.</span>';
-  document.getElementById('pgnrec-keep').addEventListener('click',()=>{ pgnRecClose(); pgnRecKeep(data,rec); });
-  document.getElementById('pgnrec-apply').addEventListener('click',()=>{ pgnRecClose(); pgnRecApply(payload,data,rec); });
+function pgnF4(v){ return (v==null||!isFinite(+v))?'—':(+v).toFixed(4); }
+function pgnAuditOf(m){ const a=m&&m.pgn_fixed_flow_recommendation_applied; return (a&&typeof a==='object'&&Array.isArray(a.fixed_flow_after))?a:null; }
+/* Catatan informasi (bukan permintaan persetujuan): ringkasan + detail per row yang dapat dibuka. */
+function pgnAutoNoteRender(){
+  let el=document.getElementById('pgn-auto-note');
+  const a=pgnAuditOf(INPUT&&INPUT.data3&&INPUT.data3.modeling);
+  if(!el){ const rb=document.querySelector('.runbar'); if(!rb||!rb.parentNode) return; el=document.createElement('div'); el.id='pgn-auto-note'; el.className='no-print';
+    el.style.cssText='margin-top:8px;font-size:12.5px;line-height:1.55;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 10px;color:#1e3a8a'; rb.parentNode.insertBefore(el,rb.nextSibling); }
+  if(!a||a.correction_mode!=='automatic'){ el.style.display='none'; el.innerHTML=''; return; }
+  const rc=a.recipient_rows||[], sr=a.source_rows||[]; const adds=rc.map(x=>+x.additional_mmscfd);
+  const pa=Array.isArray(a.pgn_flow_after)?a.pgn_flow_after:null;
+  el.style.display='block';
+  /* audit tetap tersimpan; bila Fixed Flow JBBK sesudahnya diedit manual, catatan menyatakan bahwa koreksi sudah tidak berlaku */
+  let stale=false; try{ const cur=Array(48).fill(null); (FF_ROWS||[]).forEach(e=>{ if((e.area||'')==='JABABEKA'&&+e.row>=1&&+e.row<=48) cur[+e.row-1]=+e.value_mmscfd; });
+    for(let k=0;k<48;k++){ const af=+a.fixed_flow_after[k], bf=+a.fixed_flow_before[k]; const v=cur[k]==null?bf:cur[k]; if(Math.abs(v-af)>1e-6){ stale=true; break; } } }catch(e){}
+  el.innerHTML=(stale?'<span style="color:#b45309">[superseded — Fixed Flow JBBK was edited after this correction; audit kept for reference]</span><br>':'')+'<b>'+gsfEsc(PGN_AUTO_MSG.split('. ')[0])+'.</b> '+gsfEsc(PGN_AUTO_MSG.split('. ').slice(1).join('. '))
+    +'<br>Constrained period: <b>'+gsfEsc(String((a.constrained_period&&a.constrained_period.label)||sr.map(x=>x.time).join(', ')))+'</b> ('+sr.length+' row) · Fixed Flow JBBK '
+    +gsfEsc(sr.map(x=>pgnF2(x.fixed_flow_before)+' → '+pgnF2(x.fixed_flow_after)).filter((v,i,A)=>A.indexOf(v)===i).join(', '))+' MMSCFD'
+    +' · Recipient: <b>'+rc.length+' row</b> '+(rc.length?('('+gsfEsc(rc[0].time)+'–'+gsfEsc(rc[rc.length-1].time)+', +'+pgnF4(Math.min(...adds))+' … +'+pgnF4(Math.max(...adds))+' MMSCFD, water-filling)'):'')
+    +'<br>Daily total: '+pgnF4((a.daily_total_before||{}).mmscfd)+' → '+pgnF4((a.daily_total_after||{}).mmscfd)+' MMSCFD ('+((a.daily_total_before||{}).mmscf!=null?(+a.daily_total_before.mmscf).toFixed(6):'—')+' → '
+    +((a.daily_total_after||{}).mmscf!=null?(+a.daily_total_after.mmscf).toFixed(6):'—')+' MMSCF, difference '+String(a.daily_total_difference_mmscf)+' MMSCF, tolerance '+String(a.tolerance_mmscf)+')'
+    +' · PGN flow source rows: '+gsfEsc(sr.map(x=>{ const k=x.row-1; const b=Array.isArray(a.pgn_flow_before)?a.pgn_flow_before[k]:null; const f=pa?pa[k]:null; return x.time+' '+pgnF2(b)+' → '+(f==null?'(rerun)':pgnF2(f)); }).join(', '))
+    +' MMSCFD (min '+pgnF2(a.min_pgn_flow_mmscfd)+') · Rerun: '+String(a.rerun_count||0)+'× · Validation: '+gsfEsc(String((a.constraint_validation||{}).status||'—'))
+    +'<details style="margin-top:4px"><summary>Per-row detail ('+(rc.length+sr.length)+' rows)</summary><table class="mini" id="pgn-auto-rows" style="margin-top:6px"><tr><th>Row</th><th>Time</th><th>Role</th><th>Before</th><th>After</th><th>Change</th><th>Safe capacity</th></tr>'
+    +sr.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>source</td><td>'+pgnF4(x.fixed_flow_before)+'</td><td>'+pgnF4(x.fixed_flow_after)+'</td><td>-'+pgnF4(x.reduction_mmscfd)+'</td><td>—</td></tr>').join('')
+    +rc.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>recipient</td><td>'+pgnF4(x.fixed_flow_before)+'</td><td>'+pgnF4(x.fixed_flow_after)+'</td><td>+'+pgnF4(x.additional_mmscfd)+'</td><td>'+pgnF4(x.safe_capacity_mmscfd)+(x.capped?' (capped)':'')+'</td></tr>').join('')
+    +'</table></details>';
 }
-function pgnRecKeep(data,rec){
-  const rm=document.getElementById('run-msg');
-  if(rm) rm.innerHTML='<span style="color:#c0392b"><b>PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW</b> — keputusan terminal; input tidak diubah. '
-    +gsdTerminalDecisionHtml(Object.assign({},data,{terminal_decision:Object.assign({},data.terminal_decision||{},{code:'PGN_MIN_FLOW_NOT_FEASIBLE_WITH_CURRENT_FIXED_FLOW'})}))+'</span>';
-  const b=document.getElementById('btn-run'); if(b) b.disabled=false;
+/* Hasil rerun koreksi: pgn_flow_after (48 nilai dari Simulation Data) + rerun_count = 1 dicatat di audit. */
+function pgnAutoRecordResult(o){
+  try{ const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; const a=pgnAuditOf(m); if(!a||a.correction_mode!=='automatic'||!o||!Array.isArray(o.data)||o.data.length!==48) return;
+    if(a.rerun_pending===true){ a.pgn_flow_after=o.data.map(r=>r&&r.Flow_PGN_RT!=null?+(+r.Flow_PGN_RT).toFixed(4):null); a.rerun_count=1; a.rerun_pending=false; a.rerun_result=String(o.result_label||o.status||(o.time_limited?'FASTEST':'FINAL')); }
+  }catch(e){}
+  try{ pgnAutoNoteRender(); }catch(e){}
 }
-function pgnRecApply(payload,data,rec){
+function pgnAutoApply(payload,data,rec){
   const at=new Date().toISOString(); const rd=rec.redistribution||{};
   const after=(rd.fixed_flow_after||[]).map(Number), before=(rd.fixed_flow_before||[]).map(Number);
-  if(after.length!==48||before.length!==48){ const rm0=document.getElementById('run-msg'); if(rm0) rm0.innerHTML='<span style="color:#c0392b">Rekomendasi tidak memuat 48 nilai redistribusi — tidak diterapkan.</span>'; return; }
+  const rm=document.getElementById('run-msg');
+  if(after.length!==48||before.length!==48){ if(rm) rm.innerHTML='<span style="color:#c0392b">PGN minimum-flow correction: backend tidak mengirim 48 nilai — tidak diterapkan.</span>'; const b=document.getElementById('btn-run'); if(b) b.disabled=false; return; }
   const changed=[];
   for(let k=0;k<48;k++){ if(Math.abs(after[k]-before[k])>1e-9||(rd.source_rows||[]).some(x=>x.row===k+1)){ setFixedFlow('JABABEKA',k,after[k]); changed.push(k+1); } }
-  const sb=before.reduce((a,b)=>a+b,0), sa=after.reduce((a,b)=>a+b,0);
-  const audit={schema:'co12-pgn-fixed-flow-recommendation-applied-v2',applied_at:at,user_decision:'APPLY',round:1,
-    source_rows:rd.source_rows||[],recipient_rows:rd.recipient_rows||[],changed_rows:changed,
-    fixed_flow_before:before,fixed_flow_after:after,
+  const sh=Array.isArray(rd.slot_hours)&&rd.slot_hours.length===48?rd.slot_hours.map(Number):Array(48).fill(0.5);
+  let vb=0,va=0; for(let k=0;k<48;k++){ vb+=before[k]*sh[k]/24; va+=after[k]*sh[k]/24; }
+  const sb=before.reduce((x,y)=>x+y,0), sa=after.reduce((x,y)=>x+y,0);
+  const audit={schema:'co12-pgn-fixed-flow-correction-v3',correction_mode:'automatic',applied_at:at,user_decision:'AUTOMATIC',round:1,
+    constrained_period:rec.constrained_period||null,source_rows:rd.source_rows||[],recipient_rows:rd.recipient_rows||[],changed_rows:changed,
+    recipient_period:rd.recipient_period||null,method:rd.method||'water_filling_equal',water_filling:rd.water_filling||null,earlier_rows_used_reason:rd.earlier_rows_used_reason||null,
+    fixed_flow_before:before,fixed_flow_after:after,slot_hours:sh,
     redistributed_volume:{mmscfd_rows:rd.redistributed_mmscfd_rows,mmscf:rd.redistributed_volume_mmscf},
-    daily_total_before:{mmscfd:+(sb/48).toFixed(6),mmscf:+(sb*0.5/24).toFixed(6)},daily_total_after:{mmscfd:+(sa/48).toFixed(6),mmscf:+(sa*0.5/24).toFixed(6)},
-    daily_total_difference_mmscf:+((sa-sb)*0.5/24).toFixed(9),tolerance_mmscf:1e-6,
-    constraint_validation:rd.constraint_validation||null,recommended_max_fixed_flow_mmscfd:rec.recommended_max_fixed_flow_mmscfd,
+    daily_total_before:{mmscfd:+(sb/48).toFixed(6),mmscf:+vb.toFixed(6)},daily_total_after:{mmscfd:+(sa/48).toFixed(6),mmscf:+va.toFixed(6)},
+    daily_total_difference_mmscf:+(va-vb).toFixed(9),tolerance_mmscf:rd.tolerance_mmscf!=null?rd.tolerance_mmscf:1e-6,
+    pgn_flow_before:Array.isArray(rec.pgn_flow_before)?rec.pgn_flow_before:null,pgn_flow_after:null,expected_pgn_flow_after:rd.pgn_flow_after_verification||null,
+    rerun_count:0,rerun_pending:true,constraint_validation:rd.constraint_validation||null,constraint_proof:rec.constraint_proof||null,
+    recommended_fixed_flow_by_row:rec.recommended_fixed_flow_by_row||null,recommended_max_fixed_flow_mmscfd:rec.recommended_max_fixed_flow_mmscfd,
     required_reduction_mmscfd:rec.required_reduction_mmscfd,min_pgn_flow_mmscfd:rec.min_pgn_flow_mmscfd,periods:(rec.periods||[]).map(p=>p.label),
     expected_pgn_min_after_mmscfd:rd.expected_pgn_min_after_mmscfd,verification:rec.verification||null};
   try{ if(INPUT&&INPUT.data3&&INPUT.data3.modeling){ INPUT.data3.modeling.manual_fixed_flows=(FF_ROWS||[]).map(e=>({area:e.area,row:+e.row,value_mmscfd:+e.value_mmscfd}));
     INPUT.data3.modeling.pgn_fixed_flow_recommendation_applied=audit; } }catch(e){}
+  try{ if(typeof renderFixedFlowTable==='function') renderFixedFlowTable(); }catch(e){}
   PGN_REC_NEXT=true;
-  const rm=document.getElementById('run-msg');
-  if(rm) rm.innerHTML='<span class="spin"></span> Rekomendasi diterapkan: '+((rd.source_rows||[]).length)+' row sumber '+pgnF2(rec.current_fixed_flow_mmscfd)+' → '+pgnF2(rec.recommended_max_fixed_flow_mmscfd)
-    +' MMSCFD, volume dipindahkan ke '+((rd.recipient_rows||[]).length)+' row penerima; total harian '+(sb/48).toFixed(4)+' → '+(sa/48).toFixed(4)+' MMSCFD — menjalankan ulang simulasi satu kali…';
+  if(rm) rm.innerHTML='<span class="spin"></span> '+gsfEsc(PGN_AUTO_MSG)+' Running the corrected simulation once…';
+  try{ pgnAutoNoteRender(); }catch(e){}
   setTimeout(()=>{ try{ runSim(); }catch(e){} },0);
 }
 function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
@@ -5664,12 +5672,12 @@ function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
     try{ V11_SUM_DONE=true; }catch(e){}
     if(typeof ppmClose==='function') ppmClose();
     if(typeof gsfStopPolling==='function') gsfStopPolling();
-    /* Low PGN Flow Recommendation: hanya bila backend membuktikan seluruh alternatif legal habis (available) dan
-     * run ini BUKAN rerun hasil Apply (tidak ada loop rekomendasi). */
+    /* PGN minimum-flow correction OTOMATIS: hanya bila backend membuktikan seluruh alternatif legal habis (available) dan
+     * run ini BUKAN rerun hasil koreksi (tidak ada loop koreksi; rerun yang masih terkendala -> terminal). */
     const rec=data.pgn_recommendation||null;
-    if(rec && rec.available===true && !(payload && payload._run_source==='pgn_recommendation_apply')){
+    if(rec && rec.available===true && !(payload && payload._run_source==='pgn_auto_correction')){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
-      pgnRecOpen(payload,data,rec); return;
+      pgnAutoApply(payload,data,rec); return;
     }
     const rmT=document.getElementById('run-msg');
     if(rmT) rmT.innerHTML=gsdTerminalDecisionHtml(data);   // tanpa prefiks "Done": ini keputusan terminal, bukan rencana
@@ -6134,7 +6142,7 @@ async function fastestPoll(payload,branch,myToken,jobId){
     if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat pertama gagal gerbang fully valid ('+gsfEsc(String(((r.fast||{}).reasons)||r.error||'?'))+'); melanjutkan pencarian'; }catch(e){}
       T.fallback={reasons:((r.fast||{}).reasons)||null,error:r.error||null,ready_flag:!!r.FASTEST_RELEASE_READY,rows:r.output&&r.output.data?r.output.data.length:null,stages_s:r.stages_s||null,fast:r.fast||null};
-      tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,1500).catch(()=>{});
+      /* TANPA job kedua: job exact yang sama dilanjutkan (server melepas klaim; run yang sama dipakai ulang -> FINAL exact). */
       runSimCore(payload,{fastest:true,noFastFinalize:true}); return; }
     const out=r.output; const cnt=r.counters||{};
     const st={target:'fast',elapsed:(Date.now()-(T.run_click_ms||Date.now()))/1000,evaluated:cnt.candidates_checked!=null?cnt.candidates_checked:1,
@@ -6450,7 +6458,7 @@ const COLS=[
   ['G7','','G7 (MW)','gtg2'],['G10','','G10 (MW)','gtg2'],
   ['Jababeka','','JABABEKA','jbbk'],['BB1','','BBLN1 (MW)','bbln'],['BB2','','BBLN2 (MW)','bbln'],['BB_Total','','TOTAL BBLN (MW)','bbln'],
   ['GE1','','GE1 (MW)','ge'],['GE2','','GE2 (MW)','ge'],['GE3','','GE3 (MW)','ge'],['GE4','','GE4 (MW)','ge'],['Total_GE','','TOTAL GE (MW)','ge'],
-  ['Spin_Res','','SPINNING RESERVE (MW)','spin'],['SR_Min','','SR MINIMUM (MW)','srmin'],['BusFlow','','BUSFLOW (MW)','bus'],
+  ['BusFlow','','BUSFLOW (MW)','bus'],['PV','pv','PV (MW)','pv'],['Spin_Res','','SPINNING RESERVE (MW)','spin'],['SR_Min','','SR MINIMUM (MW)','srmin'],
   ['Total_Coal','','COAL','coal'],['Dist_Total','','DISTILLATE','dist'],['Total_Gas','g','TOTAL GAS (BBTUD)','gas'],
   ['Total_Gas_JBBK','','TOTAL GAS JBBK (BBTUD)','gas'],['Total_Gas_MM','','TOTAL GAS MM2100 (BBTUD)','gas'],   /* §6: TOTAL GAS = JBBK + MM2100 */
   ['EnergyPGN_RT','g','ENERGY PGN REAL TIME (BBTUD)','pgn'],
@@ -6465,6 +6473,14 @@ const COLS=[
   ['Est_FF_M','g','TOTAL GAS MM2100 - ESTIMATION ENERGY TOTAL (BBTUD)','pgn'],
   ['Act_FF_M','act:ffm','TOTAL GAS MM2100 - ACTUAL ENERGY TOTAL (BBTUD)','actual']
 ];
+/* Kolom PV (MW) hanya tampil bila run yang ditampilkan memakai Follow PV (sr_mode hasil engine; hasil tanpa info -> mode input aktif).
+ * Posisi: BUS FLOW (MW) | PV (MW) | SPINNING RESERVE (MW). Nilai = PV input per 30 menit yang dipakai run (field PV engine);
+ * hasil lama tanpa field PV -> pv_rows input. Bukan effective SR (kolom SR MINIMUM). Simulation Data, export, dan Report memakai satu daftar ini. */
+function simFollowPV(o){ try{ const sr=o&&o.info&&o.info['Spinning Reserve Requirement']; if(sr&&sr.sr_mode) return sr.sr_mode==='follow_pv';
+  if(o&&Array.isArray(o.data)&&o.data.some(r=>r&&r.PV!==undefined)) return true;
+  const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; return !!(m&&m.sr_mode==='follow_pv'); }catch(e){ return false; } }
+function simCols(o){ const pv=simFollowPV(o); return COLS.filter(c=>c[0]!=='PV'||pv); }
+function simPVAt(o,r,ri){ if(r&&r.PV!==undefined) return r.PV; const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; const a=m&&Array.isArray(m.pv_rows)?m.pv_rows:null; const v=a?a[ri]:null; return (v==null||v===''||!isFinite(+v))?null:+v; }
 /* show only HH:MM in the SIMULATION DATA TIME column (Revisi Sec.6). */
 function hm(t){ if(t==null) return ''; t=String(t); const m=t.match(/(\d{1,2}:\d{2})(?::\d{2})?\s*$/); return m?m[1]:t; }
 /* shared parameter list for Summary + Comparison: [label, info-key, unit, decimals] */
@@ -6716,16 +6732,18 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
   // PROMPT MONITORING §3.1/§9: kolom TIME PASSED (dropdown Y/N, 48 row) hanya di cabang Monitoring.
   const MON=forceNoMonitoring?false:((typeof dpMon==='function')&&dpMon());
   const tpCut=MON?mdpCutoff():0;
+  const SC=simCols(o);
   tbl+='<div class="scroll simwrap"><table class="data simgrid" id="tbl-result"><thead><tr>'+
     (MON?'<th class="g-time" title="Monitoring Daily Plan — Y = jam sudah lewat (locked), N = future">TIME PASSED</th>':'')+
-    COLS.map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
+    SC.map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}"${c[0]==='PV'?' title="PV input per 30 menit — dipakai sebagai dynamic SR floor saat Follow PV aktif: SR minimum efektif = max(Fix Spinning Reserve, PV)"':''}>${c[2]}</th>`).join('')+'</tr></thead><tbody>';
   const tpCell=(ri)=>{const y=ri<tpCut;
     return `<td class="tp-cell ${y?'tp-y':'tp-n'}"><select class="tp-sel ${y?'tp-y':'tp-n'}" data-tprow="${ri}" title="${y?'Time Passed — locked (optimizer tidak mengubah row ini)':'Future row — dioptimasi normal'}">`+
       `<option value="Y"${y?' selected':''}>Y</option><option value="N"${y?'':' selected'}>N</option></select>${y?'<span class="tp-lock" title="Locked">🔒</span>':''}</td>`;};
   rows.forEach((r,ri)=>{
-    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+COLS.map(c=>{
+    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+SC.map(c=>{
       const k=c[0], t=c[1], g=c[3]||''; let v=r[k];
       if(t==='t') return `<td class="t g-time">${hm(v)}</td>`;
+      if(t==='pv'){ const pv=simPVAt(o,r,ri); return `<td class="g-pv" data-pv="${ri}">${pv==null?'':fmt(pv,2)}</td>`; }
       if(t.indexOf('act:')===0){
         /* PROMPT ACTUAL GAS 1H §1/§6/§7: actual gas = input PER 1 JAM. Cell di-MERGE 2 row 30-menit
            (rowspan=2 di row genap pasangan; row ganjil tidak merender cell — tertutup rowspan).
@@ -6893,6 +6911,7 @@ function toggleSummaryWarnings(panelId,btn){
 }
 
 function renderResult(o){
+  try{ pgnAutoRecordResult(o); }catch(e){}
   const info=o.info, rows=o.data;
   // Gas monitoring header (Revisi): Actual Total Gas PGN, Actual Energy Total Fixed Flow Jababeka / MM2100
   try{
@@ -7324,11 +7343,65 @@ function srRender(){
       +'<td class="r" data-sreff="'+i+'">'+(+eff[i]).toFixed(2)+'</td></tr>';
   }
   t.innerHTML=h;
-  t.querySelectorAll('input.srpv').forEach(el=>el.addEventListener('change',e=>{ const i=+e.target.dataset.i; SR_PV[i]=srNum(e.target.value); srRender(); }));
+  let rej=null;
+  t.querySelectorAll('input.srpv').forEach(el=>el.addEventListener('change',e=>{ const i=+e.target.dataset.i; const raw=String(e.target.value).trim(); const v=srNum(raw);
+    /* nilai negatif / bukan angka DITOLAK (nilai sebelumnya dipertahankan); kosong = PV tidak tersedia -> floor */
+    if(raw!==''&&v==null){ SR_PV_REJECT='PV row '+(i+1)+' ('+csvSlotTime(i)+') ditolak: "'+raw+'" bukan angka ≥ 0 — nilai sebelumnya dipertahankan.'; srRender(); return; }
+    SR_PV[i]=v; SR_PV_REJECT=null; srRender(); }));
+  rej=SR_PV_REJECT;
   const miss=SR_PV.filter(x=>x==null).length; const s=document.getElementById('sr-sum');
   if(s) s.textContent=(pvOn?'Follow PV aktif':'Fix aktif')+' · SR min '+Math.min(...eff).toFixed(2)+'–'+Math.max(...eff).toFixed(2)+' MW'
-    +(pvOn&&miss?(' · PV kosong '+miss+' row → memakai floor'):'');
+    +(pvOn&&miss?(' · PV kosong '+miss+' row → memakai floor'):'')+(rej?(' · '+rej):'');
   srWriteModel();
+  try{ srChartRender(); }catch(e){}
+}
+/* ===== Grafik line PV (Follow PV) — SVG inline lokal, tanpa CDN; bukan bagian critical path engine.
+ * 48 titik (00:30 … 00:00), sumbu Y mulai 0, grid horizontal tipis, label jam tiap 2 jam, crosshair + tooltip untuk
+ * seluruh 48 titik (Time, PV MW). Listener dipasang SEKALI pada container (tanpa kebocoran memori); render ulang hanya saat
+ * PV/mode berubah (srRender) atau lebar container berubah (ResizeObserver, satu per halaman). */
+let SR_PV_REJECT=null, SR_CHART=null;
+function srChartStats(){ const v=SR_PV.map((x,i)=>[x,i]).filter(a=>a[0]!=null); if(!v.length) return null;
+  let mn=v[0], mx=v[0], sum=0; v.forEach(a=>{ if(a[0]<mn[0]) mn=a; if(a[0]>mx[0]) mx=a; sum+=a[0]; });
+  return {min:mn[0],max:mx[0],avg:sum/v.length,peak:csvSlotTime(mx[1]),n:v.length}; }
+function srChartRender(){
+  const wrap=document.getElementById('sr-pv-chart-wrap'), box=document.getElementById('sr-pv-chart'), st=document.getElementById('sr-pv-stats');
+  if(!wrap||!box) return;
+  if(!box.dataset.bound){ box.dataset.bound='1';
+    const show=(i)=>{ const c=SR_CHART; if(!c) return; i=Math.max(0,Math.min(47,i)); c.idx=i; const v=SR_PV[i]; const xh=document.getElementById('sr-pv-xh'), hi=document.getElementById('sr-pv-hi'), tip=document.getElementById('sr-pv-tip'); if(!xh||!tip) return;
+      const x=c.X(i); xh.setAttribute('x1',x); xh.setAttribute('x2',x); xh.setAttribute('visibility','visible');
+      if(v!=null){ hi.setAttribute('cx',x); hi.setAttribute('cy',c.Y(v)); hi.setAttribute('visibility','visible'); } else hi.setAttribute('visibility','hidden');
+      tip.textContent=''; const a=document.createElement('div'); a.textContent='Time '+csvSlotTime(i)+' (row '+(i+1)+')'; const b=document.createElement('div'); const bb=document.createElement('b'); bb.textContent=v==null?'— (kosong → floor)':(+v).toFixed(2)+' MW'; b.textContent='PV '; b.appendChild(bb);
+      tip.appendChild(a); tip.appendChild(b); tip.style.display='block'; const tw=tip.offsetWidth||120; tip.style.left=Math.min(c.W-tw-4,Math.max(4,x+10))+'px'; tip.style.top='8px'; };
+    const hide=()=>{ const xh=document.getElementById('sr-pv-xh'), hi=document.getElementById('sr-pv-hi'), tip=document.getElementById('sr-pv-tip'); if(xh) xh.setAttribute('visibility','hidden'); if(hi) hi.setAttribute('visibility','hidden'); if(tip) tip.style.display='none'; if(SR_CHART) SR_CHART.idx=null; };
+    box.addEventListener('pointermove',e=>{ const c=SR_CHART; const sv=document.getElementById('sr-pv-svg'); if(!c||!sv) return; const r=sv.getBoundingClientRect(); const px=(e.clientX-r.left)*(c.W/r.width); show(Math.round((px-c.L)/(c.pw/47))); });
+    box.addEventListener('pointerleave',hide);
+    box.addEventListener('keydown',e=>{ const c=SR_CHART; if(!c) return; if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ e.preventDefault(); show((c.idx==null?0:c.idx)+(e.key==='ArrowRight'?1:-1)); } else if(e.key==='Escape') hide(); });
+    box.addEventListener('focusout',hide);
+    if(window.ResizeObserver){ let raf=0, lastW=0; new ResizeObserver(en=>{ const w=Math.round(en[0].contentRect.width); if(w===lastW) return; lastW=w; cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ try{ srChartRender(); }catch(e){} }); }).observe(box); }
+  }
+  if(SR_MODE!=='follow_pv'){ wrap.style.display='none'; return; }   // Fix Spinning Reserve: grafik disembunyikan, data PV tetap
+  wrap.style.display='block';
+  const S=srChartStats(); const f2=x=>(+x).toFixed(2);
+  st.textContent='';
+  [['PV minimum',S?f2(S.min)+' MW':'—'],['PV maximum',S?f2(S.max)+' MW':'—'],['PV average',S?f2(S.avg)+' MW':'—'],['Peak time',S?S.peak:'—']].forEach(([k,v])=>{
+    const sp=document.createElement('span'); const b=document.createElement('b'); b.textContent=v; sp.textContent=k+': '; sp.appendChild(b); sp.setAttribute('data-stat',k); st.appendChild(sp); });
+  const W=Math.max(320,Math.round(box.clientWidth||0)); if(!box.clientWidth){ return; }       // tersembunyi: ResizeObserver merender saat tampil
+  const H=230, L=46, R=14, T=12, B=30, pw=W-L-R, ph=H-T-B;
+  const mx=S?S.max:0; const step=[0.5,1,2,2.5,5,10,20,25,50,100,200,250,500].find(s=>mx/s<=5)||Math.ceil(mx/5); const yMax=Math.max(step,Math.ceil((mx||0)/step)*step);
+  const X=i=>L+i*pw/47, Y=v=>T+ph-(v/yMax)*ph;
+  const NS='http://www.w3.org/2000/svg'; let g='';
+  for(let v=0;v<=yMax+1e-9;v+=step){ const y=Y(v).toFixed(1); g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e5e7eb" stroke-width="1"/>'
+    +'<text x="'+(L-6)+'" y="'+(+y+3.5)+'" text-anchor="end" font-size="11" fill="#64748b">'+(+v.toFixed(2))+'</text>'; }
+  for(let i=0;i<48;i++){ if(i!==0&&(i+1)%4!==0) continue; g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" text-anchor="'+(i===47?'end':(i===0?'start':'middle'))+'" font-size="11" fill="#64748b">'+csvSlotTime(i)+'</text>'; }
+  g+='<text x="12" y="'+(T+ph/2)+'" transform="rotate(-90 12 '+(T+ph/2)+')" text-anchor="middle" font-size="11" fill="#64748b">PV (MW)</text>';
+  let d='', pen=false; for(let i=0;i<48;i++){ const v=SR_PV[i]; if(v==null){ pen=false; continue; } d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1); pen=true; }
+  g+='<path d="'+d+'" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  for(let i=0;i<48;i++){ const v=SR_PV[i]; if(v==null) continue; g+='<circle class="srpv-dot" data-i="'+i+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="2.6" fill="#2a78d6" stroke="#fff" stroke-width="1"/>'; }
+  g+='<line id="sr-pv-xh" x1="0" x2="0" y1="'+T+'" y2="'+(T+ph)+'" stroke="#94a3b8" stroke-width="1" visibility="hidden"/>'
+    +'<circle id="sr-pv-hi" r="5" fill="#2a78d6" stroke="#fff" stroke-width="2" visibility="hidden"/>';
+  box.innerHTML='<svg xmlns="'+NS+'" id="sr-pv-svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" tabindex="0" aria-label="PV (MW) per 30 menit, 48 titik; minimum '+(S?f2(S.min):'-')+', maksimum '+(S?f2(S.max):'-')+' MW pada '+(S?S.peak:'-')+'" style="display:block;max-width:100%;outline:none">'+g+'</svg>'
+    +'<div id="sr-pv-tip" role="status" style="position:absolute;pointer-events:none;display:none;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:4px 8px;font-size:12px;color:#1f2937;box-shadow:0 4px 12px rgba(15,23,42,.12);white-space:nowrap"></div>';
+  SR_CHART={X,Y,L,R,W,pw,yMax,idx:null};
 }
 const CSV_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function csvFmtDate(d){ return String(d.getDate()).padStart(2,'0')+'-'+CSV_MON[d.getMonth()]+'-'+String(d.getFullYear()%100).padStart(2,'0'); }
@@ -7524,8 +7597,10 @@ function resultToHTMLTable(){
   if(OUTPUT.time_limited===true) s+=(OUTPUT.result_label==='FASTEST VALID PLAN')?'<tr><th colspan="2" style="background:#fef3c7">FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO)</th></tr>':'<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
   Object.keys(info).forEach(k=>{if(k==='Warnings'||k==='Distillate per unit (l)')return;
     s+=`<tr><td>${k}</td><td>${info[k]}</td></tr>`;});
-  s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
-  rows.forEach((r,ri)=>{s+='<tr>'+COLS.map(c=>{
+  const SCx=simCols(OUTPUT);
+  s+='</table><br><table border="1"><tr>'+SCx.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
+  rows.forEach((r,ri)=>{s+='<tr>'+SCx.map(c=>{
+    if(c[1]==='pv'){ const pv=simPVAt(OUTPUT,r,ri); return `<td>${pv==null?'':pv}</td>`; }
     const fk=fixKeyOf(c[0]); const fx=fk?cellFixed(fk,ri):null;
     if(fx!=null) return `<td style="background:#ffd2d2;font-weight:bold">${fmt(fx,2)}</td>`;
     return `<td>${r[c[0]]??''}</td>`;
@@ -7699,8 +7774,8 @@ function gsrAddLngQuota(){
 
 function buildSimImageTable(startRow){
   const rows=OUTPUT.data||[];
-  const cut=COLS.findIndex(c=>c[0]===IMG_LAST_COL);
-  const cols=COLS.slice(0,cut+1);
+  const SCi=simCols(OUTPUT); const cut=SCi.findIndex(c=>c[0]===IMG_LAST_COL);
+  const cols=SCi.slice(0,cut+1);
   // mirror the live Simulation Data look (group colours, pills, Export/Diff order),
   // but static-positioned (imgcap) so html2canvas renders cleanly.
   let h='<table class="data simgrid imgcap"><thead><tr>'+
@@ -7709,6 +7784,7 @@ function buildSimImageTable(startRow){
     h+='<tr>'+cols.map(c=>{
       const k=c[0],t=c[1],g=c[3]||'';let v=r[k];
       if(t==='t')return `<td class="t g-time">${hm(v)}</td>`;
+      if(t==='pv'){ const pv=simPVAt(OUTPUT,r,ri); return `<td class="g-pv">${pv==null?'':fmt(pv,2)}</td>`; }
       const num=typeof v==='number';
       const fk=fixKeyOf(k); const fixed=fk?cellFixed(fk,ri):null; const fcls=fixed!=null?' fix-load':'';
       if(g==='dispatch'&&num){const cls=v>=150?'green':(v>=90?'orange':'slate');return `<td class="g-dispatch"><span class="pill ${cls}">${fmt(v,2)}</span></td>`;}
