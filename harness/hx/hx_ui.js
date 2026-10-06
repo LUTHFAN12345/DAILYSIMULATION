@@ -12,21 +12,27 @@ const sha = s => crypto.createHash('sha256').update(s).digest('hex');
   p.on('request', r => { const u = r.url(); const m = (u.match(/mode=([a-z_]+)/) || [])[1];
     if (m === 'run' && r.method() === 'POST') { const body = r.postData() || ''; let j = null; try { j = JSON.parse(body); } catch (e) {}
       R.posts.push({ t: t0 ? (Date.now() - t0) / 1000 : -1, url: u.replace(BASE, ''), bytes: body.length, sha256: sha(body), run_source: j && j._run_source, rows1: j && j.data1 && j.data1.length, rows2: j && j.data2 && j.data2.length,
-        mff: j && j.data3 && (j.data3.modeling.manual_fixed_flows || []).length, gas_quota: j && j.data3 && j.data3.modeling.gas_quota, body: j }); } });
+        mff: j && j.data3 && (j.data3.modeling.manual_fixed_flows || []).length, gas_quota: j && j.data3 && j.data3.modeling.gas_quota, body: j }); if (!R._firstBody && j) R._firstBody = j; } });
+  const RQ = []; if (E.REQLOG) { p.on('request', r => { r._t = Date.now(); }); p.on('requestfinished', r => { const u = r.url(); RQ.push({ m: (u.match(/mode=([a-z_]+)/) || [,'-'])[1] + (/slot=(\d+)/.test(u) ? ':' + u.match(/slot=(\d+)/)[1] : ''), s: t0 ? +((r._t - t0) / 1000).toFixed(2) : -1, e: t0 ? +((Date.now() - t0) / 1000).toFixed(2) : -1 }); });
+    p.on('requestfailed', r => { const u = r.url(); RQ.push({ m: (u.match(/mode=([a-z_]+)/) || [,'-'])[1], s: t0 ? +((r._t - t0) / 1000).toFixed(2) : -1, e: t0 ? +((Date.now() - t0) / 1000).toFixed(2) : -1, failed: r.failure() && r.failure().errorText }); }); }
   p.on('response', async r => { const u = r.url(); if (/mode=job_poll|mode=fast_ready/.test(u)) { try { const j = await r.json(); const job = j.job || {}; if (job.current_step || j.ready) T('poll', { step: job.current_step || null, pct: job.percent || null, status: job.status || j.job_status || null, ready: !!j.ready }); } catch (e) {} } });
   await p.goto(BASE + '/index.php'); await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} }); await p.reload(); await sleep(1500);
   const snap = () => p.evaluate(() => JSON.parse(JSON.stringify(assembleInput())));
-  await p.evaluate(() => { const s = document.getElementById('f-tl-target'); if (s) { s.value = 'fast'; s.dispatchEvent(new Event('change', { bubbles: true })); } });
-  /* gas lewat field form */
-  await p.evaluate(() => { const set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('field ' + id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); };
+  /* target Fastest - Default: source baru value 'fast'; UI lama (OLDUI=1) memakai opsi pertama berlabel "Fastest - Default" */
+  R.target = await p.evaluate(old => { const s = document.getElementById('f-tl-target'); if (!s) return null; if (old) s.selectedIndex = 0; else s.value = 'fast';
+    s.dispatchEvent(new Event('change', { bubbles: true })); return { value: s.value, label: s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : null }; }, !!E.OLDUI);
+  /* gas lewat field form (NOGAS=1: state input dipakai apa adanya) */
+  if (!E.NOGAS) await p.evaluate(() => { const set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('field ' + id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); };
     set('q-pgn_pipe', 30); set('q-lng', 0); set('q-pep', 34); set('q-akasia', 0); set('q-baskara', 0); set('q-bbg', 0);
     set('f-ghv_pgn', 1040); set('f-ghv_jababeka', 1080); set('f-min_pgn_flow', 3);
     set('mode-pep_kp72', 'cummulative'); set('q-pep_kp72', 4.6); set('q-pertagas_kp72', 0); set('q-akasia_kp72', 0); set('q-baskara_kp72', 0); set('f-max_flow_mm2100', 0); });
   const P1 = await snap();
   if (E.CSV) { await p.setInputFiles('#csv-file', E.CSV); await sleep(1200); R.import_preview = await p.evaluate(() => (document.getElementById('csv-preview') || {}).innerText || '');
-    await p.click('#csv-apply'); await sleep(600); }
+    const dis = await p.evaluate(() => { const b = document.getElementById('csv-apply'); return !b || b.disabled; });
+    if (dis) { R.csv_apply = 'DISABLED'; R.csv_status = await p.evaluate(() => (document.getElementById('csv-status') || {}).innerText || ''); await p.evaluate(() => { const c = document.getElementById('csv-clear'); if (c) c.click(); }); }
+    else { await p.click('#csv-apply'); R.csv_apply = 'APPLIED'; } await sleep(600); }
   const P2 = await snap();
-  if (E.SR_MODE) { await p.evaluate(() => { const t = [...document.querySelectorAll('button,a')].find(x => /Frequently Input/i.test(x.textContent)); if (t) t.click(); }); await sleep(200);
+  if (E.SR_MODE && await p.$('#sr-mode-pv')) { await p.evaluate(() => { const t = [...document.querySelectorAll('button,a')].find(x => /Frequently Input/i.test(x.textContent)); if (t) t.click(); }); await sleep(200);
     await p.evaluate(() => document.querySelector('[data-cp="cp-sr"]').click()); await sleep(300);
     await p.evaluate(([md, fx]) => { const r = document.getElementById(md === 'follow_pv' ? 'sr-mode-pv' : 'sr-mode-fixed'); r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true }));
       const f = document.getElementById('f-spinning_reserve_min'); f.value = fx; f.dispatchEvent(new Event('input', { bubbles: true })); f.dispatchEvent(new Event('change', { bubbles: true })); }, [E.SR_MODE, E.SR_FIX || '0']); await sleep(300); }
@@ -52,6 +58,10 @@ const sha = s => crypto.createHash('sha256').update(s).digest('hex');
       cp: i['Cost Production (USD/MWh)'] || null, hr: i['JBBK MM Heat Rate (BTU/kWh)'] || null, fuel: i['Fuel Action Reconciliation'] || null, pgn_min: D.length ? Math.min(...D.map(r => +r.Flow_PGN_RT)) : null,
       gas_used: i['Total Gas Used (BBTUD)'] || null, gas_quota: i['Total Gas Quota (BBTUD)'] || null, sig: D.map(r => ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3','GE1','GE2','GE3','GE4','BB1','BB2'].map(c => (+r[c] || 0).toFixed(2)).join(',')).join('|') }; });
   o.sig = sha(o.sig).slice(0, 12); R.result = o; R.run = { t_done_s: done, msg: msg.slice(0, 400) }; R.js_errors = errs.slice(0, 5);
+  if (E.REQLOG) R.requests = RQ;
   R.posts = R.posts.map(x => Object.assign({}, x, { body: undefined }));
+  if (E.SAVE_OUTPUT) { const full = await p.evaluate(() => (typeof OUTPUT !== 'undefined' && OUTPUT) ? JSON.stringify(OUTPUT) : null); if (full) fs.writeFileSync(E.SAVE_OUTPUT + '_output.json', full);
+    if (R._firstBody) fs.writeFileSync(E.SAVE_OUTPUT + '_run_body.json', JSON.stringify(R._firstBody)); }
+  delete R._firstBody;
   if (E.SAVE_PAYLOADS) { fs.writeFileSync(E.SAVE_PAYLOADS + '_before_upload.json', JSON.stringify(P1)); fs.writeFileSync(E.SAVE_PAYLOADS + '_after_upload.json', JSON.stringify(P2)); }
   console.log(JSON.stringify(R)); await b.close(); })().catch(e => { console.log(JSON.stringify({ error: String(e && e.stack || e) })); process.exit(1); });

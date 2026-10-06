@@ -6137,6 +6137,8 @@ async function fastestPoll(payload,branch,myToken,jobId){
     if(!claimSeen){ if(r.job_status==='DONE'||r.job_status==='FAILED'||r.job_status==='CANCELLED') return; continue; }   // FINAL exact lebih dulu: runSimCore
     if(!r.ready){ /* progres tetap hidup selama bukti merit kandidat pertama dihitung (bukan berhenti diam) */
       try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan ('+((T.claim_seen_ms-(T.run_click_ms||T.claim_seen_ms))/1000).toFixed(1).replace('.',',')+' s); membuktikan merit kandidat itu (counterfactual Unit Priority) · '+((Date.now()-(T.run_click_ms||Date.now()))/1000).toFixed(1).replace('.',',')+' s'; }catch(e){}
+      /* label status utama mengikuti fase finalisasi nyata (sesudah klaim polling job_poll berhenti; tanpa ini label tertahan di fase pipeline terakhir) */
+      try{ const rm=document.getElementById('run-msg'); if(rm&&r.step) rm.textContent='Fastest - Default: '+String(r.step).replace(/^FASTEST_FINALISASI_/,'finalisasi ').replace(/_/g,' ').toLowerCase()+(r.percent!=null?' '+Math.round(+r.percent)+'%':''); }catch(e){}
       continue; }
     T.browser_received_snapshot_ms=Date.now(); Object.assign(T,r.trace_server||{}); T.stages_s=r.stages_s||null; T.review_counterfactuals=r.review_counterfactuals||null; T.write_diag=r.write_diag||null;
     if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
