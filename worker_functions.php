@@ -5139,17 +5139,24 @@ function pp_reserve_repair(array &$genRows, array $d3, array $model, array $ieVa
             $cands[] = ['u' => $u, 'pot' => $pot, 'same' => $sameBlock, 'prio' => (int)($prio[$u] ?? 99),
                         'eff' => $eff];
         }
-        /* urutan: non-gas dulu (eff 0) -> same-block -> efisiensi gas terbaik -> Unit Priority */
-        usort($cands, fn($a, $b) => [round($a['eff'], 5), $a['same'], $a['prio'], -$a['pot']]
-                              <=> [round($b['eff'], 5), $b['same'], $b['prio'], -$b['pot']]);
+        /* urutan: non-gas dulu (eff 0) -> Unit Priority user -> same-block -> efisiensi gas -> headroom. Unit prioritas rendah
+         * (mis. G7 simple cycle) hanya di-start bila unit berprioritas lebih tinggi tidak legal (merit C2). */
+        usort($cands, fn($a, $b) => [$a['eff'] > 0 ? 1 : 0, $a['prio'], $a['same'], round($a['eff'], 5), -$a['pot']]
+                              <=> [$b['eff'] > 0 ? 1 : 0, $b['prio'], $b['same'], round($b['eff'], 5), -$b['pot']]);
         $moved = false;
         foreach ($cands as $c) {
             $u = $c['u']; $mn = $minOf($u);
             $save = $genRows;
-            /* nyalakan dari row r sampai akhir hari (atau sampai stop schedule) pada min load */
+            /* nyalakan dari row r sampai akhir hari (atau sampai stop schedule) pada min load. Startup dimulai LEBIH AWAL sebanyak
+             * langkah sequence di bawah min load, sehingga unit sudah di min load (ikut reserve) tepat pada row defisit. */
             $seqU = pp_start_sequence($d3, $model, $u, $genRows, $r);
+            $leadU = 0; foreach ($seqU as $svU) { if ((float)$svU < $mn - 1e-6) $leadU++; else break; }
+            $r0 = $r;
+            if ($leadU > 0) { $r0 = max(strtolower((string)($model['unit_last_data_status'][strtoupper($u)] ?? '')) === 'running' ? 0 : 1, $r - $leadU);
+                for ($rq = $r0; $rq < $r; $rq++) if (!$writable($u, $rq) || (float)($genRows[$rq][$u] ?? 0) > 0.51) { $r0 = $r; break; }
+                if ($r0 !== $r) $seqU = pp_start_sequence($d3, $model, $u, $genRows, $r0); }
             $k = 0;
-            for ($rr = $r; $rr < $n; $rr++) {
+            for ($rr = $r0; $rr < $n; $rr++) {
                 if (!$writable($u, $rr)) break;
                 if ($k < count($seqU)) {
                     /* DI DALAM startup window: nilai WAJIB TEPAT sama dgn langkah sequence
@@ -5164,7 +5171,7 @@ function pp_reserve_repair(array &$genRows, array $d3, array $model, array $ieVa
             $GLOBALS['__pp_reserve_commit'][strtoupper($u)] = true;   // otorisasi: start demi reserve
             /* export-neutral: turunkan unit lain pada row terdampak sebesar tambahan MW */
             $okAll = true;
-            for ($rr = $r; $rr < $n && $okAll; $rr++) {
+            for ($rr = $r0; $rr < $n && $okAll; $rr++) {
                 if ((float)($genRows[$rr][$u] ?? 0) <= 0.51) continue;
                 $guard = 0;
                 while ($expOf($rr) > $rMax + 1e-6 || (!$rowOK($rr) && $expOf($rr) > $rMin + 0.5)) {
@@ -5207,7 +5214,7 @@ function pp_reserve_repair(array &$genRows, array $d3, array $model, array $ieVa
             /* GATE KETAT: seluruh row yang tersentuh WAJIB lolos Export Range (kedua sisi), Bus Flow,
              * ramp, dan startup — kandidat ditolak SEBELUM dibandingkan manfaatnya. */
             if ($okAll) {
-                for ($rr = max(0, $r - 1); $rr < $n; $rr++) {
+                for ($rr = max(0, $r0 - 1); $rr < $n; $rr++) {
                     if (isset($actualRows[$rr])) continue;
                     if (!$rowOK($rr)) { $okAll = false; break; }   // seluruh row terdampak divalidasi
                 }
@@ -7219,7 +7226,10 @@ function pp_shortage_decision_block(array $input, array $output, array $audit, ?
      * volume terjadwal milik engine sendiri bila tersedia. */
     $distAnalytic = pp_distillate_litres_from_bbtu(max(0.0, $lngEst), $model);
     $distSched    = (float)($info['Recommended Distillate (l/day)'] ?? 0);
-    $distEst = max($distAnalytic, $distSched);
+    /* Volume terjadwal engine hanya dipakai bila berasal dari kekurangan yang SAMA (selisih <= 5 %: pembulatan level diskrit).
+     * Bila jauh lebih besar, jadwal itu dihitung dari residual sebelum minimisasi Export (stale) dan tidak boleh ditawarkan:
+     * liter = konversi langsung kekurangan final + 2 % margin level diskrit. */
+    $distEst = ($distSched > 0 && $distSched <= $distAnalytic * 1.05) ? max($distAnalytic, $distSched) : $distAnalytic * 1.02;
 
     /* SYSTEMIC SHORTAGE PROOF (quota-independent): requiring rows_still_reducible=0 was wrong.
      * Some Export rows may remain numerically above Range Min while their reduction cannot be used
@@ -8154,6 +8164,9 @@ function pp_validate_hard_constraints(array $input, array $output): array {
         if (stripos($w, 'startup sequence') !== false || stripos($w, 'physical start-up') !== false
             || stripos($w, 'Additional HRSG') !== false || stripos($w, 'startup load') !== false
             || stripos($w, 'startup step') !== false) continue;
+        /* Warning kuota gas yang menyebut "min-runtime extension" sebagai PENYEBAB adalah pelanggaran gas (sudah dinilai
+         * gas_quota dari angka), bukan pelanggaran runtime. */
+        elseif (stripos($w, 'gas quota exceeded') === 0) continue;
         elseif (stripos($w, 'minimum runtime') !== false || stripos($w, 'minimum downtime') !== false || stripos($w, 'runtime extension') !== false) $V[] = ['runtime_downtime', $w];
     }
 

@@ -3531,7 +3531,8 @@ function pp_bs_ff_redistribute(array $in, array $srcRows, $after, float $minF, a
             'limiting_constraint' => $valid ? null : ('verifikasi gagal: ' . implode(', ', $new ?: $tU))];
     };
     $r1 = $tryMargin((float)$margins[0]);
-    if (empty($r1['feasible']) && isset($r1['recipient_rows']) && isset($margins[1])) { $r2 = $tryMargin((float)$margins[1]); if (!empty($r2['feasible'])) return $r2 + ['first_attempt' => ['margin' => (float)$margins[0], 'limiting_constraint' => $r1['limiting_constraint'] ?? null]]; }
+    for ($mi = 1; $mi < count($margins) && empty($r1['feasible']) && isset($r1['recipient_rows']); $mi++) {
+        $r2 = $tryMargin((float)$margins[$mi]); if (!empty($r2['feasible'])) return $r2 + ['first_attempt' => ['margin' => (float)$margins[0], 'limiting_constraint' => $r1['limiting_constraint'] ?? null]]; }
     return $r1;
 }
 /* FIXED FLOW FIRST (Min PGN Flow gagal sesudah core run baseline). Core run sudah memaksimalkan unit running menurut Unit Priority
@@ -3590,7 +3591,7 @@ function pp_ff_first_correction(array $in, ?array $base, float $dl): array {
     $res += ['constrained_period' => $cp, 'verification' => $ver];
     if ($ok === null) return $res + ['available' => false, 'code' => 'PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE', 'limiting_constraint' => 'pengurangan Fixed Flow JBBK row sumber tidak memenuhi Min PGN Flow (terverifikasi core run)',
         'reason' => 'Fixed Flow JBBK pada row terkendala tidak dapat dikurangi sampai Min PGN Flow terpenuhi; koreksi tidak diterapkan.'];
-    $redis = pp_bs_ff_redistribute($in, $R, $ok, $minF, $okD, $okViol, [0.50, 1.00]);
+    $redis = pp_bs_ff_redistribute($in, $R, $ok, $minF, $okD, $okViol, [0.50, 1.00, 2.00]);
     $res += ['redistribution' => $redis, 'recommended_fixed_flow_by_row' => $ok,
         'periods' => array_map(fn($pd) => ['rows' => range($pd['from'], $pd['to']), 'label' => pp_bs_slot_hhmm($pd['from']) . ($pd['to'] > $pd['from'] ? '-' . pp_bs_slot_hhmm($pd['to']) : ''),
             'per_row' => array_map(fn($r) => ['row' => $r, 'time' => pp_bs_slot_hhmm($r), 'before' => round($ff[$r], 4), 'after' => $ok[$r], 'reduction' => round($ff[$r] - $ok[$r], 4)], range($pd['from'], $pd['to']))], $periods),
@@ -3797,7 +3798,9 @@ function pp_job_run_economic_review(string $id, array $input): array {
             pp_budget_start(pp_ff_rerun_budget_s(), true, true); $GLOBALS['__pp_budget_deadline'] = min((float)($GLOBALS['__pp_budget_deadline'] ?? INF), (float)$GLOBALS['__pp_ff_rerun_dl']); }                                                              // seluruh tahap pipeline memakai batas yang sama
         unset($GLOBALS['__pp_ff_rerun_hit']);
         try { $output = pp_sim_memo_run($input);        // state identik yang sudah dihitung dipakai ulang
-            if (!empty($GLOBALS['__pp_ff_rerun_hit']) || (isset($GLOBALS['__pp_ff_rerun_dl']) && microtime(true) > (float)$GLOBALS['__pp_ff_rerun_dl'] - 0.5)) $output = pp_ff_rerun_budget_output($id, $inputAsli); }
+            if (isset($GLOBALS['__pp_ff_rerun_dl']) && (!empty($GLOBALS['__pp_ff_rerun_hit']) || microtime(true) > (float)$GLOBALS['__pp_ff_rerun_dl'] - 0.5
+                || !empty($output['info']['Run Status']['budget_truncated']) || !empty($output['info']['Run Status']['stages_truncated'])
+                || !empty($output['info']['Run Status']['economic_review_skipped']))) $output = pp_ff_rerun_budget_output($id, $inputAsli); }
         catch (PpJobAborted $e) {
             if (!in_array($e->getMessage(), ['FF_FIRST_PGN', 'FF_RERUN_BUDGET'], true)) throw $e;
             $GLOBALS['__pp_sim_depth'] = 0; $GLOBALS['__pp_sim_nest'] = 0; $GLOBALS['__pp_sim_outermost'] = false; unset($GLOBALS['__pp_ff_rerun_dl']);
@@ -3859,6 +3862,14 @@ function pp_job_run_economic_review(string $id, array $input): array {
         'effective_engine_ceiling_s' => (float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0),
         'status' => 'OK',
         'catatan' => 'Job asinkron berjalan di luar PHP-FPM. Plafon 60 detik untuk request sinkron TIDAK diubah.'];
+    /* Review Unit Priority yang dilewati karena pemenang BELUM valid saat review (terukur: rencana Distillate baru lengkap sesudah
+     * rekonsiliasi bahan bakar) dijalankan pada output final yang kini valid, sehingga bukti merit C1-C4/LLF terbentuk dan gerbang
+     * merit benar-benar berlaku (sebelumnya gate_applied=false: rencana dirilis tanpa bukti merit). */
+    $rvF = $output['info']['V8 Priority Review'] ?? null;
+    if (!$bsTerm && is_array($rvF) && ($rvF['status'] ?? '') === 'SKIPPED' && ($rvF['reason'] ?? '') === 'PEMENANG_BELUM_VALID' && count((array)($output['data'] ?? [])) === 48
+        && ($output['ok'] ?? true) !== false && function_exists('pp_v8_priority_review')) {
+        try { $GLOBALS['__pp_v8_job'] = $id; $output = pp_v8_priority_review($inputAsli, $output); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} finally { unset($GLOBALS['__pp_v8_job']); }
+        $output['info']['V8 Priority Review']['rerun_after_fuel_reconciliation'] = true; }
     $review = pp_attach_or_reject_acceptance($input, $output);
     $V = pp_validate_hard_constraints($input, $output);
     /* ==========================================================================================
@@ -6471,7 +6482,10 @@ function pp_v11_frag_audit(array $input, array $out): array {
         foreach ((array)($ev[$r . '#' . $U]['reasons'] ?? []) as $w) if (!preg_match('~^(MINIMUM_LOAD|INCUMBENT|PREVIOUS_FINAL)~i', (string)$w)) $why[] = 'REVIEW:' . $w;
         foreach ((array)($sw['candidates'] ?? []) as $c) { if (($c['unit'] ?? '') !== $U) continue; $res = (string)($c['result'] ?? '');
             if (strpos($res, 'DIPANGKAS_TIER1:') === 0) $why[] = 'KONSOLIDASI_' . $c['kind'] . ':' . substr($res, 16);
-            elseif (strpos($res, 'INVALID') === 0) $why[] = 'KONSOLIDASI_' . $c['kind'] . '_' . ($c['variant'] ?? '') . ':' . $res;
+            /* bukti counterfactual hasil simulasi penuh: identitas kandidat (unit, interval, row stop) + CP/HR terhitung ikut
+             * diserialisasi (sebelumnya hanya kode pelanggaran, sehingga hasil akhir LLF menilainya "tanpa bukti numerik") */
+            elseif (strpos($res, 'INVALID') === 0) $why[] = 'KONSOLIDASI_' . $c['kind'] . '_' . ($c['variant'] ?? '') . '(' . ($c['id'] ?? '?')
+                . (isset($c['cp']) ? sprintf(', CP %.4f', (float)$c['cp']) : '') . (isset($c['heat_rate']) ? sprintf(', HR %.2f', (float)$c['heat_rate']) : '') . '):' . $res;
             elseif (strpos($res, 'VALID') === 0 && isset($c['cp']) && (float)$c['cp'] > $cpW + 1e-6) $why[] = sprintf('KONSOLIDASI_%s_%s:CP_LEBIH_MAHAL(%.4f > %.4f)', $c['kind'], $c['variant'] ?? '', $c['cp'], $cpW); }
         $why = array_values(array_unique($why)); if (!$why) $unres++;
         $F[] = ['row' => $r, 'unit' => $U, 'unit_mw' => $info['mw'], 'higher_priority_headroom' => $info['higher_priority_headroom'], 'near_min_units' => array_keys($x['near_min']), 'reasons' => $why, 'resolved' => (bool)$why]; }
@@ -6745,6 +6759,44 @@ function pp_v12_c4_rows_search_par(array $orig, array $S, array $by, ?float $T, 
     $out = []; foreach ($st as $r => $q) $out[$r] = ['M' => round($q['M'], 4), 'lo' => round($q['lo'], 4), 'hi' => round($q['hi'], 4), 'evals' => $q['n'], 'last' => $q['last']];
     return $out;
 }
+/* Pendaratan window gas BERURUT MERIT untuk pergeseran C4 gabungan: gas yang hilang karena beban pindah ke unit efisien
+ * dikembalikan dengan menaikkan unit BERJALAN berprioritas tertinggi (Unit Priority user) pada row yang masih punya ruang Export,
+ * dibagi merata antar row (round-robin 0,5 MW), ramp G7-G10 <= 30 MW/slot. Besarnya dihitung analitik (calc_fuel), diverifikasi
+ * satu evaluasi penuh, dikoreksi maks. 3 kali (berhenti bila stagnan). Tidak ada unit prioritas rendah yang dinaikkan. */
+function pp_v12_c4_merit_land(array $orig, array $Sf, callable $FZ, float $dl, ?array &$log = null): ?array {
+    $log = []; $d3 = (array)$orig['data3']; $m = (array)$d3['modeling']; $pr = array_map('strtoupper', pp_priority_flat($m, '/^g[1-9]$/'));
+    $a = $FZ($Sf); if (!is_array($a)) return null;
+    $q = (float)($a['output']['info']['Total Gas Quota (BBTUD)'] ?? 0); [$wLo, $wHi] = pp_gas_window($q); $tgt = $wLo + 0.015;
+    $need = $tgt - (float)($a['output']['info']['Total Gas Used (BBTUD)'] ?? 0); $base = $a; $prevGap = null;
+    for ($k = 0; $k < 3 && microtime(true) < $dl - 4.0; $k++) {
+        if (!empty($a['valid'])) return $a;
+        if ($need <= 0.0) { $log[] = 'gas_tidak_di_bawah_window'; return null; }
+        $D = array_values((array)$base['output']['data']); $S = $Sf; $add = array_fill(0, 48, 0.0); $acc = 0.0; $rounds = 0;
+        /* row yang Export-nya jatuh di bawah Range Min karena kopling STG (blok donor kehilangan STG lebih besar dari blok penerima):
+         * ditutup lebih dulu oleh unit berjalan berprioritas tertinggi yang ber-headroom */
+        for ($r = 0; $r < 48; $r++) { if (!empty($D[$r]['Actual'])) continue; $def = (float)($D[$r]['pln_lo'] ?? 0) + 0.1 - (float)($D[$r]['Export_PLN'] ?? 0); if ($def <= 0) continue;
+            foreach ($pr as $U) { if ($def <= 0) break; $u = strtolower($U); $v = (float)($S[$r][$U] ?? 0); $mn = (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 20));
+                if ($v < $mn - 1e-6 || pp_get_fixed_load($m, $u, $r + 1) >= 0) continue; $cap = pp_effective_maxload($d3, $m, $u, $r + 1); if ($cap <= 0) $cap = (float)($d3[$u]['max_load'] ?? 0);
+                $x = min($cap - $v, ceil($def / 0.5) * 0.5); if ($x <= 0.01 || pp_load_in_forbidden_band($m, $u, $r + 1, $v + $x)) continue;
+                $acc += (calc_fuel($d3, $u, $v + $x) - calc_fuel($d3, $u, $v)) / 2.0; $S[$r][$U] = round($v + $x, 4); $add[$r] += $x; $def -= $x; } }
+        while ($acc < $need && $rounds++ < 80) { $moved = false;
+            for ($r = 0; $r < 48 && $acc < $need; $r++) {
+                if (!empty($D[$r]['Actual'])) continue;
+                $room = (float)($D[$r]['pln_hi'] ?? 0) - (float)($D[$r]['Export_PLN'] ?? 0) - $add[$r] * 1.4 - 1.0; if ($room < 0.5) continue;
+                foreach ($pr as $U) { $u = strtolower($U); $v = (float)($S[$r][$U] ?? 0); $mn = (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 20));
+                    if ($v < $mn - 1e-6 || pp_get_fixed_load($m, $u, $r + 1) >= 0 || pp_load_in_forbidden_band($m, $u, $r + 1, $v + 0.5)) continue;
+                    $cap = pp_effective_maxload($d3, $m, $u, $r + 1); if ($cap <= 0) $cap = (float)($d3[$u]['max_load'] ?? 0); if ($v + 0.5 > $cap + 1e-6) continue;
+                    if (in_array($u, ['g7','g8','g9','g10'], true)) { $okR = true; foreach ([$r - 1, $r + 1] as $nb) if ($nb >= 0 && $nb < 48 && (float)($S[$nb][$U] ?? 0) >= 1 && abs($v + 0.5 - (float)$S[$nb][$U]) > 30.0) $okR = false; if (!$okR) continue; }
+                    $acc += (calc_fuel($d3, $u, $v + 0.5) - calc_fuel($d3, $u, $v)) / 2.0; $S[$r][$U] = round($v + 0.5, 4); $add[$r] += 0.5; $moved = true; break; } }
+            if (!$moved) break; }
+        $a = $FZ($S); if (!is_array($a)) return null; $g = (float)($a['output']['info']['Total Gas Used (BBTUD)'] ?? 0);
+        $log[] = sprintf('it%d: +%.1f MW-slot, gas %.4f, window [%.4f, %.4f], %s', $k + 1, array_sum($add), $g, $wLo, $wHi, !empty($a['valid']) ? 'VALID' : implode(',', array_unique(array_map('pp_v8_viol_code', (array)($a['violations'] ?? [])))));
+        if (!empty($a['valid'])) return $a;
+        $gap = $g < $wLo ? $tgt - $g : ($g > $wHi ? ($wHi - 0.015) - $g : 0.0);
+        if ($gap === 0.0 || ($prevGap !== null && abs($gap) >= abs($prevGap) - 1e-4)) break;      // bukan masalah gas / stagnan
+        $prevGap = $gap; $need += $gap; }
+    return is_array($a) && !empty($a['valid']) ? $a : null;
+}
 function pp_v12_c4_rowwise(array $orig, array $data, array $moves, ?float $T, float $dl, ?array $bbFix = null, array $c4Detail = []): array {
     $by = []; foreach ($moves as $mv) $by[(int)$mv['row']][] = $mv; ksort($by);
     $hd = []; foreach ($c4Detail as $d) $hd[(int)$d['row'] . '#' . (string)$d['unit']] = $d;
@@ -6761,7 +6813,26 @@ function pp_v12_c4_rowwise(array $orig, array $data, array $moves, ?float $T, fl
     $ind = pp_v12_c4_rows_search_par($orig, $S0, $by, $T, $dl, $bbFix); foreach ($rows as $r) $rep['evaluations'] += $ind[$r]['evals'];
     $Sc = $S0; foreach ($rows as $r) if ($ind[$r]['lo'] > 0) $Sc = $put($Sc, $r, $by[$r], $ind[$r]['lo'] / max(1e-9, $ind[$r]['M']));
     $ac = $FZ($Sc); $rep['evaluations']++; $rep['phase'] = 'INDEPENDENT_ROWS';
-    if (is_array($ac) && !empty($ac['valid'])) { $S = $Sc;
+    /* Fase B2 — GABUNGAN PENUH + PENDARATAN WINDOW GAS BERURUT MERIT: bila sebagian pergeseran tidak dapat diterima per row
+     * (pergeseran ke unit efisien menurunkan gas di bawah window, mis. LNG must-take sesudah rekomendasi Gas Shortage), seluruh
+     * pergeseran diterapkan sekaligus lalu window gas didaratkan oleh unit berjalan berprioritas TERTINGGI (pp_v12_c4_merit_land;
+     * cadangan: pp_v10_land). Dipakai bila valid penuh dan temuan C4 lebih sedikit daripada hasil per row. Terukur input PGN 23
+     * + LNG: per row menyisakan C4 8-33 -> V12_MERIT_DISPATCH_TANPA_BUKTI. */
+    $allFull = true; foreach ($rows as $r) if ($ind[$r]['lo'] < $ind[$r]['M'] - 1e-9) { $allFull = false; break; }
+    $Lf = null;
+    if (!$allFull && microtime(true) < $dl - 8.0) {
+        $Sf = $S0; foreach ($rows as $r) $Sf = $put($Sf, $r, $by[$r], 1.0);
+        $lgF = null; $Lf = pp_v12_c4_merit_land($orig, $Sf, $FZ, $dl, $lgF); $rep['evaluations'] += 1 + count((array)$lgF); $rep['combined_landing_log'] = $lgF;
+        if ((!is_array($Lf) || empty($Lf['valid'])) && microtime(true) < $dl - 8.0) { $lgF2 = null; $Lf = pp_v10_land($orig, $Sf, $T, $dl, 6, $lgF2, null, $bbFix); $rep['evaluations']++; }
+        $c4Of = function ($a) use ($orig) { return is_array($a) && !empty($a['valid']) ? (int)(pp_v12_merit_audit($orig, $a['output'])['c4_cross_group_priority']['fail'] ?? 999) : 999; };
+        $refC4 = (is_array($ac) && !empty($ac['valid'])) ? $c4Of($ac) : $c4Of($a0);
+        if (is_array($Lf) && !empty($Lf['valid']) && $c4Of($Lf) < $refC4) {
+            $rep['phase'] = 'COMBINED_FULL_WITH_MERIT_GAS_WINDOW_LANDING'; $S = pp_v10_shape((array)$Lf['output']['data']);
+            foreach ($rows as $r) $acc[$r] = ['ms' => $by[$r], 'total' => $ind[$r]['M'], 'accepted' => $ind[$r]['M'], 'rejected_step' => null];
+        } else { $rep['combined_full_landing'] = is_array($Lf) ? (!empty($Lf['valid']) ? 'VALID_TANPA_PERBAIKAN_C4' : 'INVALID:' . $codes($Lf)) : 'TIDAK_DIEVALUASI'; $Lf = null; }
+    }
+    if ($Lf !== null) { /* fase B2 dipakai */ }
+    elseif (is_array($ac) && !empty($ac['valid'])) { $S = $Sc;
         foreach ($rows as $r) { $x = $ind[$r]; $acc[$r] = ['ms' => $by[$r], 'total' => $x['M'], 'accepted' => $x['lo'], 'rejected_step' => $x['lo'] >= $x['M'] - 1e-9 ? null : round(min($x['M'], $x['hi']) - $x['lo'], 4)]; } }
     else { $rep['phase'] = 'SEQUENTIAL_FALLBACK'; $rep['independent_combined'] = 'INVALID:' . $codes($ac);
         foreach ($rows as $r) { $x = pp_v12_c4_row_search($orig, $S, $r, $by[$r], $T, $dl, $bbFix); $rep['evaluations'] += $x['evals'];
@@ -8133,7 +8204,11 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
         $fz = pp_v3_frozen_eval($orig, (array)$base['data'], microtime(true) + 60.0);
     } catch (Throwable $e) { $fz = null; }
     $restore();
-    if (pp_v12_fuel_on() && is_array($fz) && !empty($fz['valid']) && pp_v4_helper_slots() > 0 && (string)getenv('PP_EXACT_FAMILY') !== '0') {
+    /* Fastest: rencana basis yang valid pada state bahan bakar langsung direview (bukti merit C1-C4 + LLF) dan dirilis; ruang
+     * keluarga commitment penuh adalah Maximum Review dan tidak diterbitkan pada job Fastest (terukur input PGN 23 + LNG:
+     * 120 kandidat / 27 valid, +21 s, padahal kandidat basis sudah fully valid). */
+    $fastV7 = is_file(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v12_fast.flag');
+    if (!$fastV7 && pp_v12_fuel_on() && is_array($fz) && !empty($fz['valid']) && pp_v4_helper_slots() > 0 && (string)getenv('PP_EXACT_FAMILY') !== '0') {
         try { pp_v4_work_publish($jobId, $orig, ['kind' => 'family', 'seeds' => [], 'max_nodes' => 64, 'dl' => (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 1500.0)) - 4.0]); } catch (Throwable $e) {}
     }
     $surplus = false;
@@ -8175,7 +8250,10 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
         try { pp_v4_work_publish($jobId, $orig, ['kind' => 'family', 'seeds' => [], 'max_nodes' => 64, 'dl' => (float)($GLOBALS['__pp_budget_deadline'] ?? (microtime(true) + 1500.0)) - 4.0]); } catch (Throwable $e) {}
     }
     /* keluarga commitment dilengkapi (kandidat valid lebih murah menggantikan) */
-    if (!$landed) { try { $out = pp_memo_apply_family(pp_econ_job_sim_input($input, $ceil), $out); } catch (Throwable $e) {} }
+    /* Fastest + dispatch basis valid pada state bahan bakar: tidak ada pencarian keluarga (Maximum Review terselubung); review
+     * Unit Priority + bukti merit/LLF di job tetap berjalan sebelum rilis. */
+    if (!$landed && !($fastV7 && !$surplus)) { try { $out = pp_memo_apply_family(pp_econ_job_sim_input($input, $ceil), $out); } catch (Throwable $e) {} }
+    elseif (!$landed) $out['info']['V7 Fuel Delta Validation']['family'] = 'TIDAK_DIJALANKAN_FASTEST: dispatch basis valid pada state bahan bakar';
     $restore();
     if ($surplus && $landed) {
         $out['info']['V7 Fuel Delta Validation']['route_v12'] = 'LNG_DI_ATAS_KEBUTUHAN: commitment basis Gas Shortage didaratkan ulang pada state bahan bakar (redispatch + window gas), review Unit Priority generik sesudahnya';

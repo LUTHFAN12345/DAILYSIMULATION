@@ -3053,7 +3053,7 @@ function pp_run_simulation_pipeline(array $input): array {
      * total efektif 64,5269 — validator lalu menolak hasil yang korektor anggap selesai. */
     $gwUsed = function (array $o): float {
         $i = (array)($o['info'] ?? []);
-        if ((string)getenv('PP_V5_GW_EFFECTIVE') === '1' && (int)($i['Actual Hours Provided'] ?? 0) > 0 && isset($i['Effective Total Gas (BBTUD)']))
+        if ((string)getenv('PP_V5_GW_EFFECTIVE') !== '0' && (int)($i['Actual Hours Provided'] ?? 0) > 0 && isset($i['Effective Total Gas (BBTUD)']))
             return (float)$i['Effective Total Gas (BBTUD)'];
         return (float)($i['Total Gas Used (BBTUD)'] ?? 0);
     };
@@ -4230,8 +4230,15 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         /* Supplier-window repair is universal. Previously this pass exited when no Actual Gas rows
          * existed, so PEP changes could leave PGN Pipe below quota-0.04 and be rejected immediately.
          * The internal target adjustment now runs for both planned and actual-gas cases. */
-        $lo = $pq - 0.04;
-        $gapNow = $pu < $lo ? $lo - $pu : ($pu > $pq ? $pu - $pq : 0.0);
+        $lo = $pq - 0.04; $hiP = $pq;
+        /* Dengan jam ACTUAL, pipe efektif dan Effective Total Gas digeser delta yang sama; window total ikut membatasi pipe
+         * (terukur input PGN 23 + LNG + 1 jam actual: pipe 22,97 di window tetapi total efektif 85,7492 > 85,7486). Target = irisan
+         * kedua window; tanpa irisan atau tanpa actual perilaku lama. */
+        if ($hA > 0 && isset($out['info']['Effective Total Gas (BBTUD)'], $out['info']['Total Gas Quota (BBTUD)'])) {
+            $dET = (float)$out['info']['Effective Total Gas (BBTUD)'] - $pu; $tqE = (float)$out['info']['Total Gas Quota (BBTUD)'];
+            $loI = max($lo, $tqE - 0.04 - $dET); $hiI = min($pq, $tqE - $dET);
+            if ($loI <= $hiI - 0.002) { $lo = $loI; $hiP = $hiI; } }
+        $gapNow = $pu < $lo ? $lo - $pu : ($pu > $hiP ? $pu - $hiP : 0.0);
         if ($gapNow < $bestGap) { $bestGap = $gapNow; $bestOut = $out; $bestIn = $outIn; }
         if ($gapNow <= 1e-9) break;               // Effective sudah dalam window
         /* target TENGAH window (pq-0.02), bukan tepi: relasi shift->efektif tidak persis linear
@@ -4243,8 +4250,8 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
          * memakai gain TERUKUR dari respons iterasi sebelumnya. */
         $adj = $adj ?? json_decode(json_encode($input), true);
         $cur = (float)$adj['data3']['modeling']['gas_quota']['pgn_pipe'];
-        if ($pu < $lo) $underTarget = $cur; else if ($pu > $pq) $overTarget = $cur;
-        $targetMid = $pq - 0.02;
+        if ($pu < $lo) $underTarget = $cur; else if ($pu > $hiP) $overTarget = $cur;
+        $targetMid = 0.5 * ($lo + $hiP);
         $need = $pu - $targetMid;
         if ($it === 1) $supObs[sprintf('%.9f', $cur)] = $pu;                // V10: pengamatan (target internal -> PGN fisik)
         if ($underTarget !== null && $overTarget !== null && abs($underTarget - $overTarget) > 1e-6) {
@@ -6844,7 +6851,12 @@ function pp_run_simulation_once_raw(array $input): array {
         /* ===== RESERVE REPAIR (hard constraint) dijalankan SEBELUM export-floor repair supaya
          * unit tambahan yang dinyalakan ikut diperhitungkan oleh perbaikan berikutnya. */
         $reserveEv = [];
-        $model['__reserve_gas_cap'] = (float)($gasQuotaJababeka ?? 0);   // gate kuota utk reserve repair
+        /* Spinning Reserve = hard constraint. Bila operator memakai jalur Gas Shortage (rekomendasi / LNG / Distillate), gas
+         * tambahan untuk unit yang wajib online demi SR menjadi bagian kekurangan gas yang ditutup bahan bakar tersebut, bukan
+         * alasan menolak start (sebelumnya dibandingkan kuota nominal tanpa LNG tambahan sehingga SR selalu gagal dan rekomendasi
+         * LNG/Distillate kurang). Tanpa jalur shortage, gate kuota lama berlaku. */
+        $actRG = strtolower((string)(($model['__fuel_decision_mode'] ?? '') !== '' ? $model['__fuel_decision_mode'] : ($model['gas_shortage_action'] ?? 'none')));   // niat asli (recommendation dinormalkan ke none untuk dispatch)
+        $model['__reserve_gas_cap'] = in_array($actRG, ['recommendation', 'add_lng', 'use_distillate', 'mixed_lng_distillate'], true) ? 0.0 : (float)($gasQuotaJababeka ?? 0);
         pp_reserve_repair($genRows, $d3, $model, $ieVals, $actualRows, $rMinFR, $rMaxFR, $reserveEv);
         /* ITEM-R1 BABELAN RESERVE RELIEF (gas-neutral): turunkan BB1/BB2 untuk menciptakan headroom
          * spinning reserve dan menutup Export di atas Range Max. Hanya menurunkan coal -> reserve &
@@ -7354,6 +7366,62 @@ function pp_run_simulation_once_raw(array $input): array {
         $GLOBALS['__pp_skip_load_invariant'] = $__skInv;
     }
 
+    /* ===== MERIT SWAP AKHIR — GAS DI ATAS KUOTA (export-netral, generik) =====
+     * Rencana Gas Shortage dulu menyisakan unit gas berprioritas RENDAH di atas minimum (mis. G2/G5 31 MW) sementara unit
+     * berprioritas lebih tinggi (G8/G9) masih punya legal headroom, padahal Export sudah di Range Min. Dispatch itu membakar gas
+     * lebih banyak dari perlu: kekurangan (rekomendasi LNG/Distillate) membesar, dan sesudah LNG diterima rencana yang sama
+     * ditolak gerbang merit C4 (V12_MERIT_DISPATCH_TANPA_BUKTI). Pass ini, HANYA bila gas Jababeka di atas kuota efektif,
+     * memindahkan beban per row dari unit prioritas rendah (di atas floor) ke unit prioritas lebih tinggi ber-headroom, Export
+     * dijaga (kopling STG dikompensasi pada penerima). Setiap langkah wajib: Export di band, langkah Export <= batas, Bus Flow,
+     * Spinning Reserve, ramp unit (G7-G10 <= 30 MW/slot), skip load, fixed load, startup window, row Actual; gas wajib turun.
+     * Berhenti di kuota efektif - 0,02 sehingga tidak pernah mendorong gas di bawah window. */
+    if ((string)getenv('PP_MERIT_SWAP') !== '0') {
+        $actMS = strtolower((string)($model['gas_shortage_action'] ?? 'none'));
+        $qMS = $gasQuotaTotal + (in_array($actMS, ['add_lng', 'mixed_lng_distillate'], true) ? (float)($model['additional_lng'] ?? 0) : 0.0);
+        $gasMS = function () use (&$genRows, $d3, $nRows): float { $g = 0.0; for ($k = 0; $k < $nRows; $k++) foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9'] as $u) $g += calc_fuel($d3, $u, (float)($genRows[$k][$u] ?? 0)); return $g / 2.0; };
+        $gMM = 0.0; for ($k = 0; $k < $nRows; $k++) foreach (['g10','ge1','ge2','ge3','ge4'] as $u) $gMM += calc_fuel($d3, $u, (float)($genRows[$k][$u] ?? 0)) / 2.0;
+        $tgtMS = $qMS - $gMM - 0.02;
+        if ($gasMS() > $tgtMS + 0.04) {
+            $prMS = pp_priority_flat($model, '/^g[1-9]$/'); $busMinMS = (float)($model['busflow_min'] ?? 0); $stepLimMS = pp_export_step_limit($model);
+            $expMS = function (int $r) use (&$genRows, $realised_export, $ieVals): float { return (float)$realised_export($genRows[$r], (float)$ieVals[$r])['export']; };
+            $badMS = function (int $r) use (&$genRows, $expMS, $ieVals, $baseLoArr, $effHiArr, $nRows, $stepLimMS, $busMinMS, $busUnit, $d3, $model): float {
+                $e = $expMS($r); $bd = max(0.0, (float)$baseLoArr[$r] - $e) + max(0.0, $e - (float)$effHiArr[$r]);
+                foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $nRows) continue; $bd += max(0.0, abs($e - $expMS($nb)) - $stepLimMS); }
+                if ($busMinMS > 0) $bd += max(0.0, $busMinMS - calc_busflow($genRows[$r], $busUnit, (float)$ieVals[$r]));
+                $srM = pp_reserve_min_row($model, $r); if ($srM > 0) $bd += max(0.0, $srM - pp_spinning_reserve($genRows[$r], $d3, $model, $r + 1));
+                foreach (['g7','g8','g9','g10'] as $uR) foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $nRows) continue;
+                    $a = (float)($genRows[$r][$uR] ?? 0); $b = (float)($genRows[$nb][$uR] ?? 0); if ($a >= 1 && $b >= 1) $bd += max(0.0, abs($a - $b) - 30.0); }
+                return $bd; };
+            $minMS = fn(string $u) => (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 20));
+            $okUnitMS = function (string $u, int $r) use ($model, $d3, $actualRows, &$genRows, $minMS): bool {
+                if (isset($actualRows[$r]) || pp_get_fixed_load($model, $u, $r + 1) >= 0 || pp_is_unit_stopped($d3, $model, $u, $r + 1)) return false;
+                $v = (float)($genRows[$r][$u] ?? 0); return $v >= $minMS($u) - 1e-6; };     // di bawah min = jendela startup/shutdown
+            $g0MS = $gasMS(); $movedMS = 0.0; $rowsMS = [];
+            for ($r = 0; $r < $nRows && $gasMS() > $tgtMS; $r++) {
+                for ($it = 0; $it < 120 && $gasMS() > $tgtMS; $it++) {
+                    $done = false;
+                    foreach (array_reverse($prMS) as $lo) {
+                        if (!$okUnitMS($lo, $r)) continue; $cLo = (float)$genRows[$r][$lo]; if ($cLo <= $minMS($lo) + 0.05) continue;
+                        foreach ($prMS as $hi) { if ($hi === $lo) break;
+                            if (!$okUnitMS($hi, $r)) continue; $cHi = (float)$genRows[$r][$hi];
+                            $capH = pp_effective_maxload($d3, $model, $hi, $r + 1); if ($capH <= 0) $capH = (float)($d3[$hi]['max_load'] ?? 0);
+                            if ($cHi >= $capH - 0.05) continue;
+                            $t = min(1.0, $cLo - $minMS($lo), $capH - $cHi);
+                            $sv = $genRows[$r]; $b0 = [$r > 0 ? $badMS($r - 1) : 0.0, $badMS($r), $r < $nRows - 1 ? $badMS($r + 1) : 0.0]; $gg0 = $gasMS(); $e0 = $expMS($r);
+                            $genRows[$r][$lo] = $cLo - $t; $genRows[$r][$hi] = $cHi + $t; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                            $e1 = $expMS($r); if ($e1 < $e0 - 0.05) { $genRows[$r][$hi] = min($capH, (float)$genRows[$r][$hi] + ($e0 - $e1)); pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); }
+                            $skBad = false; foreach ([$lo, $hi] as $uS) { $vS = (float)$genRows[$r][$uS]; if (pp_load_in_forbidden_band($model, $uS, $r + 1, $vS)) $skBad = true; }
+                            if ($skBad || ($r > 0 && $badMS($r - 1) > $b0[0] + 1e-6) || $badMS($r) > $b0[1] + 1e-6 || ($r < $nRows - 1 && $badMS($r + 1) > $b0[2] + 1e-6) || $gasMS() >= $gg0 - 1e-6) { $genRows[$r] = $sv; continue; }
+                            $movedMS += $t; $rowsMS[$r + 1] = true; $done = true; break 2;
+                        }
+                    }
+                    if (!$done) break;
+                }
+            }
+            if ($movedMS > 0) $warnings[] = sprintf('MERIT SWAP (gas Jababeka di atas kuota, Export dijaga): %.1f MW-slot dipindah dari unit prioritas rendah ke unit prioritas lebih tinggi yang ber-headroom pada %d row; gas GTG %.4f -> %.4f BBTUD.', $movedMS, count($rowsMS), $g0MS, $gasMS());
+        }
+    }
+
     $warnings = array_merge($warnings, pp_validate_startup($genRows, $d3, $model));
 
     for ($row = 0; $row < $nRows; $row++) {
@@ -7585,7 +7653,12 @@ function pp_run_simulation_once_raw(array $input): array {
              * Konversi: calc_fuel_dist(load) = liter per slot 30-menit pada 100% (faktor project
              * 0.8424x19400x2.2046, sudah per-slot). Energi gas yg digantikan per slot = calc_fuel(load)/2. */
             $STAGES = [0.30, 0.50, 0.75, 1.00];
-            $remaining = $shortage;                                       // Required Volume (BBTUD energi)
+            /* Kebutuhan Distillate diukur pada basis VALIDATOR (Total Gas Used vs kuota total efektif, target di dalam window),
+             * sama dengan basis rekomendasi LNG. Basis PGN-need (dikurangi Fixed Flow manual) berbeda dari kuota total bila
+             * Fixed Flow manual != kuota PEP+Akasia (input PGN 23: 36,08 vs 40 MMSCFD) sehingga Distillate dulu berlebih
+             * ~4,3 BBTUD dan gas jatuh di bawah window. */
+            $effQDist = $gasQuotaTotal + ($action === 'mixed_lng_distillate' ? $addLng : 0.0);
+            $remaining = max(0.0, $gas_BBTUD - ($effQDist - 0.02));       // Required Volume (BBTUD energi)
             /* BATAS MANUAL OPERATOR (opsi popup "masukkan jumlah distillate secara manual"):
              * operator menyetujui volume liter tertentu, bukan seluruh kebutuhan. Liter itu
              * dikonversi ke energi memakai basis konversi yang sama (satu sumber kebenaran), lalu
@@ -8510,7 +8583,11 @@ function pp_run_simulation_once_raw(array $input): array {
          * jalur total membuat window pipe [q-0.04,q] dan window total mustahil dipuaskan bersamaan
          * (terukur: pipe 27.4893 OK tapi total efektif 64.5693 > 64.50). Penalty startup jam FUTURE
          * tetap konsumsi nyata; penalty jam ber-actual sudah di dalam meter (lihat atribusi di atas). */
-        $pipeUsed = max(0.0, $pgnTotal + $penaltyFuture - $lngUsed);
+        /* Basis SAMA dengan Effective Total Gas: pipe tanpa actual (nilai rencana yang sudah dinilai engine) + delta blend
+         * (actual - estimasi) jam terisi. Override lama (blend - LNG) memakai basis Fixed Flow manual per row, sedangkan nilai
+         * tanpa actual memakai kuota kontrak; bila Fixed Flow manual != PEP+Akasia (input PGN 23: 36,08 vs 40 MMSCFD) satu jam
+         * actual yang sama persis dengan rencana membuat pipe "melompat" +4,3 BBTUD dan rencana valid ditolak. */
+        $pipeUsed = max(0.0, $pipeUsed + ($pgnTotal + $penaltyFuture - ($estPGN_perrow + $startupGasPenalty)));
         if ($pipeUsed > $pgnPipeQuota + 0.0005)
             $warnings[] = sprintf('ACTUAL PGN terukur di atas rencana: PGN Pipe blended %.4f BBTUD melebihi quota pipe %.4f (overage %.4f) — deviasi historis dari actual jam terisi; row future tetap quota-consistent.', $pipeUsed, $pgnPipeQuota, $pipeUsed - $pgnPipeQuota);
     }
@@ -8919,10 +8996,14 @@ $info = [
          * adalah lebar window supplier yang memang dipakai engine sebagai acuan. Dua angka shortage
          * yang berbeda di satu ringkasan persis jenis ambiguitas yang harus dihapus, jadi nilai
          * engine dipakai dan hanya dikurangi oleh bahan bakar yang BENAR-BENAR diterapkan. */
-        'Residual Gas Shortage (BBTUD)' => round(max(0.0,
-            (float)$shortage
-            - (in_array($action, ['add_lng','mixed_lng_distillate'], true) ? $addLng : 0.0)
-            - (pp_action_uses_distillate($action) ? ($GLOBALS['__pp_dist_gas_offset'] ?? 0.0) : 0.0)), 4),
+        /* Aksi Distillate: kebutuhan Distillate diukur pada basis validator (gas total vs kuota total efektif), maka residual juga
+         * diukur pada basis itu (gas sesudah substitusi di atas kuota total efektif). Basis PGN-need lama (dikurangi Fixed Flow manual)
+         * menyisakan residual palsu ~4,3 BBTUD bila Fixed Flow manual != kuota PEP+Akasia, sehingga rencana Distillate yang valid
+         * dinilai "residual_shortage_zero = false" dan review Unit Priority / bukti merit dilewati. */
+        'Residual Gas Shortage (BBTUD)' => round(pp_action_uses_distillate($action)
+            ? max(0.0, ($gas_BBTUD - ($GLOBALS['__pp_dist_gas_offset'] ?? 0.0)) - $effTotalQuota)
+            : max(0.0, (float)$shortage
+            - (in_array($action, ['add_lng','mixed_lng_distillate'], true) ? $addLng : 0.0)), 4),
         'Distillate User Limit (l)' => pp_action_uses_distillate($action)
             ? (is_numeric($model['distillate_user_limit_litres'] ?? null)
                 ? round((float)$model['distillate_user_limit_litres'], 1) : null) : null,

@@ -4887,7 +4887,10 @@ async function gsfRerun(action, amount, unit){
   const rm=document.getElementById('run-msg');
   if(rm) rm.innerHTML='<span class="spin"></span> Rerun ronde '+GSF_ROUND+' dengan '+gsfEsc(action)+'…';
   gsfClose();
-  return await runSimCore(p, {shortage:true,source:'fuel_action_rerun'});
+  /* rerun keputusan bahan bakar mengikuti target waktu yang dipilih: Fastest - Default tetap Fastest (job ditandai fast; tanpa
+     ini rerun LNG/Distillate berjalan sebagai Maximum Review terselubung: keluarga commitment penuh, terukur 121 kandidat, ~40 s) */
+  const fastFR=(typeof v11RunTarget==='function'?v11RunTarget():(typeof tlTarget==='function'?tlTarget():'max'))==='fast';
+  return await runSimCore(p, {shortage:true,source:'fuel_action_rerun',fastest:fastFR});
 }
 
 /* Setelah rerun berhasil, samakan kontrol form dengan keputusan yang benar-benar dipakai supaya
