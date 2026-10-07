@@ -5203,6 +5203,9 @@ async function runSim(){
 var TL_MAX_RID=null; var TL_FINAL_TOKEN=null;
 /* V11: awal run (performance.now) untuk Waktu aktual SUMMARY, dan penanda SUMMARY sudah ditulis jalur Target Selesai. */
 var V11_RUN_T0=null; var V11_SUM_DONE=false;
+/* Target yang BENAR-BENAR dijalankan run ini (dicatat saat klik Run). Label hasil memakai nilai ini, bukan isi dropdown saat render,
+ * sehingga Fastest tidak pernah tampil sebagai Maximum Review (atau sebaliknya) secara diam-diam. */
+var V11_RUN_TARGET=null; function v11RunTarget(){ return V11_RUN_TARGET||tlTarget(); }
 function tlWinnerLabel(sp){
   const n=String((sp&&sp.winner_node)||''); const src=String((sp&&sp.winner_source)||'PIPELINE');
   if(src==='INCREMENTAL') return 'recompute inkremental ('+(sp.commitment_unchanged===false?'commitment berganti ke kandidat ruang exact sebelumnya':'commitment final terakhir dipertahankan')+')';
@@ -5574,6 +5577,9 @@ function gsdAutoResolveIfChosen(payload,data){
  * hasil akhir run — tidak ada polling, popup bahan bakar, maupun rerun otomatis; tombol Run aktif kembali. */
 function gsdTerminalDecisionHtml(data){
   const d=data.terminal_decision||{}; const c=d.certificate||{}; const g=d.gas||{}; const ds=d.distillate||{}; const st=d.startup||{};
+  if(d.kind==='fixed_flow_first'||d.kind==='fixed_flow_first_budget'){ const r=d.pgn_recommendation||{}; const rd=r.redistribution||{};
+    return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||''))+'</b> — '+gsfEsc(String(d.summary||''))
+      +(rd.limiting_constraint?(' Limiting constraint: '+gsfEsc(String(rd.limiting_constraint))+'.'):'')+' Save/Export/Publish terkunci.</span>'; }
   const f=(v,n)=>(v==null||!isFinite(+v))?'—':(+v).toLocaleString('id-ID',{maximumFractionDigits:n==null?3:n});
   const su=Object.keys(st).filter(u=>st[u]&&st[u].required).map(u=>u+' row '+st[u].first_load_row+' ('+(st[u].first_rows_mw||[]).slice(0,6).join(', ')+' MW)').join('; ');
   return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||data.status||'TIDAK FEASIBLE'))+'</b> — keputusan terminal, TIDAK FEASIBLE secara matematis. '
@@ -5759,7 +5765,7 @@ function gsdProvisionalBanner(data){
   const oldB=document.getElementById('prov-banner'); if(oldB) oldB.remove();
   const fam=/keluarga/.test(String((data.provisional_basis||{}).commitment_from||''));
   const cF=v11Counters(data);
-  const st={target:tlTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:cF?cF.candidates_checked:0,valid:cF?cF.candidates_valid:0,
+  const st={target:v11RunTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:cF?cF.candidates_checked:0,valid:cF?cF.candidates_valid:0,
     cp:ii['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
   tlBanner('VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS','amber',st,
     (fam?'Kandidat valid terbaik ruang kandidat exact yang sudah dievaluasi':'Commitment hasil final terakhir dipakai ulang')+'; seluruh hard constraint, '
@@ -5844,7 +5850,7 @@ function finalizeSimulationUI(payload,data,messageHtml){
       const spOk=(!sp||sp.family_complete!==false)&&!(data.tl_pool&&data.tl_pool.better===true);
       const incR=ii['Incremental Recompute']; const isInc=!!(incR&&incR.applied===true);
       const cF=v11Counters(data);
-      const st={target:tlTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,
+      const st={target:v11RunTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,
         evaluated:cF?cF.candidates_checked:(gcr.candidates_evaluated||0),valid:cF?cF.candidates_valid:0,
         cp:ii['Cost Production (USD/MWh)'],checks_ok:true,proven:spOk};
       let det=(isInc?('Recompute inkremental selesai dalam '+fmt(incR.wall_s,1)+' s ('+(incR.rows_recomputed)+' row dihitung ulang, '+(incR.rows_reused_identical)+' row dipakai ulang; '+(incR.candidates_evaluated)+' kandidat pesaing dievaluasi)'):'Optimasi exact selesai')
@@ -5852,6 +5858,7 @@ function finalizeSimulationUI(payload,data,messageHtml){
         +(sp?(isInc?'; ruang kandidat inkremental: commitment final terakhir + '+Math.max(0,(sp.family_nodes||1)-1)+' kandidat ruang exact sebelumnya ('+(sp.far_candidates_excluded||0)+' kandidat lain tidak terjangkau perubahan ini); pemenang: '+tlWinnerLabel(sp)
                 :'; ruang kandidat exact: pipeline + keluarga commitment '+(sp.family_nodes||0)+' node + '+(sp.registry_valid_candidates!=null?sp.registry_valid_candidates:(sp.family_valid||0))+' kandidat valid terdaftar; pemenang: '+tlWinnerLabel(sp)):'')
         +'; ruang kandidat '+(isInc?'inkremental':'exact')+(spOk?' lengkap':' belum lengkap')+'.<br>'+v11StatusDetail(data);
+      if(st.target==='fast') det='<b>Fastest - Default</b>: kandidat pertama tidak lolos gerbang fully valid Fastest, sehingga job yang sama menyelesaikan perhitungan exact (target tetap Fastest, tidak diubah menjadi Maximum Review).<br>'+det;
       let title='FINAL OPTIMAL', color='green';
       /* Kandidat valid yang lebih murah dari Target Selesai untuk state ini TIDAK disembunyikan:
        * hasil exact tetap FINAL, tetapi selisihnya dinyatakan apa adanya. */
@@ -5984,7 +5991,7 @@ async function runTimeLimited(payload, T){
   payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;
   GSD_PROVISIONAL=null;
   try{ ASYNC_REVIEW[branch]=null; }catch(e){}
-  const t0=performance.now(); const el=()=>(performance.now()-t0)/1000; V11_RUN_T0=t0; V11_SUM_DONE=false;
+  const t0=performance.now(); const el=()=>(performance.now()-t0)/1000; V11_RUN_T0=t0; V11_SUM_DONE=false; V11_RUN_TARGET=tlTarget();
   const btn=$('btn-run'); const old=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Running…';
   const rm=$('run-msg'); if(rm) rm.textContent='';
@@ -6184,7 +6191,7 @@ async function runSimCore(payload, opts){
   const reqId=branch+'-'+myRev+'-'+Date.now().toString(36);
   payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;   // §9 request snapshot meta
   GSD_PROVISIONAL=null;                                   // provisional milik run sebelumnya tidak berlaku lagi
-  V11_RUN_T0=performance.now(); V11_SUM_DONE=false;       // V11: Waktu aktual SUMMARY diukur dari klik Run ini
+  V11_RUN_T0=performance.now(); V11_SUM_DONE=false; V11_RUN_TARGET=tlTarget();       // V11: Waktu aktual SUMMARY diukur dari klik Run ini
   /* V3: tidak ada pencarian paralel — satu job pemilik state ini menghitung seluruhnya. */
   const btn=$('btn-run'); const old=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Running…'; $('run-msg').textContent='';
@@ -8083,8 +8090,8 @@ if(HAVE_INPUT){
   // Gas Shortage Decision — segmented control
   document.querySelectorAll('#gsd-seg .gsd-opt').forEach(b=>b.addEventListener('click',()=>{setGasAction(b.dataset.act);refreshGasDecision();}));
   { const sel=$('f-tl-target'); if(sel){
-      try{ const v=localStorage.getItem('pp_tl_target'); if(v && [...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
-      sel.addEventListener('change',()=>{ try{ localStorage.setItem('pp_tl_target',sel.value); }catch(e){} }); } }
+      try{ const v=localStorage.getItem('pp_tl_target_v2'); if(v && [...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
+      sel.addEventListener('change',()=>{ try{ localStorage.setItem('pp_tl_target_v2',sel.value); }catch(e){} }); } }
   setGasAction(($('f-gas_action')||{}).value||'recommendation');
 }
 // initial paint of result/overview if a previous output exists

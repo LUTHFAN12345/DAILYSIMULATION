@@ -3036,6 +3036,13 @@ function pp_run_simulation_pipeline(array $input): array {
      * iterasi decommit (yang menjalankan beberapa pipeline bersarang) sebelum ada pengukuran nyata. */
     $__baseCoreCost = max(0.05, microtime(true) - $__tBase0);
     pp_phase_mark('baseline_core_run');
+    /* FIXED FLOW FIRST: job pemilik meminta probe Min PGN Flow pada core run baseline pipeline utama. Core run sudah memaksimalkan unit
+     * running dan mengevaluasi startup menurut Unit Priority; bila FLOW PGN REAL TIME masih < Min PGN Flow, pipeline dihentikan di sini
+     * dan job menjalankan koreksi Fixed Flow JBBK (pp_ff_first_correction), bukan puluhan kandidat yang semuanya gagal pgn_rt_min. */
+    if ((int)$GLOBALS['__pp_sim_depth'] === 1 && !empty($GLOBALS['__pp_ff_first_probe']) && function_exists('pp_ff_first_fail_rows') && pp_ff_first_fail_rows($input, $out)) {
+        $GLOBALS['__pp_ff_first_probe'] = null; $GLOBALS['__pp_ff_first_base'] = $out;
+        throw new PpJobAborted('FF_FIRST_PGN');
+    }
     /* OUTER GAS-WINDOW CORRECTION (WEEKLY §2/§4): accounted gas adalah OTORITAS (dipakai validator).
      * Bila hasil di luar strict window, ulangi core run dgn instruksi koreksi yang DISIMPAN ke input
      * aktif (agar pass hilir seperti mandatory-stop/decommit mewarisinya), lalu ulangi koreksi lagi
@@ -4192,7 +4199,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
      * di atas kuota, target internal TERENDAH (0) langsung diuji; bila di sana PGN fisik masih
      * > kuota + 0,2 BBTUD, tidak ada target internal yang dapat menurunkannya ke window, dan
      * pencarian dihentikan dengan sebab yang dinyatakan. Dapat dimatikan: PP_V4_SUP_FUTILITY=0. */
-    $futOn = (string)getenv('PP_V4_SUP_FUTILITY') !== '0'; $futPu = null; $futT = null; $futProbe = false;
+    $futOn = (string)getenv('PP_V4_SUP_FUTILITY') !== '0'; $futPu = null; $futT = null; $futProbe = false; $futPuU = null; $futObsU = []; $futProbeU = false;
     $v7Short = (string)getenv('PP_V7_SUP_SHORT') !== '0'; $v7ShortStop = (string)getenv('PP_V7_SUP_SHORT') !== 'probe'; $v7Env = (string)getenv('PP_V7_SUP_ENV') !== '0'; $v7K = []; $v7EnvStop = null;
     /* PLAFON ITERASI BUKAN ANGKA KERAMAT — TERUKUR, 12 TERLALU DINI.
      * Pada PGN 20 + PEP 40 pencarian berakhir pada attempt 12 dengan bracket internal
@@ -4298,6 +4305,18 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
                 if ($futPu === null || abs($pu - $futPu) >= 0.02) { $futPu = $pu; $futT = $cur; }
                 elseif (($futT - $cur) >= 1.0) { $nextInternal = 0.0; $shift = $cur; $futProbe = true; $searchMode = 'V4_FUTILITY_PROBE_ZERO'; }
             }
+            /* SISI UNDER (cermin probe di atas). Terukur (input pengguna PGN 32 + Fixed Flow JBBK manual 48 row): PGN fisik tetap 30,5295
+             * sementara target internal dinaikkan 35,6 -> 145,8 dalam 32 percobaan (11 s per core run, > 400 s per job). Bila PGN fisik tidak
+             * bereaksi (< 0,02 BBTUD) terhadap kenaikan target internal >= 1 BBTUD dan masih > 0,2 BBTUD di bawah window, target internal
+             * TINGGI (max(target + 64; 4 x kuota)) langsung diuji; bila di sana PGN fisik tetap tidak bergerak, tidak ada target internal
+             * yang dapat menaikkannya ke window dan pencarian berhenti dengan sebab yang dinyatakan (hasil terbaik = evaluasi pertama, sama
+             * dengan akhir 32 percobaan datar). Bila bereaksi, braket terbentuk dan pencarian berjalan seperti biasa. */
+            /* respons dibaca dari dua observasi KANDIDAT terakhir (kandidat yang ditolak guard non-gas tetap pengamatan fisik yang sah) */
+            if ($futOn && !$futProbe && $overTarget === null && count($futObsU) >= 2) {
+                [$tA, $pA] = $futObsU[count($futObsU) - 2]; [$tB, $pB] = $futObsU[count($futObsU) - 1];
+                if ($pA < $lo - 0.2 && $pB < $lo - 0.2 && abs($pB - $pA) < 0.02 && ($tB - $tA) >= 1.0) {
+                    $nextInternal = max($tB + 64.0, 4.0 * $pq); $shift = $cur - $nextInternal; $futProbe = true; $futProbeU = true; $futPuU = $pB; $searchMode = 'V12_FUTILITY_PROBE_HIGH'; }
+            }
         }
         /* TARGET SELESAI: titik awal pencarian target internal dari kandidat tetangga (hanya bila
          * penanda pencarian anytime ada; run biasa dan exact tidak pernah membawanya). Hanya titik
@@ -4318,8 +4337,10 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         $ev[] = sprintf('iterasi %d: Effective PGN Pipe %.4f di luar [%.4f, %.4f] (deviasi %+.4f dari target supplier) -> target pipe internal %.4f -> %.4f, rerun redispatch future rows',
             $it, $pu, $lo, $pq, $shift, $cur, (float)$adj['data3']['modeling']['gas_quota']['pgn_pipe']);
         $supK = sprintf('%.17g', (float)$adj['data3']['modeling']['gas_quota']['pgn_pipe']);
+        unset($GLOBALS['__pp_b_expansion']);
         if (isset($supCache[$supK])) { $cand = $supCache[$supK]; $GLOBALS['__ppx_sup_flat_hits'] = (int)($GLOBALS['__ppx_sup_flat_hits'] ?? 0) + 1; }
         else $cand = pp_run_simulation_once($adj);
+        $candExpB = $GLOBALS['__pp_b_expansion'] ?? null;
         if (isset($GLOBALS['__ppx_sup_collect']) && is_array($GLOBALS['__ppx_sup_collect'])) pp_sup_load_mask($cand, $GLOBALS['__ppx_sup_collect']);
         /* pulihkan PELAPORAN kuota ke kontrak ASLI (target internal hanyalah alat kompensasi) */
         /* ===== FIX KOREKSI GANDA PELAPORAN KUOTA =====
@@ -4343,6 +4364,11 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         /* Search geometry and publication eligibility are different concerns. Even an intermediate
          * candidate rejected by a non-gas guard is valid evidence that this internal target produces
          * physical PGN below or above the supplier window. Record that bracket before the guard. */
+        /* V13 COMMITMENT PINNING: attempt OVER yang memakai ekspansi commitment (gas UNDER) mengunci ekspansi itu untuk attempt
+         * berikutnya; observasi UNDER lama berasal dari commitment lain sehingga braket sisi UNDER dibuang. */
+        if ($candPu > $pq && is_array($candExpB) && empty($adj['data3']['modeling']['__pp_b_force'])) {
+            $adj['data3']['modeling']['__pp_b_force'] = $candExpB; $underTarget = null; $supCache = []; $searchMode = 'V13_EXPANSION_PINNED';
+        }
         if ($candPu < $lo) $underTarget = $candInternal;
         else if ($candPu > $pq) $overTarget = $candInternal;
         else { /* exact gas window; retain existing bracket until non-gas guard accepts candidate */ }
@@ -4351,6 +4377,8 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         $supSideRun = (isset($supSidePrev) && $supSidePrev === $sideNow) ? ($supSideRun ?? 0) + 1 : 0; $supSidePrev = $sideNow;
         $bracketObservations[]=['attempt'=>$it,'internal_target'=>round($candInternal,6),'physical_pipe_used'=>round($candPu,6),'side'=>$candPu<$lo?'UNDER':($candPu>$pq?'OVER':'WINDOW')];
         $futStop = $futProbe && $candInternal <= 1e-9 && $candPu > $pq + 0.2;   // V4 OPT-F1: target terendah pun tidak mendarat
+        $futObsU[] = [$candInternal, $candPu];
+        $futStopU = !empty($futProbeU) && $candPu < $lo - 0.2 && abs($candPu - (float)$futPuU) < 0.02;   // sisi UNDER: target tinggi pun tidak bereaksi
         /* LINTASAN DATAR (V2): lihat pp_sup_flat_lookahead(). */
         $candSig = md5(json_encode($cand['data'] ?? []));
         $supRun = (isset($supSigPrev) && $candSig === $supSigPrev && abs($candPu - (float)$supPuPrev) < 1e-12) ? ($supRun ?? 0) + 1 : 0;
@@ -4386,12 +4414,14 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
             }
             unset($supSigPrev); $supRun = 0;                      // lintasan datar hanya atas kandidat yang diterima
             if (!empty($futStop)) { $searchMode = 'V4_FUTILE_OVER_AT_ZERO'; break; }
+            if (!empty($futStopU)) { $searchMode = 'V12_FUTILE_UNDER_AT_HIGH'; break; }
             continue;
         }
         $acceptedAttempts++;
         if ($candGap < $bestGap) { $bestGap = $candGap; $bestOut = $cand; $bestIn = $adj; }
         $out = $cand; $outIn = $adj;
         if (!empty($futStop)) { $searchMode = 'V4_FUTILE_OVER_AT_ZERO'; break; }
+        if (!empty($futStopU)) { $searchMode = 'V12_FUTILE_UNDER_AT_HIGH'; break; }
         /* V7 — ENVELOPE RESPONS GAS. Lever target internal menggeser pipe dan total efektif BERSAMAAN:
          * K = Effective - Pipe (= LNG + Jababeka + MM2100) tetap. Bila dua evaluasi berturut-turut memberi K yang sama
          * (< 0,001 BBTUD) dan dengan K itu window total menuntut pipe di luar window supplier
@@ -4604,7 +4634,9 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
                 ? sprintf('kekurangan gas nyata: pipe %.4f dan total efektif sama-sama > 0,2 BBTUD di atas kuota pada gas minimum commitment ini; diselesaikan alur keputusan bahan bakar, bukan target internal', $finalPuT)
              : ($searchMode==='V4_FUTILE_OVER_AT_ZERO' || $searchMode==='V7_SHORTAGE_PROBE_ZERO'
                 ? sprintf('PGN fisik tidak bereaksi terhadap target internal: pada target internal terendah (0) masih %.4f > kuota %.4f; tidak ada target internal yang dapat mendaratkannya', $finalPuT, $finalQT)
-                : sprintf('plafon %d rerun tercapai', $maxAttempts))))))];
+             : ($searchMode==='V12_FUTILE_UNDER_AT_HIGH'
+                ? sprintf('PGN fisik tidak bereaksi terhadap kenaikan target internal: pada target internal tinggi (%.4f) tetap %.4f < batas bawah window %.4f; tidak ada target internal yang dapat mendaratkannya', (float)$underTarget, (float)$futPuU, $finalQT - 0.04)
+                : sprintf('plafon %d rerun tercapai', $maxAttempts)))))))];
     if ($v7EnvStop !== null) $out['info']['PGN Supplier Repair Review']['v7_envelope'] = $v7EnvStop;
     if ($ev) {
         $pu = (float)($out['info']['PGN Pipe Used (BBTUD)'] ?? 0); $pq = (float)($out['info']['PGN Pipe Quota (BBTUD)'] ?? 0);

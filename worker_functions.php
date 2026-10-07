@@ -9268,6 +9268,27 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
      * Block-Required additional-HRSG units G4, then G6. Each lever starts one contiguous block with a 2-row
      * lead-in (5,15 MW) so the Additional-HRSG start-up ramp is absorbed before the deficit rows, and a 2-row
      * taper after so the turn-off export ramp stays <= 30 MW. */
+    $prioL = pp_priority_flat($model, '/^g[1-6]$/') ?: ['g2','g1','g5','g3'];   // PATCH A: urutan lever dari Unit Priority user
+    /* GTG blok Change Over aktif: commitment (start/stop) diatur timeline Change Over, bukan lever Export-Min patch A. */
+    $coGtgL = []; if (!empty($model['change_over']['enabled'])) foreach ((array)($model['change_over']['blocks'] ?? []) as $cbL) { $gL = strtolower((string)($cbL['gtg'] ?? '')); if ($gL !== '') $coGtgL[$gL] = true; }
+    /* PATCH A3: repair Export-floor generik per row — pengganti "naikkan G3" yang hardcoded. Urutan: (1) unit GTG
+     * yang SUDAH berbeban dinaikkan menurut Unit Priority; (2) bila masih di bawah Range Min dan start diizinkan,
+     * unit available berprioritas tertinggi di-start (min-CC..max). Unit stop/trip/fixed/Last-Stop row-0 dilewati. */
+    $floorRaise = function (int $r, bool $allowStart = true) use (&$genRows, $prioL, $coGtgL, $d3, $model, $expOf, $ieVals, $rMinR, $isFixed, &$lastStatus) {
+        foreach ([false, true] as $startPass) {
+            if ($startPass && !$allowStart) break;
+            foreach ($prioL as $uF) {
+                if ($expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] - 1e-6) return;
+                if (!isset($d3[$uF]) || !pp_unit_present($d3, $uF) || $isFixed($uF, $r) || pp_is_unit_stopped($d3, $model, $uF, $r + 1)) continue;
+                $cF = (float)($genRows[$r][$uF] ?? 0);
+                if (!$startPass && $cF <= 0.0) continue;
+                if ($startPass && ($cF > 0.0 || isset($coGtgL[$uF]) || ($r === 0 && ($lastStatus[$uF] ?? '') === 'stop'))) continue;
+                $mxF = (float)($d3[$uF]['max_load'] ?? 31); $emF = pp_effective_max_load($d3, $model, $uF, $r + 1); if ($emF > 0) $mxF = min($mxF, $emF);
+                $xF = $startPass ? (float)($d3[$uF]['min_ccload'] ?? ($d3[$uF]['min_scload'] ?? 20)) : $cF;
+                for (; $xF <= $mxF + 1e-6; $xF += 0.5) { $genRows[$r][$uF] = min($xF, $mxF); pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); if ($expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] - 1e-6) return; }
+            }
+        }
+    };
     $need = [];
     for ($r = 0; $r < $n; $r++) {
         $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], 0, 0, $g1row[$r], 0.0, $g5row[$r], $r + 1);   // per-row: hormati scheduled stop G8/G9 · PATCH B01a: hitung lantai commitment G3, bukan 0
@@ -9281,15 +9302,26 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
          * G5 dulu (T02). Setiap lever memakai pola identik: window kontigu + lead-in Additional
          * HRSG (5,15) + taper 2 row (PROMPT FORCE_START §5 — agar startup rebuild MENERIMA start).
          * Row-0 Stop hanya skip row 0 (PROMPT EXPORT_FORCE_START §5), bukan mematikan lever. */
-        if ($b2Req) {
-            $b2Levers = [];
-            foreach (pp_priority_flat($model, '/^g[1-6]$/') ?: ['g2','g5'] as $lu)
-                if (in_array($lu, ['g2','g5'], true) && pp_unit_present($d3, $lu)) $b2Levers[] = $lu;
-            $b2Lim = ['g2' => [$g2mcc, $g2max], 'g5' => [$g5mcc, $g5max]];
+        /* PATCH A (STARTUP PRIORITY, generik): lever Export-Min untuk G1/G2/G5 DIURUTKAN dari Unit Priority
+         * input user dan dipakai bila unit itu berada DI ATAS G3 pada urutan tersebut (atau bloknya Required).
+         * Sebelumnya hanya G2/G5 (G1 dianggap "lead" yang sudah running) dan hanya bila Block 2 Required,
+         * sehingga G1 yang Stop tetapi available tidak pernah dievaluasi dan G3 (prioritas lebih rendah)
+         * dinyalakan sebagai last resort. Unit tanpa sisa row legal (unit_stop/trip) dilewati. */
+        $ixG3L = array_search('g3', $prioL, true);
+        $b2Levers = [];
+        foreach ($prioL as $ixL => $lu) {
+            if (!in_array($lu, ['g1','g2','g5'], true) || !pp_unit_present($d3, $lu)) continue;
+            if (!$b2Req && $ixG3L !== false && $ixL > $ixG3L) continue;      // di bawah G3 pada Unit Priority user
+            if (isset($coGtgL[$lu]) && !($b2Req && in_array($lu, ['g2','g5'], true))) continue;   // GTG Change Over: commitment milik timeline
+            $b2Levers[] = $lu;
+        }
+        if ($b2Levers) {
+            $b2Lim = ['g1' => [$g1mcc, $g1max], 'g2' => [$g2mcc, $g2max], 'g5' => [$g5mcc, $g5max]];
             foreach ($b2Levers as $lu) {
                 if (!$need) break;
                 $rnL = array_keys($need); $fL = min($rnL); $lL = max($rnL);
-                if ($lu === 'g2') $arrL = &$g2row; else $arrL = &$g5row;
+                if ($lu === 'g1') $arrL = &$g1row; elseif ($lu === 'g2') $arrL = &$g2row; else $arrL = &$g5row;
+                $wasOffL = max(array_slice($arrL, $fL, $lL - $fL + 1) ?: [0.0]) <= 0.0 && (($lastStatus[$lu] ?? '') !== 'running');
                 [$mccL, $maxL] = $b2Lim[$lu];
                 for ($r = $fL; $r <= $lL; $r++) {
                     if ($isFixed($lu, $r) || pp_is_unit_stopped($d3, $model, $lu, $r + 1)) continue;
@@ -9308,6 +9340,8 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     if ($tv > 0 && $tv < $mccL) $tv = $mccL;
                     $arrL[$r] = max($arrL[$r], $tv);
                 }
+                if ($wasOffL && max(array_slice($arrL, $fL, $lL - $fL + 1) ?: [0.0]) > 0.0)
+                    $warnings[] = sprintf('AUTO_START_EXPORT_RANGE_MIN: %s di-start (Unit Priority: lever pertama yang tersedia di atas unit prioritas lebih rendah) untuk window defisit row %d-%d; G8/G9 maks, Babelan dan unit running prioritas lebih tinggi sudah maksimal.', strtoupper($lu), $fL + 1, $lL + 1);
                 unset($arrL);
                 // rebuild need setelah lever ini — lever priority berikutnya hanya dipakai bila deficit tersisa
                 $need = [];
@@ -9735,6 +9769,25 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         for ($v = $g['g8']; $v <= $GMAX + 1e-6 && ($expOf($g, $ieVals[$r]) < $rMinR[$r] || $busOf($g, $ieVals[$r]) < $busMin - 1e-6); $v += 0.5) { $g['g8'] = $v; $g['g9'] = $v; pp_recompute_stgs($g, $d3, $model, $r + 1); }
         // Raise g3 ONLY if it is free to run, or — as a proven last resort — g8/g9 are already maxed and the
         // export floor still can't be met (non-required g3 then starts WITH a row-level evidence warning).
+        /* PATCH A2: sebelum G3, naikkan unit Unit Priority yang lebih tinggi (G1/G2/G5) yang SUDAH berbeban pada
+         * row ini (tanpa start baru) — G3 tetap last resort dengan evidence. */
+        if ($expOf($g, $ieVals[$r]) < $rMinR[$r]) {
+            foreach ($prioL as $luR) {
+                if ($luR === 'g3') break;
+                if (!in_array($luR, ['g1','g2','g5'], true) || $isFixed($luR, $r) || pp_is_unit_stopped($d3, $model, $luR, $r + 1)) continue;
+                $wasOffR = (float)($g[$luR] ?? 0) <= 0.0;
+                /* start baru hanya sebagai last resort (G8/G9 sudah maksimum), sama seperti syarat G3 di bawah;
+                 * jendela startup/runtime unit ini dibangun oleh pass LAST RESORT berikutnya (generik per unit). */
+                if ($wasOffR && (!($g['g8'] >= $GMAX - 1e-6) || isset($coGtgL[$luR]))) continue;
+                if ($wasOffR && $r === 0 && ($lastStatus[$luR] ?? '') === 'stop') continue;
+                $mxR = (float)($d3[$luR]['max_load'] ?? 31); $emR = pp_effective_max_load($d3, $model, $luR, $r + 1); if ($emR > 0) $mxR = min($mxR, $emR);
+                $mnR = $wasOffR ? (float)($d3[$luR]['min_ccload'] ?? ($d3[$luR]['min_scload'] ?? 20)) : (float)$g[$luR];
+                for ($xR = $mnR; $xR <= $mxR + 1e-6 && $expOf($g, $ieVals[$r]) < $rMinR[$r]; $xR += 0.5) { $g[$luR] = min($xR, $mxR); pp_recompute_stgs($g, $d3, $model, $r + 1); }
+                if ($wasOffR && (float)($g[$luR] ?? 0) > 0.0)
+                    $warnings[] = sprintf('Non-required %s started at row %d as last resort (Unit Priority sebelum G3): g8/g9 maxed (%.1f MW) but PLN export still below Range Min %.1f.', strtoupper($luR), $r + 1, $g['g8'], $rMinR[$r]);
+                if ($expOf($g, $ieVals[$r]) >= $rMinR[$r]) break;
+            }
+        }
         if ($expOf($g, $ieVals[$r]) < $rMinR[$r] && !$isFixed('g3', $r) && !pp_is_unit_stopped($d3, $model, 'g3', $r + 1)) {
             $g8Maxed = ($g['g8'] >= $GMAX - 1e-6);
             $allowed = $g3FreeToRun($g, $r);
@@ -10129,12 +10182,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             if (!$g9Held) $genRows[$r]['g9'] = $v;
             pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
         }
-        $l3 = (float)($genRows[$r]['g3'] ?? 0); $g3maxF = (float)($d3['g3']['max_load'] ?? 31);
-        $g3Locked0 = pp_is_unit_stopped($d3, $model, 'g3', $r + 1) || ($r === 0 && ($lastStatus['g3'] ?? '') === 'stop');
-        while (!$g3Locked0 && $expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6 && $l3 < $g3maxF - 1e-6) {
-            $l3 = min($g3maxF, $l3 + 0.5); $genRows[$r]['g3'] = $l3;
-            pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
-        }
+        $floorRaise($r, true);   // PATCH A3: Unit Priority (bukan G3 hardcoded)
     }
 
     /* Final export ramp smoothing (hard constraint, monotonic-down): keep |ΔExport| <= 30 MW/30min by
@@ -10210,12 +10258,8 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 }
             }
             // then g3 toward its max (unless g3 itself is the fixed unit)
-            if (!$fixedAt($r, 'g3')) {
-                $l3 = (float)($genRows[$r]['g3'] ?? 0);
-                while ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6 && $l3 < $g3maxF2 - 1e-6) {
-                    $l3 = min($g3maxF2, $l3 + 0.5); $genRows[$r]['g3'] = $l3;
-                    pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
-                }
+            if (true) {
+                $floorRaise($r, true);   // PATCH A3: Unit Priority (bukan G3 hardcoded)
             }
             if ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6) $stillUnder[] = $r + 1;
         }
@@ -12288,6 +12332,10 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                                 }
                                 pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
                             }
+                            /* Bus Flow minimum diperiksa SESUDAH langkah (STG coupled ikut naik: G2 +0,5 -> S2 +0,26 di Bus B). Terukur
+                             * (input pengguna, row 1): pemeriksaan sebelum langkah dengan margin 0,5 MW membiarkan Bus Flow 10,21 -> 8,76. */
+                            if ($needBus && !$isBusA($ug)) { $bfL = $busOf($genRows[$r], $ieVals[$r]);
+                                if ($bfL < $busMin - 1e-6 && $bfL < $busOf($svF, $ieVals[$r]) - 1e-9) { $genRows[$r] = $svF; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); continue; } }
                             $lift = true; $movedF = true; break;
                         }
                         if (!$lift) {
@@ -12553,9 +12601,9 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             }
             /* (d) QUOTA TOP-UP pasca-repair: repair dapat menurunkan gas di bawah window
              * [quota-0.04, quota]; kembalikan dgn menaikkan unit gas pada rows ber-slack. */
-            $gT = 0;
+            $gT = 0; $blkD = [];
             while ($trueGasNow() < $quota - 0.0395 && $gT++ < 160) {
-                $bestR = -1; $bestU = '';
+                $bestR = -1; $bestU = ''; $bestCap = 0.0;
                 for ($r = 0; $r < $n && $bestR < 0; $r++) {
                     if (isset($actualRows[$r])) continue;
                     if ($expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] - 0.6) continue;
@@ -12565,6 +12613,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ($eProbe - $expOf($genRows[$nb], $ieVals[$nb]) > 30.0 - 0.5) { $rampBad = true; break; } }
                     if ($rampBad) continue;
                     foreach (['g9','g8','g5','g1','g2'] as $ug) {
+                        if (isset($blkD[$r . '#' . $ug])) continue;
                         if (!isset($d3[$ug]) || $isFixed($ug, $r) || isset($suCap[$ug][$r]) || pp_is_unit_stopped($d3, $model, $ug, $r + 1)) continue;
                         $cg = (float)($genRows[$r][$ug] ?? 0); if ($cg < 0.01) continue;
                         if (!$isBusA($ug) && $needBus && $busOf($genRows[$r], $ieVals[$r]) - 0.5 < $busMin - 1e-6) continue;
@@ -12573,14 +12622,20 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
                             if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + 30.0); }
                         if ($cg >= $cap - 1e-6) continue;
-                        $bestR = $r; $bestU = $ug; break;
+                        $bestR = $r; $bestU = $ug; $bestCap = $cap; break;
                     }
                 }
                 if ($bestR < 0) break;
                 $gasGapNow = max(0.0, $quota - $trueGasNow());
                 $stepNow = min(2.0, max(0.5, $gasGapNow * 8.0));
-                $genRows[$bestR][$bestU] = min($GMAX * 2, (float)$genRows[$bestR][$bestU] + $stepNow);
+                /* Batas unit ($cap, sudah dihitung di atas) dipakai; Bus Flow diperiksa SESUDAH langkah (STG coupled ikut naik). Terukur
+                 * (input pengguna, row 1): G2 20 -> 30 MW lewat langkah 2 MW membuat Bus Flow 23,21 -> 8,76 < 10. Langkah yang menurunkan
+                 * Bus Flow di bawah minimum dibatalkan dan pasangan row/unit itu tidak dipilih lagi. */
+                $svD = $genRows[$bestR];
+                $genRows[$bestR][$bestU] = min($bestCap, (float)$genRows[$bestR][$bestU] + $stepNow);
                 pp_recompute_stgs($genRows[$bestR], $d3, $model, $bestR + 1);
+                if ($needBus && !$isBusA($bestU)) { $bfD = $busOf($genRows[$bestR], $ieVals[$bestR]);
+                    if ($bfD < $busMin - 1e-6 && $bfD < $busOf($svD, $ieVals[$bestR]) - 1e-9) { $genRows[$bestR] = $svD; pp_recompute_stgs($genRows[$bestR], $d3, $model, $bestR + 1); $blkD[$bestR . '#' . $bestU] = true; } }
             }
             if ($trueGasNow() < 0.005)
                 $warnings[] = sprintf('Gas quota under-utilized after repair (%.4f < %.4f): remaining rows are locked by Export Range Max / export-ramp / BusFlow — no feasible gas lever remains. VALID-INFEASIBLE.', $trueGasNow(), $quota);
@@ -12802,12 +12857,211 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         $nvT = min($cap, $cT + 0.4);
                         if ($skT) { [$loT, $hiT] = $skT; if ($nvT >= $loT - 0.55 && $nvT <= $hiT + 0.55) { $nvT = ($hiT + 0.6 <= $cap) ? $hiT + 0.6 : $cT; } if ($nvT <= $cT + 1e-9) continue; }
                         if ($trueGasNow() + 0.03 > $quota + 0.0004) { $doneU = false; break; }   // jangan overshoot
+                        $svTU = $genRows[$r];
                         $genRows[$r][$uT] = $nvT;
                         pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                        /* Bus Flow minimum (hard) dijaga seperti tertulis di atas. Terukur (input pengguna, row 1): top-up menaikkan G2 (Bus B)
+                         * 29,08 -> 29,48 MW sehingga Bus Flow 10,09 -> 9,51 < 10 dan rencana gagal hard validation. Kenaikan yang menurunkan
+                         * Bus Flow di bawah minimum dibatalkan; unit prioritas berikutnya dicoba. */
+                        if ($busMin > 0) { $bfA = $busOf($genRows[$r], (float)$ieVals[$r]);
+                            if ($bfA < $busMin - 1e-6 && $bfA < $busOf($svTU, (float)$ieVals[$r]) - 1e-9) { $genRows[$r] = $svTU; continue; } }
                         $doneU = true; break;
                     }
                 }
                 if (!$doneU) break;
+            }
+
+            /* ============ PATCH B — GAS UNDER COMMITMENT EXPANSION (generik, Babelan-preserving) ============
+             * Setelah FINAL GAS TOP-UP, bila gas masih di bawah window dan seluruh unit yang running sudah tidak
+             * punya lever (headroom habis atau Export di Range Max), evaluasi START unit available menurut Unit
+             * Priority user pada window kontigu ber-ruang Export. Babelan TIDAK diturunkan: unit baru hanya
+             * diberi beban sebesar ruang Export yang tersedia (Export <= Range Max - 0,6). Window >= minimum
+             * runtime kelas unit + startup sequence; setiap row divalidasi (Export band & langkah, Bus Flow,
+             * PGN-RT min). Kandidat yang tidak legal dibatalkan utuh dan unit berikutnya dievaluasi. */
+            if ($trueGasNow() < $quota - 0.038 || is_array($model['__pp_b_force'] ?? null)) {
+                $limRtB = pp_runtime_limits($model);
+                /* ukuran pelanggaran per row (0 = legal): Export band, langkah Export ke tetangga, Bus Flow, PGN-RT.
+                 * Kandidat diterima bila TIDAK memperburuk row mana pun — pelanggaran yang sudah ada sebelumnya
+                 * (mis. lonjakan IE melebihi kapasitas ramp gabungan) tidak boleh memblokir langkah yang netral. */
+                $badB = function (int $r) use (&$genRows, $expOf, $ieVals, $rMinR, $rMaxR, $n, $model, $needBus, $busOf, $busMin, $pgnMinF, $pgnRTof): float {
+                    $e = $expOf($genRows[$r], $ieVals[$r]); $bd = max(0.0, $rMinR[$r] - $e) + max(0.0, $e - $rMaxR[$r]);
+                    foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
+                        $bd += max(0.0, abs($e - $expOf($genRows[$nb], $ieVals[$nb])) - pp_export_step_limit($model)); }
+                    if ($needBus) $bd += max(0.0, $busMin - $busOf($genRows[$r], $ieVals[$r]));
+                    if ($pgnMinF > 0) $bd += max(0.0, $pgnMinF - $pgnRTof($r));
+                    return $bd; };
+                $rowOkB = function (int $r) use ($badB) { return $badB($r) <= 1e-6; };
+                $expandedB = [];
+                /* tempatkan unit baru $u pada row $r di beban $v; bila Export melewati Range Max - 0,6, turunkan unit gas
+                 * lain yang berada di atas floor (prioritas TERENDAH dulu, Babelan tidak disentuh). Gagal -> false. */
+                $placeB = function (string $u, int $r, float $v) use (&$genRows, $d3, $model, $expOf, $ieVals, $rMaxR, $isFixed, &$suCap): bool {
+                    $genRows[$r][$u] = $v; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                    if ($expOf($genRows[$r], $ieVals[$r]) <= $rMaxR[$r] - 0.6 + 1e-6) return true;
+                    foreach (array_reverse(pp_priority_flat($model, '/^g[1-9]$/')) as $uL) {
+                        if ($uL === $u || $isFixed($uL, $r) || isset($suCap[$uL][$r])) continue;
+                        $flL = (float)($d3[$uL]['min_ccload'] ?? ($d3[$uL]['min_scload'] ?? 5));
+                        while ((float)($genRows[$r][$uL] ?? 0) > $flL + 1e-6 && $expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] - 0.6 + 1e-6) {
+                            $genRows[$r][$uL] = max($flL, (float)$genRows[$r][$uL] - 0.5); pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                        }
+                        if ($expOf($genRows[$r], $ieVals[$r]) <= $rMaxR[$r] - 0.6 + 1e-6) return true;
+                    }
+                    return false; };
+                /* trim terbatas (kandidat overshoot): unit gas prioritas TERENDAH di atas floor diturunkan 0,5 MW per langkah
+                 * (bukan unit baru, bukan Babelan; urutan terendah-dulu menjaga C4), langkah tak boleh memperburuk constraint. */
+                $trimB = function (string $uNew) use (&$genRows, $d3, $model, $n, &$actualRows, $isFixed, &$suCap, $badB, $trueGasNow, $quota): bool {
+                    $revB = array_reverse(pp_priority_flat($model, '/^g[1-9]$/'));
+                    for ($tt = 0; $tt < 800 && $trueGasNow() > $quota + 0.0004; $tt++) {
+                        $done = false;
+                        foreach ($revB as $uL) {
+                            if ($uL === $uNew) continue;
+                            $flL = (float)($d3[$uL]['min_ccload'] ?? ($d3[$uL]['min_scload'] ?? 5)); $cands = [];
+                            for ($r = 0; $r < $n; $r++) { if (isset($actualRows[$r]) || $isFixed($uL, $r) || isset($suCap[$uL][$r])) continue;
+                                $cL = (float)($genRows[$r][$uL] ?? 0); if ($cL > $flL + 0.25 + 1e-6) $cands[$r] = $cL - $flL; }
+                            arsort($cands);
+                            foreach ($cands as $bR => $bV) {
+                                $sv = $genRows[$bR]; $b0 = [$badB(max(0, $bR - 1)), $badB($bR), $badB(min($n - 1, $bR + 1))];
+                                $stpT = min(2.0, max(0.5, ($trueGasNow() - $quota) * 6.0), $bV);
+                                $genRows[$bR][$uL] = (float)$genRows[$bR][$uL] - $stpT; pp_recompute_stgs($genRows[$bR], $d3, $model, $bR + 1);
+                                if ($badB(max(0, $bR - 1)) > $b0[0] + 1e-6 || $badB($bR) > $b0[1] + 1e-6 || $badB(min($n - 1, $bR + 1)) > $b0[2] + 1e-6) { $genRows[$bR] = $sv; continue; }
+                                $done = true; break;
+                            }
+                            if ($done) break;
+                        }
+                        if (!$done) return false;
+                    }
+                    return $trueGasNow() <= $quota + 0.0004;
+                };
+                $tryUnitB = function (string $uB) use (&$genRows, $d3, $model, $n, &$actualRows, $isFixed, &$lastStatus, $placeB, $badB, $trueGasNow, $quota, $limRtB, $expOf, $ieVals, $rMaxR): ?string {
+                    if (!isset($d3[$uB]) || !pp_unit_present($d3, $uB)) return null;
+                    $onB = 0; $aOnB = -1; $eOnB = -1;
+                    for ($r = 0; $r < $n; $r++) if ((float)($genRows[$r][$uB] ?? 0) > 0.01) { $onB++; if ($aOnB < 0) $aOnB = $r; $eOnB = $r; }
+                    /* unit yang sudah running pada satu segmen kontigu yang dimulai sesudah row 1: evaluasi PERPANJANGAN window
+                     * ke depan (start lebih awal) — konsolidasi pada unit prioritas lebih tinggi, bukan start unit tambahan. */
+                    $extB = $onB > 0 && $aOnB >= 1 && $eOnB - $aOnB + 1 === $onB;
+                    if ($onB > 0 && !$extB) return null;                            // unit sudah dipakai: lever top-up biasa
+                    $mccB = (float)($d3[$uB]['min_ccload'] ?? ($d3[$uB]['min_scload'] ?? 20));
+                    $mxB0 = (float)($d3[$uB]['max_load'] ?? 31);
+                    $runB = max(2, (int)($limRtB[pp_runtime_class($uB, $d3)]['run_rows'] ?? 8));
+                    $okRow = [];
+                    for ($r = 0; $r < ($extB ? $aOnB : $n); $r++) {
+                        if (isset($actualRows[$r]) || $isFixed($uB, $r) || pp_is_unit_stopped($d3, $model, $uB, $r + 1)) continue;
+                        if ($r === 0 && ($lastStatus[$uB] ?? '') === 'stop') continue;
+                        $svR = $genRows[$r]; if ($placeB($uB, $r, $mccB)) $okRow[$r] = true; $genRows[$r] = $svR;
+                    }
+                    /* segmen kontigu yang berakhir paling akhir (unit tidak perlu stop di tengah hari), terpanjang */
+                    $bestA = -1; $bestB = -1;
+                    if ($extB) { if (isset($okRow[$aOnB - 1])) { $bestA = $aOnB - 1; while (isset($okRow[$bestA - 1])) $bestA--; $bestB = $eOnB; } }
+                    else for ($r = 0; $r < $n; $r++) { if (!isset($okRow[$r]) || isset($okRow[$r - 1])) continue;
+                        $e2 = $r; while (isset($okRow[$e2 + 1])) $e2++;
+                        if ($e2 > $bestB || ($e2 === $bestB && $r < $bestA)) { $bestA = $r; $bestB = $e2; } }
+                    if ($bestA < 0) return null;
+                    $snapB = $genRows; $okAllB = false; $gas0B = $trueGasNow();
+                    $bad0 = []; for ($r = max(0, $bestA - 1); $r <= min($n - 1, $bestB + 1); $r++) $bad0[$r] = $badB($r);
+                    /* window terpanjang dulu; bila gas melampaui target, mulai lebih lambat sampai panjang minimum */
+                    for ($stB = $bestA; $stB <= ($extB ? $aOnB - 1 : $bestB); $stB += 2) {
+                        $capsB = pp_start_sequence($d3, $model, $uB, $snapB, $stB);
+                        if ($bestB - $stB + 1 < $runB + count($capsB)) break;       // tak cukup untuk startup + min runtime
+                        $genRows = $snapB; $placeOk = true;
+                        for ($r = $stB; $r <= $bestB && $placeOk; $r++) {
+                            $k = $r - $stB; $v = isset($capsB[$k]) ? min($mccB, (float)$capsB[$k]) : $mccB;
+                            $placeOk = $placeB($uB, $r, max($v, (float)($snapB[$r][$uB] ?? 0)));
+                        }
+                        if (!$placeOk) continue;
+                        $worse = false;
+                        foreach ($bad0 as $r => $b0) if (!isset($actualRows[$r]) && $badB($r) > $b0 + 1e-6) { $worse = true; break; }
+                        if ($worse) continue;
+                        $gNow = $trueGasNow();
+                        if ($gNow <= $gas0B + 1e-4) break;                          // tidak menambah serapan gas
+                        if ($gNow <= $quota + 0.0004) { $okAllB = true; break; }
+                    }
+                    if (!$okAllB) { $genRows = $snapB; return null; }
+                    /* unit baru tetap di min-CC; kenaikan beban diserahkan ke fine top-up yang mengikuti Unit Priority (C4). */
+                    return sprintf('%s row %d-%d%s', strtoupper($uB), $stB + 1, $bestB + 1, $extB ? sprintf(' (window diperpanjang dari row %d)', $aOnB + 1) : '');
+                };
+                /* fine top-up sesudah ekspansi: unit running dinaikkan menurut Unit Priority pada row ber-ruang Export,
+                 * tanpa memperburuk constraint row mana pun (Babelan tidak disentuh). */
+                $fineTUB = function () use (&$genRows, $d3, $model, $n, &$actualRows, $isFixed, &$suCap, $expOf, $ieVals, $rMaxR, $badB, $trueGasNow, $quota, $GMAX) {
+                    $tiersFB = pp_priority_flat($model, '/^g[1-9]$/');
+                    for ($it = 0; $it < 1500 && $trueGasNow() < $quota - 0.010; $it++) {
+                        $moved = false;
+                        for ($r = 0; $r < $n && !$moved; $r++) {
+                            if (isset($actualRows[$r]) || $expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] - 0.6) continue;
+                            foreach ($tiersFB as $uT) {
+                                if ($isFixed($uT, $r) || isset($suCap[$uT][$r]) || pp_is_unit_stopped($d3, $model, $uT, $r + 1)) continue;
+                                $cT = (float)($genRows[$r][$uT] ?? 0); if ($cT < 0.01) continue;
+                                $emT = pp_effective_maxload($d3, $model, $uT, $r + 1);
+                                $capT = min($emT > 0 ? $emT : $GMAX, in_array($uT, ['g8','g9'], true) ? $GMAX : (float)($d3[$uT]['max_load'] ?? 31));
+                                foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
+                                    if ((float)($genRows[$nb][$uT] ?? 0) >= 1 && in_array($uT, ['g7','g8','g9','g10'], true)) $capT = min($capT, (float)$genRows[$nb][$uT] + 30.0); }
+                                if ($cT >= $capT - 1e-6) continue;
+                                $nvT = min($capT, $cT + 0.25); $skT = pp_get_skip_load($model, $uT, $r + 1);
+                                if ($skT && $nvT >= $skT[0] - 0.55 && $nvT <= $skT[1] + 0.55) continue;
+                                $b0r = [$badB(max(0, $r - 1)), $badB($r), $badB(min($n - 1, $r + 1))];
+                                $svT = $genRows[$r]; $genRows[$r][$uT] = $nvT; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                                if ($badB(max(0, $r - 1)) > $b0r[0] + 1e-6 || $badB($r) > $b0r[1] + 1e-6 || $badB(min($n - 1, $r + 1)) > $b0r[2] + 1e-6
+                                    || $trueGasNow() > $quota + 0.0004) { $genRows[$r] = $svT; continue; }
+                                $moved = true; break;
+                            }
+                        }
+                        if (!$moved) break;
+                    }
+                };
+                /* Tahap 1: SATU unit (Unit Priority) yang sendirian membawa gas ke window — paling sedikit unit baru
+                 * (menghindari fragmentasi beban rendah). Tahap 2: kumulatif bila tak ada unit tunggal yang cukup. */
+                $candB = pp_priority_flat($model, '/^g[1-7]$/');               // unit gas Jababeka (G10/GE = akun MM2100)
+                $snapAllB = $genRows;
+                /* COMMITMENT PINNING: supplier PGN mengunci ekspansi dari attempt OVER sebelumnya agar pemetaan target internal ->
+                 * gas fisik kontinu (tanpa pin, commitment berubah mengikuti target dan bisection melompati window). Unit dipasang
+                 * pada window yang sama (min-CC / startup sequence), lalu gas didaratkan kontinu: trim (overshoot) atau fine top-up. */
+                $forceB = $model['__pp_b_force'] ?? null;
+                if (is_array($forceB) && isset($forceB[0], $forceB[1], $forceB[2]) && isset($d3[$forceB[0]])) {
+                    [$uF, $aF0, $eF] = [(string)$forceB[0], (int)$forceB[1], (int)$forceB[2]];
+                    $mccF = (float)($d3[$uF]['min_ccload'] ?? ($d3[$uF]['min_scload'] ?? 20));
+                    $runF = max(2, (int)($limRtB[pp_runtime_class($uF, $d3)]['run_rows'] ?? 8));
+                    /* KONSOLIDASI: pin dapat berasal dari attempt dengan target internal tinggi. Pada target attempt ini, unit yang
+                     * BERPRIORITAS LEBIH TINGGI dari unit pin (start baru atau perpanjangan window unit yang sudah running) dievaluasi
+                     * dulu; bila sendirian (plus fine top-up) mendaratkan gas di window, unit pin tidak dinyalakan (unit lebih sedikit). */
+                    foreach ($candB as $uH) { if ($uH === $uF) break;
+                        $genRows = $snapAllB; $tgH = $tryUnitB($uH); if ($tgH === null) continue;
+                        $fineTUB();
+                        if ($trueGasNow() >= $quota - 0.038) { $expandedB = [$tgH . ' (prioritas lebih tinggi dari pin ' . strtoupper($uF) . ')']; break; }
+                    }
+                    if (!$expandedB) $genRows = $snapAllB;
+                    /* unit & akhir window terkunci; start digeser lebih lambat sampai gas tidak melampaui target (sisa didaratkan trim/top-up) */
+                    if (!$expandedB)
+                    for ($aF = $aF0; $aF <= $eF; $aF++) {
+                        $genRows = $snapAllB; $capsF = pp_start_sequence($d3, $model, $uF, $genRows, $aF);
+                        if ($eF - $aF + 1 < $runF + count($capsF)) { $genRows = $snapAllB; break; }
+                        $okF = true;
+                        for ($r = $aF; $r <= $eF && $r < $n && $okF; $r++) { if (isset($actualRows[$r]) || $isFixed($uF, $r) || pp_is_unit_stopped($d3, $model, $uF, $r + 1)) { $okF = false; break; }
+                            $k = $r - $aF; $okF = $placeB($uF, $r, max(isset($capsF[$k]) ? min($mccF, (float)$capsF[$k]) : $mccF, (float)($snapAllB[$r][$uF] ?? 0))); }
+                        if (!$okF) continue;
+                        if ($trueGasNow() > $quota + 0.0004) { $trimB($uF); if ($trueGasNow() > $quota + 0.0004) continue; }
+                        $fineTUB();
+                        $expandedB = [sprintf('%s row %d-%d (pinned)', strtoupper($uF), $aF + 1, $eF + 1)];
+                        $GLOBALS['__pp_b_expansion'] = [$uF, $aF0, $eF];
+                        break;
+                    }
+                    if (!$expandedB) $genRows = $snapAllB;
+                }
+                if (!$expandedB && !is_array($forceB) && $trueGasNow() < $quota - 0.038)
+                foreach ($candB as $uB) {
+                    $genRows = $snapAllB; $tag = $tryUnitB($uB);
+                    if ($tag === null) continue;
+                    $fineTUB();
+                    if ($trueGasNow() >= $quota - 0.038) { $expandedB = [$tag];
+                        if (preg_match('/^([A-Z0-9]+) row (\d+)-(\d+)/', $tag, $mT)) $GLOBALS['__pp_b_expansion'] = [strtolower($mT[1]), (int)$mT[2] - 1, (int)$mT[3] - 1];
+                        break; }
+                }
+                if (!$expandedB && !is_array($forceB) && $trueGasNow() < $quota - 0.038) {
+                    $genRows = $snapAllB;
+                    foreach ($candB as $uB) {
+                        if ($trueGasNow() >= $quota - 0.038) break;
+                        $tag = $tryUnitB($uB); if ($tag !== null) $expandedB[] = $tag;
+                    }
+                    if ($expandedB) $fineTUB(); else $genRows = $snapAllB;
+                }
+                if ($expandedB) $warnings[] = sprintf('GAS UNDER COMMITMENT EXPANSION: gas di bawah window setelah seluruh lever unit running habis; start menurut Unit Priority pada window ber-ruang Export (Babelan tidak diturunkan): %s. Gas sekarang %.4f BBTUD (target internal %.4f).', implode('; ', $expandedB), $trueGasNow(), $quota);
             }
 
             /* ============ PATCH B-SERIES — FINAL EXPORT REPAIR + EXHAUSTION EVIDENCE ============
