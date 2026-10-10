@@ -3567,6 +3567,16 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                          'measured_core_run_s' => round($__coreEst, 2)]);
                     break;
                 }
+                /* V15.16 PRASARING KAPASITAS EXPORT (bukti numerik, sama dengan review V8): bila pada salah satu row yang
+                 * dimatikan Export maksimum fisik (seluruh unit lain yang running di effective max + headroom Babelan)
+                 * tetap < Range Min, kandidat stop-window ini pasti melanggar Export -> ditolak tanpa core run. */
+                if (function_exists('pp_v8_export_prescreen') && (string)getenv('PP_V1516_DECOMMIT_PRESCREEN') !== '0') {
+                    [$hS, $mS] = array_map('intval', explode(':', (string)$sw[0]));
+                    $r0S = intdiv($hS * 60 + $mS, 30) + 1; $offS = [];
+                    foreach ((array)$out['data'] as $kS => $rwS) if ($kS + 1 >= $r0S && (float)($rwS[strtoupper($uu)] ?? 0) > 0.01) $offS[] = $kS + 1;
+                    $prS = $offS ? pp_v8_export_prescreen($input, array_values((array)$out['data']), $uu, $offS) : null;
+                    if ($prS !== null) { $GLOBALS['__pp_decommit_prescreen'][] = ['unit' => strtoupper($uu), 'window' => $sw, 'proof' => $prS]; continue; }
+                }
                 $in2 = json_decode(json_encode($input), true);
                 $in2['data3']['modeling']['unit_stop'] = array_values(array_unique(array_merge((array)($in2['data3']['modeling']['unit_stop'] ?? []), [$uu])));
                 $in2['data3']['modeling']['unit_stop_time'][$uu] = $sw;
@@ -7308,8 +7318,13 @@ function pp_run_simulation_once_raw(array $input): array {
             }
             $mixByUnit = [];                                              // ringkasan mix dominan per unit (utk warning/info)
             $unitMaxFrac = [];                                            // fraksi tertinggi yg terpakai unit (utk gate fallback)
+            $__fullFirstHold = false; $__distHoldUnit = null;
             foreach (array_merge($order16, $fallback710) as $u) {
                 if ($remaining <= 1e-9) break;
+                /* V15.16 FULL-FIRST: unit prioritas sebelumnya masih punya slot belum terisi (slotnya lebih besar dari sisa) ->
+                 * unit prioritas lebih rendah TIDAK dipakai pada pass greedy; sisa ditutup langkah penutup bertingkat. */
+                if ($__fullFirstHold && (string)getenv('PP_V1516_DIST_TIER') !== '0') { $GLOBALS['__pp_dist_hold'] = ['unit_prioritas' => strtoupper((string)$__distHoldUnit), 'sisa_bbtud' => round($remaining, 6)]; break; }
+                $__distHoldUnit = $u;
                 $U = strtoupper($u);
                 if (($unitGasBBTUD[$u] ?? 0) <= 1e-9) continue;           // unit tak running -> tak ada slot eligible
                 if (in_array($u, $fallback710, true)) {
@@ -7326,7 +7341,7 @@ function pp_run_simulation_once_raw(array $input): array {
                 if (!$eligible) continue;
                 /* BACKWARD: slot paling akhir dulu -> mundur per 30 menit (§4.1/§4.2/§4.3). */
                 rsort($eligible);   // V15.15: backward (slot akhir dulu) seperti engine golden; perubahan forward Copilot ditolak
-                $usedFrac = 0.0;
+                $usedFrac = 0.0; $__fullFirstHold = false;
                 foreach ($eligible as $idx) {
                     if ($remaining <= 1e-9) break;
                     $load  = (float)($data[$idx][$U] ?? 0);
@@ -7349,7 +7364,7 @@ function pp_run_simulation_once_raw(array $input): array {
                     $f = null;
                     foreach (array_reverse($STAGES) as $stFit0)
                         if ($stFit0 * $gasSlot <= $remaining + 1e-9) { $f = $stFit0; break; }
-                    if ($f === null) continue;            // tidak muat: serahkan ke langkah penutup
+                    if ($f === null) { $__fullFirstHold = true; continue; }   // tidak muat: serahkan ke langkah penutup (V15.16: unit ini belum penuh)
                     /* ===== PLAFON LITER OPERATOR DITEGAKKAN PERSIS ==============================
                      * Guard lama hanya menolak langkah yang melampaui SISA BUDGET lebih dari 50%,
                      * sehingga konsumsi masih boleh melewati volume yang disetujui operator.
@@ -7502,54 +7517,67 @@ function pp_run_simulation_once_raw(array $input): array {
                     return ($capLitres === null) || ($dist_total_litres + $litTambahan <= $capLitres + 1e-6);
                 };
                 $__pilih = null; $__mode = null;
-                /* ---- (3) langkah TUNGGAL ---- */
-                foreach ($__cand as $c) {
-                    if ($c[0] < $__lo || $c[0] > $__hi) continue;
-                    if (!$__fits($c[1])) continue;
-                    $__pilih = [$c]; $__mode = 'SINGLE'; break;       // terurut menaik -> yang pertama = overshoot terkecil
-                }
-                /* ---- (4) PASANGAN langkah ---- */
-                if ($__pilih === null && count($__candAll) > 1) {
-                    /* Pasangan dicari pada daftar LENGKAP: kandidat bernilai negatif (penurunan
-                     * level) dan kandidat besar yang sendirian di luar pita tetap sah sebagai
-                     * PASANGAN. Memakai daftar yang sudah dipangkas akan membuang justru kombinasi
-                     * yang mampu mendarat di dalam pita. */
-                    $__cand = $__candAll;
-                    $__n = count($__cand);
-                    $__best = null;
-                    for ($i = 0; $i < $__n; $i++) {
-                        $a = $__cand[$i];
-                        if ($a[0] > $__hi) break;
-                        $needLo = $__lo - $a[0]; $needHi = $__hi - $a[0];
-                        /* binary search batas bawah */
-                        $loI = $i + 1; $hiI = $__n - 1; $posI = $__n;
-                        while ($loI <= $hiI) { $mid = intdiv($loI + $hiI, 2);
-                            if ($__cand[$mid][0] >= $needLo) { $posI = $mid; $hiI = $mid - 1; } else { $loI = $mid + 1; } }
-                        for ($k = $posI; $k < $__n; $k++) {
-                            $b = $__cand[$k];
-                            if ($b[0] > $needHi) break;
-                            if ($b[2] === $a[2] && $b[3] === $a[3]) continue;   // satu sel hanya satu level final
-                            if (!$__fits($a[1] + $b[1])) continue;
-                            $tot = $a[0] + $b[0];
-                            if ($__best === null || $tot < $__best[0] - 1e-12) $__best = [$tot, $a, $b];
-                            break;                                              // pasangan terkecil untuk a ini
-                        }
+                /* V15.16 FULL-FIRST PADA LANGKAH PENUTUP: kombinasi dicari BERTINGKAT menurut Unit Priority Distillate — tingkat L
+                 * hanya memakai L unit prioritas teratas. Unit prioritas lebih rendah (mis. unit 5 MW/minimum-load) baru dipakai bila
+                 * TIDAK ADA kombinasi di dalam pita dengan unit prioritas lebih tinggi (bukti per tingkat dicatat). */
+                $__tiers = (string)getenv('PP_V1516_DIST_TIER') === '0' ? [count($__allowUnits)] : range(1, max(1, count($__allowUnits)));
+                $__candAll0 = $__candAll; $__cand0 = $__cand; $__tierProof = [];
+                foreach ($__tiers as $__L) {
+                    $__uT = array_slice($__allowUnits, 0, $__L);
+                    $__cand = array_values(array_filter($__cand0, function ($c) use ($__uT) { return in_array($c[3], $__uT, true); }));
+                    $__candAll = array_values(array_filter($__candAll0, function ($c) use ($__uT) { return in_array($c[3], $__uT, true); }));
+                    /* ---- (3) langkah TUNGGAL ---- */
+                    foreach ($__cand as $c) {
+                        if ($c[0] < $__lo || $c[0] > $__hi) continue;
+                        if (!$__fits($c[1])) continue;
+                        $__pilih = [$c]; $__mode = 'SINGLE'; break;       // terurut menaik -> yang pertama = overshoot terkecil
                     }
-                    if ($__best !== null) { $__pilih = [$__best[1], $__best[2]]; $__mode = 'PAIR'; }
+                    /* ---- (4) PASANGAN langkah ---- */
+                    if ($__pilih === null && count($__candAll) > 1) {
+                        /* Pasangan dicari pada daftar LENGKAP: kandidat bernilai negatif (penurunan
+                         * level) dan kandidat besar yang sendirian di luar pita tetap sah sebagai
+                         * PASANGAN. Memakai daftar yang sudah dipangkas akan membuang justru kombinasi
+                         * yang mampu mendarat di dalam pita. */
+                        $__cand = $__candAll;
+                        $__n = count($__cand);
+                        $__best = null;
+                        for ($i = 0; $i < $__n; $i++) {
+                            $a = $__cand[$i];
+                            if ($a[0] > $__hi) break;
+                            $needLo = $__lo - $a[0]; $needHi = $__hi - $a[0];
+                            /* binary search batas bawah */
+                            $loI = $i + 1; $hiI = $__n - 1; $posI = $__n;
+                            while ($loI <= $hiI) { $mid = intdiv($loI + $hiI, 2);
+                                if ($__cand[$mid][0] >= $needLo) { $posI = $mid; $hiI = $mid - 1; } else { $loI = $mid + 1; } }
+                            for ($k = $posI; $k < $__n; $k++) {
+                                $b = $__cand[$k];
+                                if ($b[0] > $needHi) break;
+                                if ($b[2] === $a[2] && $b[3] === $a[3]) continue;   // satu sel hanya satu level final
+                                if (!$__fits($a[1] + $b[1])) continue;
+                                $tot = $a[0] + $b[0];
+                                if ($__best === null || $tot < $__best[0] - 1e-12) $__best = [$tot, $a, $b];
+                                break;                                              // pasangan terkecil untuk a ini
+                            }
+                        }
+                        if ($__best !== null) { $__pilih = [$__best[1], $__best[2]]; $__mode = 'PAIR'; }
+                    }
+                    /* ---- (4b) TIDAK ADA yang mendarat di pita: ambil langkah TERKECIL yang MENUTUPI --
+                     * Granularitas distillate bisa lebih KASAR daripada lebar window (terukur: langkah
+                     * sah terkecil 0,1405 BBTUD terhadap window selebar 0,04). Pada keadaan itu tidak
+                     * ada kombinasi level yang dapat mendarat di dalam window pada tingkat gas kotor
+                     * mana pun — yang harus bergerak adalah DISPATCH.
+                     *
+                     * Arah pelanggaran karena itu dipilih secara sengaja. Menyisakan kekurangan berarti
+                     * gas neto MELAMPAUI kuota — pelanggaran batas KERAS yang tidak boleh diterbitkan.
+                     * Menggantikan sedikit berlebih menempatkan gas neto di BAWAH lantai window, dan
+                     * lantai itu dapat didaratkan kembali oleh korektor window dengan menaikkan
+                     * dispatch — arah yang justru memiliki headroom. Karena anggaran distillate DIPAKU
+                     * selama koreksi, setiap BBTUD yang dinaikkan dispatch berpindah satu-untuk-satu ke
+                     * gas neto, sehingga window benar-benar tercapai tanpa digeser. */
+                    if ($__pilih !== null) { if ($__L > 1) $__tierProof[] = ['tingkat' => $__L, 'unit_ditambahkan' => strtoupper((string)$__allowUnits[$__L - 1]), 'alasan' => 'TIDAK_ADA_KOMBINASI_DALAM_PITA_DENGAN_UNIT_PRIORITAS_LEBIH_TINGGI']; break; }
+                    $__tierProof[] = ['tingkat' => $__L, 'unit' => array_map('strtoupper', $__uT), 'hasil' => 'TIDAK_ADA_KOMBINASI_DALAM_PITA'];
                 }
-                /* ---- (4b) TIDAK ADA yang mendarat di pita: ambil langkah TERKECIL yang MENUTUPI --
-                 * Granularitas distillate bisa lebih KASAR daripada lebar window (terukur: langkah
-                 * sah terkecil 0,1405 BBTUD terhadap window selebar 0,04). Pada keadaan itu tidak
-                 * ada kombinasi level yang dapat mendarat di dalam window pada tingkat gas kotor
-                 * mana pun — yang harus bergerak adalah DISPATCH.
-                 *
-                 * Arah pelanggaran karena itu dipilih secara sengaja. Menyisakan kekurangan berarti
-                 * gas neto MELAMPAUI kuota — pelanggaran batas KERAS yang tidak boleh diterbitkan.
-                 * Menggantikan sedikit berlebih menempatkan gas neto di BAWAH lantai window, dan
-                 * lantai itu dapat didaratkan kembali oleh korektor window dengan menaikkan
-                 * dispatch — arah yang justru memiliki headroom. Karena anggaran distillate DIPAKU
-                 * selama koreksi, setiap BBTUD yang dinaikkan dispatch berpindah satu-untuk-satu ke
-                 * gas neto, sehingga window benar-benar tercapai tanpa digeser. */
+                $__candAll = $__candAll0; $__cand = $__cand0;
                 if ($__pilih === null) {
                     foreach ($__candAll as $c) {
                         if ($c[0] < $__lo) continue;
@@ -7577,7 +7605,7 @@ function pp_run_simulation_once_raw(array $input): array {
                     }
                     $GLOBALS['__pp_dist_closing'] = [
                         'schema' => 'co12-distillate-discrete-closing-v1', 'status' => 'RESOLVED',
-                        'mode' => $__mode, 'residual_sebelum_bbtud' => round($__r, 6),
+                        'mode' => $__mode, 'residual_sebelum_bbtud' => round($__r, 6), 'priority_tiers' => $__tierProof ?? [],
                         'pita_bbtud' => [round($__r, 6), round($__r + $__winBand, 6)],
                         'kandidat_dievaluasi' => count($__cand), 'langkah' => $__ev];
                 } else {

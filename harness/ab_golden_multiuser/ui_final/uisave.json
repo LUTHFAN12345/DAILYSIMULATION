@@ -1,0 +1,103 @@
+{
+ "errs": [],
+ "ui_eff": [
+  "11:30 24.11",
+  "12:00 17.12",
+  "12:30 40.00",
+  "13:00 40.00",
+  "13:30 40.00",
+  "14:00 40.00",
+  "14:30 40.00",
+  "15:00 40.00",
+  "15:30 15.00"
+ ],
+ "_n": 2,
+ "_l": "{\"pop\":false,\"en\":false,\"rows\":48,\"st\":\"FINAL\"} Done — hasil ini memakai keputusan bahan bakar Anda (use_distillate). Pilihan belum tersimpan; tekan Save bila ingin menyimpannya. · FASTEST VALID PLAN — Target",
+ "payload": {
+  "sr_mode": "follow_pv",
+  "sr_fixed_mw": 15,
+  "pv_25_30": [
+   40,
+   40,
+   40,
+   40,
+   40,
+   40
+  ],
+  "eff_23_31": [
+   24.11,
+   17.12,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   15
+  ],
+  "ie6": 490,
+  "hash": "7f1f4e1fd862e35a"
+ },
+ "result": {
+  "rows": 48,
+  "gate": "PASS",
+  "cp": 91.3765,
+  "sr_mode": "follow_pv",
+  "srmin_23_31": [
+   24.11,
+   17.12,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   15
+  ],
+  "pv_23_31": [
+   24.11,
+   17.12,
+   40,
+   40,
+   40,
+   40,
+   40,
+   40,
+   10.34
+  ],
+  "sr_under": 0,
+  "pv_col": true
+ },
+ "save_msg": "Input saved — will persist after reload.",
+ "reload": {
+  "sr_mode": "follow_pv",
+  "sr_fixed_mw": 15,
+  "pv_25_30": [
+   40,
+   40,
+   40,
+   40,
+   40,
+   40
+  ],
+  "ie6": "490",
+  "radio_pv": true,
+  "chart_n": "48"
+ },
+ "ie_chart_after_reload": {
+  "n": "48",
+  "ie_path_has_points": 48,
+  "stats": "IE min 428 · max 598 MW (14:00) · rata-rata 516.3 MW"
+ },
+ "U0_off": {
+  "sr_mode": "fixed",
+  "eff_25_30": [
+   15,
+   15,
+   15,
+   15,
+   15,
+   15
+  ]
+ }
+}

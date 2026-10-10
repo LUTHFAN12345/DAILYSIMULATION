@@ -1,0 +1,255 @@
+{
+ "steps": [
+  {
+   "t": 4.3,
+   "k": "ids",
+   "v": {
+    "A": [
+     "u1631aab621b0cd1a080ca2a5",
+     "t48f437a2d5d76304"
+    ],
+    "B": [
+     "u7649f183969e92ef099cf79c",
+     "t5abe03dc68c257b7"
+    ],
+    "distinct_uid": true
+   }
+  },
+  {
+   "t": 0.4,
+   "k": "C2_both_run_clicked",
+   "v": {}
+  },
+  {
+   "t": 6.4,
+   "k": "A_running_at_6s",
+   "v": {
+    "timer": {
+     "state": "running",
+     "rid": "plan-1-mv2nup07",
+     "elapsed": 6.163400000000372,
+     "running_interval": true
+    },
+    "rid": "plan-1-mv2nup07",
+    "msg": "Perhitungan eksak: perbaikan unit priority c1 c4 80%"
+   }
+  },
+  {
+   "t": 17.9,
+   "k": "B_done",
+   "v": {
+    "rows": 48,
+    "cp": 80.1442,
+    "rid": "plan-2-mv2nuuec",
+    "s": 11.5
+   }
+  },
+  {
+   "t": 20.6,
+   "k": "C3_B_save_while_A_running",
+   "v": {
+    "msg": "Input saved — will persist after reload."
+   }
+  },
+  {
+   "t": 20.6,
+   "k": "A_after_B_save",
+   "v": {
+    "timer": {
+     "state": "MENUNGGU_KEPUTUSAN_BAHAN_BAKAR",
+     "rid": "plan-1-mv2nup07",
+     "elapsed": 20.320400000000372,
+     "running_interval": false
+    },
+    "rid": "plan-1-mv2nup07",
+    "msg": "Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 BBTUD. Rencana ini bu",
+    "still_running": true
+   }
+  },
+  {
+   "t": 81,
+   "k": "A_done",
+   "v": {
+    "rows": 48,
+    "cp": 71.834,
+    "gate": "PASS",
+    "rid": "plan-2-mv2nv5bz",
+    "s": 60.4,
+    "timeout": false
+   }
+  },
+  {
+   "t": 83.7,
+   "k": "C4_simultaneous_save",
+   "v": {
+    "A": "Input saved — will persist after reload.",
+    "B": "Input saved — will persist after reload."
+   }
+  },
+  {
+   "t": 83.9,
+   "k": "records",
+   "v": {
+    "A": [
+     [
+      "SAVE",
+      3,
+      "t48f437a2d5d76304",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "SIMULATION_FINAL",
+      2,
+      "t48f437a2d5d76304",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "AUTOSAVE_RUN",
+      1,
+      "t48f437a2d5d76304",
+      "p_12bc23195a4987dc"
+     ]
+    ],
+    "B": [
+     [
+      "SAVE",
+      4,
+      "t5abe03dc68c257b7",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "SAVE",
+      3,
+      "t5abe03dc68c257b7",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "SIMULATION_FINAL",
+      2,
+      "t5abe03dc68c257b7",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "AUTOSAVE_RUN",
+      1,
+      "t5abe03dc68c257b7",
+      "p_12bc23195a4987dc"
+     ]
+    ],
+    "backend": "json-lock-atomic",
+    "cross_owner": false
+   }
+  },
+  {
+   "t": 83.9,
+   "k": "A_cannot_load_B_record",
+   "v": {
+    "ok": false,
+    "err": "NOT_FOUND_OR_NOT_OWNED"
+   }
+  },
+  {
+   "t": 86.3,
+   "k": "C6_reload",
+   "v": {
+    "A_ie0": "471",
+    "B_ie0": "500",
+    "expect": {
+     "A": "471",
+     "B": "500"
+    }
+   }
+  },
+  {
+   "t": 88.4,
+   "k": "C0_tabs",
+   "v": {
+    "uid_same": true,
+    "tab_diff": true
+   }
+  },
+  {
+   "t": 91.1,
+   "k": "C0_tab_record",
+   "v": {
+    "tab_of_latest": "td386b0d1c93286c9",
+    "tabA2": "td386b0d1c93286c9"
+   }
+  },
+  {
+   "t": 96.8,
+   "k": "C5_B_cancel",
+   "v": {
+    "job": "economic_review-ef6e275c34140528bd12",
+    "resp": {
+     "ok": true,
+     "job": {
+      "schema": "co12-async-job-v1",
+      "job_id": "economic_review-ef6e275c34140528bd12",
+      "kind": "economic_review",
+      "input_hash": "ef6e275c34140528bd128ed693ee7e22dd1034f6bc819cb095dc018ad3c494dd",
+      "request_id": "plan-2-mv2nwnok",
+      "status": "CANCELLED",
+      "owner_uid": "u7649f183969e92ef099cf79c",
+      "owner_tab": "t5abe03dc68c257b7",
+      "created_at": "2026-10-11T00:22:29+07:00",
+      "updated_at": "2026-10-11T00:22:30+07:00",
+      "started_at": "2026-10-11T00:22:30+07:00",
+      "started_at_ts": 1791652950.017071,
+      "finished_at": "2026-10-11T00:22:34+07:00",
+      "pid": null,
+      "percent": 15,
+      "current_step": "DIBATALKAN_OPERATOR",
+      "progress": [
+       {
+        "step": "MENJALANKAN_SIMULASI_LENGKAP",
+        "at": "2026-10-11T00:22:30+07:00",
+        "elapsed_s": 0.01
+       },
+       {
+        "step": "V7_RERUN_BAHAN_BAKAR_DARI_RENCANA_EXACT_BASIS",
+        "at": "2026-10-11T00:22:30+07:00",
+        "elapsed_s": 0.02
+       }
+      ],
+      "result_available": false,
+      "error": null,
+      "cancel_requested": true,
+      "ceiling_s": 1800,
+      "php_binary": "/opt/php74/usr/sbin/php-fpm7.4",
+      "helpers": 3,
+      "exec_token": "afe5b7f5cce255d04a7bded31260a617",
+      "dispatch": "in_request",
+      "heartbeat_ts": 1791652950.03308,
+      "heartbeat_at": "2026-10-11T00:22:30+07:00",
+      "dispatch_note": "Dijalankan di dalam request HTTP (mode=job_exec). Tidak ada proses OS yang diluncurkan, sehingga tidak ada jendela console pada Windows.",
+      "working_directory": "/var/www/html/php74/opr-simulation/jobs/economic_review-ef6e275c34140528bd12",
+      "memory_limit": "1024M",
+      "parent_pid": 28994,
+      "stdout_path": null,
+      "stderr_path": null,
+      "result_tmp_path": "/var/www/html/php74/opr-simulation/jobs/economic_review-ef6e275c34140528bd12/result.json.tmp",
+      "result_final_path": "/var/www/html/php74/opr-simulation/jobs/economic_review-ef6e275c34140528bd12/result.json",
+      "claim_id": "c84a357501320cac",
+      "claimed_at": "2026-10-11T00:22:29+07:00",
+      "claimed_at_ts": 1791652949.999952,
+      "last_phase": "V7_RERUN_BAHAN_BAKAR_DARI_RENCANA_EXACT_BASIS",
+      "peak_memory_bytes": 2097152,
+      "cancel_abort": true
+     }
+    }
+   }
+  },
+  {
+   "t": 97.5,
+   "k": "C5_A_after_B_cancel",
+   "v": {
+    "rows": 48,
+    "cp": 71.834,
+    "gate": "PASS",
+    "timeout": false
+   }
+  }
+ ],
+ "errs": []
+}

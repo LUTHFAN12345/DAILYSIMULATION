@@ -1,0 +1,16 @@
+ids {"A":["u81686c0afe1dea57d6bb18b2","t7c222a3d54a8f382"],"B":["u51aff0c6567074b4584653c1","tf51101ebc3a984a1"],"distinct_uid":true}
+C2_both_run_clicked {}
+A_running_at_6s {"timer":{"state":"MENUNGGU_KEPUTUSAN_BAHAN_BAKAR","rid":"plan-1-mv2mixlq","elapsed":6.21439999999851,"running_interval":false},"rid":"plan-1-mv2mixlq","msg":"Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 B
+B_done {"rows":0,"cp":null,"rid":"plan-1-mv2mixln"}
+C3_B_save_while_A_running {"msg":"Input saved — will persist after reload."}
+A_after_B_save {"timer":{"state":"MENUNGGU_KEPUTUSAN_BAHAN_BAKAR","rid":"plan-1-mv2mixlq","elapsed":129.3468999999985,"running_interval":false},"rid":"plan-1-mv2mixlq","msg":"Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 
+A_done {"rows":48,"cp":71.8339,"gate":"PASS","rid":"plan-2-mv2mlq30","s":59,"timeout":false}
+C4_simultaneous_save {"A":"Input saved — will persist after reload.","B":"Input saved — will persist after reload."}
+records {"A":[["SAVE",3,"t7c222a3d54a8f382","p_12bc23195a4987dc"],["SIMULATION_FINAL",2,"t7c222a3d54a8f382","p_12bc23195a4987dc"],["AUTOSAVE_RUN",1,"t7c222a3d54a8f382","p_12bc23195a4987dc"]],"B":[["SAVE",3,"tf51101ebc3a984a1","p_12bc23195a4987dc"],["SAVE",2,"tf51101ebc3a984a1","p_12bc23195a4987dc"],["AUTOSA
+A_cannot_load_B_record {"ok":false,"err":"NOT_FOUND_OR_NOT_OWNED"}
+C6_reload {"A_ie0":"471","B_ie0":"500","expect":{"A":"471","B":"500"}}
+C0_tabs {"uid_same":true,"tab_diff":true}
+C0_tab_record {"tab_of_latest":"tefca410ea5c77878","tabA2":"tefca410ea5c77878"}
+C5_B_cancel {"resp":null}
+C5_A_after_B_cancel {"rows":48,"cp":71.8339,"gate":"PASS","timeout":false}
+CONCDONE

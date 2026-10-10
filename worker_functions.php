@@ -9071,6 +9071,23 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
      * commitment mengubah kedua hal itu dan membuat top-up berhenti dini -> gas jatuh di bawah window
      * must-take. Base commitment G3 dipakai HANYA di probe deficit export-floor (lihat $g3BaseRow). */
     $g3row = array_fill(0, $n, 0.0); $g1row = $g1BaseRow; $g2row = array_fill(0, $n, 0.0);
+    /* V15.16 (generik, kelanjutan PATCH B01a): GTG ber-commitment (Cannot-Stop / Continuous / Last Data Running sampai
+     * stop pertamanya) DIJAMIN berbeban >= min-CC dan menyumbang steam STG-nya. Probe defisit export-floor sebelumnya
+     * memanggil g2/g4/g6 = 0 secara literal -> DEFISIT FANTOM pada seluruh row -> lever menyalakan unit prioritas
+     * berikutnya (mis. G5/G3) sepanjang window kontigu sejak dini hari. Lantai commitment ini hanya fakta yang sudah
+     * dijamin rule commitment (bukan eskalasi); unit bebas tetap 0. */
+    $commitBaseRow = function (string $u) use ($d3, $model, $n, $lastStatus, $csL0): array {
+        $row = array_fill(0, $n, 0.0);
+        if (!pp_unit_present($d3, $u)) return $row;
+        $cs = in_array($u, $csL0, true) || (strtolower((string)(($model['required_mode'][$u]['mode'] ?? ''))) === 'continuous');
+        $run = (($lastStatus[$u] ?? '') === 'running');
+        if (!$cs && !$run) return $row;
+        $mcc = (float)($d3[$u]['min_ccload'] ?? $d3[$u]['min_scload'] ?? 20);
+        $firstStop = $n; for ($r = 0; $r < $n; $r++) if (pp_is_unit_stopped($d3, $model, $u, $r + 1)) { $firstStop = $r; break; }
+        for ($r = 0; $r < $n; $r++) { if (pp_is_unit_stopped($d3, $model, $u, $r + 1)) continue; if ($cs || $r < $firstStop) $row[$r] = $mcc; }
+        return $row;
+    };
+    if ((string)getenv('PP_V1516_BASE') !== '0') $g2row = $commitBaseRow('g2');
     /* ZERO TOLERANCE §4: Block Required (kini g5,g1,g2) — G5 continuous ikut jadi lever eskalasi. */
     $g5cs   = in_array('g5', array_map('strtolower', (array)($model['unit_cannot_stop'] ?? [])), true)
               || (strtolower((string)(($model['required_mode']['g5']['mode'] ?? ''))) === 'continuous');
@@ -9230,6 +9247,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         pp_recompute_stgs($g, $d3, $model, $rr); return $g;
     };
     $g4row = array_fill(0, $n, 0.0); $g6row = array_fill(0, $n, 0.0);
+    if ((string)getenv('PP_V1516_BASE') !== '0') { $g4row = $commitBaseRow('g4'); $g6row = $commitBaseRow('g6'); }
     foreach (['g4' => &$g4row, 'g6' => &$g6row] as $fu => &$farr) {
         foreach (($fixedVal[$fu] ?? []) as $r => $v) $farr[$r] = $v;
     }
@@ -9246,8 +9264,38 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
      * taper after so the turn-off export ramp stays <= 30 MW. */
     $need = [];
     for ($r = 0; $r < $n; $r++) {
-        $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], 0, 0, $g1row[$r], 0.0, $g5row[$r], $r + 1);   // per-row: hormati scheduled stop G8/G9 · PATCH B01a: hitung lantai commitment G3, bukan 0
+        $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);   // per-row: hormati scheduled stop G8/G9 · PATCH B01a: hitung lantai commitment G3, bukan 0
         if ($expOf($g, $ieVals[$r]) < $rMinR[$r] - 0.3) $need[$r] = true;
+    }
+    /* V15.16 RUNNING-FIRST (§5 dispatch shaper): sebelum lever mana pun MENYALAKAN unit baru, headroom unit yang SUDAH
+     * berbeban pada row defisit (commitment/Running/Cannot-Stop) dinaikkan lebih dulu sesuai urutan Unit Priority user
+     * sampai Export >= Range Min atau unit mencapai effective max. Startup baru hanya untuk sisa defisit yang terbukti. */
+    if ($need && (string)getenv('PP_V1516_RUNFIRST') !== '0') {
+        $rfArr = ['g1' => &$g1row, 'g2' => &$g2row, 'g3' => &$g3row, 'g4' => &$g4row, 'g5' => &$g5row, 'g6' => &$g6row];
+        $rfPrio = pp_priority_flat($model, '/^g[1-6]$/') ?: ['g1','g2','g3','g4','g5','g6'];
+        $rfExp = function (int $r) use (&$g1row, &$g2row, &$g3row, &$g4row, &$g5row, &$g6row, $g3BaseRow, $mkFull, $vHi, $bb, $expOf, $ieVals): float {
+            return $expOf($mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1), $ieVals[$r]);
+        };
+        foreach (array_keys($need) as $r) {
+            foreach ($rfPrio as $pu) {
+                if (!isset($rfArr[$pu]) || $isFixed($pu, $r)) continue;
+                $cur = $pu === 'g3' ? max($g3row[$r], $g3BaseRow[$r]) : $rfArr[$pu][$r];
+                if ($cur <= 0.01) continue;                                   // hanya unit yang sudah berbeban
+                $cap = pp_effective_max_load($d3, $model, $pu, $r + 1); if ($cap <= 0) $cap = (float)($d3[$pu]['max_load'] ?? 31);
+                if ($rfExp($r) >= $rMinR[$r]) break;
+                /* V15.16: kenaikan unit running tidak boleh memakan headroom Spinning Reserve minimum row ini (Fix SR / Follow PV);
+                 * bila SR akan turun di bawah minimum, kenaikan berhenti dan sisa defisit diserahkan ke lever start unit. */
+                $srNeed = function_exists('pp_reserve_min') ? pp_reserve_min($model, $r + 1) : 0.0;
+                for ($x = $cur; $x < $cap - 1e-9; ) { $xp = $x; $x = min($cap, $x + 1.0); $rfArr[$pu][$r] = $x;
+                    if ($srNeed > 1e-9 && function_exists('pp_spinning_reserve')) {
+                        $gS = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);
+                        if (pp_spinning_reserve($gS, $d3, $model, $r + 1) < $srNeed - 1e-6) { $rfArr[$pu][$r] = $xp; break; } }
+                    if ($rfExp($r) >= $rMinR[$r]) break; }
+            }
+        }
+        unset($rfArr);
+        $need = [];
+        for ($r = 0; $r < $n; $r++) if ($rfExp($r) < $rMinR[$r] - 0.3) $need[$r] = true;
     }
     if ($need) {
         $rn = array_keys($need); $first = min($rn); $last = max($rn);
@@ -9273,7 +9321,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     $st = max($arrL[$r], $mccL);
                     for ($x = $st; $x <= $maxL + 1e-6; $x += 1.0) {
                         $arrL[$r] = $x;
-                        if ($expOf($mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], 0, 0, $g1row[$r], $g2row[$r], $g5row[$r], $r + 1), $ieVals[$r]) >= $rMinR[$r]) break;   // PATCH B01a
+                        if ($expOf($mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1), $ieVals[$r]) >= $rMinR[$r]) break;   // PATCH B01a
                     }
                 }
                 if ($fL - 1 >= 0 && !$isFixed($lu, $fL - 1) && !pp_is_unit_stopped($d3, $model, $lu, $fL)) $arrL[$fL - 1] = max($arrL[$fL - 1], 15.0);
@@ -9288,7 +9336,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 // rebuild need setelah lever ini — lever priority berikutnya hanya dipakai bila deficit tersisa
                 $need = [];
                 for ($r = 0; $r < $n; $r++) {
-                    $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], 0, 0, $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);   // PATCH B01a
+                    $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);   // PATCH B01a
                     if ($expOf($g, $ieVals[$r]) < $rMinR[$r] - 0.3) $need[$r] = true;
                 }
             }
@@ -9299,64 +9347,73 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         // non-required) where G2 truly could not close the gap.
         $need2 = [];
         for ($r = 0; $r < $n; $r++) {
-            $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], 0, 0, $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);   // PATCH B01a
+            $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);   // PATCH B01a
             if ($expOf($g, $ieVals[$r]) < $rMinR[$r] - 0.3) $need2[$r] = true;
         }
-        if ($need2) {
-            $rn2 = array_keys($need2); $first2 = min($rn2); $last2 = max($rn2);
-            for ($r = $first2; $r <= $last2; $r++) {
-                if ($isFixed('g3', $r)) continue;                                 // operator-fixed row -> never overwritten
-                if ($r === 0 && ($lastStatus['g3'] ?? '') === 'stop') continue;   // Stop -> row0 must stay 0 MW
-                for ($x = $g3mcc; $x <= $g3max + 1e-6; $x += 1.0) { $g3row[$r] = $x; if ($expOf($mkFull($vHi[$r], $x, $bb[$r], 0, 0, $g1row[$r], $g2row[$r], $g5row[$r]), $ieVals[$r]) >= $rMinR[$r]) break; }
-            }
-            /* ADDENDUM FINAL Bagian 6: start G3 dimajukan SEPANJANG window start-up STG mode aktif
-             * (Cold = 7 slot: 5,15,20,20,20,20,20) sehingga S1 sudah boleh muncul TEPAT pada row pertama
-             * yang membutuhkan Block 1 — tanpa ini, window menahan S1 = 0 di dalam periode Range-Min
-             * tinggi dan export jatuh di bawah floor (deficit fisik). Lead lama 2 slot (15/5) diganti. */
-            $modeS1e = (string)(($model['stg_startup_mode']['s1_startup'] ?? 'Cold'));
-            $capsS1e = pp_startup_caps('s1', $modeS1e);
-            $leadE   = max(2, count($capsS1e));
-            $startE  = max((($lastStatus['g3'] ?? '') === 'stop') ? 1 : 0, $first2 - $leadE);
-            foreach ($capsS1e ?: [5.0, 15.0] as $kE => $capE) {
-                $rE = $startE + $kE; if ($rE >= $first2) break;
-                if ($rE < 0 || $isFixed('g3', $rE)) continue;
-                $g3row[$rE] = max($g3row[$rE], (float)$capE);
-            }
-            for ($t = 1; $t <= 2; $t++) {
-                $r = $last2 + $t; if ($r >= $n || $isFixed('g3', $r)) continue;
-                $tv = max(0.0, $g3row[$last2] * (1 - $t / 3.0));
-                if ($tv > 0 && $tv < $g3mcc) $tv = $g3mcc;
-                $g3row[$r] = max($g3row[$r], $tv);
-            }
-            // Evidence: a non-required Block-1 G3 was started to meet the export floor after the Required
-            // levers (G1 Cannot-Stop + G2 Required) were exhausted. Row-level proof per the anti auto-run rule.
-            if (!$g3Required && !$g3LastRunning) {
-                /* ADDENDUM FINAL 3.2: evidence ROW-LEVEL numerik — deficit MW per row DIHITUNG pada state
-                 * "semua lever prioritas lebih tinggi sudah maksimal" (G8/G9 max via vHi, G1 max, G2 Required
-                 * dinaikkan sampai max), sebelum G3 disentuh. Tanpa angka ini kandidat wajib REJECT. */
-                $evRows = [];
-                foreach (array_slice($rn2, 0, 6) as $rEv) {
-                    $gEv = $mkFull($vHi[$rEv], 0.0, $bb[$rEv], 0, 0, $g1row[$rEv], $g2row[$rEv], $g5row[$rEv]);
-                    $evRows[] = sprintf('row %d: export %.1f < min %.1f (deficit %.1f MW)',
-                        $rEv + 1, $expOf($gEv, $ieVals[$rEv]), $rMinR[$rEv], $rMinR[$rEv] - $expOf($gEv, $ieVals[$rEv]));
+        /* V15.16 PRIORITY AUDIT Block-1: eskalasi G3 hanya lebih dulu bila Unit Priority user menempatkan G3 di atas
+         * unit Block-1 lain yang BELUM berbeban (g4/g6). Bila g4/g6 lebih tinggi, lever g4/g6 dijalankan lebih dulu dan
+         * G3 menjadi fallback setelahnya (sisa defisit). Isi eskalasi tidak berubah. */
+        $g3Esc = function (array $need2) use ($bb, &$g1row, &$g2row, &$g3row, &$g4row, &$g5row, &$g6row, $expOf, $g3LastRunning, $g3Required, $g3max, $g3mcc, $ieVals, $isFixed, $lastStatus, $mkFull, $model, $n, $rMinR, $vHi, &$warnings) {
+            if ($need2) {
+                $rn2 = array_keys($need2); $first2 = min($rn2); $last2 = max($rn2);
+                for ($r = $first2; $r <= $last2; $r++) {
+                    if ($isFixed('g3', $r)) continue;                                 // operator-fixed row -> never overwritten
+                    if ($r === 0 && ($lastStatus['g3'] ?? '') === 'stop') continue;   // Stop -> row0 must stay 0 MW
+                    for ($x = $g3mcc; $x <= $g3max + 1e-6; $x += 1.0) { $g3row[$r] = $x; if ($expOf($mkFull($vHi[$r], $x, $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1), $ieVals[$r]) >= $rMinR[$r]) break; }
                 }
-                /* BUGFIX AUDITABILITY: (a) nama unit TIDAK boleh di-hardcode pada pesan;
-                 * (b) window yang dilaporkan sebelumnya adalah window DEFISIT, bukan row start
-                 * aktual — start sesungguhnya lebih awal sebesar startup lead time sehingga
-                 * operator tidak dapat merekonsiliasi kemunculan unit. Keduanya dilaporkan. */
-                $uAuto   = 'g3';
-                $rampFrom = $startE + 1;                 /* row start aktual (1-based) */
-                $rampTo   = $first2;                     /* ramp berakhir tepat sebelum window defisit */
-                $warnings[] = sprintf(
-                    'AUTO_START_EXPORT_RANGE_MIN: %s (non-required, Last Data Stop) di-start pada row %d '
-                  . '(ramp row %d-%d, startup lead %d row) agar tersedia pada window defisit row %d-%d. '
-                  . 'Lever prioritas lebih tinggi sudah maksimal sebelum %s disentuh. '
-                  . 'Evidence row-level: %s%s.',
-                    strtoupper($uAuto), $rampFrom, $rampFrom, max($rampFrom, $rampTo), $leadE,
-                    $first2 + 1, $last2 + 1, strtoupper($uAuto),
-                    implode('; ', $evRows), count($rn2) > 6 ? sprintf(' (+%d rows lain)', count($rn2) - 6) : '');
+                /* ADDENDUM FINAL Bagian 6: start G3 dimajukan SEPANJANG window start-up STG mode aktif
+                 * (Cold = 7 slot: 5,15,20,20,20,20,20) sehingga S1 sudah boleh muncul TEPAT pada row pertama
+                 * yang membutuhkan Block 1 — tanpa ini, window menahan S1 = 0 di dalam periode Range-Min
+                 * tinggi dan export jatuh di bawah floor (deficit fisik). Lead lama 2 slot (15/5) diganti. */
+                $modeS1e = (string)(($model['stg_startup_mode']['s1_startup'] ?? 'Cold'));
+                $capsS1e = pp_startup_caps('s1', $modeS1e);
+                $leadE   = max(2, count($capsS1e));
+                $startE  = max((($lastStatus['g3'] ?? '') === 'stop') ? 1 : 0, $first2 - $leadE);
+                foreach ($capsS1e ?: [5.0, 15.0] as $kE => $capE) {
+                    $rE = $startE + $kE; if ($rE >= $first2) break;
+                    if ($rE < 0 || $isFixed('g3', $rE)) continue;
+                    $g3row[$rE] = max($g3row[$rE], (float)$capE);
+                }
+                for ($t = 1; $t <= 2; $t++) {
+                    $r = $last2 + $t; if ($r >= $n || $isFixed('g3', $r)) continue;
+                    $tv = max(0.0, $g3row[$last2] * (1 - $t / 3.0));
+                    if ($tv > 0 && $tv < $g3mcc) $tv = $g3mcc;
+                    $g3row[$r] = max($g3row[$r], $tv);
+                }
+                // Evidence: a non-required Block-1 G3 was started to meet the export floor after the Required
+                // levers (G1 Cannot-Stop + G2 Required) were exhausted. Row-level proof per the anti auto-run rule.
+                if (!$g3Required && !$g3LastRunning) {
+                    /* ADDENDUM FINAL 3.2: evidence ROW-LEVEL numerik — deficit MW per row DIHITUNG pada state
+                     * "semua lever prioritas lebih tinggi sudah maksimal" (G8/G9 max via vHi, G1 max, G2 Required
+                     * dinaikkan sampai max), sebelum G3 disentuh. Tanpa angka ini kandidat wajib REJECT. */
+                    $evRows = [];
+                    foreach (array_slice($rn2, 0, 6) as $rEv) {
+                        $gEv = $mkFull($vHi[$rEv], 0.0, $bb[$rEv], $g4row[$rEv], $g6row[$rEv], $g1row[$rEv], $g2row[$rEv], $g5row[$rEv], $rEv + 1);
+                        $evRows[] = sprintf('row %d: export %.1f < min %.1f (deficit %.1f MW)',
+                            $rEv + 1, $expOf($gEv, $ieVals[$rEv]), $rMinR[$rEv], $rMinR[$rEv] - $expOf($gEv, $ieVals[$rEv]));
+                    }
+                    /* BUGFIX AUDITABILITY: (a) nama unit TIDAK boleh di-hardcode pada pesan;
+                     * (b) window yang dilaporkan sebelumnya adalah window DEFISIT, bukan row start
+                     * aktual — start sesungguhnya lebih awal sebesar startup lead time sehingga
+                     * operator tidak dapat merekonsiliasi kemunculan unit. Keduanya dilaporkan. */
+                    $uAuto   = 'g3';
+                    $rampFrom = $startE + 1;                 /* row start aktual (1-based) */
+                    $rampTo   = $first2;                     /* ramp berakhir tepat sebelum window defisit */
+                    $warnings[] = sprintf(
+                        'AUTO_START_EXPORT_RANGE_MIN: %s (non-required, Last Data Stop) di-start pada row %d '
+                      . '(ramp row %d-%d, startup lead %d row) agar tersedia pada window defisit row %d-%d. '
+                      . 'Lever prioritas lebih tinggi sudah maksimal sebelum %s disentuh. '
+                      . 'Evidence row-level: %s%s.',
+                        strtoupper($uAuto), $rampFrom, $rampFrom, max($rampFrom, $rampTo), $leadE,
+                        $first2 + 1, $last2 + 1, strtoupper($uAuto),
+                        implode('; ', $evRows), count($rn2) > 6 ? sprintf(' (+%d rows lain)', count($rn2) - 6) : '');
+                }
             }
-        }
+        };
+        $rkB1 = array_flip(pp_priority_flat($model, '/^g[346]$/') ?: ['g3','g4','g6']);
+        $b1PrefAB = false;
+        if ((string)getenv('PP_V1516_B1ORDER') !== '0') foreach (['g4','g6'] as $pu) if (pp_unit_present($d3, $pu) && isset($rkB1[$pu], $rkB1['g3']) && $rkB1[$pu] < $rkB1['g3'] && max($pu === 'g4' ? $g4row : $g6row) <= 0.01) $b1PrefAB = true;
+        if (!$b1PrefAB) $g3Esc($need2);
     }
     /* Export-floor support (Revisi Sec.4) continued: if G2/G3 (with G1 already maxed) still cannot reach Range
      * Min at peak, START Block-Required additional-HRSG units g4 (then g6) by Unit Priority. Only when both g4
@@ -9364,7 +9421,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
     if (pp_unit_present($d3, 'g4') || pp_unit_present($d3, 'g6')) {
         $need = [];
         for ($r = 0; $r < $n; $r++) {
-            $g = $mkFull($vHi[$r], $g3row[$r], $bb[$r], 0, 0, $g1row[$r], $g2row[$r], $g5row[$r]);
+            $g = $mkFull($vHi[$r], $g3row[$r], $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);
             if ($expOf($g, $ieVals[$r]) < $rMinR[$r] - 0.3) $need[$r] = true;
         }
         if ($need) {
@@ -9391,20 +9448,45 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 if (!$isFixed($uA, $r)) $rowsAB[$uA][$r] = $vA;
                 if (!$isFixed($uB, $r)) $rowsAB[$uB][$r] = $vB;
             }
+            /* V15.16: unit yang di-START lever ini dijalankan KONTIGU dari row pakai pertama sampai terakhir (min-CC pada row
+             * celah) — tidak ada stop-start di tengah window (runtime/downtime dan STG coupling tetap sah). */
+            if ((string)getenv('PP_V1516_B1ORDER') !== '0') foreach ([$uA, $uB] as $uL) {
+                if (!pp_unit_present($d3, $uL)) continue;
+                $on = []; for ($r = $first; $r <= $last; $r++) if ($rowsAB[$uL][$r] > 0.01) $on[] = $r;
+                if (count($on) < 2) continue;
+                $mccL = $limAB[$uL][0];
+                for ($r = $on[0]; $r <= end($on); $r++) if ($rowsAB[$uL][$r] < $mccL - 1e-9 && !$isFixed($uL, $r)) $rowsAB[$uL][$r] = $mccL;
+            }
             // Additional-HRSG start-up ramp (5,15 MW) on the 2 rows before the deficit, so the unit is at
             // full output on the first deficit row and the export profile has no start-up discontinuity.
-            if ($first - 1 >= 0 && pp_unit_present($d3, $uA)) $rowsAB[$uA][$first - 1] = 15.0;
-            if ($first - 2 >= 0 && pp_unit_present($d3, $uA)) $rowsAB[$uA][$first - 2] = 5.0;
+            if ((string)getenv('PP_V1516_B1ORDER') === '0') {
+                if ($first - 1 >= 0 && pp_unit_present($d3, $uA)) $rowsAB[$uA][$first - 1] = 15.0;
+                if ($first - 2 >= 0 && pp_unit_present($d3, $uA)) $rowsAB[$uA][$first - 2] = 5.0;
+            } else foreach ([$uA, $uB] as $uL) {          // V15.16: lead-in hanya untuk unit yang benar-benar START (tidak menurunkan unit running)
+                if (!pp_unit_present($d3, $uL)) continue;
+                for ($fr = $first; $fr <= $last; $fr++) if ($rowsAB[$uL][$fr] > 0.01) break;
+                if ($fr > $last || ($fr - 1 >= 0 && $rowsAB[$uL][$fr - 1] > 0.01)) continue;
+                if ($fr - 1 >= 0 && !$isFixed($uL, $fr - 1)) $rowsAB[$uL][$fr - 1] = 15.0;
+                if ($fr - 2 >= 0 && !$isFixed($uL, $fr - 2) && $rowsAB[$uL][$fr - 2] <= 0.01) $rowsAB[$uL][$fr - 2] = 5.0;
+            }
             // taper down for 2 rows after the deficit block so the turn-off export ramp stays <= 30 MW
             for ($t = 1; $t <= 2; $t++) {
                 $r = $last + $t; if ($r >= $n) break;
-                $g4row[$r] = max(0.0, $g4row[$last] * (1 - $t / 3.0));
-                $g6row[$r] = max(0.0, $g6row[$last] * (1 - $t / 3.0));
+                $g4row[$r] = max((string)getenv('PP_V1516_B1ORDER') === '0' ? 0.0 : $g4row[$r], $g4row[$last] * (1 - $t / 3.0));
+                $g6row[$r] = max((string)getenv('PP_V1516_B1ORDER') === '0' ? 0.0 : $g6row[$r], $g6row[$last] * (1 - $t / 3.0));
                 if ($g4row[$r] > 0 && $g4row[$r] < $g4mcc) $g4row[$r] = $g4mcc;
                 if ($g6row[$r] > 0 && $g6row[$r] < $g6mcc) $g6row[$r] = $g6mcc;
             }
         }
         after_floor_levers: ;   // ZERO TOLERANCE §4: G5 saja sudah menutup deficit — lever lain dilewati
+    }
+    if (!empty($b1PrefAB) && isset($g3Esc)) {             // V15.16: G3 sebagai fallback Block-1 sesudah g4/g6 (Unit Priority user)
+        $need2 = [];
+        for ($r = 0; $r < $n; $r++) {
+            $g = $mkFull($vHi[$r], max($g3row[$r], $g3BaseRow[$r]), $bb[$r], $g4row[$r], $g6row[$r], $g1row[$r], $g2row[$r], $g5row[$r], $r + 1);
+            if ($expOf($g, $ieVals[$r]) < $rMinR[$r] - 0.3) $need2[$r] = true;
+        }
+        $g3Esc($need2);
     }
     /* ===== MEMOISASI EKSAK $exAt (hot spot #1 yang sebenarnya) ================================
      *  TEMUAN PROFIL (PEP = 40, satu core run 26,6 detik): 71,8% waktu habis di blok penyetelan
@@ -9956,8 +10038,9 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
          * its rows — then remove that unit entirely. Removing a whole run is start-up-safe (the unit simply
          * never starts), so no min-runtime/HRSG sequence is violated and its start-up penalty disappears. */
         $g3maxL = (float)($d3['g3']['max_load'] ?? 31);
-        $tryRemove = function (string $u) use (&$genRows, $d3, $model, $n, $expOf, $busOf, $ieVals, $rMinR, $rMaxR, $busMin, $GMAX, $GMIN, $g3maxL) {
+        $tryRemove = function (string $u) use (&$genRows, $d3, $model, $n, $expOf, $busOf, $ieVals, $rMinR, $rMaxR, $busMin, $GMAX, $GMIN, $g3maxL, &$__FC) {
             $snap = $genRows; $any = false;
+            $gas0 = pp_fuel_sum_g19($genRows, $d3, $n, $__FC);
             for ($r = 0; $r < $n; $r++) {
                 if (($genRows[$r][$u] ?? 0) <= 1e-6) continue;
                 $any = true;
@@ -9969,15 +10052,32 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
                 }
                 // ... then raise the already-running CC unit G3 toward its max if still short
+                if ((string)getenv('PP_V1516_GASCAP') === '0') {
                 $l3 = (float)($genRows[$r]['g3'] ?? 0);
                 while ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6 && $l3 < $g3maxL - 1e-6) {
                     $l3 = min($g3maxL, $l3 + 0.5); $genRows[$r]['g3'] = $l3;
                     pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
                 }
+                } else {
+                /* V15.16: kompensasi HANYA dengan unit yang SUDAH berbeban pada row ini (urutan Unit Priority user) —
+                 * melepas satu unit lalu menyalakan unit lain yang OFF bukan pengurangan gas, melainkan penukaran. */
+                foreach (pp_priority_flat($model, '/^g[1-6]$/') ?: ['g1','g2','g3','g4','g5','g6'] as $uc) {
+                    if ($uc === $u || ($genRows[$r][$uc] ?? 0) <= 0.01) continue;
+                    $capC = pp_effective_max_load($d3, $model, $uc, $r + 1); if ($capC <= 0) $capC = (float)($d3[$uc]['max_load'] ?? 31);
+                    $lc = (float)$genRows[$r][$uc];
+                    while ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6 && $lc < $capC - 1e-6) {
+                        $lc = min($capC, $lc + 0.5); $genRows[$r][$uc] = $lc;
+                        pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                    }
+                    if ($expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] - 1e-6) break;
+                }
+                }
                 if ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 1e-6 || $busOf($genRows[$r], $ieVals[$r]) < $busMin - 1e-6) {
                     $genRows = $snap; return false;                   // unit is genuinely required here -> keep it
                 }
             }
+            /* V15.16: pelepasan hanya sah bila gas benar-benar turun (gas-cap = pengurangan gas, bukan penukaran unit). */
+            if ($any && (string)getenv('PP_V1516_GASCAP') !== '0' && pp_fuel_sum_g19($genRows, $d3, $n, $__FC) >= $gas0 - 1e-9) { $genRows = $snap; return false; }
             return $any;
         };
         if ($gasTrue() > $quota + 1e-9) {

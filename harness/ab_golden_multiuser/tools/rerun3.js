@@ -1,0 +1,8 @@
+const { chromium } = require('playwright'); const [,, BASE, TGT] = process.argv; const sleep = ms => new Promise(r => setTimeout(r, ms));
+(async () => { const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); const p = await (await b.newContext()).newPage();
+  await p.goto(BASE + '/index.php'); await sleep(1200); await p.evaluate(v => { const s = document.getElementById('f-tl-target'); s.value = v; s.dispatchEvent(new Event('change', { bubbles: true })); }, TGT);
+  for (let run = 1; run <= 2; run++) { await p.evaluate(() => document.getElementById('btn-run').click()); const t0 = Date.now(); let ck = false, last = '';
+    while (Date.now() - t0 < 150000) { await sleep(1000); const s = await p.evaluate(() => ({ m: ((document.getElementById('run-msg') || {}).innerText || '').replace(/\n/g, ' ').slice(0, 900), pop: !!document.getElementById('gsf-box'), en: !!(document.getElementById('gsf-lng') && !document.getElementById('gsf-lng').disabled), rows: (typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT.data) ? OUTPUT.data.length : 0, gate: (typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT.release_gate) ? OUTPUT.release_gate.status : null, blk: (typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT.release_gate) ? (OUTPUT.release_gate.blocking_reasons || []).join(',') : '', st: window.ppRunTimerState && window.ppRunTimerState().state }));
+      const l = JSON.stringify(s); if (l !== last) { console.log('run' + run, ((Date.now() - t0) / 1000).toFixed(0), l); last = l; }
+      if (s.pop && s.en && !ck) { ck = true; await p.click('#gsf-lng'); } if ((ck || run === 2) && s.rows === 48 && s.st && s.st !== 'running') break; } }
+  await b.close(); })();

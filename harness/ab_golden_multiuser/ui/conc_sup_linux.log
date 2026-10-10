@@ -1,0 +1,6 @@
+S1_B_then_A_clicked {}
+S1_jobs [["economic_review-405d2dde6a","DONE",null,null],["economic_review-5937302399","DONE",null,null],["economic_review-6bba87ec1a","DONE",null,null],["economic_review-7185437593","DONE",null,null],["economic_review-7b6e4d5b62","DONE",null,null],["economic_review-ad36ba3c82","DONE",null,null]]
+S1_B_done {"rows":48,"cp":80.4131,"s":14.2,"timeout":false}
+S1_A_done {"rows":48,"cp":71.9048,"s":12.4,"timeout":false}
+S2_own_old_job {"rid":"plan-3-mv2ntw1o"}
+S2_A_new_done {"rows":48,"cp":71.9273,"s":19.3,"timeout":false}

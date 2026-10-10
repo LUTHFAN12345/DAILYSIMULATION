@@ -392,7 +392,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.15-REFERENCE-LOGIC-ADOPTED-FASTEST-20261010';
+const PP_ENGINE_BUILD_ID = 'V15.16-GOLDEN-QUALITY-PERFORMANCE-UI-MULTIUSER-20261010';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -858,6 +858,17 @@ function pp_job_rmdir(string $d): void {
 function pp_job_start(array $input, string $kind, ?string $requestId, bool $force = false): array {
     if (!in_array($kind, pp_job_kinds(), true))
         return ['ok' => false, 'error' => 'KIND_TIDAK_DIKENAL: ' . $kind];
+    /* V15.16 MULTI-USER: pembuatan job per job-id diserialisasi (flock). Dua user/tab yang menjalankan input identik pada
+     * saat yang sama dulu sama-sama melihat "belum ada", lalu saling menghapus/menulis direktori job yang sama sehingga salah
+     * satunya gagal (TIDAK_BISA_MENULIS_INPUT_JOB). Kini request kedua menunggu sebentar lalu MEMAKAI ULANG job pertama. */
+    if ((string)getenv('PP_V1516_JOB_LOCK') !== '0' && empty($GLOBALS['__pp_job_start_locked'])) {
+        if (!is_dir(pp_job_root())) @mkdir(pp_job_root(), 0777, true);
+        $lk = @fopen(rtrim(pp_job_root(), '/\\') . DIRECTORY_SEPARATOR . '.start_' . pp_job_id($kind, pp_job_input_hash($input)) . '.lock', 'c');
+        if ($lk) @flock($lk, LOCK_EX);
+        $GLOBALS['__pp_job_start_locked'] = true;
+        try { return pp_job_start($input, $kind, $requestId, $force); }
+        finally { unset($GLOBALS['__pp_job_start_locked']); if ($lk) { @flock($lk, LOCK_UN); @fclose($lk); } }
+    }
     $hash = pp_job_input_hash($input);
     $id   = pp_job_id($kind, $hash);
     $d    = pp_job_dir($id);
@@ -889,6 +900,7 @@ function pp_job_start(array $input, string $kind, ?string $requestId, bool $forc
         'schema' => 'co12-async-job-v1',
         'job_id' => $id, 'kind' => $kind, 'input_hash' => $hash,
         'request_id' => $requestId, 'status' => 'QUEUED',
+        'owner_uid' => pp_v1516_req_ident('uid'), 'owner_tab' => pp_v1516_req_ident('tab'),   // V15.16: pemilik run (isolasi supersede antar user/tab)
         'created_at' => date('c'), 'updated_at' => date('c'),
         'started_at' => null, 'started_at_ts' => null, 'finished_at' => null,
         'pid' => null, 'percent' => 0.0, 'current_step' => 'ANTRE',
@@ -1686,6 +1698,13 @@ function pp_v3_relabel(array &$out, array $input): void {
  * dan simulasi TIDAK dimulai. Isi yang identik dengan disk tidak ditulis ulang (klik ganda). */
 function pp_v3_autosave(array &$input): array {
     $t = microtime(true);
+    if (function_exists('sds_ctx') && sds_ctx($input)['uid'] !== '' && (string)getenv('PP_V1516_SCOPED_SAVE') !== '0') {
+        /* V15.16: autosave Run = snapshot input IMMUTABLE milik user/tab/run pemanggil (bukan file global bersama). */
+        $ctxA = sds_ctx($input); $whyA = null; $save = $input; foreach (array_keys($save) as $k) if (is_string($k) && $k !== '' && $k[0] === '_') unset($save[$k]);
+        $recA = sds_commit('AUTOSAVE_RUN', $save, null, $ctxA, ['source' => 'run_autosave'], $whyA);
+        return ['ok' => $recA !== null, 'scoped' => true, 'record_id' => $recA['record_id'] ?? null, 'version' => $recA['version'] ?? null, 'error' => $whyA,
+                'skipped_identical' => false, 'ms' => round((microtime(true) - $t) * 1000, 1), 'backend' => sds_backend()];
+    }
     $f = __DIR__ . '/input_data.json';
     $save = $input;
     foreach (array_keys($save) as $k) if (is_string($k) && $k !== '' && $k[0] === '_') unset($save[$k]);
@@ -1716,10 +1735,20 @@ function pp_v3_autosave(array &$input): array {
 }
 /* Job economic_review lain yang masih berjalan untuk konteks yang sama dihentikan: Run baru
  * menggantikan state lama, sehingga tidak ada job lama yang tetap hidup. */
+/* V15.16: identitas user/tab dari request (dikirim wrapper fetch index.php); '' untuk CLI / klien lama. */
+function pp_v1516_req_ident(string $k): string {
+    return substr((string)preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET[$k] ?? ($_POST[$k] ?? ''))), 0, 64);
+}
 function pp_v3_supersede(array $input): array {
     $keep = pp_job_input_hash($input);
     $ctx = (string)($input['_context'] ?? '');
     $done = [];
+    /* V15.16 ISOLASI MULTI-USER: Run baru hanya menggantikan job milik user+tab yang sama. Dahulu filter
+     * hanya prefiks konteks request ("plan-"), yang sama untuk semua user, sehingga Run user A membatalkan
+     * job user B yang sedang berjalan (terukur: job B CANCELLED "DIGANTIKAN_RUN_BARU" pada detik yang sama).
+     * Job yang masih dipantau run lain (input identik, job bersama) juga tidak dibatalkan. */
+    $scoped = (string)getenv('PP_V1516_SUPERSEDE_SCOPE') !== '0';
+    $myUid = pp_v1516_req_ident('uid'); $myTab = pp_v1516_req_ident('tab');
     foreach ((array)@scandir(pp_job_root()) as $e) {
         if (!is_string($e) || $e === '' || $e[0] === '.' || $e[0] === '_' || strpos($e, 'economic_review-') !== 0) continue;
         $j = pp_job_read($e);
@@ -1727,6 +1756,13 @@ function pp_v3_supersede(array $input): array {
         if (hash_equals((string)($j['input_hash'] ?? ''), $keep)) continue;
         $rq = (string)($j['request_id'] ?? '');
         if ($ctx !== '' && $rq !== '' && strpos($rq, $ctx . '-') !== 0) continue;   // konteks lain (Plan vs Monitoring)
+        if ($scoped) {
+            if ((string)($j['owner_uid'] ?? '') !== $myUid || (string)($j['owner_tab'] ?? '') !== $myTab) continue;   // milik user/tab lain
+            $othersS = 0;
+            foreach ((array)@glob(pp_job_dir($e) . '/subs/*') as $sf)
+                if (is_file($sf) && basename($sf) !== $rq && @filemtime($sf) >= time() - 20) $othersS++;
+            if ($othersS > 0) continue;                                              // masih dipantau run lain
+        }
         pp_job_update($e, function (array $x): array {
             $x['cancel_requested'] = true; $x['cancel_abort'] = true;
             if (in_array((string)($x['status'] ?? ''), ['QUEUED', 'CLAIMED', 'RUNNING'], true)) {
@@ -2934,6 +2970,7 @@ function pp_v15_merit_proof(array $input, array $out): array {
  * penurunan yang dibutuhkan). Dispatch hasil dievaluasi penuh sekali (engine + validator); tidak valid -> tiap pemindahan
  * ditambahkan satu per satu (greedy) dengan bukti counterfactual tunggal untuk yang tidak valid; hingga 8 lintasan. */
 function pp_v15_fast_priority_fix(array $input, array $out, float $dl): array {
+    $GLOBALS['__pp_v15_fixmemo'] = [];
     /* lintasan berulang: pemindahan mengubah headroom, sehingga audit dispatch baru dapat memunculkan pasangan baru */
     $all = []; $proofs = [];
     for ($pass = 1; $pass <= 8 && microtime(true) < $dl - 2.0; $pass++) {
@@ -2993,15 +3030,18 @@ function pp_v15_fast_priority_fix_pass(array $input, array $out, float $dl): arr
     $rank = pp_priority_rank($m); usort($un, function ($x, $y) use ($rank) { return [(int)$x['row'], -(int)($rank[strtolower($x['unit'])] ?? 0)] <=> [(int)$y['row'], -(int)($rank[strtolower($y['unit'])] ?? 0)]; });
     $bd = array_map(function ($r) { $x = []; foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'] as $u) $x[$u] = (float)($r[$u] ?? 0); return $x; }, (array)$out['data']);
     $minL = function (string $u) use ($d3): float { $u = strtolower($u); return (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 20)); };
-    $hdUsed = []; $moves = []; $proofs = []; $used = 0.0;
+    $hdUsed = []; $moves = []; $proofs = []; $used = 0.0; $usedUp = 0.0;
     foreach ($un as $f) { $k = (int)$f['row'] - 1; $lo = strtoupper((string)$f['unit']); $hi = strtoupper((string)$f['higher_unit']);
         $hk = $k . '#' . $hi; $hd = (float)$f['higher_headroom_mw'] - ($hdUsed[$hk] ?? 0.0);
         $d = round(min((float)($f['shiftable_mw'] ?? 0), $hd, $bd[$k][$lo] - $minL($lo)), 2);
         if ($d <= 0.05) { $proofs[] = ['row' => $k + 1, 'unit' => $lo, 'higher' => $hi, 'reason' => 'HEADROOM_UNIT_LEBIH_TINGGI_SUDAH_TERPAKAI_PEMINDAHAN_LAIN_ROW_INI']; continue; }
         $dg = (calc_fuel($d3, strtolower($lo), $bd[$k][$lo] - $d) - calc_fuel($d3, strtolower($lo), $bd[$k][$lo]) + calc_fuel($d3, strtolower($hi), $bd[$k][$hi] + $d) - calc_fuel($d3, strtolower($hi), $bd[$k][$hi])) / 2.0;
+        /* V15.16: tepi ATAS window — pemindahan yang MENAIKKAN gas melebihi sisa kuota pasti melanggar (bukti numerik, tanpa simulasi). */
+        if ($dg > 0 && $q > 1.0 && $usedUp + $dg > max(0.0, $q - $g0) + 1e-6) { $proofs[] = ['row' => $k + 1, 'unit' => $lo, 'higher' => $hi, 'reason' => 'GAS_WINDOW_UPPER_EDGE',
+            'detail' => sprintf('memindah %.2f MW %s->%s menaikkan gas %.5f BBTUD; sisa kuota sampai tepi atas window %.5f BBTUD (gas %.4f, kuota %.4f)', $d, $lo, $hi, $dg, max(0.0, $q - $g0 - $usedUp), $g0, $q)]; continue; }
         if ($dg < 0 && $used - $dg > $room) { $proofs[] = ['row' => $k + 1, 'unit' => $lo, 'higher' => $hi, 'reason' => 'GAS_WINDOW_LOWER_EDGE',
             'detail' => sprintf('memindah %.2f MW %s->%s menurunkan gas %.5f BBTUD; ruang tersisa sampai tepi bawah window %.5f BBTUD (gas %.4f, window bawah %.4f)', $d, $lo, $hi, -$dg, max(0.0, $room - $used), $g0, $q - 0.04)]; continue; }
-        $bd[$k][$lo] = round($bd[$k][$lo] - $d, 4); $bd[$k][$hi] = round($bd[$k][$hi] + $d, 4); $hdUsed[$hk] = ($hdUsed[$hk] ?? 0.0) + $d; $used -= min(0.0, $dg);
+        $bd[$k][$lo] = round($bd[$k][$lo] - $d, 4); $bd[$k][$hi] = round($bd[$k][$hi] + $d, 4); $hdUsed[$hk] = ($hdUsed[$hk] ?? 0.0) + $d; $used -= min(0.0, $dg); $usedUp += max(0.0, $dg);
         $moves[] = ['row' => $k + 1, 'from' => $lo, 'to' => $hi, 'mw' => $d, 'gas_delta_bbtud' => round($dg, 5)]; }
     $log = ['findings' => count($un), 'moves_planned' => count($moves), 'proofs' => $proofs, 'gas_room_bbtud' => is_finite($room) ? round($room, 5) : null];
     $base = array_map(function ($r) { $x = []; foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'] as $u) $x[$u] = (float)($r[$u] ?? 0); return $x; }, (array)$out['data']);
@@ -3017,8 +3057,22 @@ function pp_v15_fast_priority_fix_pass(array $input, array $out, float $dl): arr
             foreach ($moves as $mv) {
                 if (microtime(true) >= $dl - 1.5) { $proofs[] = ['row' => $mv['row'], 'unit' => $mv['from'], 'higher' => $mv['to'], 'reason' => 'COUNTERFACTUAL_TIDAK_VALID',
                     'detail' => 'pemindahan gabungan dievaluasi engine 48 row: ' . $jv]; continue; }
+                /* V15.16 stop rule: kandidat identik tidak dihitung ulang — bukti tidak-valid lintasan sebelumnya dipakai ulang bila
+                 * pelanggarannya LOKAL (export/bus/ramp/reserve) dan GTG row r-1..r+1 belum berubah sejak bukti itu dibuat. */
+                $lk = $mv['row'] . ':' . $mv['from'] . '>' . $mv['to'] . ':' . $mv['mw']; $loc = '';
+                for ($q = max(0, $mv['row'] - 2); $q <= min(47, $mv['row']); $q++) $loc .= json_encode($base[$q]);
+                $lsig = md5($loc . json_encode($acc));
+                $memo = $GLOBALS['__pp_v15_fixmemo'][$lk] ?? null;
+                if (is_array($memo) && $memo['sig'] === $lsig) {
+                    $att[] = ['moves' => count($acc) + 1, 'single' => $mv['row'] . ':' . $mv['from'] . '->' . $mv['to'], 'valid' => false, 'violations' => $memo['viol'], 'cp' => null, 'memo' => true];
+                    $proofs[] = ['row' => $mv['row'], 'unit' => $mv['from'], 'higher' => $mv['to'], 'reason' => 'COUNTERFACTUAL_TIDAK_VALID',
+                        'detail' => sprintf('pemindahan %.2f MW %s->%s dievaluasi engine 48 row (lintasan sebelumnya, row sekitar tidak berubah): %s', $mv['mw'], $mv['from'], $mv['to'], implode(',', $memo['viol']))];
+                    continue;
+                }
                 $c = pp_v3_frozen_eval($orig, $apply(array_merge($acc, [$mv])), $dl); pp_tl_clean_globals();
                 $cv = is_array($c) && !empty($c['valid']);
+                if (!$cv && is_array($c)) { $vv = array_values(array_map('strval', (array)($c['violations'] ?? [])));
+                    if ($vv && !array_diff($vv, ['export_range', 'bus_flow', 'busflow', 'ramp', 'export_ramp', 'spinning_reserve', 'reserve'])) $GLOBALS['__pp_v15_fixmemo'][$lk] = ['sig' => $lsig, 'viol' => $vv]; }
                 $att[] = ['moves' => count($acc) + 1, 'single' => $mv['row'] . ':' . $mv['from'] . '->' . $mv['to'], 'valid' => $cv, 'violations' => is_array($c) ? ($c['violations'] ?? []) : null, 'cp' => is_array($c) ? ($c['key']['cp'] ?? null) : null];
                 if ($cv) { $acc[] = $mv; $aAcc = $c; continue; }
                 $proofs[] = ['row' => $mv['row'], 'unit' => $mv['from'], 'higher' => $mv['to'], 'reason' => 'COUNTERFACTUAL_TIDAK_VALID',
@@ -3122,7 +3176,9 @@ function pp_job_run_economic_review(string $id, array $input): array {
     if (($output['info']['Run Status']['economic_review_completed'] ?? null) === true && function_exists('pp_v8_priority_review')
         && !($fastJ && !empty($output['info']['Run Status']['fastest_shortage_proven']))) {
         pp_job_progress($id, $fastJ ? 'FASTEST_REVIEW_UNIT_PRIORITY' : 'REVIEW_UNIT_PRIORITY', 70.0);
-        $GLOBALS['__pp_v8_job'] = $id; $output = pp_v8_priority_review($inputAsli, $output); unset($GLOBALS['__pp_v8_job']);
+        $GLOBALS['__pp_v8_job'] = $id; if ($fastJ) $GLOBALS['__pp_v8_fast_wall'] = (string)getenv('PP_V8_FAST_TOTAL') === '0' ? (float)(getenv('PP_V8_FAST_WALL') ?: 10.0) : min((float)(getenv('PP_V8_FAST_WALL') ?: 10.0), max((float)(getenv('PP_V8_FAST_MIN') ?: 2.0), (in_array((string)($inputAsli['data3']['modeling']['__fuel_decision_mode'] ?? ''), ['add_lng', 'use_distillate'], true) ? (float)(getenv('PP_V8_FAST_TOTAL_FUEL') ?: 8.5) : (float)(getenv('PP_V8_FAST_TOTAL') ?: 11.5)) - (microtime(true) - $t)));   /* V15.16 Fastest: anggaran review = sisa target total job (bukan konstanta 10 detik) agar first 48-row result <= 15 detik; rerun sesudah popup bahan bakar memakai sisa yang lebih kecil karena waktu sebelum popup sudah terpakai */
+        elseif ((string)getenv('PP_V8_MAX_TOTAL') !== '0') $GLOBALS['__pp_v8_max_wall'] = max(8.0, (float)(getenv('PP_V8_MAX_TOTAL') ?: 58.0) - (microtime(true) - $t));
+        try { $output = pp_v8_priority_review($inputAsli, $output); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall']); }
         /* V15.15: setiap rencana final job (Fastest dan Maximum Review) wajib C1-C4 FAIL = 0: temuan Unit Priority tanpa alasan diselesaikan
          * atau dibuktikan numerik (pass yang sama). */
         pp_job_progress($id, 'PERBAIKAN_UNIT_PRIORITY_C1_C4', 80.0);
@@ -3205,7 +3261,9 @@ function pp_job_run_economic_review(string $id, array $input): array {
     $rgW = (array)($output['release_gate'] ?? []);
     $actW = strtolower(trim((string)($input['data3']['modeling']['gas_shortage_action'] ?? 'none')));
     if ($actW === 'flag shortage only' || $actW === 'flag_shortage_only') $actW = 'none';
-    if ($gaW && empty($gaW['feasible']) && $actW === 'none' && function_exists('pp_shortage_decision_block')
+    /* V15.16: 'recommendation' = belum ada keputusan bahan bakar, sama dengan 'none' (dulu hasil worker untuk aksi ini berakhir
+     * 'rejected' tanpa keputusan -> Run berikutnya setelah memilih bahan bakar tidak pernah membuka popup lagi). */
+    if ($gaW && empty($gaW['feasible']) && in_array($actW, ['none', 'recommendation'], true) && function_exists('pp_shortage_decision_block')
         && (string)($output['action_required'] ?? '') !== 'GAS_WINDOW_QUOTA_DECISION'                  // V7: konflik window terbukti bukan kekurangan bahan bakar
         && (($output['info']['Change Over Legality']['legal'] ?? null) !== false)) {   // V5: CO tidak legal -> bukan keputusan bahan bakar
         $expW = pp_export_minimization_audit($input, $output);
@@ -6241,7 +6299,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
         if ($dl === null) $dl = isset($GLOBALS['__pp_budget_deadline']) ? (float)$GLOBALS['__pp_budget_deadline'] - 3.0 : microtime(true) + 60.0;
         $fuelR = pp_v8_fuel_active($m); $maxRounds = $fuelR ? 2 : 4;
         /* Batas DETERMINISTIK (jumlah kandidat & putaran, fungsi state saja); batas waktu hanya pengaman (besar). */
-        $wallCap = (float)(getenv('PP_V8_WALL_S') ?: 240.0); $cap = (int)(getenv('PP_V8_CAP') ?: ($fuelR ? 6 : 12)); $rankP = pp_priority_rank($m);
+        $wallCap = (float)(getenv('PP_V8_WALL_S') ?: 240.0); $cap = (int)(getenv('PP_V8_CAP') ?: ($fuelR ? 6 : 12)); if (isset($GLOBALS['__pp_v8_max_wall'])) $wallCap = min($wallCap, (float)$GLOBALS['__pp_v8_max_wall']);   /* V15.16 Maximum Review: anggaran sisa sampai target total */ if (isset($GLOBALS['__pp_v8_fast_wall'])) { $wallCap = (float)$GLOBALS['__pp_v8_fast_wall']; $cap = min($cap, (int)(getenv('PP_V8_FAST_CAP') ?: 4)); $maxRounds = min($maxRounds, (int)(getenv('PP_V8_FAST_ROUNDS') ?: 1)); }   /* V15.16 Fastest: review terbatas (bounded race), bukan Maximum Review */ $rankP = pp_priority_rank($m);
         /* V9 REVIEW DELTA: FINAL inkremental kanonik dengan commitment identik dengan FINAL jangkar yang sudah ditinjau.
          * Kandidat pembanding jangkar (valid + gagal window gas) sudah dibawa ke ruang kandidat inkremental dan dievaluasi
          * ulang pada state baru bila dapat menyalip; bukti per row (kapasitas Export, runtime, blok, ramp) dipakai ulang. */
@@ -6982,8 +7040,24 @@ function pp_v9_fuel_provenance(array $input, array $output): array {
             'unit_rows_without_legal_source' => $bad, 'rows' => $T,
             'rule' => 'Setiap unit berbahan bakar memakai akun sumber yang sah dan berbiaya: GTG 1-9 pool Jababeka, GE/G10 akun MM2100 (kuota KP72 / Actual / fixed flow manual), BBLN batubara, Distillate hanya dengan aksi bahan bakar operator.'];
 }
+/* V15.16: kolom PV (MW) dan SR minimum efektif per row (Fix SR / Follow PV) pada SETIAP keluaran 48 row — termasuk jalur V7/frozen
+ * dan job — sehingga kolom PV Simulation Data selalu terisi dari input dan SR_Min = max(Fix SR, PV[row]) saat Follow PV aktif. */
+function pp_v1516_row_pv_sr(array $input, array &$out): void {
+    if (!is_array($out['data'] ?? null) || !function_exists('pp_reserve_min')) return;
+    $m = (array)($input['data3']['modeling'] ?? []); $pv = (array)($m['pv_rows'] ?? []);
+    $d3 = (array)($input['data3'] ?? []);
+    foreach ($out['data'] as $k => &$r) { if (!is_array($r)) continue; $r['PV'] = round((float)($pv[$k] ?? 0), 2); $r['SR_Min'] = round(pp_reserve_min($m, $k + 1), 2);
+        /* Kolom Spin_Res memakai definisi yang SAMA dengan validator hard constraint (pp_spinning_reserve: seluruh unit reserve yang
+         * eligible, effective max per row) — dulu calc_sr lama tanpa G7/G10 sehingga tabel dapat tampak di bawah SR_Min padahal valid. */
+        if (function_exists('pp_spinning_reserve')) { $g = [];
+            foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4'] as $u) { $c = strtoupper($u); if ($c === 'B1') $c = 'BB1'; if ($c === 'B2') $c = 'BB2'; $g[$u] = (float)($r[$c] ?? 0); }
+            try { $r['Spin_Res'] = round(pp_spinning_reserve($g, $d3, $m, $k + 1), 2); } catch (Throwable $e) {} } }
+    unset($r);
+    if (!isset($out['info']['Spinning Reserve Requirement']) || !is_array($out['info']['Spinning Reserve Requirement'])) $out['info']['Spinning Reserve Requirement'] = [];
+    $out['info']['Spinning Reserve Requirement']['sr_mode'] = (string)($m['sr_mode'] ?? 'fixed');
+}
 function pp_attach_or_reject_acceptance(array $input,array &$output): array {
-    $output['info']=(array)($output['info']??[]); $output['info']['Engine Build']=PP_ENGINE_BUILD_ID; $output['info']['Engine Fingerprint']=pp_engine_fingerprint();
+    $output['info']=(array)($output['info']??[]); try { pp_v1516_row_pv_sr($input, $output); } catch (Throwable $e) {} $output['info']['Engine Build']=PP_ENGINE_BUILD_ID; $output['info']['Engine Fingerprint']=pp_engine_fingerprint();
     $review=pp_simulation_acceptance_review($input,$output);
     if ((string)getenv('PP_V5_HEADROOM_AUDIT') !== '0') { try { $output['info']['Headroom Priority Audit'] = pp_v5_headroom_priority_audit($input, $output); } catch (Throwable $e) { $output['info']['Headroom Priority Audit'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } }
     if (function_exists('pp_v11_on') && pp_v11_on() && count((array)($output['data'] ?? [])) === 48) {
@@ -7586,6 +7660,8 @@ if (in_array(($_GET['mode'] ?? ''), ['tl_best', 'tl_stop', 'tl_pool'], true)) {
     echo json_encode($resp, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR); exit;
 }
 
+/* V15.16 datastore kanonik ber-scope (saved_data_store.php): endpoint baca/kelola record milik user pemanggil. */
+if (in_array(($_GET['mode'] ?? ''), ['store_list', 'store_load', 'store_meta', 'store_delete', 'store_integrity', 'store_latest'], true) && function_exists('sds_http')) sds_http((string)$_GET['mode']);
 if (in_array(($_GET['mode'] ?? ''), ['job_poll', 'job_cancel', 'job_list'], true)) {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     $mode = (string)$_GET['mode'];
@@ -7606,6 +7682,18 @@ if (in_array(($_GET['mode'] ?? ''), ['job_poll', 'job_cancel', 'job_list'], true
     if ($jid === '') { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'PARAMETER_job_WAJIB']); exit; }
     $job = pp_job_read($jid);
     if ($job === null) { http_response_code(404); echo json_encode(['ok' => false, 'error' => 'JOB_TIDAK_DITEMUKAN', 'job_id' => $jid]); exit; }
+    /* V15.16 ISOLASI RUN: job dipakai bersama oleh run dengan input identik (cache konteks). Setiap run yang memantau job
+     * mencatat heartbeat per Run ID; Cancel dari satu run hanya MELEPAS run itu — job baru dibatalkan bila tidak ada run
+     * lain yang masih memantau (heartbeat < 20 s). Polling selalu membawa Run ID. */
+    $ridS = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['rid'] ?? ''));
+    $subDir = pp_job_dir($jid) . '/subs';
+    if ($ridS !== '' && $mode === 'job_poll') { if (!is_dir($subDir)) @mkdir($subDir, 0775, true); @touch($subDir . '/' . $ridS); }
+    if ($mode === 'job_cancel' && $ridS !== '' && (string)getenv('PP_V1516_SHARED_CANCEL') !== '0') {
+        @unlink($subDir . '/' . $ridS); $others = [];
+        foreach ((array)@glob($subDir . '/*') as $sf) if (is_file($sf) && @filemtime($sf) >= time() - 20) $others[] = basename($sf);
+        if ($others) { echo json_encode(['ok' => true, 'detached' => true, 'job_id' => $jid, 'rid' => $ridS, 'other_active_runs' => count($others),
+            'note' => 'Run ini dilepas dari job; job tetap berjalan untuk run lain dengan input identik.'], JSON_UNESCAPED_SLASHES); exit; }
+    }
     if ($mode === 'job_cancel') {
         $abortTl = !empty($_GET['abort']);
         $job = pp_job_update($jid, function (array $j) use ($abortTl): array {
@@ -7876,6 +7964,23 @@ if (($_GET['mode'] ?? '') === 'shortage_probe') {
     echo json_encode(['result' => 'ok', 'mode' => 'shortage_probe'] + $res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
 }
+if (($_GET['mode'] ?? '') === 'save' && function_exists('sds_ctx') && sds_ctx($input)['uid'] !== '' && (string)getenv('PP_V1516_SCOPED_SAVE') !== '0') {
+    /* V15.16 SAVE BER-SCOPE: record versi baru milik user/tab/proyek pemanggil + input_latest user. input_data.json global
+     * (milik bersama) TIDAK ditimpa, sehingga Save user lain tidak pernah mengubah data/run user ini. */
+    $ctxS = sds_ctx($input); $latS = sds_latest_input($ctxS['uid']); $diskS = null;
+    if (is_array($latS)) { $diskS = sds_dir('users/' . $ctxS['uid']) . DIRECTORY_SEPARATOR . 'merge_base.json'; @file_put_contents($diskS, json_encode($latS['input'])); }
+    pp_merge_report_planning($input, $diskS ?? (__DIR__ . '/input_data.json'), $rpDiag); if ($diskS) @unlink($diskS);
+    $nStrip = pp_sanitize_report_planning($input);
+    foreach (['__no_exact_family', '__fastest_local_only'] as $kS) unset($input['data3']['modeling'][$kS]);
+    foreach (['_fast_default', '_maximum_review'] as $kS) unset($input[$kS]);
+    $whyS = null; $recS = sds_commit('SAVE', $input, null, $ctxS, ['source' => 'save_button'], $whyS);
+    if ($recS === null) pp_fail(500, 'Save DITOLAK, data lama TETAP UTUH — ' . $whyS, ['old_file_intact' => true]);
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    echo json_encode(['result' => 'ok', 'mode' => 'save', '_saved' => ['input' => true, 'scoped' => true, 'record_id' => $recS['record_id'], 'version' => $recS['version'],
+        'project_id' => $recS['project_id'], 'tab_id' => $recS['tab_id'], 'backend' => sds_backend()], '_sanitized_nested_snapshots' => $nStrip, '_report_planning_merge' => $rpDiag],
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit;
+}
 if (($_GET['mode'] ?? '') === 'save') {
     pp_merge_report_planning($input, __DIR__ . '/input_data.json', $rpDiag);   // PROMPT ISOLATION §10: anti-overwrite antar user
     $nStrip = pp_sanitize_report_planning($input);                    // PROMPT SAVE-FI §A: migrasi nesting lama
@@ -7913,11 +8018,16 @@ if (($_GET['mode'] ?? '') === 'release_validate') {
     $released = !empty($gate['summary']['release_allowed']) && !empty($accept['publish_allowed']);
     $output['result'] = $released ? 'ok' : 'not_released';
 
-    pp_merge_report_planning($input, __DIR__ . '/input_data.json');   // PROMPT ISOLATION §10: anti-overwrite antar user
     pp_sanitize_report_planning($input);                              // PROMPT SAVE-FI §A
+    if (function_exists('sds_ctx') && sds_ctx($input)['uid'] !== '' && (string)getenv('PP_V1516_SCOPED_SAVE') !== '0') {   // V15.16: ber-scope
+        $whyIn = null; $okIn = sds_commit('SIMULATION_FINAL', $input, $output, sds_ctx($input), ['route' => 'release_validate', 'released' => $released], $whyIn) ? 1 : false;
+        if ($okIn === false) pp_fail(500, 'Central store gagal — ' . $whyIn . ' (data lama tetap utuh).'); $okOut = 1;
+    } else {
+    pp_merge_report_planning($input, __DIR__ . '/input_data.json');   // PROMPT ISOLATION §10: anti-overwrite antar user
     $okIn  = pp_atomic_write_json(__DIR__ . '/input_data.json', $input, $whyIn) ? 1 : false;
     if ($okIn === false) pp_fail(500, 'Could not write input_data.json — ' . $whyIn . ' (file lama tetap utuh).');
     $okOut = pp_atomic_write_json(__DIR__ . '/output_data.json', $output);
+    }
     $output['_saved'] = ['input' => $okIn !== false, 'output' => $okOut !== false];
     if (!$released) http_response_code(422);   // Unprocessable: ran fine, but the release gate rejected it
     echo pp_json_out($output);
@@ -8396,9 +8506,13 @@ if (($output['result'] ?? '') !== 'ok') pp_fail(500, 'Simulation did not complet
 $accept=pp_attach_or_reject_acceptance($input,$output);
 if(in_array(($output['status']??''),['FUEL_SELECTION_REQUIRED','USER_FUEL_DECISION_REQUIRED'],true)&&($output['fuel_estimate_ready']??false)===true){http_response_code(200);$output['_saved']=['input'=>false,'output'=>false];if(function_exists('ob_get_level')){while(ob_get_level()>0)ob_end_clean();}echo pp_json_out($output);exit;}
 if(empty($accept['publish_allowed'])){http_response_code(422);$output['_saved']=['input'=>false,'output'=>false];if(function_exists('ob_get_level')){while(ob_get_level()>0)ob_end_clean();}echo pp_json_out($output);exit;}
+$__scopedF = function_exists('sds_ctx') && sds_ctx($input)['uid'] !== '' && (string)getenv('PP_V1516_SCOPED_SAVE') !== '0';
+if ($__scopedF) { $okIn = 1; $okOut = 1; }   // V15.16: hasil final user tercatat ber-scope di central store; file global bersama tidak ditimpa
+else {
 pp_merge_report_planning($input, __DIR__ . '/input_data.json');   // PROMPT ISOLATION §10: anti-overwrite antar user
 $okIn  = pp_atomic_write_json(__DIR__ . '/input_data.json', $input);
 $okOut = pp_atomic_write_json(__DIR__ . '/output_data.json', $output);
+}
 $cs=pp_store_commit('SIMULATION_FINAL',$input,$output,['engine'=>PP_ENGINE_BUILD_ID],$ce);if(empty($cs['ok']))pp_fail(500,'Central store gagal: '.($ce??'unknown'));
 
 $output['_saved'] = ['input' => $okIn !== false, 'output' => $okOut !== false, 'central_store'=>true];

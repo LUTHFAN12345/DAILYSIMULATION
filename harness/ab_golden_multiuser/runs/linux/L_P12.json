@@ -1,0 +1,140 @@
+{
+ "case": "L_P12",
+ "target": "fast",
+ "fuel": "",
+ "timeline": [
+  {
+   "t": 0.57,
+   "msg": "Perhitungan eksak: fastest keputusan terminal 50%"
+  },
+  {
+   "t": 1.59,
+   "msg": "KEPUTUSAN TERMINAL — TIDAK FEASIBLE. Keputusan terminal (TIDAK FEASIBLE): Row 1 (07-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G6 31 MW, G9 108 MW, B2 120 MW, S1 16.69 MW, S2 16.03 MW, S3 58.97 MW) pada beban maksimum -> Export maksimum -107.31 MW < Range M"
+  }
+ ],
+ "reqs": [
+  {
+   "t": 0.32,
+   "m": "run",
+   "u": "/run.php?mode=run&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  },
+  {
+   "t": 0.41,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=economic_review-b9edb6a6e3b5dda27572&token=a2c12078fb9d636144acb9f5eefc385f&uid=ueb5c233c3c80"
+  },
+  {
+   "t": 0.41,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-b9edb6a6e3b5dda27572&token=a2c12078fb9d636144acb9f5eefc385f&slot=1&uid=ueb5c2"
+  },
+  {
+   "t": 0.41,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-b9edb6a6e3b5dda27572&token=a2c12078fb9d636144acb9f5eefc385f&slot=2&uid=ueb5c2"
+  },
+  {
+   "t": 0.41,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-b9edb6a6e3b5dda27572&token=a2c12078fb9d636144acb9f5eefc385f&slot=3&uid=ueb5c2"
+  },
+  {
+   "t": 0.89,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2nhg8w&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  },
+  {
+   "t": 1.09,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2nhg8w&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  },
+  {
+   "t": 2,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2nhg8w&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  },
+  {
+   "t": 2.89,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2nhg8w&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  },
+  {
+   "t": 3.79,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2nhg8w&uid=ueb5c233c3c8015e532e9351b&tab=tace024bccd7e71dc"
+  }
+ ],
+ "errors": [],
+ "dialogs": [],
+ "run_responses": [
+  {
+   "t": 0.41,
+   "url": "/run.php?mode=run&uid=ueb5c233c3c8015e532e9351b&tab=tace024b",
+   "rows": 0,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 1.57,
+   "url": "/run.php?mode=job_poll&job=economic_review-b9edb6a6e3b5dda27",
+   "status": "TERMINAL_INFEASIBLE",
+   "ok": false,
+   "preliminary": true,
+   "preliminary_reason": "GAS_SHORTAGE_UNRESOLVED",
+   "action_required": "SHORTAGE_FUEL_SELECTION",
+   "rows": 48,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "gate": "FAIL",
+   "blocking": [
+    "TERMINAL_INFEASIBLE_EXPORT_ROW_1"
+   ],
+   "shortage": 1.6996,
+   "rec_lng": 1.6996,
+   "rec_dist": 48531.4,
+   "req_dist": 47172,
+   "action": "recommendation",
+   "cp": 71.4383,
+   "run_status": {
+    "completed": true,
+    "converged": true,
+    "deadline_reached": false,
+    "budget_truncated": false,
+    "stages_truncated": [],
+    "economic_review_skipped": null,
+    "economic_review_completed": false,
+    "status": "CERTIFIED_INFEASIBLE",
+    "mode": "FASTEST_TERMINAL_CERTIFICATE",
+    "fastest": true,
+    "fastest_shortage_proven": true,
+    "global_optimum_proven": false
+   },
+   "fastest_exec": null,
+   "msg": "TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (07-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G6 31 MW, G9 108 MW, B2 120 MW, S1 16.69 MW, S2 16.03 MW, S3 58.97 MW) pada beban maksimum -> Export maksimum -107.31 MW < Range Min 15.00 MW (kurang 122.31 MW). Unit ber"
+  }
+ ],
+ "target_label": "Fastest - Default [fast]",
+ "t_end": 4.61,
+ "result": {
+  "rows": 0,
+  "run_status": null,
+  "starts": {},
+  "proof": null,
+  "fastest_mode": null,
+  "sr_under": 0,
+  "pv_col": null,
+  "gateLock": true,
+  "btns": [
+   "btn-xls:locked",
+   "btn-img-full:locked",
+   "btn-publish:na",
+   "btn-save-actual:na"
+  ]
+ },
+ "msg_final": "KEPUTUSAN TERMINAL — TIDAK FEASIBLE. Keputusan terminal (TIDAK FEASIBLE): Row 1 (07-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G6 31 MW, G9 108 MW, B2 120 MW, S1 16.69 MW, S2 16.03 MW, S3 58.97 MW) pada beban maksimum -> Export maksimum -107.31 MW < Range Min 15.00 MW (kurang 122.31 MW). Unit berstatus Stop paling cepat berbeban di row 2; LNG/Distillate t"
+}

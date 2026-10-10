@@ -1,0 +1,109 @@
+{
+ "errs": [],
+ "ticks": [
+  {
+   "t": 1.3,
+   "el": "00:01",
+   "stage": "Processing",
+   "state": "running",
+   "rid": "plan-1-mv2o6lfj",
+   "rows": 0
+  },
+  {
+   "t": 3.3,
+   "el": "00:03",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 4.3,
+   "el": "00:04",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 5.3,
+   "el": "00:05",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 6.3,
+   "el": "00:06",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 7.3,
+   "el": "00:07",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 8.3,
+   "el": "00:08",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 9.3,
+   "el": "00:09",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 10.3,
+   "el": "00:10",
+   "stage": "fastest review unit priority",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 11.3,
+   "el": "00:11",
+   "stage": "perbaikan unit priority c1 c4",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 0
+  },
+  {
+   "t": 12.5,
+   "el": "00:12",
+   "stage": "simulasi selesai memvalidasi",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 48
+  },
+  {
+   "t": 13.5,
+   "el": "00:13",
+   "stage": "Processing",
+   "state": "running",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 48
+  },
+  {
+   "t": 14.5,
+   "el": "00:14",
+   "stage": "Selesai · 48 row dirender",
+   "state": "FINAL",
+   "rid": "plan-2-mv2o6myt",
+   "rows": 48
+  }
+ ]
+}

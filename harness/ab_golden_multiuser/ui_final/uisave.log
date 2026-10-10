@@ -1,0 +1,6 @@
+1 {"pop":false,"en":false,"rows":0,"st":"running"} Perhitungan eksak: fastest pipeline 10%
+7 {"pop":true,"en":true,"rows":0,"st":"running"} Done. Fastest - Default selesai — Anda tidak perlu menjalankan ulang. FASTEST membutuhkan keputusan bahan bakar. Kebutuhan gas masih melebihi kuota sebesar 7,12
+8 {"pop":false,"en":false,"rows":0,"st":"running"} Perhitungan eksak: fastest review unit priority 70%
+15 {"pop":false,"en":false,"rows":0,"st":"running"} Perhitungan eksak: simulasi selesai memvalidasi 80%
+16 {"pop":false,"en":false,"rows":48,"st":"running"} Done — hasil ini memakai keputusan bahan bakar Anda (use_distillate). Pilihan belum tersimpan; tekan Save bila ingin menyimpannya. · FASTEST VALID PLAN — Target
+16 {"pop":false,"en":false,"rows":48,"st":"FINAL"} Done — hasil ini memakai keputusan bahan bakar Anda (use_distillate). Pilihan belum tersimpan; tekan Save bila ingin menyimpannya. · FASTEST VALID PLAN — Target

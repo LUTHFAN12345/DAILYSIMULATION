@@ -1,0 +1,191 @@
+{
+ "steps": [
+  {
+   "t": 4.6,
+   "k": "ids",
+   "v": {
+    "A": [
+     "u81686c0afe1dea57d6bb18b2",
+     "t7c222a3d54a8f382"
+    ],
+    "B": [
+     "u51aff0c6567074b4584653c1",
+     "tf51101ebc3a984a1"
+    ],
+    "distinct_uid": true
+   }
+  },
+  {
+   "t": 0.5,
+   "k": "C2_both_run_clicked",
+   "v": {}
+  },
+  {
+   "t": 6.5,
+   "k": "A_running_at_6s",
+   "v": {
+    "timer": {
+     "state": "MENUNGGU_KEPUTUSAN_BAHAN_BAKAR",
+     "rid": "plan-1-mv2mixlq",
+     "elapsed": 6.21439999999851,
+     "running_interval": false
+    },
+    "rid": "plan-1-mv2mixlq",
+    "msg": "Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 BBTUD. Rencana ini bu"
+   }
+  },
+  {
+   "t": 126.9,
+   "k": "B_done",
+   "v": {
+    "rows": 0,
+    "cp": null,
+    "rid": "plan-1-mv2mixln"
+   }
+  },
+  {
+   "t": 129.6,
+   "k": "C3_B_save_while_A_running",
+   "v": {
+    "msg": "Input saved — will persist after reload."
+   }
+  },
+  {
+   "t": 129.6,
+   "k": "A_after_B_save",
+   "v": {
+    "timer": {
+     "state": "MENUNGGU_KEPUTUSAN_BAHAN_BAKAR",
+     "rid": "plan-1-mv2mixlq",
+     "elapsed": 129.3468999999985,
+     "running_interval": false
+    },
+    "rid": "plan-1-mv2mixlq",
+    "msg": "Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 BBTUD. Rencana ini bu",
+    "still_running": true
+   }
+  },
+  {
+   "t": 188.6,
+   "k": "A_done",
+   "v": {
+    "rows": 48,
+    "cp": 71.8339,
+    "gate": "PASS",
+    "rid": "plan-2-mv2mlq30",
+    "s": 59,
+    "timeout": false
+   }
+  },
+  {
+   "t": 191.4,
+   "k": "C4_simultaneous_save",
+   "v": {
+    "A": "Input saved — will persist after reload.",
+    "B": "Input saved — will persist after reload."
+   }
+  },
+  {
+   "t": 191.5,
+   "k": "records",
+   "v": {
+    "A": [
+     [
+      "SAVE",
+      3,
+      "t7c222a3d54a8f382",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "SIMULATION_FINAL",
+      2,
+      "t7c222a3d54a8f382",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "AUTOSAVE_RUN",
+      1,
+      "t7c222a3d54a8f382",
+      "p_12bc23195a4987dc"
+     ]
+    ],
+    "B": [
+     [
+      "SAVE",
+      3,
+      "tf51101ebc3a984a1",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "SAVE",
+      2,
+      "tf51101ebc3a984a1",
+      "p_12bc23195a4987dc"
+     ],
+     [
+      "AUTOSAVE_RUN",
+      1,
+      "tf51101ebc3a984a1",
+      "p_12bc23195a4987dc"
+     ]
+    ],
+    "backend": "json-lock-atomic",
+    "cross_owner": false
+   }
+  },
+  {
+   "t": 191.5,
+   "k": "A_cannot_load_B_record",
+   "v": {
+    "ok": false,
+    "err": "NOT_FOUND_OR_NOT_OWNED"
+   }
+  },
+  {
+   "t": 194.2,
+   "k": "C6_reload",
+   "v": {
+    "A_ie0": "471",
+    "B_ie0": "500",
+    "expect": {
+     "A": "471",
+     "B": "500"
+    }
+   }
+  },
+  {
+   "t": 196.7,
+   "k": "C0_tabs",
+   "v": {
+    "uid_same": true,
+    "tab_diff": true
+   }
+  },
+  {
+   "t": 199.8,
+   "k": "C0_tab_record",
+   "v": {
+    "tab_of_latest": "tefca410ea5c77878",
+    "tabA2": "tefca410ea5c77878"
+   }
+  },
+  {
+   "t": 205.6,
+   "k": "C5_B_cancel",
+   "v": {
+    "resp": null
+   }
+  },
+  {
+   "t": 206.3,
+   "k": "C5_A_after_B_cancel",
+   "v": {
+    "rows": 48,
+    "cp": 71.8339,
+    "gate": "PASS",
+    "timeout": false
+   }
+  }
+ ],
+ "errs": []
+}

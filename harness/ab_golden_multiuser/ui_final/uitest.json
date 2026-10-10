@@ -1,0 +1,48 @@
+{
+ "errs": [],
+ "ie_before": {
+  "n": "48",
+  "ie": "M52.0,92.5 L75.3,92.0 L98.6,91.0 L122.0,91.0 L145.3,93.3 L168.6,95.1 L191.9,96.6",
+  "len": 584,
+  "stats": "IE min 428 · max 598 MW (14:00) · rata-rata 515.9 MW"
+ },
+ "ie_after_edit": {
+  "n": "48",
+  "ie": "M52.0,62.5 L75.3,92.0 L98.6,91.0 L122.0,91.0 L145.3,93.3 L168.6,95.1 L191.9,96.6",
+  "len": 584,
+  "stats": "IE min 428 · max 600 MW (00:30) · rata-rata 518.4 MW"
+ },
+ "U4_changed": true,
+ "tooltip": "01:00 (slot 2)\nIE: 483 MW\nDispatch PLN: 150 MW",
+ "U7_ticks": [
+  {
+   "t": "1.4",
+   "el": "00:01",
+   "stage": "fastest pipeline",
+   "state": "running",
+   "rid": "plan-1-mv2o5pnb"
+  },
+  {
+   "t": "2.4",
+   "el": "00:02",
+   "stage": "fastest pipeline",
+   "state": "running",
+   "rid": "plan-1-mv2o5pnb"
+  },
+  {
+   "t": "3.4",
+   "el": "00:03",
+   "stage": "Processing",
+   "state": "running",
+   "rid": "plan-1-mv2o5pnb"
+  },
+  {
+   "t": "4.5",
+   "el": "00:04",
+   "stage": "MENUNGGU_KEPUTUSAN_BAHAN_BAKAR",
+   "state": "MENUNGGU_KEPUTUSAN_BAHAN_BAKAR",
+   "rid": "plan-1-mv2o5pnb"
+  }
+ ],
+ "pv_col": true
+}

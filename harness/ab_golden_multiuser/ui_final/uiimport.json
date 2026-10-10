@@ -1,0 +1,17 @@
+{
+ "errs": [],
+ "before": {
+  "ie21": "581",
+  "path": "M52.0,92.5 L70.6,92.0 L89.3,91.0 L107.9,91.0 L126.6,93.3 L14",
+  "stats": "IE min 428 · max 598 MW (14:00) · rata-rata 515.9 MW"
+ },
+ "status": "CSV valid — tekan Apply untuk menerapkan ke 48 slot.",
+ "preview": "File: ie_import.csv · tanggal terdeteksi: 07-Oct-26 · valid 48 row · error 0 row\n#\tTime\tIE\tDispatch\tPV\n1\t07-Oct-26 00:30\t481\t150\t0\n2\t07-Oct-26 01:00\t483\t150\t0\n3\t07-Oct-26 01:30\t487\t150\t0\n4\t07-Oct-26 02:00\t487\t150\t0\n5\t07-Oct-26 02:30\t478\t150\t0\n… 43 baris lain\nFormat diharapkan: Tanggal,IE (MW),Dispatch,PV (MW) — 48 data row",
+ "after": {
+  "ie21": "601",
+  "path": "M52.0,92.5 L70.6,92.0 L89.3,91.0 L107.9,91.0 L126.6,93.3 L14",
+  "stats": "IE min 428 · max 618 MW (14:00) · rata-rata 520.5 MW"
+ },
+ "U5_table_changed": true,
+ "U5_chart_changed": true
+}

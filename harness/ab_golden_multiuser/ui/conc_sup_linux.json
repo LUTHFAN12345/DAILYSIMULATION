@@ -1,0 +1,89 @@
+{
+ "steps": [
+  {
+   "t": 1.6,
+   "k": "S1_B_then_A_clicked",
+   "v": {}
+  },
+  {
+   "t": 4.5,
+   "k": "S1_jobs",
+   "v": [
+    [
+     "economic_review-405d2dde6a",
+     "DONE",
+     null,
+     null
+    ],
+    [
+     "economic_review-5937302399",
+     "DONE",
+     null,
+     null
+    ],
+    [
+     "economic_review-6bba87ec1a",
+     "DONE",
+     null,
+     null
+    ],
+    [
+     "economic_review-7185437593",
+     "DONE",
+     null,
+     null
+    ],
+    [
+     "economic_review-7b6e4d5b62",
+     "DONE",
+     null,
+     null
+    ],
+    [
+     "economic_review-ad36ba3c82",
+     "DONE",
+     null,
+     null
+    ]
+   ]
+  },
+  {
+   "t": 18.7,
+   "k": "S1_B_done",
+   "v": {
+    "rows": 48,
+    "cp": 80.4131,
+    "s": 14.2,
+    "timeout": false
+   }
+  },
+  {
+   "t": 18.7,
+   "k": "S1_A_done",
+   "v": {
+    "rows": 48,
+    "cp": 71.9048,
+    "s": 12.4,
+    "timeout": false
+   }
+  },
+  {
+   "t": 22.9,
+   "k": "S2_own_old_job",
+   "v": {
+    "rid": "plan-3-mv2ntw1o"
+   }
+  },
+  {
+   "t": 42.2,
+   "k": "S2_A_new_done",
+   "v": {
+    "rows": 48,
+    "cp": 71.9273,
+    "s": 19.3,
+    "timeout": false
+   }
+  }
+ ],
+ "errs": []
+}

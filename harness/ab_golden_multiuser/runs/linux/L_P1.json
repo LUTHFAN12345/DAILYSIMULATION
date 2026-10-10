@@ -1,0 +1,1305 @@
+{
+ "case": "L_P1",
+ "target": "max",
+ "fuel": "lng",
+ "timeline": [
+  {
+   "t": 0.57,
+   "msg": "Perhitungan eksak sedang diselesaikan…"
+  },
+  {
+   "t": 0.82,
+   "msg": "Perhitungan eksak: entry 3%"
+  },
+  {
+   "t": 1.08,
+   "msg": "Perhitungan eksak: decommit screening 28%"
+  },
+  {
+   "t": 2.59,
+   "msg": "Perhitungan eksak: gas quota offset search 46%"
+  },
+  {
+   "t": 3.1,
+   "msg": "Perhitungan eksak: export min phase a 55%"
+  },
+  {
+   "t": 3.35,
+   "msg": "Perhitungan eksak: pipeline end 95%"
+  },
+  {
+   "t": 5.89,
+   "msg": "Perhitungan eksak: perbaikan unit priority c1 c4 80%"
+  },
+  {
+   "t": 7.66,
+   "msg": "Perhitungan eksak: validasi selesai 98%"
+  },
+  {
+   "t": 7.92,
+   "msg": "Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191 BBTUD. Rencana ini bukan rencana final: Simulation Data, Save, Export, dan Publish terkunci sampai operator memilih LNG, Distillate, atau kombinasi keduanya. Sav"
+  },
+  {
+   "t": 9.36,
+   "msg": "Perhitungan eksak: fastest basis pipeline 12%"
+  },
+  {
+   "t": 11.38,
+   "msg": "Perhitungan eksak: v7 rerun bahan bakar dari rencana exact basis 15%"
+  },
+  {
+   "t": 20.12,
+   "msg": "VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS. Kandidat valid terbaik sejauh ini: Cost Production 71.9337 USD/MWh; seluruh constraint valid; belum dibuktikan terendah. Save/Export/Publish terkunci."
+  },
+  {
+   "t": 20.37,
+   "msg": "Perhitungan eksak: v7 rerun bahan bakar dari rencana exact basis 15%"
+  },
+  {
+   "t": 39.47,
+   "msg": "VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS. Kandidat valid terbaik sejauh ini: Cost Production 71.9085 USD/MWh; seluruh constraint valid; belum dibuktikan terendah. Save/Export/Publish terkunci."
+  },
+  {
+   "t": 39.73,
+   "msg": "Perhitungan eksak: v7 rerun bahan bakar dari rencana exact basis 15%"
+  },
+  {
+   "t": 41.12,
+   "msg": "VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS. Kandidat valid terbaik sejauh ini: Cost Production 71.8987 USD/MWh; seluruh constraint valid; belum dibuktikan terendah. Save/Export/Publish terkunci."
+  },
+  {
+   "t": 41.37,
+   "msg": "Perhitungan eksak: v7 rerun bahan bakar dari rencana exact basis 15%"
+  },
+  {
+   "t": 44.67,
+   "msg": "Perhitungan eksak: review unit priority 70%"
+  },
+  {
+   "t": 45.69,
+   "msg": "VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS. Kandidat valid terbaik sejauh ini: Cost Production 71.8825 USD/MWh; seluruh constraint valid; belum dibuktikan terendah. Save/Export/Publish terkunci."
+  },
+  {
+   "t": 45.95,
+   "msg": "Perhitungan eksak: review unit priority 70%"
+  },
+  {
+   "t": 61.48,
+   "msg": "VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS. Kandidat valid terbaik sejauh ini: Cost Production 71.8437 USD/MWh; seluruh constraint valid; belum dibuktikan terendah. Save/Export/Publish terkunci."
+  },
+  {
+   "t": 61.74,
+   "msg": "Perhitungan eksak: review unit priority 70%"
+  },
+  {
+   "t": 65.79,
+   "msg": "Perhitungan eksak: perbaikan unit priority c1 c4 80%"
+  },
+  {
+   "t": 66.04,
+   "msg": "Perhitungan eksak: simulasi selesai memvalidasi 80%"
+  },
+  {
+   "t": 66.32,
+   "msg": "FINAL OPTIMAL — optimasi exact mengganti hasil provisional. Commitment: sama; dispatch berubah pada 8 dari 48 row; Total Cost 926,051.79 → 925,923.9 USD; Cost Production 71.8437 → 71.834 USD/MWh.Done — hasil ini memakai keputusan bahan bakar Anda (add_lng). Pilihan belum tersimpan; tekan Save bila i"
+  }
+ ],
+ "reqs": [
+  {
+   "t": 0.31,
+   "m": "run",
+   "u": "/run.php?mode=run&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 0.45,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=economic_review-6bba87ec1a9f2f584459&token=edcb71b98c5e0f1bc8e58b55a392456a&uid=ub67a6d89de1a"
+  },
+  {
+   "t": 0.45,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-6bba87ec1a9f2f584459&token=edcb71b98c5e0f1bc8e58b55a392456a&slot=1&uid=ub67a6"
+  },
+  {
+   "t": 0.45,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-6bba87ec1a9f2f584459&token=edcb71b98c5e0f1bc8e58b55a392456a&slot=2&uid=ub67a6"
+  },
+  {
+   "t": 0.45,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-6bba87ec1a9f2f584459&token=edcb71b98c5e0f1bc8e58b55a392456a&slot=3&uid=ub67a6"
+  },
+  {
+   "t": 0.6,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 0.82,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 0.86,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 1.04,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 1.06,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 1.28,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 1.47,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 1.67,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 1.88,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 1.96,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 2.1,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 2.32,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 2.54,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 2.76,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 2.86,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 2.98,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 3.22,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 3.41,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 3.6,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 3.76,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 3.8,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 3.99,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 4.17,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 4.36,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 4.57,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 4.66,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 4.76,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 4.95,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 5.15,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 5.34,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 5.54,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 5.56,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 5.73,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 5.92,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 6.1,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 6.29,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 6.46,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 6.48,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 6.66,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 6.85,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 7.04,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 7.23,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 7.36,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2o7wfw&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 7.42,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 7.61,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-6bba87ec1a9f2f584459&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 7.76,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=validated_options-6bba87ec1a9f2f584459&token=27f320e59abc74354bf1c6a4ece70a83&uid=ub67a6d89de"
+  },
+  {
+   "t": 9.1,
+   "m": "run",
+   "u": "/run.php?mode=run&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 9.16,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=economic_review-5937302399594137cc65&token=2e7e579f1b11518663b7d6ffdeb3cd3d&uid=ub67a6d89de1a"
+  },
+  {
+   "t": 9.16,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-5937302399594137cc65&token=2e7e579f1b11518663b7d6ffdeb3cd3d&slot=1&uid=ub67a6"
+  },
+  {
+   "t": 9.16,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-5937302399594137cc65&token=2e7e579f1b11518663b7d6ffdeb3cd3d&slot=2&uid=ub67a6"
+  },
+  {
+   "t": 9.16,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-5937302399594137cc65&token=2e7e579f1b11518663b7d6ffdeb3cd3d&slot=3&uid=ub67a6"
+  },
+  {
+   "t": 9.31,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 9.51,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 9.67,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 9.69,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 9.87,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 9.9,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 10.08,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 10.27,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 10.45,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 10.64,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 10.77,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 10.83,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 11.02,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 11.22,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 11.47,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 11.66,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 11.67,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 11.86,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 12.07,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 12.26,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 12.48,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 12.57,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 12.68,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 12.87,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 13.08,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 13.27,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 13.47,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 13.47,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 13.66,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 13.86,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 14.05,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 14.26,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 14.37,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 14.46,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 14.66,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 14.85,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 15.06,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 15.24,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 15.27,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 15.51,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 15.71,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 15.91,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 16.11,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 16.17,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 16.33,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 16.54,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 16.75,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 16.98,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 17.07,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 17.18,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 17.45,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 17.66,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 17.85,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 17.97,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 18.03,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 18.24,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 18.45,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 18.64,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 18.83,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 18.87,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 19.03,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 19.25,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 19.44,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 19.64,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 19.77,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-2-mv2o838k&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec633813fc6"
+  },
+  {
+   "t": 19.83,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec"
+  },
+  {
+   "t": 20.18,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 20.37,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 20.56,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 20.75,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 20.94,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 21.13,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 21.32,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 22.06,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 22.8,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 23.56,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 24.3,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 25.05,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 25.79,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 26.53,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 27.29,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 28.11,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 28.85,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 29.61,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 30.35,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 31.09,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 31.83,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 32.57,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 33.31,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 34.05,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 34.8,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 35.54,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 36.28,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 37.02,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 37.76,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 38.5,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 39.24,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653493.9789_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 40.09,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653512.8059_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 40.84,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653512.8059_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 41.7,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 42.45,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 43.19,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 43.94,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 44.68,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 45.42,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653514.5128_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 46.27,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 47.01,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 47.77,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 48.51,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 49.25,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 49.99,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 50.76,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 51.53,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 52.28,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 53.03,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 53.77,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 54.54,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 55.28,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 56.01,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 56.75,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 57.49,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 58.23,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 58.98,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 59.72,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 60.47,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 61.22,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653519.0808_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 62.08,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 62.82,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 63.56,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 64.3,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 65.06,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  },
+  {
+   "t": 65.8,
+   "m": "tl_pool",
+   "u": "/run.php?mode=tl_pool&as=provisional&job=economic_review-5937302399594137cc65&since=1791653534.6498_x&uid=ub67a6d89de1a1"
+  }
+ ],
+ "errors": [],
+ "dialogs": [],
+ "run_responses": [
+  {
+   "t": 0.45,
+   "url": "/run.php?mode=run&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec",
+   "rows": 0,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 7.8,
+   "url": "/run.php?mode=job_poll&job=economic_review-6bba87ec1a9f2f584",
+   "status": "USER_FUEL_DECISION_REQUIRED",
+   "ok": true,
+   "preliminary": true,
+   "preliminary_reason": "GAS_SHORTAGE_UNRESOLVED",
+   "action_required": "SHORTAGE_FUEL_SELECTION",
+   "rows": 48,
+   "has_shortage_decision": true,
+   "vo_job": true,
+   "async_job": false,
+   "gate": "FAIL",
+   "blocking": [
+    "HARD_VALIDATION_FAILED"
+   ],
+   "shortage": 3.4191,
+   "rec_lng": 3.4191,
+   "rec_dist": 95126.9,
+   "req_dist": 94900,
+   "action": "recommendation",
+   "cp": 68.4541,
+   "run_status": {
+    "completed": true,
+    "deadline_reached": false,
+    "budget_truncated": false,
+    "converged": true,
+    "status": "CONVERGED",
+    "economic_review_skipped": null,
+    "last_stage": null,
+    "stages_truncated": [],
+    "elapsed_s": 5.128,
+    "deadline_s": 1800,
+    "core_runs": 5,
+    "core_simulations": 5,
+    "core_state_reuse": 0,
+    "candidate_pool": [],
+    "supplier_state_reuse": 0,
+    "economic_review_completed": true,
+    "phase_timeline": [
+     {
+      "phase": "entry",
+      "at_s": 0,
+      "delta_s": 0,
+      "core_runs": 0,
+      "core_delta": 0,
+      "left_s": 1800
+     },
+     {
+      "phase": "baseline_core_run",
+      "at_s": 0.373,
+      "delta_s": 0.373,
+      "core_runs": 1,
+      "core_delta": 1,
+      "left_s": 1799.627
+     },
+     {
+      "phase": "mandatory_stop_pass",
+      "at_s": 0.376,
+      "delta_s": 0.003,
+      "core_runs": 1,
+      "core_delta": 0,
+      "left_s": 1799.624
+     },
+     {
+      "phase": "decommit_screening",
+      "at_s": 0.394,
+      "delta_s": 0.018,
+      "core_runs": 1,
+      "core_delta": 0,
+      "left_s": 1799.606
+     },
+     {
+      "phase": "gas_window_correction",
+      "at_s": 1.999,
+      "delta_s": 1.605,
+      "core_runs": 4,
+      "core_delta": 3,
+      "left_s": 1798.001
+     },
+     {
+      "phase": "gas_quota_offset_search",
+      "at_s": 2.001,
+      "delta_s": 0.002,
+      "core_runs": 4,
+      "core_delta": 0,
+      "left_s": 1797.999
+     },
+     {
+      "phase": "export_min_phase_a",
+      "at_s": 2.492,
+      "delta_s": 0.491,
+      "core_runs": 5,
+      "core_delta": 1,
+      "left_s": 1797.508
+     },
+     {
+      "phase": "global_commitment_review_deferred_paid",
+      "at_s": 2.495,
+      "delta_s": 0.003,
+      "core_runs": 5,
+      "core_delta": 0,
+      "left_s": 1797.505
+     },
+     {
+      "phase": "pipeline_end",
+      "at_s": 2.5,
+      "delta_s": 0.005,
+      "core_runs": 5,
+      "core_delta": 0,
+      "left_s": 1797.5
+     }
+    ],
+    "stages_deferred": [],
+    "candidates": {
+     "global_commitment_evaluated": 0,
+     "fully_evaluated": true,
+     "note": "Seluruh tahap pencarian selesai tanpa dipotong batas waktu."
+    }
+   },
+   "fastest_exec": null,
+   "msg": "Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=82.6191 di luar window [79.1600,79.2000] (deviasi 3.4191 BBTUD). Koreksi otomatis berhenti karena seluruh lever legal habis: PLN Export sudah di Range Min pada 10/48 slot; sisa penurunan legal hanya "
+  },
+  {
+   "t": 8.77,
+   "url": "/run.php?mode=job_poll&job=validated_options-6bba87ec1a9f2f5",
+   "rows": 0,
+   "has_shortage_decision": true,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 9.16,
+   "url": "/run.php?mode=run&uid=ub67a6d89de1a1359ca6726d8&tab=t91206ec",
+   "rows": 0,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 66.31,
+   "url": "/run.php?mode=job_poll&job=economic_review-5937302399594137c",
+   "status": "FINAL",
+   "ok": true,
+   "rows": 48,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "fuel_decision_required": false,
+   "gate": "PASS",
+   "blocking": [],
+   "shortage": 0,
+   "rec_lng": 0,
+   "rec_dist": 0,
+   "req_dist": 0,
+   "action": "add_lng",
+   "cp": 71.834,
+   "run_status": {
+    "completed": true,
+    "deadline_reached": false,
+    "budget_truncated": false,
+    "converged": true,
+    "status": "CONVERGED",
+    "economic_review_skipped": null,
+    "stages_truncated": [],
+    "economic_review_completed": true,
+    "mode": "V7_FUEL_RERUN_DELTA",
+    "core_runs": 1,
+    "core_simulations": 1
+   },
+   "fastest_exec": null,
+   "msg": ""
+  }
+ ],
+ "target_label": "Maximum Review [max]",
+ "popup_at": 7.92,
+ "popup_ready_at": 8.93,
+ "popup_text": "Gas Shortage\n\nKebutuhan gas masih melebihi kuota setelah koreksi dispatch.\n\nTambah LNG: 3,4591 BBTUD\nGunakan Distillate: 96.009 liter\nAngka di atas sudah di-rerun dari input bersih dan terbukti konvergen, seluruh hard constraint valid, dan economic review selesai.\nGunakan LNG 3,4591 BBTUD\nGunakan Distillate 96.009 liter\nInput Manual\nBatal\nLihat Detail Teknis",
+ "fuel_click_at": 8.93,
+ "t_end": 66.32,
+ "result": {
+  "rows": 48,
+  "status": "FINAL",
+  "ok": true,
+  "gate": "PASS",
+  "release_allowed": true,
+  "blocking": [],
+  "publish_allowed": true,
+  "save_allowed": true,
+  "cp": 71.834,
+  "hr": 8254.27,
+  "gas_used": 82.6233,
+  "gas_quota": 82.6591,
+  "shortage": 0,
+  "residual": 0,
+  "action": "add_lng",
+  "lng_added": 3.4591,
+  "dist_l": 0,
+  "dist_units": [],
+  "rec_lng": 0,
+  "rec_dist": 0,
+  "run_status": {
+   "status": "CONVERGED",
+   "converged": true,
+   "mode": "V7_FUEL_RERUN_DELTA",
+   "core_runs": 1
+  },
+  "starts": {
+   "G2": "1-48(48)",
+   "G3": "16-32(17)",
+   "G5": "14-35(22)",
+   "G6": "1-48(48)",
+   "G8": "1-48(48)",
+   "G9": "1-48(48)",
+   "BB2": "1-48(48)"
+  },
+  "proof": {
+   "status": "PASS",
+   "C1": "PASS_WITH_REASON:79/0",
+   "C2": "PASS_WITH_REASON:2/0",
+   "C3": "PASS_WITH_REASON:46/0",
+   "C4": "PASS_WITH_REASON:119/0",
+   "STG": "PASS:144/0"
+  },
+  "fastest_mode": "V7_FUEL_RERUN_DELTA",
+  "sr_under": 0,
+  "pv_col": true,
+  "gateLock": false,
+  "btns": [
+   "btn-xls:on",
+   "btn-img-full:on",
+   "btn-publish:na",
+   "btn-save-actual:on"
+  ]
+ },
+ "msg_final": "FINAL OPTIMAL — optimasi exact mengganti hasil provisional. Commitment: sama; dispatch berubah pada 8 dari 48 row; Total Cost 926,051.79 → 925,923.9 USD; Cost Production 71.8437 → 71.834 USD/MWh.Done — hasil ini memakai keputusan bahan bakar Anda (add_lng). Pilihan belum tersimpan; tekan Save bila ingin menyimpannya. · FINAL OPTIMAL — Target waktu Maximum Review | Waktu aktual 66,1 detik | Kandida"
+}

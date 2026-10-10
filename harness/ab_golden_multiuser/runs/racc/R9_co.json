@@ -1,0 +1,314 @@
+{
+ "case": "R9_co",
+ "target": "fast",
+ "fuel": "",
+ "timeline": [
+  {
+   "t": 0.41,
+   "msg": "Perhitungan eksak: fastest pipeline 10%"
+  },
+  {
+   "t": 4.49,
+   "msg": "Perhitungan eksak: fastest review unit priority 70%"
+  },
+  {
+   "t": 14.14,
+   "msg": "Done. Fastest - Default selesai — Anda tidak perlu menjalankan ulang. · FASTEST VALID PLAN — Target waktu Fastest - Default | Waktu aktual 13,8 detik | Kandidat diperiksa 15 | Kandidat valid 2 | Cost Production 64.6658 USD/MWh"
+  }
+ ],
+ "reqs": [
+  {
+   "t": 0.15,
+   "m": "run",
+   "u": "/run.php?mode=run&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 0.21,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=economic_review-74c9cd0e37ddf39e7f5e&token=a55e548418947f998a0508f38dc9221d&uid=u22a21aefdc74"
+  },
+  {
+   "t": 0.21,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-74c9cd0e37ddf39e7f5e&token=a55e548418947f998a0508f38dc9221d&slot=1&uid=u22a21"
+  },
+  {
+   "t": 0.21,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-74c9cd0e37ddf39e7f5e&token=a55e548418947f998a0508f38dc9221d&slot=2&uid=u22a21"
+  },
+  {
+   "t": 0.21,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-74c9cd0e37ddf39e7f5e&token=a55e548418947f998a0508f38dc9221d&slot=3&uid=u22a21"
+  },
+  {
+   "t": 0.84,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 1.04,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 1.94,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 2.84,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 3.74,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 4.64,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 5.54,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 6.44,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 7.39,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 8.24,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 9.14,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 10.04,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 10.94,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 11.84,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 12.74,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  },
+  {
+   "t": 13.64,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2m6oea&uid=u22a21aefdc741f16c30aa436&tab=t6183500eb8e398fb"
+  }
+ ],
+ "errors": [],
+ "dialogs": [],
+ "run_responses": [
+  {
+   "t": 0.21,
+   "url": "/run.php?mode=run&uid=u22a21aefdc741f16c30aa436&tab=t6183500",
+   "rows": 0,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 14.14,
+   "url": "/run.php?mode=job_poll&job=economic_review-74c9cd0e37ddf39e7",
+   "status": "FASTEST_FINAL",
+   "ok": true,
+   "rows": 48,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "fuel_decision_required": false,
+   "gate": "PASS",
+   "blocking": [],
+   "shortage": 0,
+   "rec_lng": 0,
+   "rec_dist": 92631.6,
+   "req_dist": 0,
+   "action": "recommendation",
+   "cp": 64.6658,
+   "run_status": {
+    "completed": true,
+    "deadline_reached": false,
+    "budget_truncated": false,
+    "converged": true,
+    "status": "FASTEST_FIRST_VALID",
+    "economic_review_skipped": null,
+    "last_stage": null,
+    "stages_truncated": [],
+    "elapsed_s": 3.941,
+    "deadline_s": 60,
+    "core_runs": 8,
+    "core_simulations": 24,
+    "core_state_reuse": 0,
+    "candidate_pool": [],
+    "supplier_state_reuse": 4,
+    "economic_review_completed": true,
+    "phase_timeline": [
+     {
+      "phase": "entry",
+      "at_s": 0,
+      "delta_s": 0,
+      "core_runs": 0,
+      "core_delta": 0,
+      "left_s": 60
+     },
+     {
+      "phase": "baseline_core_run",
+      "at_s": 0.276,
+      "delta_s": 0.276,
+      "core_runs": 1,
+      "core_delta": 1,
+      "left_s": 59.724
+     },
+     {
+      "phase": "mandatory_stop_pass",
+      "at_s": 0.276,
+      "delta_s": 0,
+      "core_runs": 1,
+      "core_delta": 0,
+      "left_s": 59.724
+     },
+     {
+      "phase": "decommit_screening",
+      "at_s": 3.921,
+      "delta_s": 3.645,
+      "core_runs": 8,
+      "core_delta": 7,
+      "left_s": 56.079
+     },
+     {
+      "phase": "gas_window_correction",
+      "at_s": 3.922,
+      "delta_s": 0.001,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.078
+     },
+     {
+      "phase": "gas_quota_offset_search",
+      "at_s": 3.924,
+      "delta_s": 0.002,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.076
+     },
+     {
+      "phase": "global_commitment_review_normal_path",
+      "at_s": 3.924,
+      "delta_s": 0,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.076
+     },
+     {
+      "phase": "pipeline_end",
+      "at_s": 3.924,
+      "delta_s": 0,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.076
+     }
+    ],
+    "stages_deferred": [],
+    "candidates": {
+     "global_commitment_evaluated": 0,
+     "fully_evaluated": true,
+     "note": "Seluruh tahap pencarian selesai tanpa dipotong batas waktu."
+    },
+    "mode": "FASTEST_PIPELINE",
+    "fastest": true,
+    "fastest_shortage_proven": false,
+    "global_optimum_proven": false,
+    "pipeline_status_before_fastest": "CONVERGED"
+   },
+   "fastest_exec": null,
+   "msg": ""
+  }
+ ],
+ "target_label": "Fastest - Default [fast]",
+ "t_end": 14.14,
+ "result": {
+  "rows": 48,
+  "status": "FASTEST_FINAL",
+  "ok": true,
+  "gate": "PASS",
+  "release_allowed": true,
+  "blocking": [],
+  "publish_allowed": true,
+  "save_allowed": true,
+  "cp": 64.6658,
+  "hr": 8387.15,
+  "gas_used": 64.5792,
+  "gas_quota": 64.6,
+  "shortage": 0,
+  "residual": 0,
+  "action": "recommendation",
+  "lng_added": 0,
+  "dist_l": 0,
+  "dist_units": [],
+  "rec_lng": 0,
+  "rec_dist": 92631.6,
+  "run_status": {
+   "status": "FASTEST_FIRST_VALID",
+   "converged": true,
+   "mode": "FASTEST_PIPELINE",
+   "core_runs": 8
+  },
+  "starts": {
+   "G1": "1-48(48)",
+   "G5": "26-37(12)",
+   "G8": "1-48(48)",
+   "G9": "1-48(48)",
+   "BB1": "1-48(48)",
+   "BB2": "1-48(48)"
+  },
+  "proof": {
+   "status": "PASS",
+   "C1": "PASS:0/0",
+   "C2": "PASS_WITH_REASON:1/0",
+   "C3": "PASS_WITH_REASON:34/0",
+   "C4": "PASS_WITH_REASON:96/0",
+   "STG": "PASS:144/0"
+  },
+  "fastest_mode": "FASTEST_PIPELINE",
+  "sr_under": 0,
+  "pv_col": true,
+  "gateLock": false,
+  "btns": [
+   "btn-xls:on",
+   "btn-img-full:on",
+   "btn-publish:na",
+   "btn-save-actual:on"
+  ]
+ },
+ "msg_final": "Done. Fastest - Default selesai — Anda tidak perlu menjalankan ulang. · FASTEST VALID PLAN — Target waktu Fastest - Default | Waktu aktual 13,8 detik | Kandidat diperiksa 15 | Kandidat valid 2 | Cost Production 64.6658 USD/MWh"
+}

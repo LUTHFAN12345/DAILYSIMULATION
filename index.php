@@ -7,6 +7,12 @@
 $inputPath  = __DIR__ . '/input_data.json';
 $outputPath = __DIR__ . '/output_data.json';
 $INPUT  = file_exists($inputPath)  ? json_decode(file_get_contents($inputPath), true)  : null;
+/* V15.16 MULTI-USER: input awal halaman = input terakhir MILIK user ini (cookie pp_uid -> saved/users/<uid>/input_latest.json,
+ * ditulis oleh Save / autosave Run user itu sendiri). input_data.json global hanya benih untuk user yang belum pernah menyimpan. */
+$PP_USER_LATEST = null;
+if (is_file(__DIR__ . '/saved_data_store.php')) { require_once __DIR__ . '/saved_data_store.php';
+    if (function_exists('sds_latest_input') && !empty($_COOKIE['pp_uid'])) { $PP_USER_LATEST = sds_latest_input((string)$_COOKIE['pp_uid']);
+        if (is_array($PP_USER_LATEST)) $INPUT = $PP_USER_LATEST['input']; } }
 $OUTPUT = file_exists($outputPath) ? json_decode(file_get_contents($outputPath), true) : null;
 $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
 ?>
@@ -1121,6 +1127,16 @@ ul.csverr li{margin:2px 0}
             </div>
             <div class="scroll" style="max-height:380px"><table class="data" id="tbl-ied"></table></div>
           </div></div>
+        <div class="fcard" id="ie-chart-card"><div class="fh"><span class="fi">📈</span><span class="ft">Grafik IE Prediction &amp; Dispatch</span><span class="fhint">48 titik · interval 30 menit · nilai terbaru tabel di atas</span></div>
+          <div class="fb">
+            <div id="ie-chart-legend" style="display:flex;gap:18px;align-items:center;font-size:12px;color:#334155;margin-bottom:6px">
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:18px;height:2px;background:#2563eb;display:inline-block"></span>IE (MW)</span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:18px;height:2px;background:#d97706;display:inline-block;border-top:2px dashed #d97706;height:0"></span>Dispatch PLN (MW)</span>
+              <span class="spacer"></span><span class="hint" id="ie-chart-stats"></span>
+            </div>
+            <div id="ie-chart-wrap" style="position:relative;width:100%;height:260px"><svg id="ie-chart" width="100%" height="260" role="img" aria-label="Grafik IE Prediction dan Dispatch per 30 menit"></svg>
+              <div id="ie-chart-tip" style="display:none;position:absolute;pointer-events:none;background:#0f172a;color:#fff;padding:6px 9px;border-radius:7px;font-size:12px;white-space:nowrap;z-index:5"></div></div>
+          </div></div>
         <div class="fcard"><div class="fh"><span class="fi">±</span><span class="ft">IE Adjustment</span><span class="fhint">shift predicted IE by a fixed MW over a period · max 5 · no overlap</span></div>
           <div class="fb">
             <table class="prio" id="tbl-ie-adj"></table>
@@ -1337,7 +1353,7 @@ ul.csverr li{margin:2px 0}
       <div class="runbar no-print" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)">
         <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
-        <button class="btn ghost" id="btn-save" title="Save Input — menyimpan input ke input_data.json (selalu aktif)">💾 Save</button>
+        <button class="btn ghost" id="btn-save" title="Save Input — menyimpan versi baru input milik Anda (user/tab/proyek) di datastore; tidak menimpa data user lain (selalu aktif)">💾 Save</button>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
         <span class="hint" id="run-msg"></span>
@@ -1513,6 +1529,30 @@ ul.csverr li{margin:2px 0}
 })();
 </script>
 
+<script>
+/* ===================== V15.16 identitas multi-user / multi-tab =====================
+ * pp_uid  : identitas user/browser (localStorage + cookie, dibuat sekali) -> scope datastore & reload.
+ * pp_tab  : identitas tab (sessionStorage, unik per tab) -> scope record & run.
+ * Seluruh request ke run.php membawa uid & tab; request job (poll/cancel) juga membawa Run ID aktif tab ini, sehingga
+ * progres, polling, cancel, dan hasil selalu terikat Run ID milik tab ini. */
+(function(){
+  function rnd(){ try{ const a=new Uint8Array(12); crypto.getRandomValues(a); return Array.from(a,b=>b.toString(16).padStart(2,'0')).join(''); }catch(e){ return (Date.now().toString(36)+Math.random().toString(36).slice(2)).slice(0,24); } }
+  let uid=null, tab=null;
+  try{ uid=localStorage.getItem('pp_uid'); }catch(e){}
+  if(!uid){ const m=document.cookie.match(/(?:^|;\s*)pp_uid=([A-Za-z0-9_.-]+)/); uid=m?m[1]:null; }
+  if(!uid) uid='u'+rnd();
+  try{ localStorage.setItem('pp_uid',uid); }catch(e){}
+  document.cookie='pp_uid='+uid+'; path=/; max-age=31536000; SameSite=Lax';
+  try{ tab=sessionStorage.getItem('pp_tab'); }catch(e){}
+  if(!tab){ tab='t'+rnd().slice(0,16); try{ sessionStorage.setItem('pp_tab',tab); }catch(e){} }
+  window.PP_UID=uid; window.PP_TAB=tab;
+  const of=window.fetch.bind(window);
+  window.fetch=function(u,o){ try{ if(typeof u==='string' && /^(\.\/)?run\.php\?/.test(u) && u.indexOf('uid=')<0){
+        u+=(u.indexOf('?')<0?'?':'&')+'uid='+encodeURIComponent(uid)+'&tab='+encodeURIComponent(tab);
+        if(/mode=job_(poll|cancel)/.test(u) && u.indexOf('rid=')<0 && window.PP_CUR_RID) u+='&rid='+encodeURIComponent(window.PP_CUR_RID); } }catch(e){}
+    return of(u,o); };
+})();
+</script>
 <script>
 /* ===================== state ===================== */
 let   INPUT0 = <?php echo json_encode($INPUT ?: new stdClass(), JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE); ?>;
@@ -3811,7 +3851,7 @@ function drawPVChart(hoverIndex=null){const c=document.getElementById('pv-chart'
 function pvChartPointer(ev){const c=document.getElementById('pv-chart'),tip=document.getElementById('pv-chart-tooltip');if(!c||!tip||!PV_CHART_STATE)return;const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*2200/r.width,idx=Math.max(0,Math.min(47,Math.round((x-PV_CHART_STATE.ml)*47/PV_CHART_STATE.pw)));drawPVChart(idx);tip.innerHTML='Jam '+pvTimeLabel(idx)+'<br>PV: '+PV_CHART_STATE.values[idx].toFixed(2)+' MW';tip.style.display='block';tip.style.left=Math.min(2070,PV_CHART_STATE.px(idx)+12)+'px';tip.style.top=Math.max(8,PV_CHART_STATE.py(PV_CHART_STATE.values[idx])-54)+'px';}
 document.addEventListener('pointermove',e=>{if(e.target?.id==='pv-chart')pvChartPointer(e)});document.addEventListener('pointerleave',e=>{if(e.target?.id==='pv-chart'){const t=document.getElementById('pv-chart-tooltip');if(t)t.style.display='none';drawPVChart();}},true);
 document.addEventListener('input',e=>{if(e.target.matches?.('[data-pv-row],#f-spinning_reserve_min')){const m=INPUT.data3.modeling,a=Array.from(document.querySelectorAll('[data-pv-row]')).map(x=>Number(x.value)||0),fix=Number(document.getElementById('f-spinning_reserve_min').value)||0;m.pv_rows=a;m.sr_fixed_mw=fix;m.spinning_reserve_min=fix;m.sr_effective_rows=a.map(v=>(m.sr_mode||'fixed')==='follow_pv'?Math.max(fix,v):fix);document.querySelectorAll('[data-eff-row]').forEach((el,i)=>el.textContent=m.sr_effective_rows[i].toFixed(2));drawPVChart();}});
-document.addEventListener('change',e=>{if(e.target?.name==='sr-mode-radio'){INPUT.data3.modeling.sr_mode=e.target.value;buildPVTable();}});
+document.addEventListener('change',e=>{if(e.target?.name==='sr-mode-radio'){const m=INPUT.data3.modeling;m.sr_mode=e.target.value;const fx=Number(m.sr_fixed_mw??m.spinning_reserve_min??0)||0,pv=Array.isArray(m.pv_rows)?m.pv_rows:Array(48).fill(0);m.sr_effective_rows=Array.from({length:48},(_,i)=>m.sr_mode==='follow_pv'?Math.max(fx,Number(pv[i])||0):fx);/* V15.16: SR efektif ikut mode */buildPVTable();}});
 function csvAOAToText(aoa){return(aoa||[]).slice(0,49).map(r=>(r||[]).slice(0,4).map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');}
 
 function buildPeriodic(){
@@ -4164,10 +4204,46 @@ function buildIED(){
   updateIEDsum();
   $('tbl-ied').querySelectorAll('input').forEach(inp=>inp.addEventListener('input',updateIEDsum));
 }
-function updateIEDsum(){let ie=0,dp=0;
+function updateIEDsum(){try{ if(typeof drawIEChart==='function') setTimeout(drawIEChart,0); }catch(e){} let ie=0,dp=0;
   document.querySelectorAll('[data-ie]').forEach(e=>ie+=num(e.value));
   document.querySelectorAll('[data-disp]').forEach(e=>dp+=num(e.value));
   $('ied-sum').textContent=`ΣIE ${fmt(ie/2,0)} MWh · ΣDispatch ${fmt(dp/2,0)} MWh`;}
+/* V15.16 Grafik IE Prediction & Dispatch: inline SVG tanpa CDN (XAMPP/offline), dibaca dari nilai TERBARU tabel input
+ * (edit, Import CSV/Excel Apply, Reload, Reset semuanya memanggil updateIEDsum -> grafik ikut diperbarui). */
+function ieChartData(){ const ie=Array(48).fill(null), dp=Array(48).fill(null);
+  document.querySelectorAll('[data-ie]').forEach(e=>{const i=+e.dataset.ie; if(i>=0&&i<48) ie[i]=num(e.value);});
+  document.querySelectorAll('[data-disp]').forEach(e=>{const i=+e.dataset.disp; if(i>=0&&i<48) dp[i]=num(e.value);});
+  return {ie, dp}; }
+function ieSlotLabel(i){ const m=(i+1)*30, h=Math.floor(m/60)%24, mm=m%60; return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+function drawIEChart(){ const svg=document.getElementById('ie-chart'); if(!svg) return; const wrap=document.getElementById('ie-chart-wrap');
+  const W=Math.max(320, (wrap&&wrap.clientWidth)||900), H=260, L=52, R=14, T=12, B=46; svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  const {ie, dp}=ieChartData(); const vals=ie.concat(dp).filter(v=>v!=null&&isFinite(v));
+  let lo=vals.length?Math.min(0,...vals):0, hi=vals.length?Math.max(...vals):1; if(hi<=lo) hi=lo+1; const pad=(hi-lo)*0.08; hi+=pad; if(lo<0) lo-=pad;
+  const step=(()=>{const r=(hi-lo)/5, p=Math.pow(10,Math.floor(Math.log10(r))); const n=r/p; return (n<=1?1:n<=2?2:n<=5?5:10)*p;})();
+  lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+  const X=i=>L+(W-L-R)*i/47, Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let v=lo; v<=hi+1e-9; v+=step){ const y=Y(v).toFixed(1); g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/><text x="${L-6}" y="${(+y+4)}" text-anchor="end" font-size="11" fill="#64748b">${Math.round(v)}</text>`; }
+  for(let i=0;i<48;i++){ if(i%2===1||i===47){ const x=X(i).toFixed(1); g+=`<text transform="translate(${x},${H-B+14}) rotate(-45)" text-anchor="end" font-size="10" fill="#64748b">${ieSlotLabel(i)}</text>`; } }
+  g+=`<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#94a3b8"/><text x="14" y="${(T+(H-B))/2}" font-size="11" fill="#475569" transform="rotate(-90,14,${(T+(H-B))/2})" text-anchor="middle">IE (MW)</text>`;
+  const path=a=>a.map((v,i)=>(v==null?'':(i===0||a[i-1]==null?'M':'L')+X(i).toFixed(1)+','+Y(v).toFixed(1))).join(' ');
+  g+=`<path d="${path(dp)}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="5 3"/>`;
+  g+=`<path d="${path(ie)}" fill="none" stroke="#2563eb" stroke-width="2"/>`;
+  g+=`<line id="ie-chart-cross" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#94a3b8" stroke-dasharray="3 3" style="display:none"/>`;
+  g+=`<circle id="ie-chart-dot" r="4" fill="#2563eb" stroke="#fff" stroke-width="2" style="display:none"/>`;
+  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="ie-chart-hit"/>`;
+  svg.innerHTML=g; svg.dataset.n=String(ie.filter(v=>v!=null).length);
+  const ieV=ie.filter(v=>v!=null); const st=document.getElementById('ie-chart-stats');
+  if(st&&ieV.length){ const mx=Math.max(...ieV), mn=Math.min(...ieV); st.textContent=`IE min ${fmt(mn,1)} · max ${fmt(mx,1)} MW (${ieSlotLabel(ie.indexOf(mx))}) · rata-rata ${fmt(ieV.reduce((a,b)=>a+b,0)/ieV.length,1)} MW`; }
+  const hit=document.getElementById('ie-chart-hit'), tip=document.getElementById('ie-chart-tip');
+  if(hit&&tip){ hit.addEventListener('pointermove',ev=>{ const r=svg.getBoundingClientRect(); const sx=(ev.clientX-r.left)*W/r.width; const i=Math.max(0,Math.min(47,Math.round((sx-L)/(W-L-R)*47)));
+      const cr=document.getElementById('ie-chart-cross'), dt=document.getElementById('ie-chart-dot'); const x=X(i);
+      cr.setAttribute('x1',x); cr.setAttribute('x2',x); cr.style.display=''; if(ie[i]!=null){ dt.setAttribute('cx',x); dt.setAttribute('cy',Y(ie[i])); dt.style.display=''; }
+      tip.innerHTML=`<b>${ieSlotLabel(i)}</b> (slot ${i+1})<br>IE: ${ie[i]==null?'-':fmt(ie[i],1)} MW<br>Dispatch PLN: ${dp[i]==null?'-':fmt(dp[i],1)} MW`;
+      tip.style.display='block'; const px=x*r.width/W; tip.style.left=Math.min(r.width-170,Math.max(0,px+12))+'px'; tip.style.top='8px'; });
+    hit.addEventListener('pointerleave',()=>{ tip.style.display='none'; const cr=document.getElementById('ie-chart-cross'), dt=document.getElementById('ie-chart-dot'); if(cr) cr.style.display='none'; if(dt) dt.style.display='none'; }); }
+}
+window.addEventListener('resize',()=>{ try{ drawIEChart(); }catch(e){} });
 
 /* ===================== assemble input from form ===================== */
 function jsonField(id,fallback){try{const v=JSON.parse($(id).value);return v;}catch(e){toast('Invalid JSON in '+id.replace('ta-',''));throw e;}}
@@ -5107,6 +5183,10 @@ async function runSim(){
   try{ GSD_PENDING_CHOICE = __pending; }catch(e){}
 
   payload.data3.modeling.gas_shortage_action=__act;
+  /* V15.16: Run normal SELALU mulai dari mode keputusan 'recommendation'. Penanda internal __fuel_decision_mode milik rerun
+   * popup sebelumnya (mis. 'add_lng') tidak boleh terbawa — kombinasi basi itu membuat Run berikutnya tidak menerbitkan
+   * keputusan bahan bakar (tanpa popup, "gerbang rilis menolak"). */
+  payload.data3.modeling.__fuel_decision_mode='recommendation';
   payload.data3.modeling.additional_lng = (__act==='add_lng') ? __lngAmt : 0;
   delete payload.data3.modeling.distillate_user_limit_litres;
   if(__act==='use_distillate') payload.data3.modeling.distillate_user_limit_litres = __distAmt;
@@ -5797,7 +5877,7 @@ async function tlJson(url,opts,toMs,nTry){
 }
 async function runFastestDefault(payload){
   const branch=runBranchKey(),myToken=++RUN_SEQ[branch],myRev=++STATE_REVISION[branch],reqId=branch+'-'+myRev+'-'+Date.now().toString(36),t0=performance.now(),el=()=>(performance.now()-t0)/1000;
-  payload._request_id=reqId;payload._state_revision=myRev;payload._context=branch;V11_RUN_T0=t0;V11_SUM_DONE=false;
+  payload._request_id=reqId;try{window.PP_CUR_RID=reqId;}catch(e){}payload._state_revision=myRev;payload._context=branch;V11_RUN_T0=t0;V11_SUM_DONE=false;
   const btn=$('btn-run'),old=btn.innerHTML,rm=$('run-msg');btn.disabled=true;btn.innerHTML='<span class="spin"></span> Running…';
   let lastChecked=0,lastValid=0,lastPhase='Menyiapkan job',timerId=null;
   const ensureHud=()=>{let h=document.getElementById('fast-progress-hud');if(!h){h=document.createElement('div');h.id='fast-progress-hud';h.style.cssText='position:fixed;right:18px;bottom:18px;z-index:9997;background:#1763d6;color:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(23,99,214,.28);font:600 12px/1.45 system-ui,sans-serif;min-width:245px';document.body.appendChild(h);}return h;};
@@ -5847,7 +5927,7 @@ async function runTimeLimited(payload, T){
   const myToken=++RUN_SEQ[branch];
   const myRev=++STATE_REVISION[branch];
   const reqId=branch+'-'+myRev+'-'+Date.now().toString(36);
-  payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;
+  payload._request_id=reqId;try{window.PP_CUR_RID=reqId;}catch(e){} payload._state_revision=myRev; payload._context=branch;
   GSD_PROVISIONAL=null;
   try{ ASYNC_REVIEW[branch]=null; }catch(e){}
   const t0=performance.now(); const el=()=>(performance.now()-t0)/1000; V11_RUN_T0=t0; V11_SUM_DONE=false;
@@ -5956,7 +6036,7 @@ async function runSimCore(payload, opts){
   const myToken=++RUN_SEQ[branch];                        // §3.6: revisi request ini
   const myRev=++STATE_REVISION[branch];                   // §9: state_revision per context
   const reqId=branch+'-'+myRev+'-'+Date.now().toString(36);
-  payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;   // §9 request snapshot meta
+  payload._request_id=reqId;try{window.PP_CUR_RID=reqId;}catch(e){} payload._state_revision=myRev; payload._context=branch;   // §9 request snapshot meta
   GSD_PROVISIONAL=null;                                   // provisional milik run sebelumnya tidak berlaku lagi
   if(V11_WORKFLOW_T0==null)V11_WORKFLOW_T0=performance.now(); V11_RUN_T0=V11_WORKFLOW_T0; V11_SUM_DONE=false;
   /* V3: tidak ada pencarian paralel — satu job pemilik state ini menghitung seluruhnya. */
@@ -6185,7 +6265,7 @@ async function saveInput(){
       INPUT=payload; INPUT0=JSON.parse(JSON.stringify(payload)); dpSnapshotCurrent();   // saved state becomes the reload baseline
       $('run-msg').innerHTML='<span style="color:#1a7d4d">Input saved — will persist after reload.'+
         (data._sanitized_nested_snapshots?(' ('+data._sanitized_nested_snapshots+' nested snapshot lama dibersihkan)'):'')+'</span>';
-      toast('Input saved to input_data.json');
+      toast((data&&data._saved&&data._saved.scoped)?('Input tersimpan — versi '+data._saved.version+' ('+data._saved.backend+')'):'Input saved to input_data.json');
     } else {
       $('run-msg').innerHTML='<span style="color:#c0392b">Save GAGAL (HTTP '+res.status+'): '+((data&&data.message)||'unknown').replace(/</g,'&lt;')+
         ((data&&data.detail&&data.detail.old_file_intact)?' — file lama TETAP UTUH; perbaiki lalu coba lagi.':'')+'</span>';
@@ -6476,12 +6556,12 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
   const tpCut=MON?mdpCutoff():0;
   tbl+='<div class="scroll simwrap"><table class="data simgrid" id="tbl-result"><thead><tr>'+
     (MON?'<th class="g-time" title="Monitoring Daily Plan — Y = jam sudah lewat (locked), N = future">TIME PASSED</th>':'')+
-    COLS.filter(c=>c[0]!=='PV'||((INPUT.data3?.modeling?.sr_mode||'fixed')==='follow_pv')).map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
+    COLS.map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
   const tpCell=(ri)=>{const y=ri<tpCut;
     return `<td class="tp-cell ${y?'tp-y':'tp-n'}"><select class="tp-sel ${y?'tp-y':'tp-n'}" data-tprow="${ri}" title="${y?'Time Passed — locked (optimizer tidak mengubah row ini)':'Future row — dioptimasi normal'}">`+
       `<option value="Y"${y?' selected':''}>Y</option><option value="N"${y?'':' selected'}>N</option></select>${y?'<span class="tp-lock" title="Locked">🔒</span>':''}</td>`;};
   rows.forEach((r,ri)=>{
-    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+COLS.filter(c=>c[0]!=='PV'||((INPUT.data3?.modeling?.sr_mode||'fixed')==='follow_pv')).map(c=>{
+    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+COLS.map(c=>{
       const k=c[0], t=c[1], g=c[3]||''; let v=r[k];
       if(t==='t') return `<td class="t g-time">${hm(v)}</td>`;
       if(t.indexOf('act:')===0){
@@ -7777,6 +7857,51 @@ window.__uiAudit=function(){
   console.table?console.log('[__uiAudit]',rep):null;
   return rep;
 };
+
+/* ===================== V15.16 PANEL PROGRES RUN (kanan bawah) =====================
+ * Satu timer per Run ID per tab (closure lokal halaman ini — tidak membaca progres run tab/user lain). Mulai saat tombol Run
+ * (atau rerun keputusan bahan bakar) mengunci UI, berdetak tiap 1 detik, berhenti pada FINAL / TERMINAL / ERROR / menunggu
+ * keputusan; jeda < 2 s antar-tahap (rerun otomatis) tetap satu workflow. Stage = tahap backend nyata yang dilaporkan job
+ * (teks 'Perhitungan eksak: <tahap> NN%'), selain itu 'Processing' — tidak ada stage karangan. Tidak mengubah hasil. */
+(function(){
+  let S=null, pendingStop=null;
+  const el=id=>document.getElementById(id);
+  function ensure(){ let p=el('run-timer'); if(p) return p; p=document.createElement('div'); p.id='run-timer'; p.setAttribute('role','status'); p.setAttribute('aria-live','polite');
+    p.style.cssText='position:fixed;right:18px;bottom:18px;z-index:9999;min-width:250px;max-width:340px;background:#0f172a;color:#f8fafc;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.35);padding:12px 14px;font:12px/1.45 system-ui,Segoe UI,Arial;display:none';
+    p.innerHTML='<div style="display:flex;align-items:center;gap:8px"><b id="rt-title" style="font-size:13px">Simulation running</b><span style="flex:1"></span><button type="button" id="rt-close" title="Tutup" style="background:none;border:0;color:#94a3b8;cursor:pointer;font-size:14px">✕</button></div>'
+      +'<div>Elapsed: <b id="rt-elapsed" style="font-variant-numeric:tabular-nums">00:00</b></div><div>Stage: <span id="rt-stage">Processing</span></div><div style="color:#94a3b8">Run ID: <span id="rt-rid">-</span></div>';
+    document.body.appendChild(p); el('rt-close').addEventListener('click',()=>{ p.style.display='none'; }); return p; }
+  const mmss=sec=>{ sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600), m=Math.floor(sec/60)%60, x=sec%60; return (h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
+  function stage(){ const m=((el('run-msg')||{}).innerText||'').trim(); let k=m.match(/Perhitungan eksak:\s*([^\n]+?)\s+\d+\s*%/i); if(k) return k[1];
+    k=m.match(/^(Fastest:[^\n…]*)/); if(k) return k[1]; return 'Processing'; }
+  function paint(){ if(!S) return; const p=ensure(); p.style.display='block'; el('rt-elapsed').textContent=mmss((performance.now()-S.t0)/1000);
+    el('rt-rid').textContent=S.rid||window.PP_CUR_RID||'-'; if(S.state==='running'){ el('rt-title').textContent='Simulation running'; el('rt-stage').textContent=stage(); } }
+  function start(){
+    if(S&&S.iv) clearInterval(S.iv); S={t0:performance.now(), rid:null, state:'running', iv:null}; S.idle=0; S.iv=setInterval(()=>{ if(!S) return; if(!S.rid&&window.PP_CUR_RID) S.rid=window.PP_CUR_RID; paint(); if(busy()) S.idle=0; else if(++S.idle>=2) finish(); },1000);
+    setTimeout(()=>{ if(S&&!S.rid&&window.PP_CUR_RID) S.rid=window.PP_CUR_RID; paint(); },50); window.PP_RUN_TIMER_STATE='running'; }
+  function finish(){ if(!S||S.state!=='running') return; if(S.iv) clearInterval(S.iv); S.iv=null;
+    const rows=(typeof OUTPUT!=='undefined'&&OUTPUT&&OUTPUT.data)?OUTPUT.data.length:0, msg=((el('run-msg')||{}).innerText||'');
+    let st='FINAL', t='Simulation selesai';
+    if(el('gsf-box')){ st='MENUNGGU_KEPUTUSAN_BAHAN_BAKAR'; t='Menunggu keputusan bahan bakar'; }
+    else if(/TERMINAL|TIDAK FEASIBLE/i.test(msg)){ st='TERMINAL'; t='Keputusan terminal'; }
+    else if(/gagal|error/i.test(msg)&&rows!==48){ st='ERROR'; t='Simulation error'; }
+    else if(/batal|cancel/i.test(msg)){ st='CANCEL'; t='Dibatalkan'; }
+    S.state=st; paint(); el('rt-title').textContent=t; el('rt-stage').textContent=st==='FINAL'?('Selesai · '+rows+' row dirender'):st; window.PP_RUN_TIMER_STATE=st; }
+  /* sedang berjalan = tombol Run terkunci ATAU workflow run (runSimCore) belum menyelesaikan ringkasannya; selesai bila
+   * hasil/terminal/error tampil atau popup keputusan bahan bakar menunggu operator. Dua detik idle berturut-turut = selesai. */
+  function busy(){ const b=el('btn-run'); if(b&&b.disabled) return true; if(el('gsf-box')) return false;
+    const msg=((el('run-msg')||{}).innerText||''); if(/TERMINAL|TIDAK FEASIBLE|gagal|error/i.test(msg)&&!/Perhitungan eksak/i.test(msg)) return false;
+    try{ if(typeof V11_RUN_T0!=='undefined'&&V11_RUN_T0!=null&&typeof V11_SUM_DONE!=='undefined'&&!V11_SUM_DONE) return true; }catch(e){}
+    return /Perhitungan eksak|sedang|Rerun/i.test(msg); }
+  function watch(){ const b=el('btn-run'); if(!b) return setTimeout(watch,300);
+    let was=b.disabled; new MutationObserver(()=>{ const d=b.disabled; if(d===was) return; was=d;
+      if(d&&!(S&&S.state==='running')) start(); }).observe(b,{attributes:true,attributeFilter:['disabled']}); }
+  /* Run baru (termasuk rerun keputusan bahan bakar dari popup) dikenali dari Run ID request yang berganti. */
+  let lastRid=null; setInterval(()=>{ const rid=window.PP_CUR_RID||null; if(!rid||rid===lastRid) return; lastRid=rid;
+    if(!(S&&S.state==='running')) { start(); S.rid=rid; } else S.rid=rid; },500);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',watch); else watch();
+  window.ppRunTimerState=()=>S?{state:S.state, rid:S.rid, elapsed:(performance.now()-S.t0)/1000, running_interval:!!S.iv}:null;
+})();
 </script>
 <?php
 $weeklyUi=__DIR__.'/weekly_ui.php';if(is_file($weeklyUi))include_once $weeklyUi;

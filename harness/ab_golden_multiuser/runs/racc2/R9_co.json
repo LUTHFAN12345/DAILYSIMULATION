@@ -1,0 +1,304 @@
+{
+ "case": "R9_co",
+ "target": "fast",
+ "fuel": "",
+ "timeline": [
+  {
+   "t": 0.38,
+   "msg": "Perhitungan eksak: fastest pipeline 10%"
+  },
+  {
+   "t": 4.19,
+   "msg": "Perhitungan eksak: fastest review unit priority 70%"
+  },
+  {
+   "t": 12.26,
+   "msg": "Done. Fastest - Default selesai — Anda tidak perlu menjalankan ulang. · FASTEST VALID PLAN — Target waktu Fastest - Default | Waktu aktual 12,0 detik | Kandidat diperiksa 14 | Kandidat valid 2 | Cost Production 64.6658 USD/MWh"
+  }
+ ],
+ "reqs": [
+  {
+   "t": 0.11,
+   "m": "run",
+   "u": "/run.php?mode=run&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 0.18,
+   "m": "job_exec",
+   "u": "/run.php?mode=job_exec&job=economic_review-8bf7445dc796b8edb0b4&token=202e69168b70382b3ecaebae34d428ca&uid=ub067fc77b7e7"
+  },
+  {
+   "t": 0.18,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-8bf7445dc796b8edb0b4&token=202e69168b70382b3ecaebae34d428ca&slot=1&uid=ub067f"
+  },
+  {
+   "t": 0.18,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-8bf7445dc796b8edb0b4&token=202e69168b70382b3ecaebae34d428ca&slot=2&uid=ub067f"
+  },
+  {
+   "t": 0.18,
+   "m": "job_help",
+   "u": "/run.php?mode=job_help&job=economic_review-8bf7445dc796b8edb0b4&token=202e69168b70382b3ecaebae34d428ca&slot=3&uid=ub067f"
+  },
+  {
+   "t": 0.8,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 1,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 1.9,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 2.8,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 3.7,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 4.6,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 5.5,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 6.41,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 7.3,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 8.2,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 9.1,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 10,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 10.9,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  },
+  {
+   "t": 11.81,
+   "m": "prelim_progress",
+   "u": "/run.php?mode=prelim_progress&rid=plan-1-mv2mwtvb&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb2122040baaea"
+  }
+ ],
+ "errors": [],
+ "dialogs": [],
+ "run_responses": [
+  {
+   "t": 0.18,
+   "url": "/run.php?mode=run&uid=ub067fc77b7e7c0ca08830edd&tab=t82bb212",
+   "rows": 0,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "run_status": null,
+   "fastest_exec": null,
+   "msg": ""
+  },
+  {
+   "t": 12.26,
+   "url": "/run.php?mode=job_poll&job=economic_review-8bf7445dc796b8edb",
+   "status": "FASTEST_FINAL",
+   "ok": true,
+   "rows": 48,
+   "has_shortage_decision": false,
+   "vo_job": false,
+   "async_job": false,
+   "fuel_decision_required": false,
+   "gate": "PASS",
+   "blocking": [],
+   "shortage": 0,
+   "rec_lng": 0,
+   "rec_dist": 92631.6,
+   "req_dist": 0,
+   "action": "recommendation",
+   "cp": 64.6658,
+   "run_status": {
+    "completed": true,
+    "deadline_reached": false,
+    "budget_truncated": false,
+    "converged": true,
+    "status": "FASTEST_FIRST_VALID",
+    "economic_review_skipped": null,
+    "last_stage": null,
+    "stages_truncated": [],
+    "elapsed_s": 3.865,
+    "deadline_s": 60,
+    "core_runs": 8,
+    "core_simulations": 24,
+    "core_state_reuse": 0,
+    "candidate_pool": [],
+    "supplier_state_reuse": 4,
+    "economic_review_completed": true,
+    "phase_timeline": [
+     {
+      "phase": "entry",
+      "at_s": 0,
+      "delta_s": 0,
+      "core_runs": 0,
+      "core_delta": 0,
+      "left_s": 60
+     },
+     {
+      "phase": "baseline_core_run",
+      "at_s": 0.301,
+      "delta_s": 0.301,
+      "core_runs": 1,
+      "core_delta": 1,
+      "left_s": 59.7
+     },
+     {
+      "phase": "mandatory_stop_pass",
+      "at_s": 0.301,
+      "delta_s": 0,
+      "core_runs": 1,
+      "core_delta": 0,
+      "left_s": 59.699
+     },
+     {
+      "phase": "decommit_screening",
+      "at_s": 3.839,
+      "delta_s": 3.538,
+      "core_runs": 8,
+      "core_delta": 7,
+      "left_s": 56.161
+     },
+     {
+      "phase": "gas_window_correction",
+      "at_s": 3.84,
+      "delta_s": 0.001,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.16
+     },
+     {
+      "phase": "gas_quota_offset_search",
+      "at_s": 3.842,
+      "delta_s": 0.002,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.158
+     },
+     {
+      "phase": "global_commitment_review_normal_path",
+      "at_s": 3.842,
+      "delta_s": 0,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.158
+     },
+     {
+      "phase": "pipeline_end",
+      "at_s": 3.843,
+      "delta_s": 0.001,
+      "core_runs": 8,
+      "core_delta": 0,
+      "left_s": 56.157
+     }
+    ],
+    "stages_deferred": [],
+    "candidates": {
+     "global_commitment_evaluated": 0,
+     "fully_evaluated": true,
+     "note": "Seluruh tahap pencarian selesai tanpa dipotong batas waktu."
+    },
+    "mode": "FASTEST_PIPELINE",
+    "fastest": true,
+    "fastest_shortage_proven": false,
+    "global_optimum_proven": false,
+    "pipeline_status_before_fastest": "CONVERGED"
+   },
+   "fastest_exec": null,
+   "msg": ""
+  }
+ ],
+ "target_label": "Fastest - Default [fast]",
+ "t_end": 12.26,
+ "result": {
+  "rows": 48,
+  "status": "FASTEST_FINAL",
+  "ok": true,
+  "gate": "PASS",
+  "release_allowed": true,
+  "blocking": [],
+  "publish_allowed": true,
+  "save_allowed": true,
+  "cp": 64.6658,
+  "hr": 8387.15,
+  "gas_used": 64.5792,
+  "gas_quota": 64.6,
+  "shortage": 0,
+  "residual": 0,
+  "action": "recommendation",
+  "lng_added": 0,
+  "dist_l": 0,
+  "dist_units": [],
+  "rec_lng": 0,
+  "rec_dist": 92631.6,
+  "run_status": {
+   "status": "FASTEST_FIRST_VALID",
+   "converged": true,
+   "mode": "FASTEST_PIPELINE",
+   "core_runs": 8
+  },
+  "starts": {
+   "G1": "1-48(48)",
+   "G5": "26-37(12)",
+   "G8": "1-48(48)",
+   "G9": "1-48(48)",
+   "BB1": "1-48(48)",
+   "BB2": "1-48(48)"
+  },
+  "proof": {
+   "status": "PASS",
+   "C1": "PASS:0/0",
+   "C2": "PASS_WITH_REASON:1/0",
+   "C3": "PASS_WITH_REASON:34/0",
+   "C4": "PASS_WITH_REASON:96/0",
+   "STG": "PASS:144/0"
+  },
+  "fastest_mode": "FASTEST_PIPELINE",
+  "sr_under": 0,
+  "pv_col": true,
+  "gateLock": false,
+  "btns": [
+   "btn-xls:on",
+   "btn-img-full:on",
+   "btn-publish:na",
+   "btn-save-actual:on"
+  ]
+ },
+ "msg_final": "Done. Fastest - Default selesai — Anda tidak perlu menjalankan ulang. · FASTEST VALID PLAN — Target waktu Fastest - Default | Waktu aktual 12,0 detik | Kandidat diperiksa 14 | Kandidat valid 2 | Cost Production 64.6658 USD/MWh"
+}
