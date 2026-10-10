@@ -6,16 +6,7 @@
  * ========================================================================= */
 $inputPath  = __DIR__ . '/input_data.json';
 $outputPath = __DIR__ . '/output_data.json';
-/* V12: berkas kerja dibaca lewat saved_data_store.php — bila hilang/rusak (mis. folder aplikasi diganti) dipulihkan dari
- * cermin data tersimpan (<data>/saved/state). index.php tidak menulis berkas penyimpanan apa pun selain lewat modul ini. */
-/* Kelengkapan paket (lima berkas PHP satu paket): berkas yang hilang -> halaman tetap terbuka dengan pesan instalasi dan
- * tombol Run dinonaktifkan; tidak ada warning PHP di halaman, tidak ada simulasi yang "berjalan" tanpa backend. */
-$PP_MISSING = [];
-foreach (['run.php', 'worker02.php', 'worker_functions.php', 'saved_data_store.php'] as $__f) if (!is_file(__DIR__ . DIRECTORY_SEPARATOR . $__f) || !is_readable(__DIR__ . DIRECTORY_SEPARATOR . $__f)) $PP_MISSING[] = $__f;
-unset($__f);
-if (!$PP_MISSING) require_once __DIR__ . DIRECTORY_SEPARATOR . 'saved_data_store.php';
-else @error_log('[opr-simulation] MISSING_DEPENDENCY index.php: ' . implode(', ', $PP_MISSING));
-$INPUT  = function_exists('sds_load_state_input') ? sds_load_state_input($inputPath) : (file_exists($inputPath) ? json_decode(file_get_contents($inputPath), true) : null);
+$INPUT  = file_exists($inputPath)  ? json_decode(file_get_contents($inputPath), true)  : null;
 $OUTPUT = file_exists($outputPath) ? json_decode(file_get_contents($outputPath), true) : null;
 $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
 ?>
@@ -207,9 +198,6 @@ $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
   .simgrid td.dist-m50{background:#93c5fd !important;color:#1e3a8a !important;box-shadow:inset 0 0 0 1px #60a5fa}
   .simgrid td.dist-m75{background:#3b82f6 !important;color:#ffffff !important;box-shadow:inset 0 0 0 1px #2563eb}
   .simgrid td.dist-m100{background:#1d4ed8 !important;color:#ffffff !important;box-shadow:inset 0 0 0 1px #1e40af}
-  /* V12: gradasi biru proporsional persen Distillate (inline --dpct) + tooltip numerik */
-  .simgrid td.dist-cell{background:var(--dbg) !important;color:var(--dfg) !important;box-shadow:inset 0 0 0 1px var(--dbd)}
-  #dist-tip{position:fixed;z-index:20000;pointer-events:none;background:#0f172a;color:#f8fafc;font:12px/1.45 ui-monospace,Consolas,monospace;padding:7px 10px;border-radius:6px;box-shadow:0 6px 18px rgba(15,23,42,.35);white-space:pre;display:none}
   .simhead{display:flex;align-items:baseline;gap:12px;margin:0 0 10px;flex-wrap:wrap}
   .simhead .simtitle{font-weight:800;font-size:13px;letter-spacing:1.2px;color:var(--accent);text-transform:uppercase}
   .simhead .simsub{font-size:11.5px;color:var(--ink-dim);font-weight:600}
@@ -277,8 +265,6 @@ $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
   table.simgrid thead th.g-diff{color:#b0392b}
   table.simgrid thead th.g-spin{color:#0e6aa8}
   table.simgrid thead th.g-bus{color:#4a5a82}
-  table.simgrid thead th.g-pv{color:#1d4ed8}
-  table.simgrid td.g-pv{color:#1d4ed8}
   table.simgrid thead th.g-coal{color:#9a5b2b}
   table.simgrid thead th.g-dist{color:#9a6b00}
   table.simgrid thead th.g-gas{color:#0d7a6f}
@@ -597,6 +583,8 @@ $haveInput = is_array($INPUT) && isset($INPUT['data3']['modeling']);
   /* V3: Save Input tetap dapat dijangkau di atas lapisan modal (progres, Gas Shortage). */
   body.pp-mask-open #btn-save{position:fixed;left:16px;bottom:16px;z-index:10050;box-shadow:0 6px 18px rgba(15,23,42,.35);background:#fff;opacity:1}
   .sv-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px 0;-webkit-overflow-scrolling:touch}
+  /* V13.3: progress modal hidden visually only. Internal job polling remains untouched. */
+  #ppm-mask{display:none !important}
   /* ROOT CAUSE TOMBOL TIDAK DAPAT DIKLIK (penyebab mekanis, terpisah dari atribut disabled):
      mask memakai align-items:center TANPA overflow dan box TANPA max-height. Begitu isi popup
      lebih tinggi daripada viewport, box tercentang vertikal sehingga bagian atas DAN bawahnya
@@ -1101,7 +1089,7 @@ ul.csverr li{margin:2px 0}
       <div class="childtabs" role="tablist">
         <button type="button" class="childtab active" data-child="frequent" data-cp="cp-nameplan">Name Plan &amp; IE/Dispatch</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-pln">PLN Export Priority</button>
-        <button type="button" class="childtab" data-child="frequent" data-cp="cp-sr">Bus Flow &amp; Spinning Reserve</button>
+        <button type="button" class="childtab" data-child="frequent" data-cp="cp-sr">SR &amp; Bus Flow</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-gas">Gas Data</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-stgstartup">STG Start Up Mode</button>
         <button type="button" class="childtab" data-child="frequent" data-cp="cp-babelan">Babelan &amp; Biomass</button>
@@ -1120,15 +1108,15 @@ ul.csverr li{margin:2px 0}
         <div class="fcard"><div class="fh"><span class="fi">▤</span><span class="ft">IE prediction &amp; dispatch</span><span class="fhint">48 half-hour rows</span></div>
           <div class="fb">
             <div class="runbar no-print">
-              <label class="btn ghost" style="cursor:pointer">Import CSV / Excel…<input type="file" id="csv-file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>
+              <label class="btn ghost" style="cursor:pointer">Import CSV / Excel…<input type="file" id="csv-file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>
               <button type="button" class="btn ghost" id="csv-validate" title="Validasi ulang CSV terakhir tanpa menerapkannya">Validate</button>
-              <button type="button" class="btn" id="csv-apply" disabled title="Terapkan file valid ke 48 slot (IE, Dispatch, PV)">Apply Import</button>
-              <button type="button" class="btn ghost" id="csv-clear" title="Batalkan preview (data existing tidak diubah)">Cancel</button>
+              <button type="button" class="btn" id="csv-apply" disabled title="Terapkan CSV valid ke 48 slot">Apply</button>
+              <button type="button" class="btn ghost" id="csv-clear" title="Bersihkan preview (data existing tidak diubah)">Clear</button>
               <button type="button" class="btn ghost" id="csv-reset" title="Kembalikan IE/Dispatch ke kondisi sebelum Apply">Reset</button>
               <div id="csv-status" class="csv-status" style="display:none"></div>
               <div id="csv-preview" class="csv-preview" style="display:none"></div>
               <button class="btn ghost" id="btn-paste">Paste from clipboard</button>
-              <span class="hint">Row 1 = header (dilewati). Data row 2–49: A <code>Tanggal</code>, B <code>IE (MW)</code>, C <code>Dispatch</code>, D <code>PV (MW)</code> → Spinning Reserve › Follow PV. CSV &amp; Excel (.xlsx) memakai mapping yang sama.</span>
+              <span class="hint">Format row 1 header, row 2-49 data: <code>Tanggal | IE (MW) | Dispatch | PV (MW)</code>. CSV dan Excel (.xlsx) didukung.</span>
               <span class="spacer"></span><span class="hint" id="ied-sum"></span>
             </div>
             <div class="scroll" style="max-height:380px"><table class="data" id="tbl-ied"></table></div>
@@ -1185,34 +1173,25 @@ ul.csverr li{margin:2px 0}
           </div></div>
       </div>
 
-      <!-- C. Bus Flow (atas) & Spinning Reserve (bawah) — dua section terpisah -->
+      <!-- C. SR & Bus Flow -->
       <div class="childpanel" data-child="frequent" id="cp-sr">
-        <div class="fcard" id="sec-busflow"><div class="fh"><span class="fi">⚙</span><span class="ft">BUS FLOW</span><span class="fhint">reliability constraint · semantics &amp; token tidak berubah</span></div>
-          <div class="fb"><div class="grid g3">
+        <div class="fcard"><div class="fh"><span class="fi">⚙</span><span class="ft">Spinning reserve &amp; bus flow</span><span class="fhint">reliability constraints</span></div>
+          <div class="fb"><div class="grid g2">
+            <label class="fld">Fix Spinning Reserve <span class="u">MW</span><input type="number" step="0.1" id="f-spinning_reserve_min"></label>
             <label class="fld">Bus flow min <span class="u">MW</span><input type="number" step="0.1" id="f-busflow_min"></label>
           </div></div></div>
-        <div class="fcard" id="sec-sr"><div class="fh"><span class="fi">⚡</span><span class="ft">SPINNING RESERVE</span><span class="fhint">SR minimum per row 30 menit</span></div>
-          <div class="fb">
-            <div class="grid g3" style="align-items:end">
-              <div class="fld" role="radiogroup" aria-label="Spinning Reserve mode">
-                <span>Mode</span>
-                <label style="font-weight:600;display:flex;gap:6px;align-items:center"><input type="radio" name="sr-mode" id="sr-mode-fixed" value="fixed"> Fix Spinning Reserve</label>
-                <label style="font-weight:600;display:flex;gap:6px;align-items:center"><input type="radio" name="sr-mode" id="sr-mode-pv" value="follow_pv"> Follow PV</label>
-              </div>
-              <label class="fld"><span id="sr-fixed-label">Fix Spinning Reserve</span> <span class="u">MW</span><input type="number" step="0.01" min="0" id="f-spinning_reserve_min"></label>
-              <div class="hint" id="sr-sum"></div>
-            </div>
-            <div class="hint" style="margin:6px 0">Fix Spinning Reserve: SR minimum = nilai fix pada 48 row. Follow PV: SR minimum = max(nilai fix sebagai floor, PV[row]); PV kosong/invalid memakai floor (warning audit). PV diisi dari kolom D import IE Prediction &amp; Dispatch dan dapat diedit per 30 menit.</div>
-            <div class="scroll" style="max-height:380px"><table class="data" id="tbl-srpv"></table></div>
-            <div id="sr-pv-chart-wrap" style="display:none;margin-top:14px">
-              <div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline">
-                <span style="font-weight:700;color:#1f2937;font-size:13px">PV (MW) per 30 menit</span>
-                <span class="hint" style="font-size:11.5px">dynamic SR floor saat Follow PV aktif</span>
-              </div>
-              <div id="sr-pv-stats" style="display:flex;flex-wrap:wrap;gap:4px 18px;margin:6px 0 4px;font-size:12px;color:#475569"></div>
-              <div id="sr-pv-chart" style="position:relative;width:100%;height:230px"></div>
-            </div>
-          </div></div>
+        <div class="fcard" id="pv-card"><div class="fh"><span class="fi">☀</span><span class="ft">Spinning Reserve Mode &amp; Follow PV</span><span class="fhint">Effective SR = max(Fix SR, PV) per 30 menit</span></div><div class="fb">
+          <div class="runbar no-print" style="margin-bottom:12px;align-items:center;gap:14px">
+            <b>Pilih mode:</b>
+            <label class="toggle"><input type="radio" name="sr-mode-radio" id="sr-radio-fixed" value="fixed"><span class="tk"></span><span class="tl">Fix Spinning Reserve</span></label>
+            <label class="toggle"><input type="radio" name="sr-mode-radio" id="sr-radio-pv" value="follow_pv"><span class="tk"></span><span class="tl">Follow PV</span></label>
+          </div>
+          <div id="pv-chart-scroll" style="position:relative;overflow-x:auto;overflow-y:hidden;border:1px solid #dbe5ef;border-radius:10px;background:#fff">
+            <canvas id="pv-chart" width="2200" height="330" style="display:block;width:2200px;height:330px;cursor:crosshair"></canvas>
+            <div id="pv-chart-tooltip" style="display:none;position:absolute;z-index:5;pointer-events:none;background:#0f172a;color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:700;box-shadow:0 5px 15px rgba(15,23,42,.25);white-space:nowrap"></div>
+          </div>
+          <div class="scroll" style="max-height:300px"><table class="data" id="tbl-pv"></table></div>
+        </div></div>
       </div>
 
       <!-- D. Gas Data -->
@@ -1296,7 +1275,7 @@ ul.csverr li{margin:2px 0}
               • <b>Start Based On Simulation</b> — unit wajib start minimal satu kali; waktu dipilih optimizer (feasibility &amp; cost). Last Data Status otomatis Stop, Start At kosong.<br>
               • <b>Start Based on Request</b> — unit wajib start pada <b>Start At</b> (cell Start At bertanda kuning/oranye di hasil); mulai berbeban 30&nbsp;menit setelahnya mengikuti startup sequence (G1–G6: 5·30′→15·30′; G8/G9: 40·60′→50·30′→60·60′→70). Last Data Status otomatis Stop.<br>
               • <b>Unit Continuous Running</b> — unit wajib berbeban penuh 00:30–00:00 (tidak boleh stop); Last Data Status otomatis Running; Stop Status &amp; Stop At disabled; backend <code>unit_cannot_stop</code> digenerate otomatis dari mode ini.<br>
-              <b>Stop Status</b>: • <b>Stop Based on Simulation or Unit Continuous Running</b> — dua family dievaluasi penuh: stop pada row legal terbaik vs tetap running sampai 00:00; hanya kandidat hard-valid yang dibandingkan, Cost Production terendah dipilih (Heat Rate tie-break dalam pita 0,2%), bukti STOP_SELECTED / CONTINUOUS_SELECTED. • <b>Unit Continuous Running</b> — sesudah start unit wajib berbeban sampai 00:00 dan tidak pernah menjadi kandidat stop/decommit (min/max load, ramp, fuel, STG tetap berlaku). • <b>Stop Based on Request</b> — unit wajib 0&nbsp;MW pertama kali tepat pada <b>Stop At</b> (cell Stop At berwarna hitam di hasil); row sebelumnya masih berbeban.
+              <b>Stop Status</b>: • <b>Stop Based On Simulation or Continuous Running</b> — waktu stop bebas dipilih optimizer, atau unit tetap running sampai akhir hari (constraint &amp; cost terbaik). • <b>Stop Based on Request</b> — unit wajib 0&nbsp;MW pertama kali tepat pada <b>Stop At</b> (cell Stop At berwarna hitam di hasil); row sebelumnya masih berbeban.
             </div>
           </div></details>
 
@@ -1356,14 +1335,14 @@ ul.csverr li{margin:2px 0}
 
       <!-- persistent run bar -->
       <div class="runbar no-print" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)">
-        <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)"<?= $PP_MISSING ? ' disabled title="Instalasi tidak lengkap"' : '' ?>>▶ Run simulation</button>
+        <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
         <button class="btn ghost" id="btn-save" title="Save Input — menyimpan input ke input_data.json (selalu aktif)">💾 Save</button>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
-        <span class="hint" id="run-msg"><?php if ($PP_MISSING): ?><span id="install-err" style="color:#c0392b"><b>Instalasi tidak lengkap</b> (MISSING_DEPENDENCY): <?= htmlspecialchars(implode(', ', $PP_MISSING)) ?> tidak ditemukan di folder aplikasi. Salin kelima berkas PHP paket; Run dinonaktifkan.</span><?php endif; ?></span>
+        <span class="hint" id="run-msg"></span>
         <label class="tl-target" for="f-tl-target">Target Selesai
-          <select id="f-tl-target" title="Fastest - Default: selesai begitu kandidat fully valid pertama tersedia (bukan bukti global optimum bila exact belum selesai). Pilihan berbatas waktu menampilkan kandidat constraint-valid dengan Cost Production terendah yang sudah ditemukan saat batas tercapai; Maximum Review menjalankan optimasi exact sampai selesai.">
+          <select id="f-tl-target" title="Fastest - Default berhenti pada kandidat priority-constructed pertama yang lolos seluruh constraint dan dinilai dengan CP lalu Heat Rate. Tanpa batas waktu. Maximum Review menjelajah ruang exact penuh.">
             <option value="fast" selected style="background:#ffd54f;color:#5d3a00;font-weight:800">Fastest - Default</option>
             <option value="15" style="background:#fff;color:#1f2937">&lt; 15 detik</option>
             <option value="25" style="background:#fff;color:#1f2937">&lt; 25 detik</option>
@@ -1652,16 +1631,6 @@ function validateMaxLoadRules(){
   return '';
 }
 document.addEventListener('DOMContentLoaded',buildUnitLastStatus);
-/* Preflight deployment (sekali saat halaman dibuka): instalasi tidak siap -> pesan singkat; Run dinonaktifkan bila backend tidak dapat
- * menjalankan simulasi (berkas hilang, folder aplikasi/jobs tidak dapat ditulisi). Folder data tidak dapat ditulisi -> hanya Save dinonaktifkan. */
-document.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('install-err')) return;
-  fetch('run.php?mode=preflight',{cache:'no-store'}).then(r=>r.text().then(t=>[r,t])).then(([r,t])=>{ let j=null; try{ j=JSON.parse(t); }catch(e){}
-    const rm=document.getElementById('run-msg'); const b=document.getElementById('btn-run');
-    if(!j){ if(rm) rm.innerHTML='<span id="install-err" style="color:#c0392b"><b>Server error (HTTP '+r.status+', bukan JSON)</b> pada pemeriksaan instalasi — Run dinonaktifkan.</span>'; if(b) b.disabled=true; return; }
-    window.PP_PREFLIGHT=j; if(j.ok) return;
-    const code=String(j.code||j.error||'?'); const runOk=code==='DATASTORE_NOT_WRITABLE';
-    if(rm) rm.innerHTML='<span id="install-err" style="color:'+(runOk?'#b45309':'#c0392b')+'"><b>'+(runOk?'Penyimpanan tidak dapat ditulisi':'Instalasi belum siap')+'</b> ('+code+') — '+String(j.note||'').replace(/</g,'&lt;')+'</span>';
-    if(!runOk&&b) b.disabled=true; }).catch(()=>{}); });
 const CMP = [];
 
 const UNIT_ORDER = ['b1','b2','g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','ge1','ge2','ge3','ge4'];
@@ -2327,10 +2296,7 @@ const COMMIT_MODES=[['-','-'],['simulation','Start Based On Simulation'],['reque
    optimizer) | Stop Based On Request (waktu ditentukan user) | Stop Based On Simulation or
    Continuous Running (OPTIONAL: optimizer membandingkan stop vs continuous). Enum internal
    'sim_must' baru; 'sim'/'request' dipertahankan agar data lama tetap terbaca. */
-/* Token internal stabil (stop_mode[u].mode): 'cont_end' -> continuous_to_end ("Unit Continuous Running": sesudah start
-   wajib berbeban sampai 00:00, tidak pernah kandidat stop) dan 'sim' -> stop_or_continuous_sim (dua family STOP vs
-   CONTINUOUS dibandingkan, bukti STOP_SELECTED/CONTINUOUS_SELECTED). Token lama 'based_on_sim' tetap terbaca sebagai 'sim'. */
-const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based on Simulation or Unit Continuous Running'],['cont_end','Unit Continuous Running']];
+const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based On Simulation or Continuous Running']];
 const STOPAT_TIMES=(()=>{const a=[];for(let m=30;m<24*60;m+=30){const h=String(Math.floor(m/60)).padStart(2,'0'),mm=String(m%60).padStart(2,'0');a.push(h+':'+mm);}a.push('00:00');return a;})();
 let REQUIRED_ORDER=[];   // units committed via Request/Simulation (run at least once)
 let CANNOT_STOP=[];      // units in Continuous Running (cannot stop) — auto-generated, no UI column
@@ -2353,8 +2319,7 @@ function buildStopModeObj(){
     if(COMMIT_MODE[u]==='continuous') return;                      // continuous: Stop Status/Stop At disabled
     if(STOP_MODE[u]==='request') sm[u]={mode:'stop_at',at:STOP_AT[u]||''};
     else if(STOP_MODE[u]==='sim_must') sm[u]={mode:'based_on_sim_must'};   // mandatory stop
-    else if(STOP_MODE[u]==='sim') sm[u]={mode:'stop_or_continuous_sim'};    // dua family: stop vs continuous
-    else if(STOP_MODE[u]==='cont_end') sm[u]={mode:'continuous_to_end'};     // Unit Continuous Running sampai 00:00
+    else if(STOP_MODE[u]==='sim') sm[u]={mode:'based_on_sim'};              // optional stop-or-continuous
   });
   return sm;
 }
@@ -2469,8 +2434,7 @@ function initUnitFlags(){
     if(COMMIT_MODE[u]==='continuous') STOP_MODE[u]='-';
     else if(smode==='stop_at'){ STOP_MODE[u]='request'; STOP_AT[u]=s.at||s.stop_at||''; }
     else if(smode==='based_on_sim_must') STOP_MODE[u]='sim_must';
-    else if(smode==='based_on_sim'||smode==='stop_or_continuous_sim') STOP_MODE[u]='sim';
-    else if(smode==='continuous_to_end') STOP_MODE[u]='cont_end';
+    else if(smode==='based_on_sim') STOP_MODE[u]='sim';
     else STOP_MODE[u]='-';
   });
   syncFlagArrays();
@@ -2552,33 +2516,6 @@ function activateChild(group,cp){
   document.querySelectorAll(`.childtab[data-child="${group}"]`).forEach(t=>t.classList.toggle('active',t.dataset.cp===cp));
   document.querySelectorAll(`.childpanel[data-child="${group}"]`).forEach(p=>p.classList.toggle('active',p.id===cp));
 }
-/* V12 DISTILLATE PER SEL: persen dari data numerik output (DistPct_/GasPct_ dari engine; DistMix_ sebagai cadangan output lama).
- * 0 % = tanpa biru (warna gas normal), 100 % = biru paling tua, nilai antara = gradasi proporsional. */
-function distPctOf(r,k){ const p=r['DistPct_'+k]; if(p!=null&&p!=='') return Math.max(0,Math.min(100,+p)); const m=+(r['DistMix_'+k]||0); return Math.max(0,Math.min(100,m*100)); }
-function distCellStyle(r,k){
-  const p=distPctOf(r,k)/100; if(!(p>0)) return '';
-  const a=[255,255,255], b=[29,78,216]; const c=a.map((x,i)=>Math.round(x+(b[i]-x)*p));
-  const bd=a.map((x,i)=>Math.round(x+(b[i]-x)*Math.min(1,p+0.15)));
-  return ` style="--dbg:rgb(${c.join(',')});--dfg:${p>=0.55?'#ffffff':'#1e3a8a'};--dbd:rgb(${bd.join(',')})"`;
-}
-function distCellData(r,k){
-  const p=distPctOf(r,k); const g=(r['GasPct_'+k]!=null)?+r['GasPct_'+k]:(100-p);
-  const at=(n,v)=>(v==null||v==='')?'':` data-${n}="${gsfEsc(String(v))}"`;
-  return at('dist-unit',k)+at('dist-time',r.Time)+at('dist-pct',p)+at('gas-pct',g)+at('dist-l',r['Dist_'+k])+at('dist-flow',r['DistFlow_'+k])+at('gas-flow',r['GasFlow_'+k])+at('gas-bbtu',r['GasBBTU_'+k])+at('fuel-src',r['FuelSrc_'+k]);
-}
-function distTipText(td){
-  const d=td.dataset; const f=(v,n)=>(v==null||v==='')?'—':fmt(+v,n);
-  return 'Distillate : '+f(d.distPct,0)+'%\nGas        : '+f(d.gasPct,0)+'%\nDistillate : '+f(d.distL,1)+' l/slot ('+f(d.distFlow,1)+' l/jam)'
-    +'\nGas flow   : '+f(d.gasFlow,4)+' MMSCFD ('+f(d.gasBbtu,4)+' BBTU/slot)\nUnit       : '+(d.distUnit||'—')+'\nTime       : '+(d.distTime||'—')+(d.fuelSrc?'\nSumber     : '+d.fuelSrc:'');
-}
-(function(){
-  let tip=null;
-  const show=(td,e)=>{ if(!tip){ tip=document.createElement('div'); tip.id='dist-tip'; document.body.appendChild(tip); }
-    tip.textContent=distTipText(td); tip.style.display='block';
-    const x=Math.min(window.innerWidth-260,(e.clientX||0)+14), y=Math.min(window.innerHeight-150,(e.clientY||0)+14); tip.style.left=x+'px'; tip.style.top=y+'px'; };
-  document.addEventListener('mouseover',e=>{ const td=e.target&&e.target.closest?e.target.closest('td[data-dist-pct]'):null; if(td){ td.removeAttribute('title'); show(td,e); } else if(tip) tip.style.display='none'; });
-  document.addEventListener('mousemove',e=>{ if(tip&&tip.style.display==='block'){ const td=e.target&&e.target.closest?e.target.closest('td[data-dist-pct]'):null; if(td) show(td,e); else tip.style.display='none'; } });
-})();
 function showSimulationDataResult(){
   const apply=()=>{
     document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.tab==='daily'?'true':'false'));
@@ -3862,6 +3799,21 @@ function val(id,v){const el=$(id);if(el)el.value=(v??'');}
 function chk(id,v){const el=$(id);if(el)el.checked=!!v;}
 function ta(id,obj){const el=$(id);if(el)el.value=JSON.stringify(obj??[],null,1);}
 
+function buildPVTable(){
+  const t=document.getElementById('tbl-pv');if(!t||typeof INPUT==='undefined'||!INPUT)return;
+  const m=INPUT.data3?.modeling||(INPUT.data3.modeling={}),a=Array.isArray(m.pv_rows)?m.pv_rows:Array(48).fill(0),fix=Number(m.sr_fixed_mw??m.spinning_reserve_min??0),mode=m.sr_mode||'fixed';
+  const rf=document.getElementById('sr-radio-fixed'),rp=document.getElementById('sr-radio-pv');if(rf)rf.checked=mode==='fixed';if(rp)rp.checked=mode==='follow_pv';
+  t.innerHTML='<thead><tr><th>TIME</th><th>PV (MW)</th><th>EFFECTIVE SR MIN (MW)</th></tr></thead><tbody>'+Array.from({length:48},(_,i)=>{const tm=pvTimeLabel(i),v=Number(a[i]||0);return `<tr><td>${tm}</td><td><input type="number" step="0.01" data-pv-row="${i}" value="${v}"></td><td data-eff-row="${i}">${(mode==='follow_pv'?Math.max(fix,v):fix).toFixed(2)}</td></tr>`}).join('')+'</tbody>';drawPVChart();
+}
+let PV_CHART_STATE=null;
+function pvTimeLabel(i){const n=(i+1)%48,h=Math.floor(n/2),m=n%2?'30':'00';return String(h).padStart(2,'0')+':'+m;}
+function drawPVChart(hoverIndex=null){const c=document.getElementById('pv-chart');if(!c)return;const x=c.getContext('2d'),d=window.devicePixelRatio||1,w=2200,h=330;c.width=Math.round(w*d);c.height=Math.round(h*d);c.style.width=w+'px';c.style.height=h+'px';x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);const a=Array.from(document.querySelectorAll('[data-pv-row]')).map(e=>Number(e.value)||0);while(a.length<48)a.push(Number(INPUT?.data3?.modeling?.pv_rows?.[a.length]||0));const ml=72,mr=24,mt=22,mb=92,pw=w-ml-mr,ph=h-mt-mb,mx=Math.max(1,...a),yMax=Math.ceil(mx/5)*5||5,px=i=>ml+i*pw/47,py=v=>mt+ph-(v/yMax)*ph;x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#e2e8f0';x.lineWidth=1;x.font='11px sans-serif';x.fillStyle='#64748b';x.textAlign='right';x.textBaseline='middle';for(let j=0;j<=5;j++){const v=yMax*j/5,y=py(v);x.beginPath();x.moveTo(ml,y);x.lineTo(w-mr,y);x.stroke();x.fillText(v.toFixed(v%1?1:0),ml-9,y);}x.strokeStyle='#94a3b8';x.beginPath();x.moveTo(ml,mt);x.lineTo(ml,mt+ph);x.lineTo(w-mr,mt+ph);x.stroke();x.save();x.translate(18,mt+ph/2);x.rotate(-Math.PI/2);x.fillStyle='#334155';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText('PV (MW)',0,0);x.restore();x.fillStyle='#475569';x.font='10px sans-serif';x.textAlign='right';for(let i=0;i<48;i++){const xx=px(i);x.strokeStyle='#cbd5e1';x.beginPath();x.moveTo(xx,mt+ph);x.lineTo(xx,mt+ph+5);x.stroke();x.save();x.translate(xx+2,mt+ph+10);x.rotate(-Math.PI/3);x.fillText(pvTimeLabel(i),0,0);x.restore();}x.fillStyle='#334155';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText('Waktu (interval 30 menit)',ml+pw/2,h-10);x.strokeStyle='#f59e0b';x.lineWidth=2.5;x.beginPath();a.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();x.fillStyle='#f59e0b';a.forEach((v,i)=>{x.beginPath();x.arc(px(i),py(v),2.6,0,Math.PI*2);x.fill();});if(hoverIndex!==null){const xx=px(hoverIndex),yy=py(a[hoverIndex]);x.strokeStyle='#2563eb';x.setLineDash([5,4]);x.beginPath();x.moveTo(xx,mt);x.lineTo(xx,mt+ph);x.stroke();x.setLineDash([]);x.fillStyle='#2563eb';x.beginPath();x.arc(xx,yy,5,0,Math.PI*2);x.fill();}PV_CHART_STATE={values:a,ml,pw,px,py};}
+function pvChartPointer(ev){const c=document.getElementById('pv-chart'),tip=document.getElementById('pv-chart-tooltip');if(!c||!tip||!PV_CHART_STATE)return;const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*2200/r.width,idx=Math.max(0,Math.min(47,Math.round((x-PV_CHART_STATE.ml)*47/PV_CHART_STATE.pw)));drawPVChart(idx);tip.innerHTML='Jam '+pvTimeLabel(idx)+'<br>PV: '+PV_CHART_STATE.values[idx].toFixed(2)+' MW';tip.style.display='block';tip.style.left=Math.min(2070,PV_CHART_STATE.px(idx)+12)+'px';tip.style.top=Math.max(8,PV_CHART_STATE.py(PV_CHART_STATE.values[idx])-54)+'px';}
+document.addEventListener('pointermove',e=>{if(e.target?.id==='pv-chart')pvChartPointer(e)});document.addEventListener('pointerleave',e=>{if(e.target?.id==='pv-chart'){const t=document.getElementById('pv-chart-tooltip');if(t)t.style.display='none';drawPVChart();}},true);
+document.addEventListener('input',e=>{if(e.target.matches?.('[data-pv-row],#f-spinning_reserve_min')){const m=INPUT.data3.modeling,a=Array.from(document.querySelectorAll('[data-pv-row]')).map(x=>Number(x.value)||0),fix=Number(document.getElementById('f-spinning_reserve_min').value)||0;m.pv_rows=a;m.sr_fixed_mw=fix;m.spinning_reserve_min=fix;m.sr_effective_rows=a.map(v=>(m.sr_mode||'fixed')==='follow_pv'?Math.max(fix,v):fix);document.querySelectorAll('[data-eff-row]').forEach((el,i)=>el.textContent=m.sr_effective_rows[i].toFixed(2));drawPVChart();}});
+document.addEventListener('change',e=>{if(e.target?.name==='sr-mode-radio'){INPUT.data3.modeling.sr_mode=e.target.value;buildPVTable();}});
+function csvAOAToText(aoa){return(aoa||[]).slice(0,49).map(r=>(r||[]).slice(0,4).map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');}
+
 function buildPeriodic(){
   const d3=INPUT.data3, m=d3.modeling;
   // unit limits table
@@ -4122,9 +4074,7 @@ function buildFrequent(){
   { const pd=$('f-plan_date'); if(pd) pd.value=(m.plan_date&&/^\d{4}-\d{2}-\d{2}$/.test(m.plan_date))?m.plan_date:new Date().toISOString().slice(0,10); }
   { const rk=$('f-plan_remark'); if(rk) rk.value=m.plan_remark||''; }
   autoNamePlan();   // Name Plan is auto-generated (readonly) from plan_date + plan_remark
-  val('f-house_load',m.house_load); val('f-spinning_reserve_min',(m.sr_fixed_mw!=null&&m.sr_fixed_mw!=='')?m.sr_fixed_mw:m.spinning_reserve_min);
-  try{ srInit(m); }catch(e){}
-  try{ pgnAutoNoteRender(); }catch(e){}
+  val('f-house_load',m.house_load); val('f-spinning_reserve_min',m.sr_fixed_mw??m.spinning_reserve_min); m.sr_mode=m.sr_mode||'fixed'; buildPVTable();
   const p=m.pln_export_priority||{};
   val('f-pln-range-min',p.range?.min); val('f-pln-range-max',p.range?.max); chk('f-pln-range-req',true); // Range is always required
   val('f-pln-dt-val',p.daily_target?.value); chk('f-pln-dt-req',p.daily_target?.required);
@@ -4235,8 +4185,7 @@ function assembleInput(){
   { const pd=$('f-plan_date'); if(pd&&pd.value) m.plan_date=pd.value; }
   { const rk=$('f-plan_remark'); m.plan_remark=rk?rk.value:''; }
   { const nm=computeNamePlan(m.plan_date||'', m.plan_remark||''); m.plan_name=nm; m.name_plan=nm; m.note=nm; }
-  m.house_load=num($('f-house_load').value); m.spinning_reserve_min=num($('f-spinning_reserve_min').value);
-  { const fx=srFixed(); m.sr_mode=SR_MODE; m.sr_fixed_mw=fx; m.spinning_reserve_min=fx; m.pv_rows=SR_PV.slice(0,48); m.sr_effective_rows=srEffectiveRows(); }
+  m.house_load=num($('f-house_load').value); m.spinning_reserve_min=num($('f-spinning_reserve_min').value); m.sr_fixed_mw=m.spinning_reserve_min; m.sr_mode=m.sr_mode||'fixed'; m.pv_rows=Array.from({length:48},(_,i)=>num((document.querySelector('[data-pv-row="'+i+'"]')||{}).value??(m.pv_rows||[])[i]??0)); m.sr_effective_rows=m.pv_rows.map(v=>m.sr_mode==='follow_pv'?Math.max(m.sr_fixed_mw,v):m.sr_fixed_mw); m.sr_fixed_mw=m.spinning_reserve_min; m.sr_mode=m.sr_mode||'fixed'; m.pv_rows=Array.from({length:48},(_,i)=>num((document.querySelector('[data-pv-row="'+i+'"]')||{}).value??(m.pv_rows||[])[i]??0)); m.sr_effective_rows=m.pv_rows.map(v=>m.sr_mode==='follow_pv'?Math.max(m.sr_fixed_mw,v):m.sr_fixed_mw);
   const ddOn=$('f-pln-dd-req').checked;
   const ddRules = ddOn ? DD_RULES.map(r=>({min:num(r.min),max:num(r.max),start:+r.start,stop:+r.stop,required:true})) : [];
   m.pln_export_priority={
@@ -4454,7 +4403,6 @@ let GSF_VO = null;          // hasil job validated_options terakhir
 let GSF_VO_TIMER = null;    // handle polling
 let GSF_VO_JOB = null;      // {job_id, input_hash}
 let GSF_VO_NORES = 0;       // jumlah polling DONE tanpa hasil terbaca
-let GSF_VO_Q0 = 0;          // awal status QUEUED job opsi (watchdog)
 
 function gsfStopPolling(){ if(GSF_VO_TIMER){ clearInterval(GSF_VO_TIMER); GSF_VO_TIMER=null; } }
 
@@ -4583,9 +4531,14 @@ function gsfOpen(dec, info, msgText, vo){
    * ia menyatakan dengan jujur bahwa rekomendasi otomatis tidak tersedia, dan Input Manual serta
    * Batal tetap dapat dipakai. */
   if(!isUnder && !GSF_VO && !GSF_VO_JOB && !(vo && vo.action_status==='CALCULATING_VALIDATED_OPTIONS')){
-    GSF_VO={action_status:'VALIDATION_FAILED',
-      lng:{validated:false,reason:'Validasi otomatis tidak dijalankan untuk request ini — gunakan Input Manual.'},
-      distillate:{validated:false,reason:'Validasi otomatis tidak dijalankan untuk request ini — gunakan Input Manual.'}};
+    /* V15.15: rekomendasi Fastest = kekurangan terbukti + 0,02 BBTUD (gas mendarat di TENGAH window [kuota-0,04 ; kuota], bukan di
+     * tepi yang dapat terlewati pembulatan); Distillate = kebutuhan estimator + 1 % margin penutupan diskret (plafon otorisasi —
+     * engine hanya memakai jumlah legal yang menutup kekurangan, dilaporkan pada hasil final). */
+    const shortB=Number((info||{})['Residual Gas Shortage (BBTUD)']??(info||{})['Gas Shortage (BBTUD)']??gt.residual??0);
+    const recLng=Math.round((Math.max(shortB,Number((info||{})['Recommended LNG (BBTUD)']||0))+0.02)*10000)/10000;let recDist=Number((info||{})['Recommended Distillate (l/day)']??0);if(!(recDist>0))recDist=Number(gsfLitresFromBbtu(recLng,info)||0);
+    recDist=Math.ceil(recDist*1.01/10)*10;
+    if(recLng>0||recDist>0)GSF_VO={action_status:'FASTEST_RECOMMENDATION_READY',provisional_recommendation:true,lng:{validated:recLng>0,validated_amount_bbtud:recLng},distillate:{validated:recDist>0,validated_amount_liter:recDist}};
+    else GSF_VO={action_status:'VALIDATION_FAILED',lng:{validated:false},distillate:{validated:false}};
   }
   gsfRenderOptions(vo || null, isUnder);
   if(!isUnder && GSF_VO_JOB && !GSF_VO) gsfStartPolling();
@@ -4648,7 +4601,11 @@ function gsfRenderOptions(vo, isUnder){
   html += '<div id="gsf-dist-line" style="font-size:14px">Gunakan Distillate: <b>'
        + (disOk ? (gsfFmtLitre(D.validated_amount_liter)+' liter') : 'tidak tersedia')
        + '</b>' + (disOk?'':' <span style="font-size:12px;color:#b45309">— lihat alasan</span>') + '</div>';
-  if(lngOk||disOk)
+  if((lngOk||disOk)&&GSF_VO&&GSF_VO.provisional_recommendation)
+    html += '<div style="font-size:11.5px;color:#1e3a8a;margin-top:8px">Fastest: rekomendasi langsung dari bukti kekurangan gas (seluruh lever dispatch legal habis). '
+         +  'LNG = kekurangan + 0,02 BBTUD (tengah window gas); Distillate = estimasi kebutuhan + 1 % margin penutupan diskret (plafon). '
+         +  'Rencana hasil pilihan Anda divalidasi penuh (hard constraint, gas, Unit Priority, gerbang rilis) sebelum ditampilkan.</div>';
+  else if(lngOk||disOk)
     html += '<div style="font-size:11.5px;color:#166534;margin-top:8px">Angka di atas sudah di-rerun dari input bersih dan terbukti '
          +  'konvergen, seluruh hard constraint valid, dan economic review selesai.</div>';
   if(!lngOk&&L.reason) html+='<div style="font-size:11.5px;color:#7f1d1d;margin-top:8px">'+gsfEsc(L.reason)+'</div>';
@@ -4702,12 +4659,6 @@ function gsfStartPolling(){
         gsfRenderOptions(null,false);
         const d=document.getElementById('gsf-detail-panel'); if(d&&d.dataset.built){ d.dataset.built=''; d.innerHTML=''; }
         return; }
-      /* Watchdog: job opsi yang tidak pernah diklaim (QUEUED) tidak boleh membuat popup menunggu tanpa akhir. */
-      if(job.status==='QUEUED'){ GSF_VO_Q0=GSF_VO_Q0||Date.now(); if(Date.now()-GSF_VO_Q0>60000){ gsfStopPolling(); GSF_VO_Q0=0;
-        GSF_VO={action_status:'VALIDATION_FAILED',lng:{validated:false,reason:'Validasi opsi tidak pernah mulai dalam 60 detik (QUEUED). Gunakan Input Manual atau Run ulang.'},
-          distillate:{validated:false,reason:'Validasi opsi tidak pernah mulai dalam 60 detik (QUEUED). Gunakan Input Manual atau Run ulang.'}};
-        gsfRenderOptions(null,false); return; } } else GSF_VO_Q0=0;
-      if(job.status==='CANCELLED'&&job.fastest_claimed){ gsfStopPolling(); return; }
       if(job.status==='FAILED'||job.status==='CANCELLED'){ gsfStopPolling();
         GSF_VO={action_status:'VALIDATION_FAILED',
           lng:{validated:false,reason:'Validasi gagal: '+((job.error&&job.error.message)||job.status)},
@@ -4865,6 +4816,8 @@ async function gsfRerun(action, amount, unit){
   /* deep copy: form operator TIDAK diubah oleh popup; pilihan baru menjadi milik payload rerun */
   const p=JSON.parse(JSON.stringify(GSF_BASE_PAYLOAD));
   p.data3.modeling.gas_shortage_action=action;
+  delete p.data3.modeling.__fuel_decision_mode;
+  p.data3.modeling.__fuel_decision_mode=action;
   if(action==='add_lng'){
     p.data3.modeling.additional_lng=+amount;
     delete p.data3.modeling.distillate_user_limit_litres;
@@ -4885,12 +4838,13 @@ async function gsfRerun(action, amount, unit){
   p._shortage_resolution={source:'USER_APPROVED_SHORTAGE_RESOLUTION', action:action,
     amount:(amount!=null?+amount:null), unit:unit||null, round:GSF_ROUND, at:new Date().toISOString()};
   const rm=document.getElementById('run-msg');
-  if(rm) rm.innerHTML='<span class="spin"></span> Rerun ronde '+GSF_ROUND+' dengan '+gsfEsc(action)+'…';
+  if(rm) rm.innerHTML='<span class="spin"></span> Rerun ronde '+GSF_ROUND+' dengan '+gsfEsc(action)+'… · mode bahan bakar '+gsfEsc(action)+' · waktu total sejak Run pertama';
   gsfClose();
-  /* rerun keputusan bahan bakar mengikuti target waktu yang dipilih: Fastest - Default tetap Fastest (job ditandai fast; tanpa
-     ini rerun LNG/Distillate berjalan sebagai Maximum Review terselubung: keluarga commitment penuh, terukur 121 kandidat, ~40 s) */
-  const fastFR=(typeof v11RunTarget==='function'?v11RunTarget():(typeof tlTarget==='function'?tlTarget():'max'))==='fast';
-  return await runSimCore(p, {shortage:true,source:'fuel_action_rerun',fastest:fastFR});
+  /* V15.15: rerun bahan bakar mengikuti target terpilih. Fastest = job kandidat fully valid pertama (rute V7 basis + review
+   * Unit Priority), BUKAN pipeline sinkron 25 s tanpa job (terukur: "dihentikan batas waktu ... bb_upfill"). Penanda internal
+   * engine tidak dikirim dari UI. */
+  const rt=tlTarget();p._fast_default=(rt==='fast');p._maximum_review=(rt==='max');ppStripInternalFlags(p);
+  return await runSimCore(p,{shortage:true,source:'fuel_action_rerun',fastDefault:p._fast_default});
 }
 
 /* Setelah rerun berhasil, samakan kontrol form dengan keputusan yang benar-benar dipakai supaya
@@ -4939,7 +4893,6 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
   const expectedRequest=payload._request_id;
   ASYNC_REVIEW[branch]={id,token,request_id:expectedRequest,input_hash:hash};
   if(rm)rm.textContent='Perhitungan eksak sedang diselesaikan…';
-  fastestStart(payload,branch,token,id);   // V12: setiap jalur job (Fastest) dipantau rilis kandidat fully valid pertama
   /* ============================================================================================
    * PERHITUNGAN DIPICU DARI SINI, BUKAN OLEH PROSES OS.
    *
@@ -4958,13 +4911,9 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
     ppFireHelpers(id,tok,job&&job.helpers);
   }
   let tanpaHasil=0;
-  /* WATCHDOG STATUS TERMINAL: polling tidak boleh berjalan tanpa akhir. Job QUEUED (tidak pernah diklaim — request
-   * job_exec hilang/tertahan) dipicu ulang sekali setelah 15 s dan dinyatakan gagal setelah 60 s; job tanpa status
-   * terminal melewati plafon engine + 120 s dinyatakan gagal. Keduanya membatalkan job dan berhenti di sini. */
-  const tWd0=Date.now(); let tQ0=null, refired=false;
   for(let n=0;n<3600;n++){
     /* V10: interval baca status 250 ms selama 60 detik pertama (FINAL tampil <= 0,25 s sesudah job selesai), lalu 1 s. */
-    await new Promise(r=>setTimeout(r,(FASTEST_CTX&&FASTEST_CTX.branch===branch&&FASTEST_CTX.token===token)?600:(n<400?150:1000)));   // V11: 150 ms selama 60 detik pertama   /* V12 Fastest: rilis dibaca fastestPoll; job_poll 600 ms agar polling tidak merebut CPU engine (tanpa OPcache tiap request mengompilasi ~2,2 MB PHP) */
+    await new Promise(r=>setTimeout(r,n<400?150:1000));   // V11: 150 ms selama 60 detik pertama
     const live=ASYNC_REVIEW[branch];
     if(token!==RUN_SEQ[branch]||!live||live.id!==id||live.request_id!==expectedRequest)return true;
     const sr=await fetch('run.php?mode=job_poll&job='+encodeURIComponent(id)
@@ -4978,15 +4927,6 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
     if(!sr.ok||!sj.ok)throw new Error((sj.error&&sj.error.message)||sj.error||'gagal membaca async job');
     if(sj.stale)throw new Error('Async job identity mismatch: '+(sj.stale_reason||'input hash berbeda'));
     const j=sj.job||{};
-    if(j.status==='QUEUED'){ if(tQ0==null) tQ0=Date.now();
-      if(!refired && Date.now()-tQ0>15000 && tok){ refired=true;
-        fetch('run.php?mode=job_exec&job='+encodeURIComponent(id)+'&token='+encodeURIComponent(tok),{cache:'no-store'}).catch(()=>{}); }
-      if(Date.now()-tQ0>60000){ fetch('run.php?mode=job_cancel&job='+encodeURIComponent(id),{cache:'no-store'}).catch(()=>{});
-        throw new Error('job tidak pernah mulai dalam 60 detik (status QUEUED, request job_exec tidak diterima server) — dibatalkan; tekan Run lagi'); } }
-    else tQ0=null;
-    if(!['DONE','FAILED','CANCELLED'].includes(String(j.status||'')) && Date.now()-tWd0>(((+j.ceiling_s)||1800)+120)*1000){
-      fetch('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(id),{cache:'no-store'}).catch(()=>{});
-      throw new Error('job tidak mencapai status terminal dalam plafon engine ('+((+j.ceiling_s)||1800)+' s) — dibatalkan'); }
     const langkah=String(j.current_step||j.status||'').replace(/_/g,' ').toLowerCase();
     if(rm)rm.textContent='Perhitungan eksak: '+langkah+' '+Math.round(+j.percent||0)+'%';
     ppmSetWorker(langkah,j.percent);
@@ -4997,6 +4937,7 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
        * dinyatakan, bukan dengan kalimat "Done". Menyebutnya selesai padahal belum adalah persis
        * jenis kebohongan halus yang membuat rencana tidak final terlihat siap pakai. */
       const rsA=(res.output.info&&res.output.info['Run Status'])||{};
+      if(res.output.status==='TERMINAL_INFEASIBLE'){ gsdHandleNonFinalResult(payload,res.output,null); ASYNC_REVIEW[branch]=null; return true; }   // V15.15: keputusan terminal Fastest
       if(res.economic_review_completed!==true||rsA.converged!==true){
         const sk=rsA.economic_review_skipped||null;
         finalizeSimulationUI(payload,res.output,
@@ -5016,10 +4957,9 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
         ASYNC_REVIEW[branch]=null;return true;
       }
       finalizeSimulationUI(payload,res.output,
-        '<span style="color:#166534">Done. '+(res.mode==='INCREMENTAL'?'Recompute inkremental selesai':'Perhitungan eksak selesai')+' — Anda tidak perlu menjalankan ulang.</span>');
+        '<span style="color:#166534">Done. '+(payload._fast_default?'Fastest - Default selesai':(res.mode==='INCREMENTAL'?'Recompute inkremental selesai':'Perhitungan eksak selesai'))+' — Anda tidak perlu menjalankan ulang.</span>');
       ASYNC_REVIEW[branch]=null;return true;
     }
-    if(j.status==='CANCELLED'&&j.fastest_claimed) return false;   // V12: dirilis oleh Fastest (FASTEST_RELEASE_READY)
     if(j.status==='FAILED'||j.status==='CANCELLED')
       throw new Error((j.error&&j.error.message)||j.error||('job '+j.status));
   }
@@ -5077,7 +5017,6 @@ async function startAsyncEconomicReview(payload,branch,token){
       finalizeSimulationUI(payload,out,'<span style="color:#166534">Done. Economic review exact selesai — Anda tidak perlu menjalankan ulang.</span>');
       ASYNC_REVIEW[branch]=null;return;
     }
-    if(j.status==='CANCELLED'&&j.fastest_claimed) return false;   // V12: dirilis oleh Fastest (FASTEST_RELEASE_READY)
     if(j.status==='FAILED'||j.status==='CANCELLED')
       throw new Error((j.error&&j.error.message)||j.error||('job '+j.status));
   }
@@ -5163,21 +5102,14 @@ async function runSim(){
      pendahuluan, engine menjalankan add_lng yang pasti menyisakan kekurangan lalu ditolak, alih-alih
      membentuk bahan bakar campuran. Pendahuluan menjadikan ketiga keputusan (cukup, kurang, kosong)
      dapat dibedakan sebelum rerun final dijalankan. */
-  /* REQUIRED START + GAS SHORTAGE (root cause "engine selesai, UI menunggu"): `Use distillate` yang SUDAH dipilih
-   * operator DIKIRIM LANGSUNG ke backend dalam SATU job. Dahulu pilihan ini diubah menjadi `recommendation`
-   * (job pendahuluan), lalu UI menjalankan rerun kedua dengan jumlah rekomendasi job pertama sebagai plafon —
-   * dua pipeline + keluarga basis yang dibuang, dan rerun ditolak bila kebutuhan Distillate rencana bahan bakar
-   * sedikit lebih besar dari rekomendasi basis tanpa bahan bakar. Engine menghitung sendiri kebutuhan Distillate
-   * (alokasi satu-unit-dulu); `Distillate limit` diisi = plafon operator (dihormati, residual dinyatakan terminal),
-   * kosong = tanpa plafon. Add LNG tetap melewati analisis pendahuluan (jumlah LNG perlu kebutuhan terukur). */
   var __pending = null;
-  if(__act==='add_lng') { __pending=__act; __act='recommendation'; }
+  if(__act==='add_lng' || __act==='use_distillate') { __pending=__act; __act='recommendation'; }
   try{ GSD_PENDING_CHOICE = __pending; }catch(e){}
 
   payload.data3.modeling.gas_shortage_action=__act;
   payload.data3.modeling.additional_lng = (__act==='add_lng') ? __lngAmt : 0;
   delete payload.data3.modeling.distillate_user_limit_litres;
-  if(__act==='use_distillate' && isFinite(__distAmt) && __distAmt>0) payload.data3.modeling.distillate_user_limit_litres = __distAmt;
+  if(__act==='use_distillate') payload.data3.modeling.distillate_user_limit_litres = __distAmt;
   GSF_BASE_PAYLOAD=JSON.parse(JSON.stringify(payload));
   delete payload.data3.modeling.validated_options;
   delete payload.data3.modeling.validated_shortage_options;
@@ -5187,7 +5119,6 @@ async function runSim(){
   delete payload._shortage_resolution;
   delete payload._validated_option;
   delete payload._run_source;
-  if(PGN_REC_NEXT){ payload._run_source='pgn_auto_correction'; PGN_REC_NEXT=false; }   // satu rerun otomatis, tanpa loop koreksi
   try{ ASYNC_REVIEW.plan=null; ASYNC_REVIEW.monitoring=null; }catch(e){}
   if(typeof gsfStopPolling==='function') gsfStopPolling();
   GSF_VO=null; GSF_VO_JOB=null;
@@ -5195,20 +5126,19 @@ async function runSim(){
   /* V3: setiap klik Run menyimpan payload INI ke input_data.json lebih dulu (atomik, di server,
    * dalam request yang sama). Rerun dari popup keputusan bahan bakar tidak membawa penanda ini. */
   payload._autosave=true;
+  V11_WORKFLOW_T0=performance.now();
   const __tl=tlTarget();
-  if(__tl==='fast') return runSimCore(payload, {fastest:true});
-  if(__tl!=='max') return runTimeLimited(payload, +__tl);
-  return runSimCore(payload, {});
+  ppStripInternalFlags(payload);
+  if(__tl==='fast'){payload._fast_default=true;payload._maximum_review=false;return runSimCore(payload,{fastDefault:true});}   // V15.15: job Fastest (kandidat fully valid pertama)
+  if(__tl!=='max') return runTimeLimited(payload,+__tl);
+  return runSimCore(payload,{});
 }
 /* Maximum Review: keluarga commitment (bagian ruang kandidat exact) mulai dievaluasi bersamaan dengan
  * pipeline exact. Node yang selesai disimpan di registri bersama state ini, sehingga tahap akhir job
  * exact memakai ulang hasilnya alih-alih menghitung ulang. */
 var TL_MAX_RID=null; var TL_FINAL_TOKEN=null;
 /* V11: awal run (performance.now) untuk Waktu aktual SUMMARY, dan penanda SUMMARY sudah ditulis jalur Target Selesai. */
-var V11_RUN_T0=null; var V11_SUM_DONE=false;
-/* Target yang BENAR-BENAR dijalankan run ini (dicatat saat klik Run). Label hasil memakai nilai ini, bukan isi dropdown saat render,
- * sehingga Fastest tidak pernah tampil sebagai Maximum Review (atau sebaliknya) secara diam-diam. */
-var V11_RUN_TARGET=null; function v11RunTarget(){ return V11_RUN_TARGET||tlTarget(); }
+var V11_RUN_T0=null; var V11_WORKFLOW_T0=null; var V11_SUM_DONE=false;
 function tlWinnerLabel(sp){
   const n=String((sp&&sp.winner_node)||''); const src=String((sp&&sp.winner_source)||'PIPELINE');
   if(src==='INCREMENTAL') return 'recompute inkremental ('+(sp.commitment_unchanged===false?'commitment berganti ke kandidat ruang exact sebelumnya':'commitment final terakhir dipertahankan')+')';
@@ -5576,123 +5506,8 @@ function gsdAutoResolveIfChosen(payload,data){
  * keputusan bahan bakar, operator justru kehilangan satu-satunya jalan untuk memutuskannya.
  * Satu tempat ini dipakai oleh jalur sinkron maupun jalur worker background, supaya perilakunya
  * tidak bisa berbeda antar-jalur. */
-/* KEPUTUSAN TERMINAL BACKEND (sertifikat feasibility): input tidak mempunyai rencana valid. Ditampilkan sebagai
- * hasil akhir run — tidak ada polling, popup bahan bakar, maupun rerun otomatis; tombol Run aktif kembali. */
-function gsdTerminalDecisionHtml(data){
-  const d=data.terminal_decision||{}; const c=d.certificate||{}; const g=d.gas||{}; const ds=d.distillate||{}; const st=d.startup||{};
-  if(d.kind==='fixed_flow_first'||d.kind==='fixed_flow_first_budget'){ const r=d.pgn_recommendation||{}; const rd=r.redistribution||{};
-    return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||''))+'</b> — '+gsfEsc(String(d.summary||''))
-      +(rd.limiting_constraint?(' Limiting constraint: '+gsfEsc(String(rd.limiting_constraint))+'.'):'')+' Save/Export/Publish terkunci.</span>'; }
-  const f=(v,n)=>(v==null||!isFinite(+v))?'—':(+v).toLocaleString('id-ID',{maximumFractionDigits:n==null?3:n});
-  const su=Object.keys(st).filter(u=>st[u]&&st[u].required).map(u=>u+' row '+st[u].first_load_row+' ('+(st[u].first_rows_mw||[]).slice(0,6).join(', ')+' MW)').join('; ');
-  return '<span style="color:#c0392b"><b>'+gsfEsc(String(d.code||data.status||'TIDAK FEASIBLE'))+'</b> — keputusan terminal, TIDAK FEASIBLE secara matematis. '
-    +((c.rows&&c.rows.length>1)?('Constrained period '+gsfEsc(String((c.period||{}).label||''))+' (row '+gsfEsc(c.rows.join(','))+'); '):'')
-    +'Row '+gsfEsc(String(c.row||'?'))+' ('+gsfEsc(String(c.time||''))+'): FLOW PGN REAL TIME maksimum '+f(c.max_achievable_flow_mmscfd)+' &lt; Min PGN Flow '+f(c.min_pgn_flow_mmscfd,2)
-    +' MMSCFD (kurang '+f(c.deficit_mmscfd)+' MMSCFD ≈ '+f(c.deficit_mw_equivalent,1)+' MW unit gas); unit online row '+gsfEsc(String(c.row||1))+': '+gsfEsc((c.units_online_row1||[]).map(o=>o.unit+' maks '+o.max_mw+' MW').join(', ')||'-')
-    +'; required start paling awal '+gsfEsc(((c.required_start_earliest||[]).map(e=>e.unit+' row '+e.earliest_load_row).join(', '))||'row 2')+' (Last Data = Stop). Gas: kuota '+f(g.quota_bbtud,2)+', kebutuhan '+f(g.required_bbtud,4)+', kekurangan '+f(g.shortage_bbtud,4)+' BBTUD. '
-    +'Distillate ('+gsfEsc(String(ds.action||'-'))+'): plafon '+f(ds.user_limit_litres,1)+' l, kebutuhan '+f(ds.required_litres,0)+' l, terjadwal '+f(ds.scheduled_litres,1)+' l; Distillate tidak menaikkan flow PGN. '
-    +(su?('Startup required (pratinjau): '+gsfEsc(su)+'. '):'')
-    +'Feasible bila: '+gsfEsc((c.feasible_if||[]).join('; '))+'. '
-    +((d.pgn_recommendation&&d.pgn_recommendation.code==='PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE')?(()=>{ const r=d.pgn_recommendation.redistribution||{};
-      const cp=r.constrained_period||{}; const ev=r.recipient_rows_evaluated_range||null;
-      return '<br><b>PGN_FIXED_FLOW_REDISTRIBUTION_NOT_FEASIBLE</b> — automatic correction not applied (no partial change). Constrained period: '+gsfEsc(String(cp.from||''))+(cp.to&&cp.to!==cp.from?'–'+gsfEsc(String(cp.to)):'')
-        +' (row '+gsfEsc((cp.rows||[]).join(','))+'); volume to move: '+f(r.total_reduction_mmscfd_rows,4)+' MMSCFD-slot ('+f(r.total_reduction_volume_mmscf,6)+' MMSCF); safe recipient capacity: '+f(r.total_safe_capacity_mmscfd_rows,4)
-        +' MMSCFD-slot ('+gsfEsc(String(r.recipient_rows_evaluated))+' later rows evaluated'+(ev?(', row '+ev[0]+'–'+ev[1]):'')+'); unallocated: '+f(r.deficit_mmscfd_rows,4)+' MMSCFD-slot ('+f(r.unallocated_volume_mmscf,6)+' MMSCF); limiting constraint: '
-        +gsfEsc(String(r.limiting_constraint||'-'))+'. Daily quota unchanged. '; })():'')
-    +'Save/Export/Publish terkunci.</span>';
-}
-/* ===================== PGN MINIMUM-FLOW CORRECTION (otomatis, tanpa popup) =====================
- * Backend membuktikan periode terkendala (sertifikat 8 syarat) dan menghitung koreksi: Fixed Flow JBBK row terdampak
- * diturunkan seminimal mungkin, volume yang sama dibagi RATA (water-filling) ke row aman SESUDAH periode itu (total harian
- * identik), diverifikasi engine + validator. UI langsung menerapkan 48 nilai sebagai Manual Fixed Flow JBBK, menyimpan audit
- * (correction_mode=automatic) di modeling.pgn_fixed_flow_recommendation_applied, lalu menjalankan ulang SATU kali
- * (_run_source=pgn_auto_correction). Rerun yang masih terkendala tidak dikoreksi lagi (tanpa loop) -> keputusan terminal. */
-let PGN_REC_NEXT=false;
-const PGN_AUTO_MSG='PGN minimum-flow correction applied automatically. Fixed Flow JBBK was reduced during the constrained period and redistributed to later safe periods. The daily total remains unchanged.';
-function pgnF2(v){ return (v==null||!isFinite(+v))?'—':(+v).toFixed(2); }
-function pgnF4(v){ return (v==null||!isFinite(+v))?'—':(+v).toFixed(4); }
-function pgnAuditOf(m){ const a=m&&m.pgn_fixed_flow_recommendation_applied; return (a&&typeof a==='object'&&Array.isArray(a.fixed_flow_after))?a:null; }
-/* Catatan informasi (bukan permintaan persetujuan): ringkasan + detail per row yang dapat dibuka. */
-function pgnAutoNoteRender(){
-  let el=document.getElementById('pgn-auto-note');
-  const a=pgnAuditOf(INPUT&&INPUT.data3&&INPUT.data3.modeling);
-  if(!el){ const rb=document.querySelector('.runbar'); if(!rb||!rb.parentNode) return; el=document.createElement('div'); el.id='pgn-auto-note'; el.className='no-print';
-    el.style.cssText='margin-top:8px;font-size:12.5px;line-height:1.55;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 10px;color:#1e3a8a'; rb.parentNode.insertBefore(el,rb.nextSibling); }
-  if(!a||a.correction_mode!=='automatic'){ el.style.display='none'; el.innerHTML=''; return; }
-  const rc=a.recipient_rows||[], sr=a.source_rows||[]; const adds=rc.map(x=>+x.additional_mmscfd);
-  const pa=Array.isArray(a.pgn_flow_after)?a.pgn_flow_after:null;
-  el.style.display='block';
-  /* audit tetap tersimpan; bila Fixed Flow JBBK sesudahnya diedit manual, catatan menyatakan bahwa koreksi sudah tidak berlaku */
-  let stale=false; try{ const cur=Array(48).fill(null); (FF_ROWS||[]).forEach(e=>{ if((e.area||'')==='JABABEKA'&&+e.row>=1&&+e.row<=48) cur[+e.row-1]=+e.value_mmscfd; });
-    for(let k=0;k<48;k++){ const af=+a.fixed_flow_after[k], bf=+a.fixed_flow_before[k]; const v=cur[k]==null?bf:cur[k]; if(Math.abs(v-af)>1e-6){ stale=true; break; } } }catch(e){}
-  el.innerHTML=(stale?'<span style="color:#b45309">[superseded — Fixed Flow JBBK was edited after this correction; audit kept for reference]</span><br>':'')+'<b>'+gsfEsc(PGN_AUTO_MSG.split('. ')[0])+'.</b> '+gsfEsc(PGN_AUTO_MSG.split('. ').slice(1).join('. '))
-    +'<br>Constrained period: <b>'+gsfEsc(String((a.constrained_period&&a.constrained_period.label)||sr.map(x=>x.time).join(', ')))+'</b> ('+sr.length+' row) · Fixed Flow JBBK '
-    +gsfEsc(sr.map(x=>pgnF2(x.fixed_flow_before)+' → '+pgnF2(x.fixed_flow_after)).filter((v,i,A)=>A.indexOf(v)===i).join(', '))+' MMSCFD'
-    +' · Recipient: <b>'+rc.length+' row</b> '+(rc.length?('('+gsfEsc(rc[0].time)+'–'+gsfEsc(rc[rc.length-1].time)+', +'+pgnF4(Math.min(...adds))+' … +'+pgnF4(Math.max(...adds))+' MMSCFD, water-filling)'):'')
-    +'<br>Daily total: '+pgnF4((a.daily_total_before||{}).mmscfd)+' → '+pgnF4((a.daily_total_after||{}).mmscfd)+' MMSCFD ('+((a.daily_total_before||{}).mmscf!=null?(+a.daily_total_before.mmscf).toFixed(6):'—')+' → '
-    +((a.daily_total_after||{}).mmscf!=null?(+a.daily_total_after.mmscf).toFixed(6):'—')+' MMSCF, difference '+String(a.daily_total_difference_mmscf)+' MMSCF, tolerance '+String(a.tolerance_mmscf)+')'
-    +' · PGN flow source rows: '+gsfEsc(sr.map(x=>{ const k=x.row-1; const b=Array.isArray(a.pgn_flow_before)?a.pgn_flow_before[k]:null; const f=pa?pa[k]:null; return x.time+' '+pgnF2(b)+' → '+(f==null?'(rerun)':pgnF2(f)); }).join(', '))
-    +' MMSCFD (min '+pgnF2(a.min_pgn_flow_mmscfd)+') · Rerun: '+String(a.rerun_count||0)+'× · Validation: '+gsfEsc(String((a.constraint_validation||{}).status||'—'))
-    +'<details style="margin-top:4px"><summary>Per-row detail ('+(rc.length+sr.length)+' rows)</summary><table class="mini" id="pgn-auto-rows" style="margin-top:6px"><tr><th>Row</th><th>Time</th><th>Role</th><th>Before</th><th>After</th><th>Change</th><th>Safe capacity</th></tr>'
-    +sr.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>source</td><td>'+pgnF4(x.fixed_flow_before)+'</td><td>'+pgnF4(x.fixed_flow_after)+'</td><td>-'+pgnF4(x.reduction_mmscfd)+'</td><td>—</td></tr>').join('')
-    +rc.map(x=>'<tr><td>'+x.row+'</td><td>'+x.time+'</td><td>recipient</td><td>'+pgnF4(x.fixed_flow_before)+'</td><td>'+pgnF4(x.fixed_flow_after)+'</td><td>+'+pgnF4(x.additional_mmscfd)+'</td><td>'+pgnF4(x.safe_capacity_mmscfd)+(x.capped?' (capped)':'')+'</td></tr>').join('')
-    +'</table></details>';
-}
-/* Hasil rerun koreksi: pgn_flow_after (48 nilai dari Simulation Data) + rerun_count = 1 dicatat di audit. */
-function pgnAutoRecordResult(o){
-  try{ const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; const a=pgnAuditOf(m); if(!a||a.correction_mode!=='automatic'||!o||!Array.isArray(o.data)||o.data.length!==48) return;
-    if(a.rerun_pending===true){ a.pgn_flow_after=o.data.map(r=>r&&r.Flow_PGN_RT!=null?+(+r.Flow_PGN_RT).toFixed(4):null); a.rerun_count=1; a.rerun_pending=false; a.rerun_result=String(o.result_label||o.status||(o.time_limited?'FASTEST':'FINAL')); }
-  }catch(e){}
-  try{ pgnAutoNoteRender(); }catch(e){}
-}
-function pgnAutoApply(payload,data,rec){
-  const at=new Date().toISOString(); const rd=rec.redistribution||{};
-  const after=(rd.fixed_flow_after||[]).map(Number), before=(rd.fixed_flow_before||[]).map(Number);
-  const rm=document.getElementById('run-msg');
-  if(after.length!==48||before.length!==48){ if(rm) rm.innerHTML='<span style="color:#c0392b">PGN minimum-flow correction: backend tidak mengirim 48 nilai — tidak diterapkan.</span>'; const b=document.getElementById('btn-run'); if(b) b.disabled=false; return; }
-  const changed=[];
-  for(let k=0;k<48;k++){ if(Math.abs(after[k]-before[k])>1e-9||(rd.source_rows||[]).some(x=>x.row===k+1)){ setFixedFlow('JABABEKA',k,after[k]); changed.push(k+1); } }
-  const sh=Array.isArray(rd.slot_hours)&&rd.slot_hours.length===48?rd.slot_hours.map(Number):Array(48).fill(0.5);
-  let vb=0,va=0; for(let k=0;k<48;k++){ vb+=before[k]*sh[k]/24; va+=after[k]*sh[k]/24; }
-  const sb=before.reduce((x,y)=>x+y,0), sa=after.reduce((x,y)=>x+y,0);
-  const audit={schema:'co12-pgn-fixed-flow-correction-v3',correction_mode:'automatic',applied_at:at,user_decision:'AUTOMATIC',round:1,
-    constrained_period:rec.constrained_period||null,source_rows:rd.source_rows||[],recipient_rows:rd.recipient_rows||[],changed_rows:changed,
-    recipient_period:rd.recipient_period||null,method:rd.method||'water_filling_equal',water_filling:rd.water_filling||null,earlier_rows_used_reason:rd.earlier_rows_used_reason||null,
-    fixed_flow_before:before,fixed_flow_after:after,slot_hours:sh,
-    redistributed_volume:{mmscfd_rows:rd.redistributed_mmscfd_rows,mmscf:rd.redistributed_volume_mmscf},
-    daily_total_before:{mmscfd:+(sb/48).toFixed(6),mmscf:+vb.toFixed(6)},daily_total_after:{mmscfd:+(sa/48).toFixed(6),mmscf:+va.toFixed(6)},
-    daily_total_difference_mmscf:+(va-vb).toFixed(9),tolerance_mmscf:rd.tolerance_mmscf!=null?rd.tolerance_mmscf:1e-6,
-    pgn_flow_before:Array.isArray(rec.pgn_flow_before)?rec.pgn_flow_before:null,pgn_flow_after:null,expected_pgn_flow_after:rd.pgn_flow_after_verification||null,
-    rerun_count:0,rerun_pending:true,constraint_validation:rd.constraint_validation||null,constraint_proof:rec.constraint_proof||null,
-    recommended_fixed_flow_by_row:rec.recommended_fixed_flow_by_row||null,recommended_max_fixed_flow_mmscfd:rec.recommended_max_fixed_flow_mmscfd,
-    required_reduction_mmscfd:rec.required_reduction_mmscfd,min_pgn_flow_mmscfd:rec.min_pgn_flow_mmscfd,periods:(rec.periods||[]).map(p=>p.label),
-    expected_pgn_min_after_mmscfd:rd.expected_pgn_min_after_mmscfd,verification:rec.verification||null};
-  try{ if(INPUT&&INPUT.data3&&INPUT.data3.modeling){ INPUT.data3.modeling.manual_fixed_flows=(FF_ROWS||[]).map(e=>({area:e.area,row:+e.row,value_mmscfd:+e.value_mmscfd}));
-    INPUT.data3.modeling.pgn_fixed_flow_recommendation_applied=audit; } }catch(e){}
-  try{ if(typeof renderFixedFlowTable==='function') renderFixedFlowTable(); }catch(e){}
-  PGN_REC_NEXT=true;
-  if(rm) rm.innerHTML='<span class="spin"></span> '+gsfEsc(PGN_AUTO_MSG)+' Running the corrected simulation once…';
-  try{ pgnAutoNoteRender(); }catch(e){}
-  setTimeout(()=>{ try{ runSim(); }catch(e){} },0);
-}
 function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
   gsdHoldPreliminary(payload,data);
-  if(data && data.terminal_decision && data.terminal_decision.terminal===true){
-    try{ V11_SUM_DONE=true; }catch(e){}
-    if(typeof ppmClose==='function') ppmClose();
-    if(typeof gsfStopPolling==='function') gsfStopPolling();
-    /* PGN minimum-flow correction OTOMATIS: hanya bila backend membuktikan seluruh alternatif legal habis (available) dan
-     * run ini BUKAN rerun hasil koreksi (tidak ada loop koreksi; rerun yang masih terkendala -> terminal). */
-    const rec=data.pgn_recommendation||null;
-    if(rec && rec.available===true && !(payload && payload._run_source==='pgn_auto_correction')){
-      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
-      pgnAutoApply(payload,data,rec); return;
-    }
-    const rmT=document.getElementById('run-msg');
-    if(rmT) rmT.innerHTML=gsdTerminalDecisionHtml(data);   // tanpa prefiks "Done": ini keputusan terminal, bukan rencana
-    try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
-    return;
-  }
   const dec=data.shortage_decision||null;
   /* Popup HANYA dibuka ketika backend sendiri menyatakan estimasi bahan bakarnya sudah siap
    * (status keputusan bahan bakar). `shortage_decision.action_required` TIDAK cukup: pada hasil
@@ -5713,7 +5528,7 @@ function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
     return;
   }
   if(rmG) rmG.innerHTML=(extraMsgHtml!=null?(extraMsgHtml+'<br>'):'')
-    +'<span style="color:#b45309"><b>Hasil BELUM final.</b> '
+    +'<span style="color:'+(data.status==='TERMINAL_INFEASIBLE'?'#c0392b':'#b45309')+'"><b>'+(data.status==='TERMINAL_INFEASIBLE'?'KEPUTUSAN TERMINAL — TIDAK FEASIBLE.':((payload._fast_default&&data.shortage_decision)?'FASTEST membutuhkan keputusan bahan bakar.':'Hasil BELUM final.'))+'</b> '
     +gsfEsc(String(data.preliminary_note||data.message
       ||'Backend menyatakan hasil ini belum boleh disimpan atau diterbitkan.'))
     +' Save/Export/Publish terkunci.</span>';
@@ -5735,7 +5550,9 @@ function gsdHandleNonFinalResult(payload,data,extraMsgHtml){
    *
    * Bila permintaannya gagal, popup TETAP dibuka dengan sebab yang dinyatakan — operator masih
    * dapat memakai Input Manual dan Batal, bukan berhadapan dengan layar diam. */
-  if(!data.validated_options_job && data.validated_options_required===true){
+  /* V15.15 Fastest: rekomendasi bahan bakar langsung dari bukti shortage (tanpa job opsi tervalidasi yang menjalankan ulang
+   * pipeline penuh per opsi); rerun pilihan operator divalidasi penuh oleh gerbang rilis yang sama. */
+  if(!data.validated_options_job && data.validated_options_required===true && !payload._fast_default){
     /* Popup dibuka dalam status MENGHITUNG — bukan "tidak tersedia" — sementara job diminta. */
     gsfOpen(dec,data.info||{},'',{action_status:'CALCULATING_VALIDATED_OPTIONS'});
     fetch('run.php?mode=job_start&kind=validated_options',
@@ -5768,7 +5585,7 @@ function gsdProvisionalBanner(data){
   const oldB=document.getElementById('prov-banner'); if(oldB) oldB.remove();
   const fam=/keluarga/.test(String((data.provisional_basis||{}).commitment_from||''));
   const cF=v11Counters(data);
-  const st={target:v11RunTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:cF?cF.candidates_checked:0,valid:cF?cF.candidates_valid:0,
+  const st={target:tlTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,evaluated:cF?cF.candidates_checked:0,valid:cF?cF.candidates_valid:0,
     cp:ii['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
   tlBanner('VALID PROVISIONAL — EXACT COST OPTIMIZATION IN PROGRESS','amber',st,
     (fam?'Kandidat valid terbaik ruang kandidat exact yang sudah dievaluasi':'Commitment hasil final terakhir dipakai ulang')+'; seluruh hard constraint, '
@@ -5802,11 +5619,11 @@ function finalizeSimulationUI(payload,data,messageHtml){
      * ditolak — dan alasan penolakan exact dinyatakan apa adanya. */
     const d=gsdProvisionalDiff(GSD_PROVISIONAL.data,data);
     const rg=data.release_gate||{}; const why=(rg.blocking_reasons||[]).join(', ')||String(data.preliminary_reason||'');
-    /* Diagnostik gate (diambil dari kandidat Copilot, tanpa field Change Over): status hard, tipe pelanggaran, status ekonomi. */
     const ar=data.simulation_acceptance_review||data.acceptance_review||{}; const hv=ar.hard_validation||{}; const er=ar.economic_review||{};
     const vtypes=Object.keys(hv.types||{}).map(k=>k+':'+hv.types[k]).join(', ');
     const diag=((hv.status&&hv.status!=='PASS')||er.status==='REVIEW_NOT_PROVEN')
-      ?(' · Detail: hard='+String(hv.status||'-')+(vtypes?', violations='+vtypes:'')+', economic='+String(er.status||'-')+', evaluated='+String(er.candidates_evaluated??'-')+', eligible='+String(er.eligible_candidates??'-')):'';
+      ?(' · Detail: hard='+String(hv.status||'-')+', canonical='+String(hv.canonical_hard_status||'-')+', CO executed='+String(hv.change_over_executed||false)
+        +(vtypes?', violations='+vtypes:'')+', economic='+String(er.status||'-')+', evaluated='+String(er.candidates_evaluated??'-')+', eligible='+String(er.eligible_candidates??'-')):'';
     const viol=((data.simulation_acceptance_review||{}).hard_validation||{}).violations||[];
     const v0=viol.length?(Array.isArray(viol[0])?String(viol[0][1]||viol[0][0]):JSON.stringify(viol[0])):'';
     GSD_EXACT_BLOCKED=data;
@@ -5853,7 +5670,7 @@ function finalizeSimulationUI(payload,data,messageHtml){
       const spOk=(!sp||sp.family_complete!==false)&&!(data.tl_pool&&data.tl_pool.better===true);
       const incR=ii['Incremental Recompute']; const isInc=!!(incR&&incR.applied===true);
       const cF=v11Counters(data);
-      const st={target:v11RunTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,
+      const st={target:tlTarget(),elapsed:V11_RUN_T0!=null?(performance.now()-V11_RUN_T0)/1000:0,
         evaluated:cF?cF.candidates_checked:(gcr.candidates_evaluated||0),valid:cF?cF.candidates_valid:0,
         cp:ii['Cost Production (USD/MWh)'],checks_ok:true,proven:spOk};
       let det=(isInc?('Recompute inkremental selesai dalam '+fmt(incR.wall_s,1)+' s ('+(incR.rows_recomputed)+' row dihitung ulang, '+(incR.rows_reused_identical)+' row dipakai ulang; '+(incR.candidates_evaluated)+' kandidat pesaing dievaluasi)'):'Optimasi exact selesai')
@@ -5861,8 +5678,11 @@ function finalizeSimulationUI(payload,data,messageHtml){
         +(sp?(isInc?'; ruang kandidat inkremental: commitment final terakhir + '+Math.max(0,(sp.family_nodes||1)-1)+' kandidat ruang exact sebelumnya ('+(sp.far_candidates_excluded||0)+' kandidat lain tidak terjangkau perubahan ini); pemenang: '+tlWinnerLabel(sp)
                 :'; ruang kandidat exact: pipeline + keluarga commitment '+(sp.family_nodes||0)+' node + '+(sp.registry_valid_candidates!=null?sp.registry_valid_candidates:(sp.family_valid||0))+' kandidat valid terdaftar; pemenang: '+tlWinnerLabel(sp)):'')
         +'; ruang kandidat '+(isInc?'inkremental':'exact')+(spOk?' lengkap':' belum lengkap')+'.<br>'+v11StatusDetail(data);
-      if(st.target==='fast') det='<b>Fastest - Default</b>: kandidat pertama tidak lolos gerbang fully valid Fastest, sehingga job yang sama menyelesaikan perhitungan exact (target tetap Fastest, tidak diubah menjadi Maximum Review).<br>'+det;
       let title='FINAL OPTIMAL', color='green';
+      /* V15.15: hasil job Fastest = kandidat fully valid pertama + review Unit Priority; bukan bukti optimum global. */
+      const rsFz=ii['Run Status']||{};
+      if(rsFz.fastest===true){ title='FASTEST VALID PLAN'; st.proven=false;
+        det='Fastest - Default: kandidat fully valid pertama ('+gsfEsc(String(rsFz.mode||''))+') + review Unit Priority per 30 menit; hard constraint, gas, Export, Bus Flow, SR, STG dan gerbang rilis PASS. Global optimum tidak dibuktikan (pilih Maximum Review untuk itu).<br>'+v11StatusDetail(data); }
       /* Kandidat valid yang lebih murah dari Target Selesai untuk state ini TIDAK disembunyikan:
        * hasil exact tetap FINAL, tetapi selisihnya dinyatakan apa adanya. */
       const tp=data.tl_pool;
@@ -5875,7 +5695,7 @@ function finalizeSimulationUI(payload,data,messageHtml){
         title='FINAL OPTIMAL — CATATAN KANDIDAT LEBIH MURAH'; color='amber';
       }
       tlBanner(title,color,st,det+v11AuditExtra(data));
-      if(rm && !/v11-rm/.test(rm.innerHTML)) rm.innerHTML+=(rm.innerHTML?' ':'')+'<span class="v11-rm" style="color:#166534">· <b>FINAL OPTIMAL</b> — '+tlSummaryHtml(st)+'</span>';
+      if(rm && !/v11-rm/.test(rm.innerHTML)) rm.innerHTML+=(rm.innerHTML?' ':'')+'<span class="v11-rm" style="color:#166534">· <b>'+gsfEsc(title)+'</b> — '+tlSummaryHtml(st)+'</span>';
     }
   }catch(e){ try{ console.error('V11 SUMMARY',e); }catch(_){} }
 }
@@ -5890,7 +5710,10 @@ function finalizeSimulationUI(payload,data,messageHtml){
  *  ditampilkan: bila belum ada kandidat valid, yang tampil adalah NO VALID RESULT WITHIN TIME
  *  LIMIT dan job exact dibiarkan selesai supaya alur Gas Shortage tetap berjalan seperti biasa.
  * ============================================================================================= */
-function tlTarget(){ const s=document.getElementById('f-tl-target'); const v=s?String(s.value):'fast'; return ['fast','15','25','35','45','55','60'].indexOf(v)>=0?v:'max'; }
+/* V15.15: penanda kontrol internal engine (mis. __no_exact_family, __fastest_local_only) yang pernah ikut tersimpan di
+ * input_data.json tidak boleh dikirim ulang: pada Maximum Review penanda basi itu diam-diam mematikan keluarga commitment. */
+function ppStripInternalFlags(p){ try{ const m=p&&p.data3&&p.data3.modeling; if(!m) return; ['__no_exact_family','__fastest_local_only','__no_async_handoff','__tl_no_auto_start'].forEach(k=>{ delete m[k]; }); }catch(e){} }
+function tlTarget(){const s=document.getElementById('f-tl-target'),v=s?String(s.value):'fast';if(v==='fast')return'fast';return['15','25','35','45','55','60'].includes(v)?v:'max';}
 function tlFmtS(x){ return (Math.round((+x||0)*10)/10).toFixed(1).replace('.',','); }
 /* V11 SUMMARY: satu sumber penghitung (backend 'V11 Candidate Counters' / tl_best.counters) dengan invarian UI:
  * CP tersedia + constraints PASS -> Kandidat valid >= 1; tanpa kandidat valid -> Valid 0 dan CP kosong; valid <= diperiksa. */
@@ -5945,20 +5768,6 @@ function v11AuditExtra(out){
     if(p&&typeof p==='object') L.push('<b>V11 CP Audit</b>: <b>'+E(p.status)+'</b>; CP '+n(p.cost_production,4)+' = Total Cost / Net '+n(p.total_cost_over_net,4)
       +'; Heat Rate JBBK+MM2100 '+n(p.heat_rate_jbbk_mm,2)+' BTU/kWh; akun bahan bakar berharga '+((p.fuel_accounts||[]).filter(a=>a&&a.priced).length)+'/'+((p.fuel_accounts||[]).length)
       +((p.issues||[]).length?'; isu: '+E((p.issues||[]).join(', ')):''));
-    /* V12: comparator CP (minimum absolut vs pemenang), hasil akhir LOW_LOAD_FRAGMENTATION, audit merit dispatch, sertifikat reuse */
-    const r=ii['V12 CP Report'];
-    if(r&&typeof r==='object'&&r.status==='OK') L.push('<b>V12 CP Report</b>: CP minimum absolut '+n(r.absolute_cp_min,4)+' ('+E(r.absolute_cp_min_candidate)+'); CP pemenang '+n(r.winner_cp,4)
-      +' (selisih '+n(r.delta_winner_vs_min_usd_mwh,4)+' USD/MWh = '+n(r.delta_winner_vs_min_pct,4)+' %); Heat Rate pemenang '+n(r.winner_heat_rate,2)+', minimum di band '+n(r.min_heat_rate_in_band,2)+' BTU/kWh; '+E(r.tie_break_reason));
-    const o=ii['V12 Low Load Fragmentation Outcome'];
-    if(o&&typeof o==='object'){ const k=o.counts||{}; L.push('<b>V12 LOW_LOAD_FRAGMENTATION</b>: <b>'+E(o.status)+'</b>; RESOLVED_BY_CONSOLIDATION '+E(k.RESOLVED_BY_CONSOLIDATION)+', RESOLVED_BY_STOP '+E(k.RESOLVED_BY_STOP)
-      +', PASS_WITH_REASON '+E(k.PASS_WITH_REASON)+', FAIL '+E(k.FAIL)); }
-    const d=ii['V12 Dispatch Merit Audit'];
-    if(d&&typeof d==='object'&&d.c2_start_with_headroom) L.push('<b>V12 Dispatch Merit Audit</b>: <b>'+E(d.status)+'</b>; '+E(d.rows_audited)+' row x unit ('+E(d.unit_row_records)+' catatan legal headroom); start dengan headroom unit prioritas tinggi: '
-      +E(d.c2_start_with_headroom.findings)+' (tanpa bukti '+E(d.c2_start_with_headroom.fail)+'); stop row legal pertama: '+E(d.c3_first_legal_stop.intervals)+' interval (belum diuji '+E(d.c3_first_legal_stop.fail)+'); headroom prioritas (C1) '
-      +E(d.c1_merit_headroom.findings)+' temuan, beralasan '+E(d.c1_merit_headroom.with_reason)
-      +(d.c4_cross_group_priority?'; lintas grup prioritas (C4) '+E(d.c4_cross_group_priority.findings)+' temuan: status paksa '+E(d.c4_cross_group_priority.status_forced)+', akun MM2100 terpakai penuh '+E(d.c4_cross_group_priority.mm2100_account_full)+', tanpa alasan '+E(d.c4_cross_group_priority.fail):''));
-    const q=ii['V12 Reuse Certificate'];
-    if(q&&typeof q==='object'&&q.schema) L.push('<b>V12 Reuse Certificate</b>: rute '+E(q.route)+'; state '+E(q.numerical_state_signature).slice(0,12)+'…; dispatch fisik '+E(q.physical_dispatch_signature)+'; universe '+E(q.candidate_universe_signature)+'; '+E(q.proof_version));
     return L.length?'<br>'+L.join('<br>'):'';
   }catch(e){ return ''; }
 }
@@ -5986,6 +5795,53 @@ async function tlJson(url,opts,toMs,nTry){
   }
   return {ok:false,error:'TIMEOUT'};
 }
+async function runFastestDefault(payload){
+  const branch=runBranchKey(),myToken=++RUN_SEQ[branch],myRev=++STATE_REVISION[branch],reqId=branch+'-'+myRev+'-'+Date.now().toString(36),t0=performance.now(),el=()=>(performance.now()-t0)/1000;
+  payload._request_id=reqId;payload._state_revision=myRev;payload._context=branch;V11_RUN_T0=t0;V11_SUM_DONE=false;
+  const btn=$('btn-run'),old=btn.innerHTML,rm=$('run-msg');btn.disabled=true;btn.innerHTML='<span class="spin"></span> Running…';
+  let lastChecked=0,lastValid=0,lastPhase='Menyiapkan job',timerId=null;
+  const ensureHud=()=>{let h=document.getElementById('fast-progress-hud');if(!h){h=document.createElement('div');h.id='fast-progress-hud';h.style.cssText='position:fixed;right:18px;bottom:18px;z-index:9997;background:#1763d6;color:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(23,99,214,.28);font:600 12px/1.45 system-ui,sans-serif;min-width:245px';document.body.appendChild(h);}return h;};
+  const paint=()=>{const sec=Math.floor(el()),txt='Fastest · '+sec+' detik<br>Kandidat diperiksa '+lastChecked+' · valid '+lastValid+'<br><span style="font-weight:400;opacity:.9">'+gsfEsc(lastPhase)+'</span>';const h=ensureHud();h.innerHTML=txt;if(rm)rm.innerHTML='<span style="color:#1763d6">Fastest · '+sec+' detik · kandidat diperiksa '+lastChecked+' · valid '+lastValid+'</span>';};
+  const stopHud=()=>{if(timerId){clearInterval(timerId);timerId=null;}const h=document.getElementById('fast-progress-hud');if(h)h.remove();};
+  paint();timerId=setInterval(paint,1000);
+  const stale=()=>myToken!==RUN_SEQ[branch],done=()=>{stopHud();btn.disabled=false;btn.innerHTML=old;};
+  let data;try{data=await tlJson('run.php?mode=run&tl=1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},5000);}catch(e){done();if(rm)rm.textContent=String(e);return;}
+  if(stale()){done();return;}if(v3AutosaveOutcome(payload,data)===false){done();return;}
+  const job=data&&data.async_job;if(!job?.job_id){done();if(rm)rm.textContent='Fastest gagal dimulai';return;}
+  lastPhase='Worker berjalan';paint();
+  if(job.exec_token){
+    fetch('run.php?mode=job_exec&job='+encodeURIComponent(job.job_id)+'&token='+encodeURIComponent(job.exec_token),{cache:'no-store'}).catch(()=>{});
+  }
+  /* Fastest memakai tepat dua pencari: satu exact owner dan satu targeted priority search.
+   * Helper fan-out dimatikan agar skenario yang sama tidak dihitung berkali-kali. */
+  fetch('run.php?mode=tl_search&target=fast&rid='+encodeURIComponent(reqId),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),cache:'no-store'
+  }).catch(()=>{});
+  const light='run.php?mode=tl_best&job='+encodeURIComponent(job.job_id)+'&rid='+encodeURIComponent(reqId);
+  const full=light+'&with_output=1';
+  while(!stale()){
+    await new Promise(r=>setTimeout(r,350));
+    let b=null;try{b=await tlJson(light,null,900,1);}catch(e){}
+    if(!b?.ok){lastPhase='Menunggu counter worker';paint();continue;}
+    lastChecked=Math.max(lastChecked,Number(b.evaluated_total||b.counters?.candidates_checked||0));
+    lastValid=Math.max(lastValid,Number(b.valid_total||b.counters?.candidates_valid||0));
+    lastPhase=b.job_status==='DONE'?'Finalisasi hasil':'Evaluasi kandidat';paint();
+    if(lastValid>0||b.exact_final||b.best){
+      let bf=null;try{bf=await tlJson(full,null,2500,1);}catch(e){}
+      if(bf?.ok&&bf.output&&Array.isArray(bf.output.data)&&bf.output.data.length===48){
+        const out=bf.output,ck=out.time_limited_checks||{},pass=Object.keys(ck).length>0&&Object.values(ck).every(v=>v===true);
+        if(pass||bf.exact_final){
+          tlJson('run.php?mode=tl_stop&rid='+encodeURIComponent(reqId),null,1000).catch(()=>{});if(!bf.exact_final)tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(job.job_id),null,1000).catch(()=>{});
+          done();if(typeof ppmClose==='function')ppmClose();INPUT=payload;OUTPUT=out;GSD_GATE=false;PRELIM=null;gsdApplyGate();renderResult(out);refreshOverview();refreshPills();refreshGasDecision();showSimulationDataResult();
+          const st={target:'fast',elapsed:el(),evaluated:lastChecked,valid:lastValid||1,cp:(out.info||{})['Cost Production (USD/MWh)'],checks_ok:true,proven:!!bf.exact_final};V11_SUM_DONE=true;
+          tlBanner('FASTEST VALID PRIORITY PLAN','green',st,'Kandidat priority-constructed pertama yang lolos seluruh hard constraint. Di antara kandidat yang sudah selesai, dipilih CP lalu Heat Rate terendah; tanpa batas waktu dan tanpa Maximum Review.');if(rm)rm.innerHTML='<span style="color:#166534"><b>FASTEST VALID</b> — '+tlSummaryHtml(st)+'</span>';return;
+        }
+      }
+    }
+    if(b.job_status==='DONE'&&!b.best){done();adoptBackendAsyncJob(payload,branch,myToken,job);return;}
+  }
+  done();
+}
 async function runTimeLimited(payload, T){
   const branch=runBranchKey();
   const myToken=++RUN_SEQ[branch];
@@ -5994,7 +5850,7 @@ async function runTimeLimited(payload, T){
   payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;
   GSD_PROVISIONAL=null;
   try{ ASYNC_REVIEW[branch]=null; }catch(e){}
-  const t0=performance.now(); const el=()=>(performance.now()-t0)/1000; V11_RUN_T0=t0; V11_SUM_DONE=false; V11_RUN_TARGET=tlTarget();
+  const t0=performance.now(); const el=()=>(performance.now()-t0)/1000; V11_RUN_T0=t0; V11_SUM_DONE=false;
   const btn=$('btn-run'); const old=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Running…';
   const rm=$('run-msg'); if(rm) rm.textContent='';
@@ -6020,20 +5876,11 @@ async function runTimeLimited(payload, T){
   /* V3: tidak ada pencarian Target Selesai paralel; kandidat valid berasal dari job pemilik. */
   const bestUrl='run.php?mode=tl_best&job='+encodeURIComponent(job.job_id)+'&rid='+encodeURIComponent(reqId);
   let b=null;
-  /* V12: output kandidat valid terbaik diambil lebih awal setiap kali Cost Production terbaik berubah, sehingga
-   * pembacaan akhir pada batas waktu yang lambat (server sibuk, output besar) tidak menghilangkan hasil valid. */
-  let bOut=null, bOutCp=null, bLast=null;
   while(true){
     await new Promise(r=>setTimeout(r,350));
     if(stale()){ stopQuick(); return; }
     try{ b=await tlJson(bestUrl,null,Math.max(200,Math.min(1200,(T-1.2-el())*1000)),1); }catch(e){ b=null; }
     if(stale()){ stopQuick(); return; }
-    if(b&&b.ok) bLast=b;
-    if(b&&b.ok&&b.best&&b.best.cost_production!=null&&b.best.cost_production!==bOutCp&&!b.exact_final&&T-1.2-el()>0.4){
-      let r=null; try{ r=await tlJson(bestUrl+'&with_output=1',null,Math.max(300,Math.min(2500,(T-1.2-el())*1000)),1); }catch(e){ r=null; }
-      if(stale()){ stopQuick(); return; }
-      if(r&&r.ok&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48){ bOut=r; bOutCp=r.best?r.best.cost_production:b.best.cost_production; }
-    }
     if(b&&b.ok){
       if(rm) rm.innerHTML='<span style="color:#1763d6">Target &lt; '+T+' detik — '+tlFmtS(el())+' s · kandidat diperiksa '
         +(b.evaluated_total||0)+' · valid '+(b.valid_total||0)
@@ -6069,15 +5916,11 @@ async function runTimeLimited(payload, T){
   stopQuick();
   /* Pembacaan akhir dibatasi sisa waktu sampai batas: tiap percobaan memakai koneksi baru. */
   b=null;
-  /* V12: dengan output cadangan, pembacaan akhir berhenti lebih awal agar render tetap sebelum batas. */
-  const tEnd=bOut?T-0.9:T-0.25;
-  while(el()<tEnd){
-    const toMs=Math.max(150,(tEnd-el())*1000);
+  while(el()<T-0.25){
+    const toMs=Math.max(150,Math.min(700,(T-0.25-el())*1000));
     let r=null; try{ r=await tlJson(bestUrl+'&with_output=1',null,toMs,1); }catch(e){ r=null; }
     if(r&&r.ok){ b=r; break; }
   }
-  /* V12: pembacaan akhir gagal/tanpa output -> kandidat valid terbaik yang sudah diambil (counter dari poll terakhir). */
-  if(!(b&&b.ok&&b.output)&&bOut){ b=Object.assign({},bOut,{evaluated_total:(bLast||bOut).evaluated_total,valid_total:(bLast||bOut).valid_total,counters:(bLast||bOut).counters}); }
   if(stale()){ stopQuick(); return; }
   stopQuick();
   const elapsed=el();
@@ -6107,85 +5950,6 @@ async function runTimeLimited(payload, T){
   tlBanner('NO VALID RESULT WITHIN TIME LIMIT','amber',st0,'Belum ada kandidat yang lolos seluruh constraint; hasil invalid tidak ditampilkan. '
     +'Pilih <b>Maximum Review</b> untuk optimasi exact lengkap (termasuk analisis Gas Shortage bila diperlukan).');
 }
-/* V12 FASTEST - DEFAULT: selesai begitu kandidat FULLY VALID pertama tersedia. Server (tl_best&fast=1) memeriksa kandidat
- * terbaik kolam: 48 row, hard constraints + provenance PASS, review Unit Priority selesai, audit merit (legal headroom, start
- * prioritas rendah, stop row legal pertama) PASS, LOW_LOAD_FRAGMENTATION tidak unresolved, Change Over executed + overlap >= 3 row.
- * Bila FINAL exact selesai lebih dulu, alur runSimCore biasa yang menampilkannya (FINAL OPTIMAL). */
-var FASTEST_CTX=null, FASTEST_TRACE=null;
-/* Timestamp Fastest (detik sejak klik Run; server dan browser memakai jam epoch yang sama di mesin lokal) + durasi tiap tahap. */
-function fastestTraceHtml(T){
-  try{
-    const K=[['run_click_ms','run_click'],['job_created_ms','job_created'],['first_candidate_complete_ms','first_candidate_complete'],['first_valid_claimed_ms','first_valid_claimed'],
-      ['first_fully_valid_ms','first_fully_valid'],['snapshot_persisted_ms','snapshot_persisted'],['browser_received_snapshot_ms','browser_received_snapshot'],['render_start_ms','render_start'],
-      ['render_done_ms','render_done'],['simulation_data_opened_ms','simulation_data_opened'],['exact_cancel_sent_ms','exact_cancel_sent'],['helpers_stopped_ms','helpers_stopped']];
-    const t0=T.run_click_ms||0; let prev=null; const L=[];
-    for(const [k,n] of K){ const v=T[k]; if(!v){ L.push(n+' —'); continue; } const s=(v-t0)/1000; L.push(n+' '+s.toFixed(2)+' s'+(prev!=null?' (+'+(s-prev).toFixed(2)+')':'')); prev=s; }
-    const st=T.stages_s||{}; const rc=T.review_counterfactuals||{};
-    return '<b>Fastest timestamp</b>: '+gsfEsc(L.join(' · '))+'<br>finalisasi merit: review Unit Priority '+gsfEsc(String(st.merit_review_unit_priority))+' s ('+gsfEsc(String(rc.simulated))+' counterfactual, '+gsfEsc(String(rc.rounds))+' putaran, '+gsfEsc(String(rc.helpers))+' pembantu), audit C1-C4/LLF/provenance '
-      +gsfEsc(String(st.acceptance_audits_c1_c4_llf_provenance))+' s, gerbang+STG '+gsfEsc(String(st.fully_valid_gate_stg))+' s; tulis berkas: ulang '+gsfEsc(String((T.write_diag||{}).retries||0))+', gagal '+gsfEsc(String((T.write_diag||{}).failed||0));
-  }catch(e){ return ''; }
-}
-function fastestStart(payload,branch,token,jobId){
-  const c=FASTEST_CTX; if(!c||c.branch!==branch||c.token!==token||!jobId||c.jobs[jobId]) return;
-  c.jobs[jobId]=1; fastestPoll(payload,branch,token,jobId).catch(()=>{});
-}
-async function fastestPoll(payload,branch,myToken,jobId){
-  /* V12 FASTEST_RELEASE_READY. Urutan wajib: SNAPSHOT (server, atomik) -> FETCH -> RENDER -> SHOW SIMULATION DATA -> CANCEL EXACT.
-   * Job ditandai lewat arm=1 (jalur pembuatan job apa pun); kandidat valid pertama membawa bukti merit (review Unit Priority, C1-C4,
-   * STG, LLF, Change Over) saat masuk kolam. Tidak ada finalisasi kedua, tidak menunggu FINAL exact / kandidat berikutnya. */
-  const url='run.php?mode=fast_ready&job='+encodeURIComponent(jobId); let claimSeen=false, myTok2=myToken;
-  const T=FASTEST_TRACE={job:jobId,run_click_ms:V11_RUN_T0!=null?Math.round(performance.timeOrigin+V11_RUN_T0):null};
-  fetch(url+'&arm=1',{cache:'no-store'}).catch(()=>{});            // tidak ditunggu
-  while(!V11_SUM_DONE){
-    await new Promise(r=>setTimeout(r,200));
-    if(myTok2!==RUN_SEQ[branch] || V11_SUM_DONE) return;
-    let r=null; try{ r=await tlJson(url,null,4000,1); }catch(e){ r=null; }
-    if(myTok2!==RUN_SEQ[branch] || V11_SUM_DONE) return;
-    if(!r||!r.ok) continue;
-    if(r.claimed&&!claimSeen){ claimSeen=true; T.claim_seen_ms=Date.now(); RUN_SEQ[branch]++; myTok2=RUN_SEQ[branch];   // alur runSimCore berhenti; Fastest yang merilis
-      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan; bukti merit dibawa bersama kandidat…'; }catch(e){} }
-    if(!claimSeen){ if(r.job_status==='DONE'||r.job_status==='FAILED'||r.job_status==='CANCELLED') return; continue; }   // FINAL exact lebih dulu: runSimCore
-    if(!r.ready){ /* progres tetap hidup selama bukti merit kandidat pertama dihitung (bukan berhenti diam) */
-      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat valid pertama ditemukan ('+((T.claim_seen_ms-(T.run_click_ms||T.claim_seen_ms))/1000).toFixed(1).replace('.',',')+' s); membuktikan merit kandidat itu (counterfactual Unit Priority) · '+((Date.now()-(T.run_click_ms||Date.now()))/1000).toFixed(1).replace('.',',')+' s'; }catch(e){}
-      /* label status utama mengikuti fase finalisasi nyata (sesudah klaim polling job_poll berhenti; tanpa ini label tertahan di fase pipeline terakhir) */
-      try{ const rm=document.getElementById('run-msg'); if(rm&&r.step) rm.textContent='Fastest - Default: '+String(r.step).replace(/^FASTEST_FINALISASI_/,'finalisasi ').replace(/_/g,' ').toLowerCase()+(r.percent!=null?' '+Math.round(+r.percent)+'%':''); }catch(e){}
-      continue; }
-    T.browser_received_snapshot_ms=Date.now(); Object.assign(T,r.trace_server||{}); T.stages_s=r.stages_s||null; T.review_counterfactuals=r.review_counterfactuals||null; T.write_diag=r.write_diag||null;
-    if(!(r.FASTEST_RELEASE_READY&&r.output&&Array.isArray(r.output.data)&&r.output.data.length===48)){
-      try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent='Fastest - Default — kandidat pertama gagal gerbang fully valid ('+gsfEsc(String(((r.fast||{}).reasons)||r.error||'?'))+'); melanjutkan pencarian'; }catch(e){}
-      T.fallback={reasons:((r.fast||{}).reasons)||null,error:r.error||null,ready_flag:!!r.FASTEST_RELEASE_READY,rows:r.output&&r.output.data?r.output.data.length:null,stages_s:r.stages_s||null,fast:r.fast||null};
-      /* TANPA job kedua: job exact yang sama dilanjutkan (server melepas klaim; run yang sama dipakai ulang -> FINAL exact). */
-      runSimCore(payload,{fastest:true,noFastFinalize:true}); return; }
-    const out=r.output; const cnt=r.counters||{};
-    const st={target:'fast',elapsed:(Date.now()-(T.run_click_ms||Date.now()))/1000,evaluated:cnt.candidates_checked!=null?cnt.candidates_checked:1,
-      valid:cnt.candidates_valid!=null?cnt.candidates_valid:1,cp:(out.info||{})['Cost Production (USD/MWh)'],checks_ok:true,proven:false};
-    if(typeof ppmClose==='function') ppmClose();
-    INPUT=payload; OUTPUT=out; GSD_GATE=false; PRELIM=null; gsdApplyGate(); V11_SUM_DONE=true;
-    T.render_start_ms=Date.now();
-    try{ renderResult(out); refreshOverview(); refreshPills(); refreshGasDecision(); }catch(e){ T.render_error=String(e&&e.message||e); }
-    T.render_done_ms=Date.now();
-    try{ showSimulationDataResult(); }catch(e){}
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    T.simulation_data_opened_ms=Date.now();
-    const f=r.fast||{}; st.elapsed=(T.simulation_data_opened_ms-(T.run_click_ms||T.simulation_data_opened_ms))/1000;
-    out.info=out.info||{}; out.info['V12 Fastest Timing']=T;
-    tlBanner('FASTEST VALID PLAN','amber',st,'Kandidat fully valid pertama (FASTEST_RELEASE_READY): 48 row, hard constraints PASS, provenance PASS, audit merit '+gsfEsc(String(f.merit_audit))+' (C4 tanpa alasan '+gsfEsc(String((f.c4||{}).fail))+'), STG = calc_stg '
-      +gsfEsc(String((f.stg_proof||{}).equal_calc))+'/'+gsfEsc(String((f.stg_proof||{}).rows_x_stg))+', LOW_LOAD_FRAGMENTATION '+gsfEsc(String(f.llf))+(f.change_over?', Change Over executed + overlap '+f.change_over.overlap_rows+' row':'')
-      +'. Pencarian exact dihentikan; bukan CP minimum global — pilih Maximum Review untuk hasil final.'+v11AuditExtra(out)+'<div id="fast-trace">'+fastestTraceHtml(T)+'</div>');
-    const b2=$('btn-run'); if(b2){ b2.disabled=false; b2.innerHTML='▶ Run simulation'; }
-    try{ const fm=document.getElementById('fast-msg'); if(fm) fm.textContent=''; }catch(e){}
-    const rm=$('run-msg'); if(rm) rm.innerHTML='<span style="color:#b45309"><b>FASTEST VALID PLAN</b> — '+tlSummaryHtml(st)+'</span>';
-    /* baru SETELAH hasil tampil di Simulation Data: batalkan job exact/pembantu */
-    T.exact_cancel_sent_ms=Date.now();
-    tlJson('run.php?mode=job_cancel&abort=1&job='+encodeURIComponent(jobId),null,3000).catch(()=>{});
-    try{ const ft=document.getElementById('fast-trace'); if(ft) ft.innerHTML=fastestTraceHtml(T); }catch(e){}
-    /* helpers_stopped: pembantu berhenti sesudah pembatalan (hanya pencatatan; hasil sudah tampil) */
-    for(let q=0;q<40;q++){ await new Promise(r=>setTimeout(r,250)); let h=null; try{ h=await tlJson(url,null,2000,1); }catch(e){ h=null; }
-      if(h&&h.ok&&Number(h.helpers_alive||0)===0){ T.helpers_stopped_ms=Date.now(); break; } }
-    try{ const ft=document.getElementById('fast-trace'); if(ft) ft.innerHTML=fastestTraceHtml(T); }catch(e){}
-    return;
-  }
-}
 async function runSimCore(payload, opts){
   opts=opts||{};
   const branch=runBranchKey();                            // §3.8: identifier terpisah Plan vs Monitoring
@@ -6194,28 +5958,14 @@ async function runSimCore(payload, opts){
   const reqId=branch+'-'+myRev+'-'+Date.now().toString(36);
   payload._request_id=reqId; payload._state_revision=myRev; payload._context=branch;   // §9 request snapshot meta
   GSD_PROVISIONAL=null;                                   // provisional milik run sebelumnya tidak berlaku lagi
-  V11_RUN_T0=performance.now(); V11_SUM_DONE=false; V11_RUN_TARGET=tlTarget();       // V11: Waktu aktual SUMMARY diukur dari klik Run ini
+  if(V11_WORKFLOW_T0==null)V11_WORKFLOW_T0=performance.now(); V11_RUN_T0=V11_WORKFLOW_T0; V11_SUM_DONE=false;
   /* V3: tidak ada pencarian paralel — satu job pemilik state ini menghitung seluruhnya. */
   const btn=$('btn-run'); const old=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Running…'; $('run-msg').textContent='';
   /* MODAL PEMBLOKIR DIBUKA SEBELUM fetch, BUKAN SESUDAH RESPONSE. Ini satu operasi DOM sinkron,
    * sehingga jaraknya dari klik selalu jauh di bawah satu detik — tidak bergantung pada jaringan,
    * pada berat rencana, atau pada apakah rencana ini akan berakhir shortage. */
-  FASTEST_CTX=(opts.fastest&&!opts.noFastFinalize)?{branch,token:myToken,jobs:{}}:null;
-  /* V12 Fastest - Default: tanpa popup progress besar; progres cukup teks biru kecil. */
-  /* Fail-fast: timer Fastest RESMI baru berjalan setelah backend mengembalikan job_id yang valid (acknowledgement). HTTP 500,
-   * response non-JSON, error JSON (mis. MISSING_DEPENDENCY), kegagalan jaringan, atau timeout bootstrap -> timer & progres
-   * dihentikan, tombol Run aktif lagi, pesan instalasi singkat; tidak ada polling dan tidak ada cancel ke job yang tidak pernah dibuat. */
-  let tk=null; const t0f=performance.now();
-  const stopFast=()=>{ if(tk){ clearInterval(tk); tk=null; } FASTEST_CTX=null; const f=document.getElementById('fast-msg'); if(f) f.textContent=''; };
-  const failFast=(html)=>{ stopFast(); try{ ppmClose(); }catch(e){} const rmF=$('run-msg'); if(rmF) rmF.innerHTML=html; };
-  const startTicker=()=>{ if(!opts.fastest||tk) return; tk=setInterval(()=>{ const f=document.getElementById('fast-msg'); const rmT=(($('run-msg')||{}).textContent||''); if(myToken!==RUN_SEQ[branch]||V11_SUM_DONE||performance.now()-t0f>1800000||/FINAL|FASTEST|Gas Shortage|NO VALID|gagal|BELUM final|Kekurangan|shortage|Error|tidak dimulai|Instalasi|FEASIBLE|terminal/i.test(rmT)){ clearInterval(tk); if(f) f.textContent=''; return; }
-      if(f) f.textContent='Fastest - Default — mencari kandidat fully valid pertama · '+tlFmtS((performance.now()-t0f)/1000)+' s'; },400); };
-  if(opts.fastest){
-    let fm=document.getElementById('fast-msg'); const rm0=$('run-msg');
-    if(!fm&&rm0&&rm0.parentNode){ fm=document.createElement('span'); fm.id='fast-msg'; fm.className='hint'; fm.style.cssText='color:#1763d6;font-size:12px;margin-right:8px'; rm0.parentNode.insertBefore(fm,rm0); }
-    if(fm) fm.textContent='Fastest - Default — mengirim permintaan ke server…'; }
-  else ppmOpen(reqId,()=>{
+  ppmOpen(reqId,()=>{
     /* Membatalkan = menaikkan nomor urut run. Response yang datang setelah ini gagal pada penjaga
      * anti-stale, sehingga tidak ada satu pun angka dari run yang dibatalkan yang dapat mendarat
      * di OUTPUT. Worker latar yang sudah terlanjur dibuat dibiarkan selesai sendiri. */
@@ -6224,32 +5974,22 @@ async function runSimCore(payload, opts){
     const b2=$('btn-run'); if(b2){ b2.disabled=false; b2.innerHTML=old; }
   });
   try{
+    if(opts.fastDefault){ const m=$('run-msg'); if(m)m.innerHTML='<span style="color:#1763d6">Fastest: memeriksa reusable commitment dan validasi 48 row…</span>'; }
     /* §3.1/§13.7: Run memakai ?mode=run -> engine dari payload LIVE, TIDAK menulis input_data.json.
        §11: baca RAW TEXT dulu untuk diagnostics, lalu parse aman (tangani HTML/empty/BOM/truncated). */
-    const acB=(typeof AbortController!=='undefined')?new AbortController():null; const tB=acB?setTimeout(()=>acB.abort(),45000):null;   // timeout bootstrap
-    let res, rawText;
-    try{ res=await fetch('run.php?mode=run'+(opts.fastest&&!opts.noFastFinalize?'&fast=1':''),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:acB?acB.signal:undefined});
-      rawText=await res.text(); }
-    catch(eB){ if(tB) clearTimeout(tB); if(myToken!==RUN_SEQ[branch]) return;
-      failFast('<span style="color:#c0392b"><b>Server tidak merespons</b> ('+(eB&&eB.name==='AbortError'?'timeout 45 s':gsfEsc(String(eB&&eB.message||eB)))+'). Simulasi tidak dimulai; periksa server/instalasi lalu tekan Run lagi.</span>'); return; }
-    if(tB) clearTimeout(tB);
+    const res=await fetch('run.php?mode=run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const rawText=await res.text();
     let data=null, parseErr=null;
     try{ data=JSON.parse(rawText.replace(/^\uFEFF/,'')); }catch(e){ parseErr=e; }
     if(myToken!==RUN_SEQ[branch]){                         // §3.5/§10: sudah ada request lebih baru -> STALE
       return;        // jangan render, jangan timpa OUTPUT terbaru, dan JANGAN tutup modal run baru
     }
     if(parseErr){                                          // §11: response bukan JSON valid -> diagnostik jelas, input user TETAP
+      ppmClose();
       const snip=(rawText||'').slice(0,180).replace(/</g,'&lt;');
-      failFast('<span style="color:#c0392b"><b>Error server (HTTP '+res.status+', bukan JSON)</b> — simulasi tidak dimulai. '+(/saved_data_store\.php|failed to open stream|require/i.test(rawText||'')?'Instalasi tidak lengkap (berkas PHP hilang). ':'')+(snip?('Awal response: '+snip):'Response kosong')+'</span>');
+      $('run-msg').innerHTML='<span style="color:#c0392b">Server returned non-JSON (HTTP '+res.status+'). '+(snip?('Response starts: '+snip):'Empty response')+'</span>';
       return;
     }
-    /* Error instalasi/bootstrap terstruktur (tanpa job): hentikan segera — tidak ada job yang dipantau. */
-    if(data && data.ok===false && !(data.async_job&&data.async_job.job_id) && ['MISSING_DEPENDENCY','APP_DIR_NOT_WRITABLE','JOBS_NOT_WRITABLE','JOB_START_FAILED','PHP_VERSION','MISSING_EXTENSION','FATAL'].includes(String(data.code||(data.error&&data.error.code)||data.error||''))){
-      const code=String(data.code||(data.error&&data.error.code)||data.error||('HTTP_'+res.status));
-      failFast('<span style="color:#c0392b"><b>'+gsfEsc(code==='MISSING_DEPENDENCY'?'Instalasi tidak lengkap':'Server menolak permintaan')+'</b> ('+gsfEsc(code)+(data.file?': '+gsfEsc(String(data.file)):'')+') — '+gsfEsc(String(data.message||(data.error&&data.error.message)||''))+'</span>');
-      return;
-    }
-    if(opts.fastest && data && data.async_job && data.async_job.job_id) startTicker();   // acknowledgement job valid -> timer resmi mulai
     /* §10: response harus cocok context+revision terbaru (buang balasan basah/nyasar antar-cabang). */
     if(data.state_revision!=null && data.state_revision!==STATE_REVISION[branch]) return;   // modal milik revisi terbaru
     if(v3AutosaveOutcome(payload,data)===false){ ppmClose(); return; }
@@ -6390,13 +6130,11 @@ async function runSimCore(payload, opts){
     } else finalizeSimulationUI(payload,data,null);
   }catch(err){
     ppmClose();
-    if(myToken===RUN_SEQ[branch]){ stopFast(); $('run-msg').innerHTML='<span style="color:#c0392b">Request failed: '+err.message+'</span>'; }
+    if(myToken===RUN_SEQ[branch]) $('run-msg').innerHTML='<span style="color:#c0392b">Request failed: '+err.message+'</span>';
     throw err;
   }
   finally{                                                 // §3.10/§11: spinner SELALU berhenti (hanya reset bila kita run terakhir)
     if(myToken===RUN_SEQ[branch]){ btn.disabled=false; btn.innerHTML=old; }
-    /* tidak ada job yang diakui backend -> teks "mengirim permintaan" tidak boleh tertinggal */
-    if(!tk){ const fz=document.getElementById('fast-msg'); if(fz&&/mengirim permintaan/.test(fz.textContent||'')) fz.textContent=''; }
   }
 }
 
@@ -6470,7 +6208,7 @@ const COLS=[
   ['G7','','G7 (MW)','gtg2'],['G10','','G10 (MW)','gtg2'],
   ['Jababeka','','JABABEKA','jbbk'],['BB1','','BBLN1 (MW)','bbln'],['BB2','','BBLN2 (MW)','bbln'],['BB_Total','','TOTAL BBLN (MW)','bbln'],
   ['GE1','','GE1 (MW)','ge'],['GE2','','GE2 (MW)','ge'],['GE3','','GE3 (MW)','ge'],['GE4','','GE4 (MW)','ge'],['Total_GE','','TOTAL GE (MW)','ge'],
-  ['BusFlow','','BUSFLOW (MW)','bus'],['PV','pv','PV (MW)','pv'],['Spin_Res','','SPINNING RESERVE (MW)','spin'],['SR_Min','','SR MINIMUM (MW)','srmin'],
+  ['Spin_Res','','SPINNING RESERVE (MW)','spin'],['PV','','PV (MW)','pv'],['BusFlow','','BUS FLOW (MW)','bus'],
   ['Total_Coal','','COAL','coal'],['Dist_Total','','DISTILLATE','dist'],['Total_Gas','g','TOTAL GAS (BBTUD)','gas'],
   ['Total_Gas_JBBK','','TOTAL GAS JBBK (BBTUD)','gas'],['Total_Gas_MM','','TOTAL GAS MM2100 (BBTUD)','gas'],   /* §6: TOTAL GAS = JBBK + MM2100 */
   ['EnergyPGN_RT','g','ENERGY PGN REAL TIME (BBTUD)','pgn'],
@@ -6485,14 +6223,6 @@ const COLS=[
   ['Est_FF_M','g','TOTAL GAS MM2100 - ESTIMATION ENERGY TOTAL (BBTUD)','pgn'],
   ['Act_FF_M','act:ffm','TOTAL GAS MM2100 - ACTUAL ENERGY TOTAL (BBTUD)','actual']
 ];
-/* Kolom PV (MW) hanya tampil bila run yang ditampilkan memakai Follow PV (sr_mode hasil engine; hasil tanpa info -> mode input aktif).
- * Posisi: BUS FLOW (MW) | PV (MW) | SPINNING RESERVE (MW). Nilai = PV input per 30 menit yang dipakai run (field PV engine);
- * hasil lama tanpa field PV -> pv_rows input. Bukan effective SR (kolom SR MINIMUM). Simulation Data, export, dan Report memakai satu daftar ini. */
-function simFollowPV(o){ try{ const sr=o&&o.info&&o.info['Spinning Reserve Requirement']; if(sr&&sr.sr_mode) return sr.sr_mode==='follow_pv';
-  if(o&&Array.isArray(o.data)&&o.data.some(r=>r&&r.PV!==undefined)) return true;
-  const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; return !!(m&&m.sr_mode==='follow_pv'); }catch(e){ return false; } }
-function simCols(o){ const pv=simFollowPV(o); return COLS.filter(c=>c[0]!=='PV'||pv); }
-function simPVAt(o,r,ri){ if(r&&r.PV!==undefined) return r.PV; const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; const a=m&&Array.isArray(m.pv_rows)?m.pv_rows:null; const v=a?a[ri]:null; return (v==null||v===''||!isFinite(+v))?null:+v; }
 /* show only HH:MM in the SIMULATION DATA TIME column (Revisi Sec.6). */
 function hm(t){ if(t==null) return ''; t=String(t); const m=t.match(/(\d{1,2}:\d{2})(?::\d{2})?\s*$/); return m?m[1]:t; }
 /* shared parameter list for Summary + Comparison: [label, info-key, unit, decimals] */
@@ -6744,18 +6474,16 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
   // PROMPT MONITORING §3.1/§9: kolom TIME PASSED (dropdown Y/N, 48 row) hanya di cabang Monitoring.
   const MON=forceNoMonitoring?false:((typeof dpMon==='function')&&dpMon());
   const tpCut=MON?mdpCutoff():0;
-  const SC=simCols(o);
   tbl+='<div class="scroll simwrap"><table class="data simgrid" id="tbl-result"><thead><tr>'+
     (MON?'<th class="g-time" title="Monitoring Daily Plan — Y = jam sudah lewat (locked), N = future">TIME PASSED</th>':'')+
-    SC.map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}"${c[0]==='PV'?' title="PV input per 30 menit — dipakai sebagai dynamic SR floor saat Follow PV aktif: SR minimum efektif = max(Fix Spinning Reserve, PV)"':''}>${c[2]}</th>`).join('')+'</tr></thead><tbody>';
+    COLS.filter(c=>c[0]!=='PV'||((INPUT.data3?.modeling?.sr_mode||'fixed')==='follow_pv')).map(c=>`<th class="g-${c[3]||''}${c[1]==='t'?' t':''}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
   const tpCell=(ri)=>{const y=ri<tpCut;
     return `<td class="tp-cell ${y?'tp-y':'tp-n'}"><select class="tp-sel ${y?'tp-y':'tp-n'}" data-tprow="${ri}" title="${y?'Time Passed — locked (optimizer tidak mengubah row ini)':'Future row — dioptimasi normal'}">`+
       `<option value="Y"${y?' selected':''}>Y</option><option value="N"${y?'':' selected'}>N</option></select>${y?'<span class="tp-lock" title="Locked">🔒</span>':''}</td>`;};
   rows.forEach((r,ri)=>{
-    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+SC.map(c=>{
+    tbl+=`<tr class="${r.Actual?'actual-row ':''}${MON&&ri<tpCut?'tp-locked':''}">`+(MON?tpCell(ri):'')+COLS.filter(c=>c[0]!=='PV'||((INPUT.data3?.modeling?.sr_mode||'fixed')==='follow_pv')).map(c=>{
       const k=c[0], t=c[1], g=c[3]||''; let v=r[k];
       if(t==='t') return `<td class="t g-time">${hm(v)}</td>`;
-      if(t==='pv'){ const pv=simPVAt(o,r,ri); return `<td class="g-pv" data-pv="${ri}">${pv==null?'':fmt(pv,2)}</td>`; }
       if(t.indexOf('act:')===0){
         /* PROMPT ACTUAL GAS 1H §1/§6/§7: actual gas = input PER 1 JAM. Cell di-MERGE 2 row 30-menit
            (rowspan=2 di row genap pasangan; row ganjil tidak merender cell — tertutup rowspan).
@@ -6816,9 +6544,8 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
         /* PROMPT GAS SHORTAGE Sec.11: cell BIRU + tooltip bila unit memakai Distillate slot ini
            (DistMix_G{n} per row dari engine: 0.3/0.5/0.75/1.0; liter/row = Dist_G{n}). */
         const dmx=+(r['DistMix_'+k]||0); let dCls='', dTitle='Ctrl+Click to fix/cancel load';
-        let dStyle='', dData='';
         if(dmx>0&&!blankZero){
-          dCls=' dist-m'+Math.round(dmx*100)+' dist-cell'; dStyle=distCellStyle(r,k); dData=distCellData(r,k);
+          dCls=' dist-m'+Math.round(dmx*100);
           const dl=r['Dist_'+k];                                 // Distillate Liter slot (schedule final)
           /* §11 tooltip lengkap: unit, waktu, %, load, Total Fuel Energy, Gas Energy, Distillate Energy, Liter.
              Distillate Energy (BBTU/slot) diturunkan dari liter via faktor project; Total = Dist/frac. */
@@ -6840,7 +6567,7 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
             +(distE!=null?` · dist ${fmt(distE,4)} BBTU`:'')
             +(dl!=null?` · ${fmt(dl,1)} l`:'');
         }
-        return `<td class="g-${g}${sc&&!fixCls?' sc-mode':''}${fixCls}${unitMark}${dCls}"${fixAttr}${dStyle}${dData} title="${dTitle}">${blankZero?'':showV}</td>`;
+        return `<td class="g-${g}${sc&&!fixCls?' sc-mode':''}${fixCls}${unitMark}${dCls}"${fixAttr} title="${dTitle}">${blankZero?'':showV}</td>`;
       }
       if(MARK_KEYS[k]){            // GE1–GE4 and Babelan B1/B2 (G1–G10 handled in the GTG branch above)
         const sv=blankZero?'':(num?fmt(v,dec):(v??''));
@@ -6853,7 +6580,7 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
         return `<td class="g-bus ${bc}">${fmt(v,2)}</td>`;
       }
       if(g==='spin' && num){
-        const mn=(r&&r.SR_Min!=null)?(+r.SR_Min):(+(INPUT.data3?.modeling?.spinning_reserve_min)||0);   // SR minimum per row (Follow PV)
+        const mn=+(INPUT.data3?.modeling?.spinning_reserve_min)||0;
         let sc2='bs-green'; if(v<mn-1e-6)sc2='bs-red'; else if(v<mn+10)sc2='bs-yellow';
         return `<td class="g-spin ${sc2}">${fmt(v,2)}</td>`;
       }
@@ -6923,7 +6650,6 @@ function toggleSummaryWarnings(panelId,btn){
 }
 
 function renderResult(o){
-  try{ pgnAutoRecordResult(o); }catch(e){}
   const info=o.info, rows=o.data;
   // Gas monitoring header (Revisi): Actual Total Gas PGN, Actual Energy Total Fixed Flow Jababeka / MM2100
   try{
@@ -7312,109 +7038,6 @@ function refreshOverview(){
  *  Nilai : 0 SAH. Empty / NaN / teks nonnumerik DITOLAK.
  *  CSV dua kolom lama DITOLAK dengan pesan eksplisit.
  * ========================================================================================== */
-/* ===================== SPINNING RESERVE: Fix / Follow PV (token stabil) =====================
- * sr_mode = 'fixed' | 'follow_pv' · sr_fixed_mw · pv_rows[48] · sr_effective_rows[48]
- * fixed     : SR_min[row] = sr_fixed_mw
- * follow_pv : SR_min[row] = max(sr_fixed_mw, PV[row]); PV kosong/invalid -> sr_fixed_mw (warning audit)
- * Input lama tanpa token: mode fixed dengan spinning_reserve_min (perilaku lama). Rumus identik dengan backend
- * pp_reserve_rows(); spinning_reserve_min tetap ditulis = sr_fixed_mw untuk konsumen lama. */
-let SR_MODE='fixed', SR_PV=new Array(48).fill(null);
-function srNum(v){ if(v===null||v===undefined) return null; const t=String(v).trim(); if(t==='') return null; const n=Number(t.replace(',','.')); return (isFinite(n)&&n>=0)?n:null; }
-function srFixed(){ const el=document.getElementById('f-spinning_reserve_min'); const v=el?srNum(el.value):null; return v==null?0:v; }
-function srEffectiveRows(){ const fx=srFixed(); return SR_PV.map(p=> SR_MODE==='follow_pv' ? (p==null?fx:Math.max(fx,p)) : fx); }
-function srInit(m){
-  m=m||{}; SR_MODE=(m.sr_mode==='follow_pv')?'follow_pv':'fixed';
-  const pv=Array.isArray(m.pv_rows)?m.pv_rows:[]; SR_PV=new Array(48).fill(null).map((_,i)=>srNum(pv[i]));
-  const el=document.getElementById('f-spinning_reserve_min');
-  if(el){ const fx=(m.sr_fixed_mw!=null&&m.sr_fixed_mw!=='')?m.sr_fixed_mw:m.spinning_reserve_min; el.value=(fx==null?'':fx); }
-  srRender();
-}
-function srSlotDate(i){
-  const t=String(((INPUT.data1||[])[i]||{}).time||''); const mm=t.match(/^(\d{1,2}-[A-Za-z]{3}-\d{2,4})/);
-  if(mm) return mm[1];
-  const pd=(INPUT.data3&&INPUT.data3.modeling&&INPUT.data3.modeling.plan_date)||''; const d=pd?new Date(pd+'T00:00:00'):null;
-  if(!d||isNaN(d)) return ''; if(i===47) d.setDate(d.getDate()+1); return csvFmtDate(d);
-}
-function srWriteModel(){
-  if(!(INPUT&&INPUT.data3&&INPUT.data3.modeling)) return;
-  const m=INPUT.data3.modeling; const fx=srFixed();
-  m.sr_mode=SR_MODE; m.sr_fixed_mw=fx; m.spinning_reserve_min=fx;
-  m.pv_rows=SR_PV.slice(0,48); m.sr_effective_rows=srEffectiveRows();
-}
-function srRender(){
-  const rf=document.getElementById('sr-mode-fixed'), rp=document.getElementById('sr-mode-pv');
-  if(rf) rf.checked=(SR_MODE==='fixed'); if(rp) rp.checked=(SR_MODE==='follow_pv');
-  const lb=document.getElementById('sr-fixed-label'); if(lb) lb.textContent=(SR_MODE==='follow_pv')?'SR floor (Fix)':'Fix Spinning Reserve';
-  const t=document.getElementById('tbl-srpv'); if(!t) return;
-  const eff=srEffectiveRows(); const pvOn=(SR_MODE==='follow_pv');
-  let h='<tr><th>#</th><th>Date</th><th>Time</th><th>PV (MW)</th><th>Effective SR Minimum (MW)</th></tr>';
-  for(let i=0;i<48;i++){
-    const p=SR_PV[i];
-    h+='<tr><td>'+(i+1)+'</td><td>'+srSlotDate(i)+'</td><td>'+csvSlotTime(i)+'</td>'
-      +'<td><input class="srpv" data-i="'+i+'" type="text" inputmode="decimal" value="'+(p==null?'':p)+'" style="width:90px;text-align:right'+(pvOn&&p==null?';background:#fff7e6':'')+'" aria-label="PV row '+(i+1)+'"></td>'
-      +'<td class="r" data-sreff="'+i+'">'+(+eff[i]).toFixed(2)+'</td></tr>';
-  }
-  t.innerHTML=h;
-  let rej=null;
-  t.querySelectorAll('input.srpv').forEach(el=>el.addEventListener('change',e=>{ const i=+e.target.dataset.i; const raw=String(e.target.value).trim(); const v=srNum(raw);
-    /* nilai negatif / bukan angka DITOLAK (nilai sebelumnya dipertahankan); kosong = PV tidak tersedia -> floor */
-    if(raw!==''&&v==null){ SR_PV_REJECT='PV row '+(i+1)+' ('+csvSlotTime(i)+') ditolak: "'+raw+'" bukan angka ≥ 0 — nilai sebelumnya dipertahankan.'; srRender(); return; }
-    SR_PV[i]=v; SR_PV_REJECT=null; srRender(); }));
-  rej=SR_PV_REJECT;
-  const miss=SR_PV.filter(x=>x==null).length; const s=document.getElementById('sr-sum');
-  if(s) s.textContent=(pvOn?'Follow PV aktif':'Fix aktif')+' · SR min '+Math.min(...eff).toFixed(2)+'–'+Math.max(...eff).toFixed(2)+' MW'
-    +(pvOn&&miss?(' · PV kosong '+miss+' row → memakai floor'):'')+(rej?(' · '+rej):'');
-  srWriteModel();
-  try{ srChartRender(); }catch(e){}
-}
-/* ===== Grafik line PV (Follow PV) — SVG inline lokal, tanpa CDN; bukan bagian critical path engine.
- * 48 titik (00:30 … 00:00), sumbu Y mulai 0, grid horizontal tipis, label jam tiap 2 jam, crosshair + tooltip untuk
- * seluruh 48 titik (Time, PV MW). Listener dipasang SEKALI pada container (tanpa kebocoran memori); render ulang hanya saat
- * PV/mode berubah (srRender) atau lebar container berubah (ResizeObserver, satu per halaman). */
-let SR_PV_REJECT=null, SR_CHART=null;
-function srChartStats(){ const v=SR_PV.map((x,i)=>[x,i]).filter(a=>a[0]!=null); if(!v.length) return null;
-  let mn=v[0], mx=v[0], sum=0; v.forEach(a=>{ if(a[0]<mn[0]) mn=a; if(a[0]>mx[0]) mx=a; sum+=a[0]; });
-  return {min:mn[0],max:mx[0],avg:sum/v.length,peak:csvSlotTime(mx[1]),n:v.length}; }
-function srChartRender(){
-  const wrap=document.getElementById('sr-pv-chart-wrap'), box=document.getElementById('sr-pv-chart'), st=document.getElementById('sr-pv-stats');
-  if(!wrap||!box) return;
-  if(!box.dataset.bound){ box.dataset.bound='1';
-    const show=(i)=>{ const c=SR_CHART; if(!c) return; i=Math.max(0,Math.min(47,i)); c.idx=i; const v=SR_PV[i]; const xh=document.getElementById('sr-pv-xh'), hi=document.getElementById('sr-pv-hi'), tip=document.getElementById('sr-pv-tip'); if(!xh||!tip) return;
-      const x=c.X(i); xh.setAttribute('x1',x); xh.setAttribute('x2',x); xh.setAttribute('visibility','visible');
-      if(v!=null){ hi.setAttribute('cx',x); hi.setAttribute('cy',c.Y(v)); hi.setAttribute('visibility','visible'); } else hi.setAttribute('visibility','hidden');
-      tip.textContent=''; const a=document.createElement('div'); a.textContent='Time '+csvSlotTime(i)+' (row '+(i+1)+')'; const b=document.createElement('div'); const bb=document.createElement('b'); bb.textContent=v==null?'— (kosong → floor)':(+v).toFixed(2)+' MW'; b.textContent='PV '; b.appendChild(bb);
-      tip.appendChild(a); tip.appendChild(b); tip.style.display='block'; const tw=tip.offsetWidth||120; tip.style.left=Math.min(c.W-tw-4,Math.max(4,x+10))+'px'; tip.style.top='8px'; };
-    const hide=()=>{ const xh=document.getElementById('sr-pv-xh'), hi=document.getElementById('sr-pv-hi'), tip=document.getElementById('sr-pv-tip'); if(xh) xh.setAttribute('visibility','hidden'); if(hi) hi.setAttribute('visibility','hidden'); if(tip) tip.style.display='none'; if(SR_CHART) SR_CHART.idx=null; };
-    box.addEventListener('pointermove',e=>{ const c=SR_CHART; const sv=document.getElementById('sr-pv-svg'); if(!c||!sv) return; const r=sv.getBoundingClientRect(); const px=(e.clientX-r.left)*(c.W/r.width); show(Math.round((px-c.L)/(c.pw/47))); });
-    box.addEventListener('pointerleave',hide);
-    box.addEventListener('keydown',e=>{ const c=SR_CHART; if(!c) return; if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ e.preventDefault(); show((c.idx==null?0:c.idx)+(e.key==='ArrowRight'?1:-1)); } else if(e.key==='Escape') hide(); });
-    box.addEventListener('focusout',hide);
-    if(window.ResizeObserver){ let raf=0, lastW=0; new ResizeObserver(en=>{ const w=Math.round(en[0].contentRect.width); if(w===lastW) return; lastW=w; cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ try{ srChartRender(); }catch(e){} }); }).observe(box); }
-  }
-  if(SR_MODE!=='follow_pv'){ wrap.style.display='none'; return; }   // Fix Spinning Reserve: grafik disembunyikan, data PV tetap
-  wrap.style.display='block';
-  const S=srChartStats(); const f2=x=>(+x).toFixed(2);
-  st.textContent='';
-  [['PV minimum',S?f2(S.min)+' MW':'—'],['PV maximum',S?f2(S.max)+' MW':'—'],['PV average',S?f2(S.avg)+' MW':'—'],['Peak time',S?S.peak:'—']].forEach(([k,v])=>{
-    const sp=document.createElement('span'); const b=document.createElement('b'); b.textContent=v; sp.textContent=k+': '; sp.appendChild(b); sp.setAttribute('data-stat',k); st.appendChild(sp); });
-  const W=Math.max(320,Math.round(box.clientWidth||0)); if(!box.clientWidth){ return; }       // tersembunyi: ResizeObserver merender saat tampil
-  const H=230, L=46, R=14, T=12, B=30, pw=W-L-R, ph=H-T-B;
-  const mx=S?S.max:0; const step=[0.5,1,2,2.5,5,10,20,25,50,100,200,250,500].find(s=>mx/s<=5)||Math.ceil(mx/5); const yMax=Math.max(step,Math.ceil((mx||0)/step)*step);
-  const X=i=>L+i*pw/47, Y=v=>T+ph-(v/yMax)*ph;
-  const NS='http://www.w3.org/2000/svg'; let g='';
-  for(let v=0;v<=yMax+1e-9;v+=step){ const y=Y(v).toFixed(1); g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e5e7eb" stroke-width="1"/>'
-    +'<text x="'+(L-6)+'" y="'+(+y+3.5)+'" text-anchor="end" font-size="11" fill="#64748b">'+(+v.toFixed(2))+'</text>'; }
-  for(let i=0;i<48;i++){ if(i!==0&&(i+1)%4!==0) continue; g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" text-anchor="'+(i===47?'end':(i===0?'start':'middle'))+'" font-size="11" fill="#64748b">'+csvSlotTime(i)+'</text>'; }
-  g+='<text x="12" y="'+(T+ph/2)+'" transform="rotate(-90 12 '+(T+ph/2)+')" text-anchor="middle" font-size="11" fill="#64748b">PV (MW)</text>';
-  let d='', pen=false; for(let i=0;i<48;i++){ const v=SR_PV[i]; if(v==null){ pen=false; continue; } d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1); pen=true; }
-  g+='<path d="'+d+'" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-  for(let i=0;i<48;i++){ const v=SR_PV[i]; if(v==null) continue; g+='<circle class="srpv-dot" data-i="'+i+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="2.6" fill="#2a78d6" stroke="#fff" stroke-width="1"/>'; }
-  g+='<line id="sr-pv-xh" x1="0" x2="0" y1="'+T+'" y2="'+(T+ph)+'" stroke="#94a3b8" stroke-width="1" visibility="hidden"/>'
-    +'<circle id="sr-pv-hi" r="5" fill="#2a78d6" stroke="#fff" stroke-width="2" visibility="hidden"/>';
-  box.innerHTML='<svg xmlns="'+NS+'" id="sr-pv-svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" tabindex="0" aria-label="PV (MW) per 30 menit, 48 titik; minimum '+(S?f2(S.min):'-')+', maksimum '+(S?f2(S.max):'-')+' MW pada '+(S?S.peak:'-')+'" style="display:block;max-width:100%;outline:none">'+g+'</svg>'
-    +'<div id="sr-pv-tip" role="status" style="position:absolute;pointer-events:none;display:none;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:4px 8px;font-size:12px;color:#1f2937;box-shadow:0 4px 12px rgba(15,23,42,.12);white-space:nowrap"></div>';
-  SR_CHART={X,Y,L,R,W,pw,yMax,idx:null};
-}
 const CSV_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function csvFmtDate(d){ return String(d.getDate()).padStart(2,'0')+'-'+CSV_MON[d.getMonth()]+'-'+String(d.getFullYear()%100).padStart(2,'0'); }
 /* dd-mmm-yy -> Date (yy: 70..99 = 19xx, selain itu 20xx). null bila tidak valid. */
@@ -7442,57 +7065,62 @@ function csvTimeLabel(baseDate,i){
 function csvNum(v){ const t=String(v==null?'':v).trim(); if(t==='') return null;
   const n=Number(t.replace(',','.')); return isFinite(n)?n:null; }
 
-/* Parser + validator IE Prediction & Dispatch (+ PV). Mengembalikan report; TIDAK memutasi apa pun.
- * Kontrak file (CSV maupun Excel, mapping SAMA):
- *   Row 1      = header/judul — SELALU dilewati, tidak pernah dibaca sebagai data.
- *   Row 2..49  = tepat 48 data row: A = Tanggal, B = IE (MW), C = Dispatch, D = PV (MW, opsional).
- *   Jam tidak dibaca: slot dibentuk berurutan 00:30, 01:00, ..., 00:00 sesuai nomor row.
- * Angka aman untuk format lokal: delimiter dideteksi dari header (';' / tab / ','), desimal koma diterima. */
-function csvTextToAoa(text){
+/* Parser + validator. Mengembalikan report; TIDAK memutasi apa pun. */
+function parseCSV3(text){
+  const rep={ok:false,rows:[],errors:[],dates:[],validRows:0,errorRows:0,expected:'Tanggal,IE (MW),Dispatch,PV (MW) — 48 data row'};
   const raw=String(text==null?'':text).replace(/^\uFEFF/,'');
   const lines=raw.split(/\r?\n/).filter(l=>l.trim()!=='');
-  if(!lines.length) return [];
-  const h=lines[0]; const dl=(h.indexOf(';')>=0)?';':((h.indexOf('\t')>=0)?'\t':',');
-  return lines.map(l=>l.split(dl).map(x=>x.trim().replace(/^"(.*)"$/,'$1')));
-}
-function csvCellDate(v){
-  if(v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
-  if(typeof v==='number' && isFinite(v) && v>20000 && v<80000){   // serial tanggal Excel
-    const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()); }
-  const t=String(v==null?'':v).trim(); if(/^\d{5}(\.\d+)?$/.test(t)) return csvCellDate(+t);
-  let d=csvParseDate(t); if(d) return d;
-  let m=t.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){ d=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(d)?null:d; }
-  m=t.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})$/); if(m){ let y=+m[3]; if(m[3].length===2) y=2000+y; d=new Date(y,+m[2]-1,+m[1]); return (d.getDate()===+m[1])?d:null; }
-  return null;
-}
-function parseRowsAD(aoa,src){
-  const rep={ok:false,rows:[],errors:[],dates:[],validRows:0,errorRows:0,pvLoaded:false,pvMin:null,pvMax:null,source:src||'csv',
-             header:null,expected:'Row 1 = header; row 2-49 = A Tanggal (dd-mmm-yy), B IE (MW), C Dispatch, D PV (MW)'};
-  if(!Array.isArray(aoa)||!aoa.length){ rep.errors.push('File kosong.'); return rep; }
-  rep.header=(aoa[0]||[]).map(x=>String(x==null?'':x));
-  const body=aoa.slice(1).filter(r=>Array.isArray(r)&&r.some(c=>String(c==null?'':c).trim()!==''));
-  if(!body.length){ rep.errors.push('Tidak ada data row setelah header (row 1).'); return rep; }
-  const hasD=body.some(r=>r.length>=4&&String(r[3]==null?'':r[3]).trim()!=='');
-  body.forEach((c,k)=>{
-    const rowNo=k+2;
-    if(c.length<3){ rep.errors.push('Row '+rowNo+': hanya '+c.length+' kolom (wajib A Tanggal, B IE, C Dispatch).'); rep.errorRows++; return; }
-    const d=csvCellDate(c[0]); const ie=csvNum(c[1]); const dp=csvNum(c[2]); const pv=hasD?csvNum(c[3]):null;
+  if(!lines.length){ rep.errors.push('File CSV kosong.'); return rep; }
+  const split=l=>l.split(/[,;\t]/).map(x=>x.trim());
+  const head=split(lines[0]).map(x=>x.toLowerCase());
+  const hasHeader=head.some(h=>/^(date|tanggal|ie|dispatch)$/.test(h));
+  let iD=0,iI=1,iP=2,iV=3,start=0;
+  if(hasHeader){
+    start=1;
+    const f=n=>head.findIndex(h=>n.test(h));
+    const d=f(/^(date|tanggal)$/), a=f(/^ie/), b=f(/^dispatch$/), p=f(/^pv/);
+    if(d<0&&a>=0&&b>=0){
+      /* Header lama dua kolom (IE,Dispatch) — tolak dengan pesan format baru yang eksplisit. */
+      rep.errors.push('Format CSV dua kolom TIDAK didukung lagi. Format baru membutuhkan tiga kolom: Date, IE, Dispatch (Date = dd-mmm-yy).');
+      return rep;
+    }
+    if(d<0||a<0||b<0){
+      rep.errors.push('Header tidak lengkap. Wajib ada kolom Date (atau Tanggal), IE, dan Dispatch. Ditemukan: '+split(lines[0]).join(', '));
+      return rep;
+    }
+    iD=d; iI=a; iP=b; iV=(p>=0?p:3); iV=(p>=0?p:3);
+  } else {
+    const c0=split(lines[0]);
+    if(c0.length<4){
+      rep.errors.push('Format CSV dua kolom TIDAK didukung lagi. Format baru membutuhkan tiga kolom: Date, IE, Dispatch (Date = dd-mmm-yy).');
+      return rep;
+    }
+  }
+  const body=lines.slice(start);
+  if(!body.length){ rep.errors.push('Tidak ada baris data setelah header.'); return rep; }
+  body.forEach((ln,k)=>{
+    const c=split(ln); const rowNo=k+1+start;
+    if(c.length<4){
+      rep.errors.push('Baris '+rowNo+': hanya '+c.length+' kolom. Format baru membutuhkan Date, IE, Dispatch.');
+      rep.errorRows++; return;
+    }
+    const d=csvParseDate(c[iD]); const ie=csvNum(c[iI]); const dp=csvNum(c[iP]); const pv=csvNum(c[iV]);
     const bad=[];
-    if(!d) bad.push('Tanggal "'+c[0]+'" tidak valid');
-    if(ie===null) bad.push('IE "'+c[1]+'" bukan numerik');
-    if(dp===null) bad.push('Dispatch "'+c[2]+'" bukan numerik');
-    if(hasD&&(pv===null||pv<0)) bad.push('PV "'+(c[3]==null?'':c[3])+'" bukan numerik >= 0');
-    if(bad.length){ rep.errors.push('Row '+rowNo+': '+bad.join('; ')); rep.errorRows++; return; }
+    if(!d)  bad.push('Date "'+c[iD]+'" tidak valid (format dd-mmm-yy)');
+    if(ie===null) bad.push('IE "'+c[iI]+'" bukan numerik');
+    if(dp===null) bad.push('Dispatch "'+c[iP]+'" bukan numerik'); if(pv===null) bad.push('PV "'+c[iV]+'" bukan numerik'); if(pv===null) bad.push('PV "'+c[iV]+'" bukan numerik');
+    if(bad.length){ rep.errors.push('Baris '+rowNo+': '+bad.join('; ')); rep.errorRows++; return; }
     rep.rows.push({date:d,dateStr:csvFmtDate(d),ie:ie,disp:dp,pv:pv});
-    rep.validRows++; const ds=csvFmtDate(d); if(rep.dates.indexOf(ds)<0) rep.dates.push(ds);
+    rep.validRows++;
+    const ds=csvFmtDate(d); if(rep.dates.indexOf(ds)<0) rep.dates.push(ds);
   });
-  if(rep.dates.length>1) rep.errors.push('File memuat lebih dari satu tanggal ('+rep.dates.join(', ')+'). Satu file hanya boleh untuk satu hari.');
-  if(rep.errorRows===0 && rep.validRows!==48) rep.errors.push('Jumlah data row sesudah header = '+rep.validRows+', wajib tepat 48.');
-  if(hasD && rep.rows.length){ rep.pvLoaded=true; const pvs=rep.rows.map(r=>r.pv); rep.pvMin=Math.min(...pvs); rep.pvMax=Math.max(...pvs); }
+  if(rep.dates.length>1)
+    rep.errors.push('File memuat lebih dari satu tanggal ('+rep.dates.join(', ')+'). Satu file hanya boleh untuk satu hari.');
+  if(rep.errorRows===0 && rep.dates.length===1 && rep.validRows!==48)
+    rep.errors.push('Jumlah baris data = '+rep.validRows+', wajib tepat 48 baris untuk satu hari.');
   rep.ok = rep.errors.length===0 && rep.validRows===48 && rep.dates.length===1;
   return rep;
 }
-function parseCSV3(text){ return parseRowsAD(csvTextToAoa(text),'csv'); }
 /* kompatibilitas nama lama: selalu lewat validator baru */
 function parseCSV(text){ const r=parseCSV3(text); return r.ok?r.rows.map(x=>({ie:x.ie,disp:x.disp,date:x.date})):[]; }
 
@@ -7510,20 +7138,17 @@ function csvApplyRows(rows){
   if(!Array.isArray(rows)||rows.length!==48) return false;
   const base=rows[0].date instanceof Date ? rows[0].date : csvParseDate(rows[0].dateStr);
   if(!base) return false;
-  if(!INPUT.data1) INPUT.data1=[]; if(!INPUT.data2) INPUT.data2=[];
+  if(!INPUT.data1) INPUT.data1=[]; if(!INPUT.data2) INPUT.data2=[]; INPUT.data3=INPUT.data3||{}; INPUT.data3.modeling=INPUT.data3.modeling||{}; INPUT.data3.modeling.pv_rows=INPUT.data3.modeling.pv_rows||Array(48).fill(0); INPUT.data3=INPUT.data3||{}; INPUT.data3.modeling=INPUT.data3.modeling||{}; INPUT.data3.modeling.pv_rows=INPUT.data3.modeling.pv_rows||Array(48).fill(0);
   for(let i=0;i<48;i++){
     const label=csvTimeLabel(base,i);                       /* tanggal CSV + slot aplikasi */
     INPUT.data1[i]=INPUT.data1[i]||{}; INPUT.data2[i]=INPUT.data2[i]||{};
     INPUT.data1[i].time=label; INPUT.data2[i].time=label;
     INPUT.data1[i].value=rows[i].ie;                        /* 0 tetap 0 */
-    INPUT.data2[i].dispatch=rows[i].disp;
+    INPUT.data2[i].dispatch=rows[i].disp; INPUT.data3.modeling.pv_rows[i]=Number(rows[i].pv||0);
   }
-  /* Kolom D -> Spinning Reserve > Follow PV (48 nilai). Mode SR TIDAK diubah: Follow PV OFF -> PV disimpan, bukan constraint. */
-  const pvIn=rows.every(r=>r.pv!=null&&isFinite(r.pv));
-  if(pvIn){ SR_PV=rows.map(r=>+r.pv); if(INPUT.data3&&INPUT.data3.modeling) INPUT.data3.modeling.pv_rows=SR_PV.slice(0,48); try{ srRender(); }catch(e){} }
   if(typeof buildIED==='function') buildIED();
   if(typeof updateIEDsum==='function') updateIEDsum();
-  csvSetStatus('Applied: '+csvFmtDate(base)+' · 48 slot (00:30 → 00:00) · IE & Dispatch diperbarui'+(pvIn?' · PV (kolom D) → Spinning Reserve › Follow PV (mode SR tidak diubah)':'')+'.',false);
+  csvSetStatus('Applied: '+csvFmtDate(base)+' · 48 slot (00:30 → 00:00) · IE & Dispatch diperbarui.',false);
   return true;
 }
 /* ---- UX: status, preview, validate, apply, clear, reset ---- */
@@ -7539,18 +7164,14 @@ function csvSetStatus(msg,isErr){
 }
 function csvRenderPreview(rep,fileName){
   const box=document.getElementById('csv-preview'); if(!box) return;
-  const f2=v=>(v==null?'-':(+v).toFixed(2));
-  const head='<div style="font-weight:700;margin-bottom:4px">'+(fileName?('File: '+String(fileName).replace(/</g,'&lt;')+'<br>'):'')
-    +'Rows detected: '+rep.validRows+(rep.errorRows?(' (error '+rep.errorRows+')'):'')+'<br>'
-    +'Date: '+(rep.dates.length?rep.dates.join(', '):'-')+'<br>'
-    +'IE: '+(rep.validRows?'loaded':'-')+'<br>Dispatch: '+(rep.validRows?'loaded':'-')+'<br>'
-    +'PV: '+(rep.pvLoaded?'loaded':'not present (kolom D kosong)')+'<br>'
-    +(rep.pvLoaded?('PV min/max: '+f2(rep.pvMin)+' / '+f2(rep.pvMax)+' MW'):'')+'</div>';
+  const head='<div style="font-weight:700;margin-bottom:4px">'+(fileName?('File: '+fileName+' · '):'')
+    +'tanggal terdeteksi: '+(rep.dates.length?rep.dates.join(', '):'-')
+    +' · valid '+rep.validRows+' row · error '+rep.errorRows+' row</div>';
   let body='';
   if(rep.rows.length){
     const base=rep.rows[0].date;
     body='<table class="csvprev"><tr><th>#</th><th>Time</th><th>IE</th><th>Dispatch</th><th>PV</th></tr>'
-      + rep.rows.slice(0,5).map((r,k)=>'<tr><td>'+(k+1)+'</td><td>'+csvTimeLabel(base,k)+'</td><td>'+r.ie+'</td><td>'+r.disp+'</td><td>'+(r.pv==null?'-':r.pv)+'</td></tr>').join('')
+      + rep.rows.slice(0,5).map((r,k)=>'<tr><td>'+(k+1)+'</td><td>'+csvTimeLabel(base,k)+'</td><td>'+r.ie+'</td><td>'+r.disp+'</td><td>'+r.pv+'</td></tr>').join('')
       + (rep.rows.length>5?('<tr><td colspan="5">… '+(rep.rows.length-5)+' baris lain</td></tr>'):'')
       + '</table>';
   }
@@ -7562,16 +7183,8 @@ function csvRenderPreview(rep,fileName){
   box.innerHTML=head+body+errs
     +'<div style="margin-top:6px;color:#5b6b7a;font-size:11px">Format diharapkan: '+rep.expected+'</div>';
 }
-function csvHandleAoa(rep,fileName){
-  CSV_PENDING=rep;
-  csvRenderPreview(rep,fileName);
-  if(rep.ok) csvSetStatus('File valid — tekan Apply Import untuk menerapkan ke 48 slot, atau Cancel.',false);
-  else csvSetStatus('File DITOLAK ('+rep.errors.length+' masalah). Data existing TIDAK diubah.',true);
-  const ab=document.getElementById('csv-apply'); if(ab) ab.disabled=!rep.ok;
-  return rep;
-}
 function csvHandleText(text,fileName){
-  const rep=parseCSV3(text);
+  let rep; try{rep=parseCSV3(text);}catch(err){csvSetStatus('Import gagal: '+(err&&err.message?err.message:String(err)),true);const ab=document.getElementById('csv-apply');if(ab)ab.disabled=true;return null;}
   CSV_PENDING=rep;
   csvRenderPreview(rep,fileName);
   if(rep.ok) csvSetStatus('CSV valid — tekan Apply untuk menerapkan ke 48 slot.',false);
@@ -7581,7 +7194,7 @@ function csvHandleText(text,fileName){
 }
 function csvApplyPending(){
   if(!CSV_PENDING||!CSV_PENDING.ok){ csvSetStatus('Tidak ada CSV valid untuk di-apply. Data existing TIDAK diubah.',true); return false; }
-  CSV_SNAPSHOT={d1:JSON.parse(JSON.stringify(INPUT.data1||[])),d2:JSON.parse(JSON.stringify(INPUT.data2||[])),pv:SR_PV.slice(0,48)};
+  CSV_SNAPSHOT={d1:JSON.parse(JSON.stringify(INPUT.data1||[])),d2:JSON.parse(JSON.stringify(INPUT.data2||[]))};
   return csvApplyRows(CSV_PENDING.rows);
 }
 function csvClear(){
@@ -7594,7 +7207,6 @@ function csvReset(){
   if(!CSV_SNAPSHOT){ csvSetStatus('Tidak ada apply sebelumnya untuk di-reset.',true); return false; }
   INPUT.data1=JSON.parse(JSON.stringify(CSV_SNAPSHOT.d1));
   INPUT.data2=JSON.parse(JSON.stringify(CSV_SNAPSHOT.d2));
-  if(Array.isArray(CSV_SNAPSHOT.pv)){ SR_PV=CSV_SNAPSHOT.pv.slice(0,48); try{ srRender(); }catch(e){} }
   CSV_SNAPSHOT=null;
   if(typeof buildIED==='function') buildIED();
   if(typeof updateIEDsum==='function') updateIEDsum();
@@ -7606,13 +7218,11 @@ function resultToHTMLTable(){
   if(!OUTPUT) return '';
   const info=OUTPUT.info, rows=OUTPUT.data;
   let s='<table border="1"><tr><th colspan="2">'+(INPUT.data3.modeling.name_plan||'Daily Plan')+'</th></tr>';
-  if(OUTPUT.time_limited===true) s+=(OUTPUT.result_label==='FASTEST VALID PLAN')?'<tr><th colspan="2" style="background:#fef3c7">FASTEST VALID PLAN — kandidat fully valid pertama (Global optimum proven: NO)</th></tr>':'<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
+  if(OUTPUT.time_limited===true) s+='<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
   Object.keys(info).forEach(k=>{if(k==='Warnings'||k==='Distillate per unit (l)')return;
     s+=`<tr><td>${k}</td><td>${info[k]}</td></tr>`;});
-  const SCx=simCols(OUTPUT);
-  s+='</table><br><table border="1"><tr>'+SCx.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
-  rows.forEach((r,ri)=>{s+='<tr>'+SCx.map(c=>{
-    if(c[1]==='pv'){ const pv=simPVAt(OUTPUT,r,ri); return `<td>${pv==null?'':pv}</td>`; }
+  s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
+  rows.forEach((r,ri)=>{s+='<tr>'+COLS.map(c=>{
     const fk=fixKeyOf(c[0]); const fx=fk?cellFixed(fk,ri):null;
     if(fx!=null) return `<td style="background:#ffd2d2;font-weight:bold">${fmt(fx,2)}</td>`;
     return `<td>${r[c[0]]??''}</td>`;
@@ -7786,8 +7396,8 @@ function gsrAddLngQuota(){
 
 function buildSimImageTable(startRow){
   const rows=OUTPUT.data||[];
-  const SCi=simCols(OUTPUT); const cut=SCi.findIndex(c=>c[0]===IMG_LAST_COL);
-  const cols=SCi.slice(0,cut+1);
+  const cut=COLS.findIndex(c=>c[0]===IMG_LAST_COL);
+  const cols=COLS.slice(0,cut+1);
   // mirror the live Simulation Data look (group colours, pills, Export/Diff order),
   // but static-positioned (imgcap) so html2canvas renders cleanly.
   let h='<table class="data simgrid imgcap"><thead><tr>'+
@@ -7796,7 +7406,6 @@ function buildSimImageTable(startRow){
     h+='<tr>'+cols.map(c=>{
       const k=c[0],t=c[1],g=c[3]||'';let v=r[k];
       if(t==='t')return `<td class="t g-time">${hm(v)}</td>`;
-      if(t==='pv'){ const pv=simPVAt(OUTPUT,r,ri); return `<td class="g-pv">${pv==null?'':fmt(pv,2)}</td>`; }
       const num=typeof v==='number';
       const fk=fixKeyOf(k); const fixed=fk?cellFixed(fk,ri):null; const fcls=fixed!=null?' fix-load':'';
       if(g==='dispatch'&&num){const cls=v>=150?'green':(v>=90?'orange':'slate');return `<td class="g-dispatch"><span class="pill ${cls}">${fmt(v,2)}</span></td>`;}
@@ -7813,8 +7422,8 @@ function buildSimImageTable(startRow){
         const nxt=ri<rows.length-1?(+(rows[ri+1][k])||0):null;
         if(cur<=1e-9 && !fcls){ if(prv!==null&&prv>1e-9)mk=' cell-stop'; else if(nxt!==null&&nxt>1e-9)mk=' cell-startup'; }
         /* PROMPT GAS SHORTAGE Sec.11: warna Distillate ikut terekam di Image Full/Partial */
-        const dmx2=+(r['DistMix_'+k]||0); const dist2=(dmx2>0&&cur>1e-9); const dcls2=dist2?(' dist-m'+Math.round(dmx2*100)+' dist-cell'):'';
-        return `<td class="g-${g}${fcls}${mk}${dcls2}"${dist2?distCellStyle(r,k)+distCellData(r,k):''}>${(cur<=1e-9)?'':shw}</td>`;
+        const dmx2=+(r['DistMix_'+k]||0); const dcls2=(dmx2>0&&cur>1e-9)?(' dist-m'+Math.round(dmx2*100)):'';
+        return `<td class="g-${g}${fcls}${mk}${dcls2}">${(cur<=1e-9)?'':shw}</td>`;
       }
       return `<td class="g-${g}${fcls}">${shw}</td>`;
     }).join('')+'</tr>';}
@@ -8068,17 +7677,8 @@ if(HAVE_INPUT){
   { const rx=$('btn-report-xls'); if(rx) rx.addEventListener('click',downloadExcel); }
   { const cf=$('csv-file'); if(cf) cf.addEventListener('change',ev=>{const f=ev.target.files[0];if(!f)return;
       const rd=new FileReader(); CSV_LAST_TEXT=null; CSV_LAST_NAME=f.name;
-      if(/\.xlsx$/i.test(f.name)){
-        rd.onload=()=>{ let aoa=null; try{ aoa=XLSXMini.read(new Uint8Array(rd.result)); }catch(e){ csvSetStatus('File .xlsx tidak dapat dibaca: '+(e.message||e),true); return; }
-          csvHandleAoa(parseRowsAD(aoa,'xlsx'),CSV_LAST_NAME); };
-        rd.readAsArrayBuffer(f);
-      } else {
-        rd.onload=()=>{ CSV_LAST_TEXT=String(rd.result); csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME); };
-        rd.readAsText(f);
-      }
-      ev.target.value='';}); }
-  { ['sr-mode-fixed','sr-mode-pv'].forEach(id=>{ const r=$(id); if(r) r.addEventListener('change',e=>{ if(e.target.checked){ SR_MODE=e.target.value==='follow_pv'?'follow_pv':'fixed'; srRender(); } }); });
-    const fx=$('f-spinning_reserve_min'); if(fx){ fx.addEventListener('input',()=>srRender()); fx.addEventListener('change',()=>srRender()); } }
+      if(/\.xlsx$/i.test(f.name)){rd.onload=()=>{try{const aoa=XLSXMini.read(new Uint8Array(rd.result));CSV_LAST_TEXT=csvAOAToText(aoa);csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME);}catch(err){csvSetStatus('Excel ditolak: '+(err.message||err),true);}};rd.readAsArrayBuffer(f);}
+      else{rd.onload=()=>{CSV_LAST_TEXT=String(rd.result);csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME);};rd.readAsText(f);} ev.target.value='';}); }
   { const b=$('csv-validate'); if(b) b.addEventListener('click',()=>{
       if(CSV_LAST_TEXT==null){ csvSetStatus('Belum ada CSV yang dimuat.',true); return; }
       csvHandleText(CSV_LAST_TEXT,CSV_LAST_NAME); }); }
@@ -8093,8 +7693,8 @@ if(HAVE_INPUT){
   // Gas Shortage Decision — segmented control
   document.querySelectorAll('#gsd-seg .gsd-opt').forEach(b=>b.addEventListener('click',()=>{setGasAction(b.dataset.act);refreshGasDecision();}));
   { const sel=$('f-tl-target'); if(sel){
-      try{ const v=localStorage.getItem('pp_tl_target_v2'); if(v && [...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
-      sel.addEventListener('change',()=>{ try{ localStorage.setItem('pp_tl_target_v2',sel.value); }catch(e){} }); } }
+      try{ const v=localStorage.getItem('pp_tl_target'); if(v && [...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
+      sel.addEventListener('change',()=>{ try{ localStorage.setItem('pp_tl_target',sel.value); }catch(e){} }); } }
   setGasAction(($('f-gas_action')||{}).value||'recommendation');
 }
 // initial paint of result/overview if a previous output exists
