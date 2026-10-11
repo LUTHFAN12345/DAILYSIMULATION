@@ -2967,7 +2967,9 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
         catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a = null; } finally { pp_tl_clean_globals(); }
         if (is_array($a) && !empty($a['valid']) && function_exists('pp_v6_priority_polish') && (string)getenv('PP_IE_WARM_POLISH') !== '0') {
             $tP = microtime(true); $cp0 = $a['key']['cp'] ?? null;
-            try { $a = pp_v6_priority_polish($c, $a, microtime(true) + (float)(getenv('PP_IE_WARM_POLISH') ?: 2.5)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+            /* V15.18 DETERMINISTIK: polish dibatasi JUMLAH evaluasi (1), bukan jendela 0,5 s wall-clock; deadline = watchdog darurat */
+            $GLOBALS['__pp_polish_max_evals'] = (int)(getenv('PP_IE_WARM_POLISH_N') ?: 1);
+            try { $a = pp_v6_priority_polish($c, $a, microtime(true) + (float)(getenv('PP_IE_WARM_POLISH') ?: 30.0)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} finally { unset($GLOBALS['__pp_polish_max_evals']); }
             pp_tl_clean_globals(); $stages[] = ['tahap' => 'A_POLISH_UNIT_PRIORITY', 's' => round(microtime(true) - $tP, 3), 'cp_sebelum' => $cp0, 'cp_sesudah' => is_array($a) ? ($a['key']['cp'] ?? null) : null];
         }
         $stages[] = ['tahap' => 'A_JENDELA_LOKAL', 's' => round(microtime(true) - $tA, 3), 'valid' => is_array($a) && !empty($a['valid']),
@@ -2975,18 +2977,18 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     }
     /* TAHAP B — jendela diperluas ke 48 row (keseimbangan gas harian), commitment basis tetap */
     if (!is_array($a) || empty($a['valid'])) {
-        $tB = microtime(true); $dl = microtime(true) + (float)(getenv('PP_IE_WARM_S') ?: 6.0);
+        $tB = microtime(true); $dl = microtime(true) + (float)(getenv('PP_IE_WARM_S') ?: 60.0);   // V15.18: watchdog darurat, bukan penentu hasil
         $GLOBALS['__pp_fastest_no_gcr'] = true;
         try { $a = pp_tl_eval($c, [], 0.0, $dl, $stops, isset($B['supplier_target']) ? (float)$B['supplier_target'] : null);
               /* commitment tetap, gas window belum mendarat -> pendaratan lever gas (pencarian offset kuota internal) pada commitment yang SAMA */
               if (is_array($a) && empty($a['valid']) && !empty($a['gas_only']) && (string)getenv('PP_IE_WARM_LAND') !== '0') {
-                  $LW = pp_tl_land_commitment($c, [], $stops, microtime(true) + (float)(getenv('PP_IE_WARM_LAND_S') ?: 20.0), (int)(getenv('PP_IE_WARM_LAND_N') ?: 10)); if (is_array($LW['a'] ?? null)) $a = $LW['a'];
+                  $LW = pp_tl_land_commitment($c, [], $stops, microtime(true) + (float)(getenv('PP_IE_WARM_LAND_S') ?: 60.0), (int)(getenv('PP_IE_WARM_LAND_N') ?: 10)); if (is_array($LW['a'] ?? null)) $a = $LW['a'];
                   /* V15.17b: pendaratan yang memakai target supplier evaluasi sebelumnya sebagai titik awal dapat jatuh ke cabang dispatch
                    * lain (pelanggaran non-gas) lalu berhenti, padahal offset yang sama dari kontrak valid (terukur T2: IE +10 MW, offset
                    * +1,0696 BBTUD tanpa hint VALID, dengan hint invalid). Ulangi SEKALI tanpa hint; hasil tetap dinilai penuh. */
                   if (is_array($a) && empty($a['valid']) && (string)getenv('PP_IE_WARM_NOHINT') !== '0') {
                       pp_tl_clean_globals(); $GLOBALS['__pp_fastest_no_gcr'] = true;
-                      $LW2 = pp_tl_land_commitment_one($c, [], $stops, microtime(true) + (float)(getenv('PP_IE_WARM_LAND_S') ?: 20.0), (int)(getenv('PP_IE_WARM_LAND_N') ?: 10), true);
+                      $LW2 = pp_tl_land_commitment_one($c, [], $stops, microtime(true) + (float)(getenv('PP_IE_WARM_LAND_S') ?: 60.0), (int)(getenv('PP_IE_WARM_LAND_N') ?: 10), true);
                       if (is_array($LW2['a'] ?? null) && !empty($LW2['a']['valid'])) { $a = $LW2['a']; $GLOBALS['ppIeWarmNoHint'] = ['evals' => $LW2['evals'] ?? null]; } } } }
         catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a = null; } finally { unset($GLOBALS['__pp_fastest_no_gcr']); }
         $stages[] = ['tahap' => 'B_48_ROW_COMMITMENT_TETAP', 's' => round(microtime(true) - $tB, 3), 'valid' => is_array($a) && !empty($a['valid']),

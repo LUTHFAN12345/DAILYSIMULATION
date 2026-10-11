@@ -197,13 +197,16 @@ function pp_v1518_iso_key(array $in): string { return substr(md5(json_encode($in
 function pp_v1518_iso_file(string $jid, string $k): string { return pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518c_' . $k . '.json'; }
 function pp_v1518_isolated_core(array $in, ?string $jid = null): array {
     $k = pp_v1518_iso_key($in);
-    if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_file($f = pp_v1518_iso_file($jid, $k))) { $o = json_decode((string)@file_get_contents($f), true); if (is_array($o) && count((array)($o['data'] ?? [])) === 48) return $o; }
+    /* Jadwal distillate yang terwujud (__pp_dist_schedule) dibaca korektor gas window sesudah lock/decommit. Core biasa
+     * meninggalkannya di global; core terisolasi menyimpannya bersama hasil lalu menerapkannya saat kembali (paritas serial). */
+    $ret = function (array $o): array { if (array_key_exists('__iso_dist_schedule', $o)) { if ($o['__iso_dist_schedule'] !== null) $GLOBALS['__pp_dist_schedule'] = $o['__iso_dist_schedule']; unset($o['__iso_dist_schedule']); } return $o; };
+    if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_file($f = pp_v1518_iso_file($jid, $k))) { $o = json_decode((string)@file_get_contents($f), true); if (is_array($o) && count((array)($o['data'] ?? [])) === 48) { $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + 1; return $ret($o); } }   // hitungan = evaluasi yang diminta (sama dgn/tanpa pembantu)
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
-    try { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_core($in); }
+    try { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_core($in); $o['__iso_dist_schedule'] = $GLOBALS['__pp_dist_schedule'] ?? null; }
     finally { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
     $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + 1;
     if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_dir(pp_job_dir($jid))) @file_put_contents(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), json_encode($o)) && @rename(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), pp_v1518_iso_file($jid, $k));
-    return $o;
+    return $ret($o);
 }
 /* Varian lock dievaluasi berurutan (lazy); bila pembantu job hidup, seluruh varian dipublikasikan sebagai tugas paralel lebih dulu
  * (pemilik ikut mengerjakan). Keputusan tetap: varian pertama (urutan tetap) yang lolos -> deterministik dgn/tanpa pembantu. */
@@ -214,6 +217,26 @@ function pp_v1518_iso_prefetch(array $inputs): void {
     foreach ($inputs as $in) { $k = pp_v1518_iso_key($in); $fi = pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518i_' . $k . '.json';
         if (!is_file($fi)) @file_put_contents($fi, json_encode($in, JSON_PRESERVE_ZERO_FRACTION)); $tasks[] = ['type' => 'core1518', 'id' => $k]; }
     try { $dl = microtime(true) + 120.0; pp_v4_work_publish($jid, $inputs[0], ['kind' => 'tasks', 'tasks' => $tasks, 'dl' => $dl]); pp_v4_cooperate($jid, $inputs[0], $tasks, $dl); } catch (Throwable $e) {}
+}
+/* V15.18 §5.4 — PERCOBAAN PERTAMA koreksi gas window sebagai fungsi murni ($in, $out) -> input core, identik dengan langkah att=0
+ * di $fixGasWindow (mode trim/up biasa). null = tidak perlu/tidak memenuhi syarat (mode distillate memakai jadwal pin dari global,
+ * BISEKSI opt-in, screening, kuota <= 1, sudah in-window). Dipakai korektor (core terisolasi) DAN prefetch spekulatif selama
+ * screening decommit: bila tidak ada kandidat decommit yang diterima, basis korektor = basis decommit -> hasil sudah tersedia. */
+function pp_v1518_gwc_first_input(array $in, array $out): ?array {
+    if ((string)getenv('PP_V1518_GWC_ISO') === '0' || (string)getenv('PP_V1518_GWC_BISECT') === '1') return null;
+    $qW = (float)($out['info']['Total Gas Quota (BBTUD)'] ?? 0);
+    if ($qW <= 1.0 || !empty($in['data3']['modeling']['__screen_only'])) return null;
+    if (pp_action_uses_distillate((string)($in['data3']['modeling']['gas_shortage_action'] ?? 'none'))) return null;
+    $i = (array)($out['info'] ?? []);
+    $uW = ((string)getenv('PP_V5_GW_EFFECTIVE') === '1' && (int)($i['Actual Hours Provided'] ?? 0) > 0 && isset($i['Effective Total Gas (BBTUD)']))
+        ? (float)$i['Effective Total Gas (BBTUD)'] : (float)($i['Total Gas Used (BBTUD)'] ?? 0);
+    [$loW, $hiW] = pp_gas_window($qW);
+    $dev = ($uW > $hiW) ? ($uW - $hiW) : (($uW < $loW) ? ($loW - $uW) : 0.0);
+    if ($dev <= 1e-9) return null;
+    $adjTrim = (float)($in['data3']['modeling']['__gas_trim_target_bbtud'] ?? 0); $adjUp = (float)($in['data3']['modeling']['__shaper_quota_adjust'] ?? 0);
+    if ($uW > $hiW) { $adjTrim += $dev + 0.004; $in['data3']['modeling']['__gas_trim_target_bbtud'] = $adjTrim; unset($in['data3']['modeling']['__shaper_quota_adjust']); }
+    else { $adjUp += $dev + 0.004; $in['data3']['modeling']['__shaper_quota_adjust'] = $adjUp; unset($in['data3']['modeling']['__gas_trim_target_bbtud']); }
+    return $in;
 }
 function pp_run_simulation_core(array $input): array {
     $out = pp_run_simulation_core_inner($input);
@@ -3093,6 +3116,7 @@ function pp_run_simulation_pipeline(array $input): array {
             $schedPin = $GLOBALS['__pp_dist_schedule'] ?? null;
             if (is_array($schedPin) && $schedPin) $in['data3']['modeling']['__dist_schedule_pin'] = $schedPin;
         }
+        $gwIso0 = pp_v1518_gwc_first_input($in, $out);   // null bila mode distillate/bisect/in-window
         $best = $out; $bestDev = INF; $bestIn = $in;
         /* ESKALASI (root cause "no-movement"): dispatch bergerak dalam langkah DISKRET, sehingga
          * penyesuaian kecil (mis. 0.0129 atau 0.1578 BBTUD) sering tidak menggerakkan apa pun.
@@ -3146,7 +3170,9 @@ function pp_run_simulation_pipeline(array $input): array {
                 unset($in['data3']['modeling']['__gas_trim_target_bbtud']);
                 $adjTrim=0.0;
             }
-            $out = $applyCarry(pp_run_simulation_core($in));
+            /* att 0: core TERISOLASI (input-hash) — sama dengan hasil prefetch spekulatif pada screening decommit */
+            $gwIso = $att === 0 && $gwIso0 !== null && json_encode($gwIso0) === json_encode($in);
+            $out = $applyCarry($gwIso ? pp_v1518_isolated_core($in, (string)($GLOBALS['ppTlHook']['job'] ?? '')) : pp_run_simulation_core($in));
             $out['info']['Gas Window Correction'] = ['attempt' => $att + 1,
                 'trim_target' => round($adjTrim, 4), 'quota_adjust' => round($adjUp, 4),
                 'gas_before' => round($uW, 4), 'gas_after' => round($gwUsed($out), 4)];
@@ -3920,6 +3946,8 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                     foreach ((array)$out['data'] as $kS => $rwS) if ($kS + 1 >= $r0S && (float)($rwS[strtoupper($uu)] ?? 0) > 0.01) $offS[] = $kS + 1;
                     if ($offS && function_exists('pp_v8_export_prescreen') && (string)getenv('PP_V1516_DECOMMIT_PRESCREEN') !== '0' && pp_v8_export_prescreen($input, array_values((array)$out['data']), $uu, $offS) !== null) continue;
                     $pre[] = $mkIn2((string)$uu, $sw); if (count($pre) >= 4) break 2; } }
+            /* spekulatif (urutan terakhir): koreksi gas pada basis ini, dipakai bila tidak ada kandidat decommit yang diterima */
+            if ($pre && !$baseOK && (string)getenv('PP_V1518_GWC_SPEC') !== '0' && ($gS = pp_v1518_gwc_first_input($input, $out)) !== null) $pre[] = $gS;
             if (count($pre) >= 2) pp_v1518_iso_prefetch($pre); }
         $tested = 0;
         foreach ($order as $uu) {
@@ -4424,8 +4452,16 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
             }
             unset($supSigPrev); $supRun = 0;                      // lintasan datar hanya atas kandidat yang diterima
             if (!empty($futStop)) { $searchMode = 'V4_FUTILE_OVER_AT_ZERO'; break; }
+            /* V15.18 BATAS DETERMINISTIK (jumlah, bukan jam): pendaratan DI DALAM window yang berturut-turut ditolak guard non-gas
+             * berarti window hanya tercapai dengan melanggar constraint prioritas lebih tinggi; titik di dalam bracket yang sama
+             * terus mendarat di dispatch yang sama-sama ditolak (terukur T0: 11 percobaan, 4 di antaranya target identik).
+             * $out tetap kandidat terakhir yang DITERIMA — persis keluaran bila pencarian dibiarkan habis. PP_V1518_SUP_WREJ=0 mematikan. */
+            $supWRej = $sideNow === 'W' ? ($supWRej ?? 0) + 1 : 0;
+            $supWRejMax = (int)(getenv('PP_V1518_SUP_WREJ') === false || getenv('PP_V1518_SUP_WREJ') === '' ? 3 : getenv('PP_V1518_SUP_WREJ'));
+            if ($supWRejMax > 0 && $supWRej >= $supWRejMax) { $searchMode = 'V1518_WINDOW_LANDING_REJECTED_NON_GAS'; break; }
             continue;
         }
+        $supWRej = 0;
         $acceptedAttempts++;
         if ($candGap < $bestGap) { $bestGap = $candGap; $bestOut = $cand; $bestIn = $adj; }
         $out = $cand; $outIn = $adj;
@@ -4635,13 +4671,15 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         : ($budgetStopped ? 'budget waktu habis'
           : ($searchMode==='BRACKET_RESOLUTION_EXHAUSTED'
              ? sprintf('respons fisik diskret melompati window: bracket target internal menyempit sampai %.6f tanpa satu pun nilai mendarat di [%.4f, %.4f]', abs((float)$underTarget-(float)$overTarget), $finalQT-0.04, $finalQT)
+             : ($searchMode==='V1518_WINDOW_LANDING_REJECTED_NON_GAS'
+                ? sprintf('pendaratan di dalam window [%.4f, %.4f] berulang kali ditolak guard non-gas (constraint prioritas lebih tinggi memburuk); kandidat terakhir yang diterima dipertahankan', $finalQT-0.04, $finalQT)
              : ($searchMode==='V7_ENVELOPE_CONFLICT'
                 ? sprintf('envelope respons gas: K = Effective - Pipe tetap %.4f BBTUD pada target internal berbeda; window total menuntut pipe [%.4f ; %.4f] di luar window supplier', (float)($v7EnvStop['K_bbtud'] ?? 0), (float)($v7EnvStop['pipe_dituntut_window_total'][0] ?? 0), (float)($v7EnvStop['pipe_dituntut_window_total'][1] ?? 0))
              : ($searchMode==='V7_KEKURANGAN_GAS_NYATA'
                 ? sprintf('kekurangan gas nyata: pipe %.4f dan total efektif sama-sama > 0,2 BBTUD di atas kuota pada gas minimum commitment ini; diselesaikan alur keputusan bahan bakar, bukan target internal', $finalPuT)
              : ($searchMode==='V4_FUTILE_OVER_AT_ZERO' || $searchMode==='V7_SHORTAGE_PROBE_ZERO'
                 ? sprintf('PGN fisik tidak bereaksi terhadap target internal: pada target internal terendah (0) masih %.4f > kuota %.4f; tidak ada target internal yang dapat mendaratkannya', $finalPuT, $finalQT)
-                : sprintf('plafon %d rerun tercapai', $maxAttempts))))))];
+                : sprintf('plafon %d rerun tercapai', $maxAttempts)))))))];
     if ($v7EnvStop !== null) $out['info']['PGN Supplier Repair Review']['v7_envelope'] = $v7EnvStop;
     if ($ev) {
         $pu = (float)($out['info']['PGN Pipe Used (BBTUD)'] ?? 0); $pq = (float)($out['info']['PGN Pipe Quota (BBTUD)'] ?? 0);

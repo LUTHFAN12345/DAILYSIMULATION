@@ -6137,13 +6137,12 @@ function pp_export_peak_shift(array &$genRows, array $d3, array $model, array $i
                 if (abs((float)($genRows[$r][$bu] ?? 0) - (float)($genRows[$nb][$bu] ?? 0)) > $bbLim + 1e-6) return false; }
         return true;
     };
-    /* MIN LOAD ABSOLUT: ambil nilai terbesar dari min_ccload / min_scload / min_load yang tersedia,
-     * sehingga unit seperti G7 (min 30) tidak pernah ditulis pada nilai antara (mis. 10 MW). */
+    /* MIN LOAD ABSOLUT mengikuti mode unit (V15.18): min_ccload ?? min_scload ?? min_load. Untuk unit mode SC,
+     * pp_v1518_semantics sudah mengisi min_ccload = MIN SC user; G7/G10 (min_ccload NULL) memakai min_scload. */
     $minOf = function (string $u) use ($d3): float {
-        $c = [];
         foreach (['min_ccload','min_scload','min_load'] as $kk)
-            if (isset($d3[$u][$kk]) && (float)$d3[$u][$kk] > 0) $c[] = (float)$d3[$u][$kk];
-        return $c ? max($c) : 20.0;
+            if (isset($d3[$u][$kk]) && (float)$d3[$u][$kk] > 0) return (float)$d3[$u][$kk];
+        return 20.0;
     };
     $capOf = function (string $u, int $r) use ($d3, $model, &$genRows, $n) {
         $mx = pp_effective_maxload($d3, $model, $u, $r + 1);

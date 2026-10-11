@@ -27,8 +27,8 @@ Probe empiris G7 (`A_g7_start0500.json`, Start At 05:00): row 10 (05:00) = 0 MW 
 | Startup row | row Start At = marker 0 MW oranye | sama |
 | Load per startup row | tidak ada caps (caps SC = `[]`) | tidak ada caps |
 | Transisi | row berikutnya dispatch bebas legal | row berikutnya bebas |
-| Lantai | `min_ccload` 20 MW (5/15 MW tetap nilai startup-only menurut validator — tidak dilonggarkan) | `min_scload` 30 MW (min_ccload 65 hanya CC) |
-| Maks | max_load 31 | max_load 108 |
+| Lantai | **MIN SC user** (`min_scload`; lihat SC_MIN_LOAD_AUDIT.md) | **MIN SC user** (`min_scload`; MIN CC hanya untuk mode CC) |
+| Maks | MAX user (`max_load`) | MAX user (`max_load`) |
 | Ramp | — (sama dengan CC) | 55 MW/30 mnt |
 | STG | tidak ada kontribusi (unit keluar dari `d3[sX].hrsg/gtg`; salinan `hrsg_configured`/`gtg_configured`) | sama |
 | Warna | oranye sepanjang SC (`info['SC CC Mode'].sc_units`) | sama |
@@ -36,8 +36,8 @@ Probe empiris G7 (`A_g7_start0500.json`, Start At 05:00): row 10 (05:00) = 0 MW 
 | Effective priority | terakhir di grup CC (configured tidak berubah) | sama |
 | Hold sampai 00:00 | hanya bila Stop Status = Unit Continuous Running | sama |
 
-Catatan keputusan terbuka untuk operator: lantai SC G1–G6 = 20 MW (konservatif, mengikuti aturan 5/15 MW startup-only).
-Bila data teknis SC G1–G6 mengizinkan < 20 MW, cukup ubah satu baris di `pp_v1518_semantics` (daftar `['g8','g9']`).
+Revisi MIN SC: lantai 20 MW untuk G1–G6 SC dicabut. Semua unit SC memakai MIN SC user dan semua unit CC memakai MIN CC user
+(lihat SC_MIN_LOAD_AUDIT.md, uji M0–M5).
 
 ## 3. Bukti uji
 - T4 (G6 SC, Start Request 05:00, Stop Based On Simulation): G6 rows 1–10 = 0, row 11 (05:30) = 20 MW, S1 feed = [G3, G4], S1 = 0 setiap row G3=G4=0, G6 terakhir (G4 → G3 → G6). PASS.
