@@ -8094,7 +8094,7 @@ window.__uiAudit=function(){
 
 /* ===================== V15.16 PANEL PROGRES RUN (kanan bawah) =====================
  * Satu timer per Run ID per tab (closure lokal halaman ini — tidak membaca progres run tab/user lain). Mulai saat tombol Run
- * (atau rerun keputusan bahan bakar) mengunci UI, berdetak tiap 1 detik, berhenti pada FINAL / TERMINAL / ERROR / menunggu
+ * (atau rerun keputusan bahan bakar) mengunci UI, berdetak tiap 250 ms, berhenti pada FINAL / TERMINAL / ERROR / menunggu
  * keputusan; jeda < 2 s antar-tahap (rerun otomatis) tetap satu workflow. Stage = tahap backend nyata yang dilaporkan job
  * (teks 'Perhitungan eksak: <tahap> NN%'), selain itu 'Processing' — tidak ada stage karangan. Tidak mengubah hasil. */
 (function(){
@@ -8111,7 +8111,7 @@ window.__uiAudit=function(){
   function paint(){ if(!S) return; const p=ensure(); p.style.display='block'; el('rt-elapsed').textContent=mmss((performance.now()-S.t0)/1000);
     el('rt-rid').textContent=S.rid||window.PP_CUR_RID||'-'; if(S.state==='running'){ el('rt-title').textContent='Simulation running'; el('rt-stage').textContent=stage(); } }
   function start(){
-    if(S&&S.iv) clearInterval(S.iv); S={t0:performance.now(), rid:null, state:'running', iv:null}; S.idle=0; S.iv=setInterval(()=>{ if(!S) return; if(!S.rid&&window.PP_CUR_RID) S.rid=window.PP_CUR_RID; paint(); if(busy()) S.idle=0; else if(++S.idle>=2) finish(); },1000);
+    if(S&&S.iv) clearInterval(S.iv); S={t0:performance.now(), rid:null, state:'running', iv:null, out0:(typeof OUTPUT!=='undefined'?OUTPUT:null)}; S.idle=0; S.iv=setInterval(()=>{ if(!S) return; if(!S.rid&&window.PP_CUR_RID) S.rid=window.PP_CUR_RID; paint(); if(busy()) S.idle=0; else if(doneNow()||++S.idle>=8) finish(); },250);
     setTimeout(()=>{ if(S&&!S.rid&&window.PP_CUR_RID) S.rid=window.PP_CUR_RID; paint(); },50); window.PP_RUN_TIMER_STATE='running'; }
   function finish(){ if(!S||S.state!=='running') return; if(S.iv) clearInterval(S.iv); S.iv=null;
     const rows=(typeof OUTPUT!=='undefined'&&OUTPUT&&OUTPUT.data)?OUTPUT.data.length:0, msg=((el('run-msg')||{}).innerText||'');
@@ -8127,6 +8127,11 @@ window.__uiAudit=function(){
     const msg=((el('run-msg')||{}).innerText||''); if(/TERMINAL|TIDAK FEASIBLE|gagal|error/i.test(msg)&&!/Perhitungan eksak/i.test(msg)) return false;
     try{ if(typeof V11_RUN_T0!=='undefined'&&V11_RUN_T0!=null&&typeof V11_SUM_DONE!=='undefined'&&!V11_SUM_DONE) return true; }catch(e){}
     return /Perhitungan eksak|sedang|Rerun/i.test(msg); }
+  /* V15.18: workflow terbukti selesai -> FINAL segera (tanpa menunggu 2 s idle): ringkasan hasil FINAL ditulis, tombol Run aktif,
+   * tidak ada popup keputusan, dan OUTPUT baru 48 row. Selain itu aturan 2 s idle tetap (jeda antar-tahap rerun otomatis). */
+  function doneNow(){ const b=el('btn-run'); if(b&&b.disabled) return false; if(el('gsf-box')) return false;
+    try{ if(!(typeof V11_SUM_DONE!=='undefined'&&V11_SUM_DONE)) return false; }catch(e){ return false; }
+    return typeof OUTPUT!=='undefined'&&!!OUTPUT&&OUTPUT!==S.out0&&Array.isArray(OUTPUT.data)&&OUTPUT.data.length===48; }
   function watch(){ const b=el('btn-run'); if(!b) return setTimeout(watch,300);
     let was=b.disabled; new MutationObserver(()=>{ const d=b.disabled; if(d===was) return; was=d;
       if(d&&!(S&&S.state==='running')) start(); }).observe(b,{attributes:true,attributeFilter:['disabled']}); }
