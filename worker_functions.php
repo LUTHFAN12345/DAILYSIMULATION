@@ -2168,17 +2168,25 @@ function pp_v1518_semantics(array &$input): void {
     /* ---- 3. Effective priority (configured disimpan; SC / Stop All Day / unavailable seluruh hari -> urutan terakhir) ---- */
     if (!array_key_exists('configured_unit_priority', $m)) $m['configured_unit_priority'] = $m['unit_priority'] ?? null;
     if (!array_key_exists('configured_block_priority', $m)) $m['configured_block_priority'] = $m['block_priority'] ?? null;
-    $dayLast = $scU;
-    foreach (array_merge(PP_V1518_SC_ELIGIBLE, ['g7','g10','b1','b2','ge1','ge2','ge3','ge4']) as $u) { $ur = pp_v1518_unavailable_rows($d3, $m, $u); if (count($ur) >= 48) $dayLast[] = $u; }
-    if (is_array($m['configured_unit_priority'])) $m['unit_priority'] = array_map(fn($g) => pp_v1518_reorder_group((array)$g, $dayLast), $m['configured_unit_priority']);
+    /* Unavailable seluruh hari dihitung SEKALI dari input operator (panggilan pertama) lalu disimpan: stop seharian yang
+     * ditambahkan engine pada salinan kandidat (decommit/review) bukan stop/trip operator dan tidak boleh menggeser prioritas. */
+    if (!array_key_exists('v1518_unavailable_all_day', $m)) { $ua = [];
+        foreach (array_merge(PP_V1518_SC_ELIGIBLE, ['g7','g10','b1','b2','ge1','ge2','ge3','ge4']) as $u) { $ur = pp_v1518_unavailable_rows($d3, $m, $u); if (count($ur) >= 48) $ua[] = $u; }
+        $m['v1518_unavailable_all_day'] = $ua; }
+    $dayLast = array_values(array_unique(array_merge($scU, (array)$m['v1518_unavailable_all_day'])));
+    /* reorder diterapkan pada urutan SAAT INI (idempoten): pass engine yang sengaja mengubah unit_priority pada salinan kandidat
+     * (mis. SWAP) tidak boleh ditimpa kembali ke konfigurasi awal oleh panggilan semantik berikutnya. */
+    if (is_array($m['unit_priority'] ?? null)) $m['unit_priority'] = array_map(fn($g) => pp_v1518_reorder_group((array)$g, $dayLast), $m['unit_priority']);
     /* ---- 4. Block Required: wajib di-start sesuai mode, BUKAN full-horizon (§2) + STG -> lead GTG CC (§6) ---- */
     $lds = fn($u) => strtolower((string)($m['unit_last_data_status'][strtoupper($u)] ?? ''));
     $auto = [];
-    if (is_array($m['configured_block_priority'])) {
-        $bp = [];
-        foreach ($m['configured_block_priority'] as $blk) {
+    if (is_array($m['block_priority'] ?? null)) {
+        $bp = []; $cfgReq = [];   // token 'required' konfigurasi (bisa sudah dibuang panggilan sebelumnya pada salinan ini)
+        foreach ((array)($m['configured_block_priority'] ?? []) as $blk) { $lb0 = array_map(fn($x) => strtolower((string)$x), (array)$blk); if (in_array('required', $lb0, true)) foreach ($lb0 as $x) if ($x !== 'required') $cfgReq[$x] = true; }
+        foreach ($m['block_priority'] as $blk) {
             $blk = (array)$blk; $lb = array_map(fn($x) => strtolower((string)$x), $blk);
-            $isReq = in_array('required', $lb, true); $units = array_values(array_filter($lb, fn($x) => $x !== 'required'));
+            $units = array_values(array_filter($lb, fn($x) => $x !== 'required'));
+            $isReq = in_array('required', $lb, true) || ($units && isset($cfgReq[$units[0]]));
             $full = false; foreach ($units as $x) if (($com[$x] ?? '') === 'CONTINUOUS_FULL_HORIZON' || $lds($x) === 'running') $full = true;
             $blk2 = pp_v1518_reorder_group($blk, $dayLast);
             if ($isReq && !$full) {
