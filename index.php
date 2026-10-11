@@ -2123,7 +2123,12 @@ function syncBlockRequiredToCommitment(opts){
   const newAuto={}; const keptManual=[];
   Object.keys(requiredBlocks).forEach(bn=>{
     newAuto[bn]={};
+    const bStg=(byName(bn)&&byName(bn).stg)?(''+byName(bn).stg).toLowerCase():null;
     requiredBlocks[bn].forEach(u=>{
+      /* V15.18 PARITAS UI/ENGINE (T6): GTG primer blok yang STG-nya DIMINTA adalah lead STG (§6) — mode DAN Stop Status
+         mengikuti STG. Fase SET §2 (Stop Status tidak diubah) tidak boleh mendahuluinya: unit tanpa mode diserahkan ke
+         semStgAutoFollow() di bawah, sama dengan urutan engine (pp_v1518_semantics: lead STG lalu Block Required). */
+      if(bStg && u!==bStg && (COMMIT_MODE[bStg]||'-')!=='-' && (COMMIT_MODE[u]||'-')==='-' && !opts.forceAuto) return;
       /* V15.17b: pilihan MANUAL operator setelah auto-set (mis. Start Based On Simulation) TIDAK ditimpa diam-diam.
        * Dulu fase SET menegaskan ulang Continuous Running pada setiap Run/collect sehingga payload berbeda dengan
        * tabel yang dilihat user (reproducer BBLN1: G6/S1 'Start Based On Simulation' terkirim sebagai continuous). */
@@ -5040,6 +5045,14 @@ async function gsfRerun(action, amount, unit){
   if(GSF_ROUND>=GSF_MAX_ROUNDS){ const e=document.getElementById('gsf-err'); if(e) e.textContent='Batas ronde keputusan tercapai.'; return; }
   GSF_ROUND++;
   GSF_HISTORY.push(action==='add_lng' ? ('LNG '+amount+' BBTUD') : ('Distillate'+(amount!=null?(' '+amount+' l'):' (estimasi engine)')));
+  const p=gsfBuildFuelPayload(action, amount, unit);
+  const rm=document.getElementById('run-msg');
+  if(rm) rm.innerHTML='<span class="spin"></span> Rerun ronde '+GSF_ROUND+' dengan '+gsfEsc(action)+'… · mode bahan bakar '+gsfEsc(action)+' · waktu total sejak Run pertama';
+  gsfClose();
+  return await runSimCore(p,{shortage:true,source:'fuel_action_rerun',fastDefault:p._fast_default});
+}
+/* Payload rerun keputusan bahan bakar (satu sumber: popup/otomatis gsfRerun DAN jalur IE Kelas A tanpa pendahuluan). */
+function gsfBuildFuelPayload(action, amount, unit){
   /* deep copy: form operator TIDAK diubah oleh popup; pilihan baru menjadi milik payload rerun */
   const p=JSON.parse(JSON.stringify(GSF_BASE_PAYLOAD));
   p.data3.modeling.gas_shortage_action=action;
@@ -5064,14 +5077,22 @@ async function gsfRerun(action, amount, unit){
   p._run_source='fuel_action_rerun';
   p._shortage_resolution={source:'USER_APPROVED_SHORTAGE_RESOLUTION', action:action,
     amount:(amount!=null?+amount:null), unit:unit||null, round:GSF_ROUND, at:new Date().toISOString()};
-  const rm=document.getElementById('run-msg');
-  if(rm) rm.innerHTML='<span class="spin"></span> Rerun ronde '+GSF_ROUND+' dengan '+gsfEsc(action)+'… · mode bahan bakar '+gsfEsc(action)+' · waktu total sejak Run pertama';
-  gsfClose();
   /* V15.15: rerun bahan bakar mengikuti target terpilih. Fastest = job kandidat fully valid pertama (rute V7 basis + review
    * Unit Priority), BUKAN pipeline sinkron 25 s tanpa job (terukur: "dihentikan batas waktu ... bb_upfill"). Penanda internal
    * engine tidak dikirim dari UI. */
   const rt=tlTarget();p._fast_default=(rt==='fast');p._maximum_review=(rt==='max');ppStripInternalFlags(p);
-  return await runSimCore(p,{shortage:true,source:'fuel_action_rerun',fastDefault:p._fast_default});
+  return p;
+}
+/* V15.18 IE KELAS A — konteks bahan bakar FINAL terakhir di tab ini. Kunci = payload rerun bahan bakar tanpa metadata transport
+ * (`_*`), penanda internal (`__*`) dan IE Adjustment. Bila Run berikutnya hanya mengubah IE Adjustment dan keputusan operator
+ * (Distillate dengan liter) menentukan payload final sepenuhnya, analisis pendahuluan 'recommendation' tidak diulang: payload final
+ * dikirim langsung dengan _prelim_skipped. Server menolak (PRELIM_REQUIRED) bila redispatch IE warm tidak berlaku atau Distillate
+ * tidak lagi diperlukan -> alur dua langkah biasa. */
+let FUEL_CTX=null;
+function fuelCtxKey(p){
+  const q=JSON.parse(JSON.stringify(p)); Object.keys(q).forEach(k=>{ if(k.charAt(0)==='_') delete q[k]; });
+  const m=q.data3&&q.data3.modeling; if(m){ delete m.ie_adjustments; delete m.ie_adjustment; Object.keys(m).forEach(k=>{ if(k.indexOf('__')===0) delete m[k]; }); }
+  return JSON.stringify(q);
 }
 
 /* Setelah rerun berhasil, samakan kontrol form dengan keputusan yang benar-benar dipakai supaya
@@ -5177,7 +5198,11 @@ async function adoptBackendAsyncJob(payload,branch,token,job,opts){
       }
       /* Rerun keputusan bahan bakar: form disamakan dengan keputusan yang benar-benar dipakai
        * (bukan penyimpanan), sama seperti jalur sinkron dahulu. */
+      if(res.output.status==='PRELIM_REQUIRED'){ FUEL_CTX=null; ASYNC_REVIEW[branch]=null; if(rm) rm.textContent='Konteks bahan bakar berubah — analisis bahan bakar dijalankan…'; setTimeout(()=>runSim(),0); return true; }
       if(opts&&opts.shortage&&!gsdContractSaysNotFinal(res.output)){
+        try{ const mF=payload.data3.modeling, iF=res.output.info||{};
+          FUEL_CTX=(mF.gas_shortage_action==='use_distillate'&&+mF.distillate_user_limit_litres>0&&+(iF['Distillate Used (l)']||iF['Distillate Fuel Total (l)']||0)>0&&(res.output.release_gate||{}).status==='PASS')
+            ?{key:fuelCtxKey(payload),litres:+mF.distillate_user_limit_litres}:null; }catch(e){ FUEL_CTX=null; }
         try{ gsfSyncFormToDecision(payload); }catch(e){}
         finalizeSimulationUI(payload,res.output,'<span style="color:#166534">Done — hasil ini memakai keputusan bahan bakar Anda ('
           +gsfEsc(String(payload.data3.modeling.gas_shortage_action))+'). Pilihan belum tersimpan; tekan Save bila ingin menyimpannya.</span>');
@@ -5357,6 +5382,17 @@ async function runSim(){
   /* V3: setiap klik Run menyimpan payload INI ke input_data.json lebih dulu (atomik, di server,
    * dalam request yang sama). Rerun dari popup keputusan bahan bakar tidak membawa penanda ini. */
   payload._autosave=true;
+  if(__pending==='use_distillate' && __distAmt>0 && FUEL_CTX && FUEL_CTX.litres===__distAmt && tlTarget()==='fast'){
+    const pK=gsfBuildFuelPayload('use_distillate', __distAmt, 'l/hari');
+    if(fuelCtxKey(pK)===FUEL_CTX.key){
+      GSF_ROUND=1; GSF_HISTORY=['Distillate '+__distAmt+' l']; try{ GSD_PENDING_CHOICE=null; }catch(e){}
+      const ov=JSON.parse(JSON.stringify(payload)); delete ov._autosave; ppStripInternalFlags(ov);
+      pK._prelim_skipped=true; pK._autosave=true; pK._autosave_override=ov;   // simpanan Run = payload pendahuluan (sama dgn alur dua langkah)
+      V11_WORKFLOW_T0=performance.now();
+      const rmK=document.getElementById('run-msg'); if(rmK) rmK.innerHTML='<span class="spin"></span> IE Adjustment lokal — keputusan bahan bakar sebelumnya (Distillate '+gsfEsc(String(__distAmt))+' l) dipakai ulang, validasi inkremental…';
+      return runSimCore(pK,{shortage:true,source:'fuel_action_rerun',fastDefault:true});
+    }
+  }
   V11_WORKFLOW_T0=performance.now();
   const __tl=tlTarget();
   ppStripInternalFlags(payload);

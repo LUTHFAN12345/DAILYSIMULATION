@@ -2228,6 +2228,21 @@ function pp_v1518_semantics(array &$input): void {
     $m['unit_cannot_stop'] = array_values(array_unique($cs)); $m['required_units'] = array_values(array_unique($ru));
     $m['stop_policy'] = $pol; $m['commitment_semantics'] = $com; $m['auto_semantics'] = $auto ?: (array)($m['auto_semantics'] ?? []);
     $m['commitment_semantics_version'] = PP_V1518_SEMANTICS_VERSION;
+    pp_v1518_canonical_order($m, $sc);
+}
+/* V15.18 PARITAS UI/CLI/XAMPP/Linux — bentuk KANONIK payload ternormalisasi: himpunan unit (Required, Continuous) dan peta per
+ * unit diurutkan menurut urutan unit kanonik, SC/CC eksplisit untuk unit eligible. Browser menulis lead/Block Required secara
+ * eksplisit dalam urutan tabel, CLI/fixture menurunkannya di sini (ditambahkan di belakang): tanpa langkah ini isi sama tetapi
+ * urutan berbeda -> hash konteks berbeda. Isi tidak diubah. */
+function pp_v1518_canonical_order(array &$m, array $sc): void {
+    static $ord = null; if ($ord === null) $ord = array_flip(['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4']);
+    $cmp = function ($a, $b) use ($ord) { $a = strtolower((string)$a); $b = strtolower((string)$b); return [$ord[$a] ?? 99, $a] <=> [$ord[$b] ?? 99, $b]; };
+    /* enum kanonik UI: Unit Continuous Running = required_mode continuous + unit_cannot_stop (tidak dicantumkan di required_units) */
+    if (isset($m['required_units']) && is_array($m['required_units'])) { $csL = array_map('strtolower', array_map('strval', (array)($m['unit_cannot_stop'] ?? [])));
+        $m['required_units'] = array_values(array_filter($m['required_units'], fn($u) => !(($m['commitment_semantics'][strtolower((string)$u)] ?? '') === 'CONTINUOUS_FULL_HORIZON' && in_array(strtolower((string)$u), $csL, true)))); }
+    foreach (['required_units', 'unit_cannot_stop'] as $k) if (isset($m[$k]) && is_array($m[$k])) { $v = array_values(array_unique(array_map('strtolower', array_map('strval', $m[$k])))); usort($v, $cmp); $m[$k] = $v; }
+    foreach (['required_mode', 'stop_mode', 'stop_policy', 'commitment_semantics'] as $k) if (isset($m[$k]) && is_array($m[$k]) && $m[$k]) uksort($m[$k], $cmp);
+    $scE = []; foreach (PP_V1518_SC_ELIGIBLE as $u) if (isset($sc[$u])) $scE[$u] = $sc[$u]; if ($scE) { uksort($scE, $cmp); $m['sc_cc'] = $scE; }
 }
 /* V15.18 SEQUENCE BLOCK GTG-STG (instruksi §7). Untuk STG yang start fresh (Last Data Stop):
  *   lead GTG          = GTG CC blok yang pertama berbeban (seri: urutan effective priority)

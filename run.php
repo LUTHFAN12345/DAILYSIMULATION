@@ -2920,6 +2920,33 @@ function pp_v1517_ie_store(array $inputAsli, array $output): void {
             'data' => array_values((array)$output['data']), 'supplier_target' => pp_tl_supplier_target($output),
             'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null]); } catch (Throwable $e) {}
 }
+/* V15.18 KLASIFIKASI RERUN IE ADJUSTMENT (dari STRUKTUR solusi, bukan waktu):
+ *   A = redispatch jendela lokal: commitment, keputusan bahan bakar dan gas-window basis tetap feasible (tahap A valid);
+ *   B = commitment/gas-window berubah: rekonstruksi gas-window 48 row dengan commitment basis (tahap B) ATAU commitment repair
+ *       (startup/shutdown/family) — difficult feasible, bukan warm fast-path;
+ *   C = tidak ada rencana valid (terminal). Bukan rerun IE (cold / IE sama) -> null. */
+function pp_v1518_ie_classification(array $inputAsli, array $output, float $engineS): ?array {
+    $rep = (array)($output['info']['IE Incremental Redispatch'] ?? []); $cache = (string)($rep['cache'] ?? '');
+    if ($cache !== 'HIT') return null;
+    $st = []; foreach ((array)($rep['tahap'] ?? []) as $x) if (isset($x['tahap'])) $st[(string)$x['tahap']] = $x;
+    $okA = !empty($st['A_JENDELA_LOKAL']['valid']); $okB = !empty($st['B_48_ROW_COMMITMENT_TETAP']['valid']); $applied = !empty($rep['applied']);
+    $after = []; foreach (pp_tl_gt_units() as $u) { $rr = []; foreach ((array)($output['data'] ?? []) as $i => $r) if ((float)($r[strtoupper($u)] ?? 0) > 0.01) $rr[] = $i + 1; if ($rr) $after[strtoupper($u)] = $rr[0] . '-' . $rr[count($rr) - 1] . '(' . count($rr) . ')'; }
+    $before = (array)($rep['commitment_sebelum'] ?? []); ksort($before); ksort($after);
+    $gate = (string)($output['release_gate']['status'] ?? ''); $terminal = ($output['status'] ?? '') === 'TERMINAL_INFEASIBLE';
+    if ($terminal || (count((array)($output['data'] ?? [])) !== 48)) { $cl = 'C'; $why = 'TIDAK_ADA_RENCANA_VALID_TERMINAL'; }
+    elseif ($applied && $okA) { $cl = 'A'; $why = 'REDISPATCH_JENDELA_LOKAL_COMMITMENT_BAHAN_BAKAR_GAS_WINDOW_BASIS_TETAP'; }
+    elseif ($applied && $okB) { $cl = 'B'; $why = 'REKONSTRUKSI_GAS_WINDOW_48_ROW_COMMITMENT_BASIS_TETAP (jendela lokal tidak valid: ' . implode(',', (array)($st['A_JENDELA_LOKAL']['gagal'] ?? [])) . ')'; }
+    else { $cl = 'B'; $why = 'COMMITMENT_REPAIR_REQUIRED (' . (string)($rep['alasan_invalidasi'] ?? 'basis tidak feasible') . ')'; }
+    $mF = (array)($inputAsli['data3']['modeling'] ?? []);
+    $i = (array)($output['info'] ?? []); $q = (float)($i['Total Gas Quota (BBTUD)'] ?? 0); $g = (float)($i['Total Gas Used (BBTUD)'] ?? 0);
+    return ['schema' => 'v1518-ie-class-1', 'class' => $cl, 'reason' => $why, 'stage' => $cl === 'B' && !$applied ? 'Commitment repair required' : ($cl === 'B' ? 'Gas-window reconstruction (48 row)' : ($cl === 'A' ? 'Local redispatch' : 'Terminal proof')),
+        'affected_rows' => $rep['affected_rows'] ?? [], 'commitment_before' => $before, 'commitment_after' => $after, 'startup_shutdown_required' => $before !== $after,
+        'fuel_decision' => ['action' => (string)($mF['gas_shortage_action'] ?? ''), 'distillate_limit_l' => $mF['distillate_user_limit_litres'] ?? null, 'additional_lng' => $mF['additional_lng'] ?? null,
+                            'fuel_prelim' => !empty($inputAsli['_prelim_skipped']) ? 'DILEWATI_KONTEKS_BAHAN_BAKAR_SAMA' : 'TIDAK_DILEWATI', 'distillate_used_l' => $i['Distillate Used (l)'] ?? null],
+        'gas_window_after' => ['used' => round($g, 4), 'window' => $q > 0 ? [round($q - 0.04, 4), round($q, 4)] : null], 'basis_cp' => $rep['basis_cp'] ?? null, 'cp_after' => $i['Cost Production (USD/MWh)'] ?? null,
+        'release_gate' => $gate, 'stages' => array_values($st), 'engine_s' => round($engineS, 3),
+        'rule' => 'Kelas ditentukan dari struktur solusi (validitas jendela lokal / commitment basis), bukan dari waktu yang terpakai.'];
+}
 function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     $t0 = microtime(true);
     $rep = ['schema' => 'v1517-ie-incremental-v1', 'applied' => false];
@@ -2946,7 +2973,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     $minRun = INF; $d3w = (array)$c['data3']; foreach (pp_tl_gt_units() as $u) { foreach ($bd as $r) if ((float)($r[strtoupper($u)] ?? 0) > 0.01) { $minRun = min($minRun, (float)($d3w[$u]['min_ccload'] ?? ($d3w[$u]['min_scload'] ?? 20))); break; } }
     $negLim = (string)getenv('PP_IE_WARM_NEG_MW') !== '' ? (float)getenv('PP_IE_WARM_NEG_MW') : (is_finite($minRun) ? $minRun : 20.0);
     if ($maxNeg >= $negLim - 1e-6) { $GLOBALS['__pp_ie_warm_rep'] = $GLOBALS['ppIeWarmInfo'] = $rep + ['cache' => 'HIT', 'basis_file' => basename($f), 'penurunan_ie_maks_mw' => round($maxNeg, 2), 'batas_mw' => $negLim,
-        'alasan_invalidasi' => 'PENURUNAN_IE_DAPAT_MEMBUAT_UNIT_TIDAK_PERLU -> review commitment penuh (Fastest dingin)']; return null; }
+        'alasan_invalidasi' => 'PENURUNAN_IE_DAPAT_MEMBUAT_UNIT_TIDAK_PERLU -> review commitment penuh (Fastest dingin)']; if (empty($inputAsli['_prelim_skipped'])) pp_job_progress($id, 'COMMITMENT_REPAIR_REQUIRED', 20.0, ['ie_class' => 'B']); return null; }
     $before = []; foreach (pp_tl_gt_units() as $u) { $rr = []; foreach ($bd as $i => $r) if ((float)($r[strtoupper($u)] ?? 0) > 0.01) $rr[] = $i + 1; if ($rr) $before[strtoupper($u)] = $rr[0] . '-' . $rr[count($rr) - 1] . '(' . count($rr) . ')'; }
     pp_job_progress($id, 'FASTEST_IE_REDISPATCH_INKREMENTAL', 15.0, ['affected_rows' => count($aff)]);
     $inWin = []; foreach ($win as [$wa, $wb]) for ($r = $wa; $r <= $wb; $r++) $inWin[$r] = true;
@@ -2999,6 +3026,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
              'commitment_sebelum' => $before, 'tahap' => $stages, 'eval_s' => round(microtime(true) - $t0, 3)];
     if (!is_array($a) || empty($a['valid']) || !is_array($a['output'] ?? null)) {
         $rep['alasan_invalidasi'] = 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)';
+        if (empty($inputAsli['_prelim_skipped'])) pp_job_progress($id, 'COMMITMENT_REPAIR_REQUIRED', 20.0, ['ie_class' => 'B']);   // V15.18 IE Kelas B: tahap aktual ditampilkan UI
         $rep['gagal_checks'] = is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL'];
         $rep['violations'] = is_array($a) ? ($a['violations'] ?? []) : [];
         $GLOBALS['__pp_ie_warm_rep'] = $rep; $GLOBALS['ppIeWarmInfo'] = $rep; return null;
@@ -3033,6 +3061,23 @@ function pp_v13f_fast_job(string $id, array $inputAsli): array {
         $v7 = null;
         if (is_array($oW = pp_v1517_ie_warm($id, $inputAsli))) { $v7 = ['output' => $oW]; $GLOBALS['__pp_ie_warm_done'] = true; $tr('ie_warm_incremental', ['cp' => $oW['info']['Cost Production (USD/MWh)'] ?? null]); }
         elseif (isset($GLOBALS['__pp_ie_warm_rep'])) $tr('ie_warm_skip', ['reason' => $GLOBALS['__pp_ie_warm_rep']['alasan_invalidasi'] ?? ($GLOBALS['__pp_ie_warm_rep']['cache'] ?? null)]);
+        /* V15.18 IE KELAS A tanpa analisis bahan bakar ulang: browser melewati pendahuluan 'recommendation' hanya bila konteks bahan
+         * bakar identik dengan FINAL bahan bakar terakhir (kecuali IE Adjustment) dan keputusan operator sudah menentukan payload
+         * final (Distillate dengan liter). Hasilnya HANYA sah bila redispatch IE warm berlaku (tidak bergantung pada hasil
+         * pendahuluan) dan Distillate tetap terpakai; selain itu job menyatakan PRELIM_REQUIRED dan browser menjalankan alur dua
+         * langkah biasa -> hasil identik dengan alur dua langkah dalam kedua cabang. */
+        if (!empty($inputAsli['_prelim_skipped'])) {
+            $dUsed = is_array($v7) ? (float)($v7['output']['info']['Distillate Used (l)'] ?? ($v7['output']['info']['Distillate Fuel Total (l)'] ?? 0)) : 0.0;
+            if (!is_array($v7) || empty($GLOBALS['__pp_ie_warm_done']) || $dUsed <= 0.0) {
+                $why = !is_array($v7) ? 'IE_WARM_TIDAK_BERLAKU' : ($dUsed <= 0.0 ? 'DISTILLATE_TIDAK_LAGI_DIPERLUKAN' : 'IE_WARM_TIDAK_BERLAKU');
+                $tr('prelim_required', ['reason' => $why]);
+                return ['data' => [], 'status' => 'PRELIM_REQUIRED', 'ok' => false, 'preliminary' => true, 'final_result_visible' => false, 'save_allowed' => false, 'publish_allowed' => false,
+                        'info' => ['Fuel Prelim Required' => ['reason' => $why, 'ie_warm' => $GLOBALS['__pp_ie_warm_rep'] ?? null],
+                                   'Run Status' => ['completed' => true, 'converged' => false, 'economic_review_completed' => false, 'mode' => 'PRELIM_REQUIRED', 'fastest' => true],
+                                   'Fastest Trace' => ['schema' => 'co15-fastest-trace-v1', 'steps' => $GLOBALS['ppV13fTrace'], 'wall_s' => round(microtime(true) - $t0, 3)]]];
+            }
+            $GLOBALS['ppIeWarmInfo']['fuel_prelim'] = 'DILEWATI_KONTEKS_BAHAN_BAKAR_SAMA';
+        }
         if ($v7 === null) try { $v7 = pp_v7_fuel_rerun_from_basis($id, $inputAsli); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $v7 = null; }
         if (is_array($v7) && is_array($v7['output'] ?? null)) { $o = $v7['output']; $tr('v7_frozen_basis_valid', ['cp' => $o['info']['Cost Production (USD/MWh)'] ?? null]); }
         else { $tr('v7_not_applicable', ['reason' => $GLOBALS['ppV7FuelRerun']['reason'] ?? null, 'violations' => $GLOBALS['ppV7FuelRerun']['violations'] ?? null]); pp_job_progress($id, 'FASTEST_PIPELINE_STATE_BAHAN_BAKAR', 30.0);
@@ -3389,6 +3434,9 @@ function pp_job_run_economic_review(string $id, array $input): array {
     }
     pp_v13f_after:
     $wall = microtime(true) - $t;
+    if (($output['status'] ?? '') === 'PRELIM_REQUIRED')
+        return ['schema' => 'co12-async-economic-review-v1', 'kind' => 'economic_review', 'wall_s' => round($wall, 2), 'run_status' => $output['info']['Run Status'],
+                'economic_review_completed' => false, 'converged' => false, 'publish_allowed' => false, 'output' => $output, 'mode' => 'PRELIM_REQUIRED'];
     if (!empty($GLOBALS['ppTlHook']['aborted'])) throw new PpJobAborted('DIHENTIKAN_TARGET_SELESAI');
     if (!$fastJ && ($output['info']['Run Status']['economic_review_completed'] ?? null) === true) $output = pp_v3_pool_guard($inputAsli, $output);
     /* V8: jalur inkremental / memo / pool guard melewati review Unit Priority yang sama dengan exact
@@ -3638,6 +3686,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
         }
         $output['info']['Proof Binding']['bound_to_rendered'] = ((string)($output['info']['Proof Binding']['candidate_hash'] ?? '') === pp_v1517_candidate_hash((array)$output['data']));
     }
+    if (is_array($output['info'] ?? null) && ($icl = pp_v1518_ie_classification($inputAsli, $output, microtime(true) - $t)) !== null) $output['info']['IE Rerun Classification'] = $icl;
     pp_job_progress($id, 'VALIDASI_SELESAI', 98.0);
     return [
         'schema' => 'co12-async-economic-review-v1',
@@ -7433,6 +7482,21 @@ function pp_v1517_operator_payload_hash(array $input): string {
         foreach (['time_budget_seconds','time_budget_step_seconds','time_budget_max_seconds','change_over_search_budget_seconds','change_over_interactive_request','shortage_probe_max_seconds','report_planning'] as $k) unset($m[$k]); unset($m); }
     return substr(hash('sha256', json_encode($input, JSON_UNESCAPED_SLASHES)), 0, 24);
 }
+/* V15.18 PARITAS: hash payload TERNORMALISASI KANONIK (satu fungsi normalisasi untuk browser, CLI, XAMPP, Linux:
+ * pp_normalize_copy + pp_v1518_semantics + pp_v1518_canonical_order). Metadata request, anggaran waktu, kunci internal `__*`
+ * dan catatan provenance auto-semantics (turunan engine vs ditulis UI) tidak ikut. payload_hash tetap mengikat payload operator mentah. */
+function pp_v1518_normalized_payload_hash(array $input): ?string {
+    try { $c = pp_normalize_copy($input); if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($c); } catch (Throwable $e) { return null; }
+    foreach (array_keys($c) as $k) if (is_string($k) && strpos($k, '_') === 0) unset($c[$k]);
+    if (isset($c['data3']['modeling']) && is_array($c['data3']['modeling'])) { $m = &$c['data3']['modeling']; if (function_exists('pp_v3_strip_meta')) pp_v3_strip_meta($m);
+        foreach (array_keys($m) as $k) if (is_string($k) && strpos($k, '__') === 0) unset($m[$k]);
+        foreach (['time_budget_seconds','time_budget_step_seconds','time_budget_max_seconds','change_over_search_budget_seconds','change_over_interactive_request','shortage_probe_max_seconds','report_planning','auto_semantics'] as $k) unset($m[$k]);
+        foreach (['unit_fix_load','unit_skip_load'] as $k) if (array_key_exists($k, $m) && empty($m[$k])) $m[$k] = [];
+        unset($m); }
+    $ks = function ($x) use (&$ks) { if (!is_array($x)) return $x; $isList = $x === [] || array_keys($x) === range(0, count($x) - 1);
+        if (!$isList) ksort($x, SORT_STRING); foreach ($x as $k => $v) $x[$k] = $ks($v); return $x; };   // JSON kanonik: urutan key objek tidak bermakna
+    return substr(hash('sha256', json_encode($ks($c), JSON_UNESCAPED_SLASHES)), 0, 24);
+}
 function pp_v1517_candidate_hash(array $rows): string {
     $u = ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3','GE1','GE2','GE3','GE4','BB1','BB2','Dist_Total'];
     $m = []; foreach (array_values($rows) as $r) { $x = []; foreach ($u as $c) $x[] = round((float)($r[$c] ?? 0), 4); $m[] = $x; }
@@ -7446,7 +7510,7 @@ function pp_v1517_proof_binding(array $input, array $output): array {
     foreach ($rows as $r) { $d = []; foreach ($r as $k => $v) if (strpos((string)$k, 'DistMix_') === 0 || $k === 'Dist_Total') $d[$k] = round((float)$v, 4); $fuel[] = $d; }
     $ph = function ($x) { return $x === null ? null : substr(hash('sha256', json_encode($x)), 0, 16); };
     return ['proof_version' => 'v1518-merit-bind-2', 'validated_at' => date('c'),
-        'payload_hash' => pp_v1517_operator_payload_hash($input), 'candidate_hash' => pp_v1517_candidate_hash($rows),
+        'payload_hash' => pp_v1517_operator_payload_hash($input), 'normalized_payload_hash' => pp_v1518_normalized_payload_hash($input), 'candidate_hash' => pp_v1517_candidate_hash($rows),
         'commitment_hash' => substr(hash('sha256', json_encode($on)), 0, 24), 'fuel_hash' => substr(hash('sha256', json_encode($fuel)), 0, 24),
         /* V15.18: proof juga terikat pada semantik SC/CC, effective priority, dan milestone sequence block. */
         'sc_cc_hash' => $ph($output['info']['SC CC Mode']['units'] ?? null), 'effective_priority_hash' => $ph(isset($output['info']['Effective Priority']) ? [$output['info']['Effective Priority']['configured'] ?? null, $output['info']['Effective Priority']['rows'] ?? null] : null),
@@ -8575,7 +8639,16 @@ if (in_array(($_GET['mode'] ?? ''), ['run', 'run_weekly_day'], true)) {
      * dihitung adalah konten yang tersimpan. */
     $__v3route = empty($input['_fast_default']) && empty($input['data3']['modeling']['__no_async_handoff']) && (string)getenv('PP_V3_ROUTE') !== '0';
     $__autosave = ['requested' => false];
-    if (!empty($input['_autosave'])) {
+    if (!empty($input['_autosave']) && is_array($input['_autosave_override'] ?? null)) {
+        /* V15.18 IE Kelas A tanpa pendahuluan: simpanan Run = payload pendahuluan yang akan dikirim alur dua langkah (identik),
+         * sedangkan run memakai payload final keputusan bahan bakar. */
+        $__ov = $input['_autosave_override']; unset($input['_autosave_override']);
+        foreach ($input as $k => $v) if (is_string($k) && $k !== '' && $k[0] === '_' && !isset($__ov[$k]) && $k !== '_prelim_skipped' && $k !== '_run_source' && $k !== '_shortage_resolution') $__ov[$k] = $v;
+        $__autosave = ['requested' => true, 'override' => 'PRELIM_PAYLOAD'] + pp_v3_autosave($__ov);
+        if (empty($__autosave['ok']))
+            pp_fail(500, 'Input TIDAK tersimpan ke input_data.json, sehingga simulasi TIDAK dijalankan. File lama tetap utuh. Sebab: ' . (string)($__autosave['error'] ?? '?'),
+                ['code' => 'INPUT_SAVE_FAILED', 'request_id' => $rid, 'state_revision' => $rev, 'autosave' => $__autosave, 'old_file_intact' => true]);
+    } elseif (!empty($input['_autosave'])) {
         $__autosave = ['requested' => true] + pp_v3_autosave($input);
         if (empty($__autosave['ok']))
             pp_fail(500, 'Input TIDAK tersimpan ke input_data.json, sehingga simulasi TIDAK dijalankan. File lama tetap utuh. Sebab: ' . (string)($__autosave['error'] ?? '?'),
