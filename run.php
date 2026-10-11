@@ -6643,11 +6643,11 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
              * langkah yang sama (varian SUSUN) tetap dievaluasi sapuan konsolidasi V11 di bawah. */
             if ($detV8) { $simU = (int)($out['info']['Run Status']['core_simulations'] ?? 0); $cap = min($cap, max(0, min(4, intdiv(max(0, (int)(getenv('PP_FAST_SIM_BUDGET') ?: 48) - $simU), 8))));
                 /* V15.18: unit dengan temuan C2/C4 (lebih rendah prioritas start/running sementara unit lebih tinggi punya headroom) yang
-                 * belum berbukti WAJIB mendapat counterfactual — cap tidak boleh di bawah jumlah unit itu (maks 3); kandidatnya didahulukan. */
+                 * belum berbukti WAJIB mendapat counterfactual — cap tidak boleh di bawah jumlah unit itu (maks 4); kandidatnya didahulukan. */
                 $hU = []; try { $HV = pp_v5_headroom_priority_audit(pp_normalize_copy($input), $out, true);
                     foreach ((array)($HV['flags'] ?? []) as $fV) if (in_array($fV['type'] ?? '', ['LOWER_PRIORITY_RUNNING_WHILE_HIGHER_HEADROOM', 'LOWER_PRIORITY_START_WHILE_HIGHER_HEADROOM'], true)
                         && (empty($fV['resolved']) || !array_diff((array)($fV['reasons'] ?? []), ['V8_REVIEW_TIDAK_ADA']))) { $kU = strtolower((string)$fV['unit']); $hU[$kU] = ($hU[$kU] ?? 0) + 1; }   // 'V8_REVIEW_TIDAK_ADA' = menunggu review, bukan bukti
-                    uksort($hU, fn($a, $b) => [$hU[$b], $a] <=> [$hU[$a], $b]); $hU = array_slice($hU, 0, 3, true); } catch (Throwable $e) {}
+                    uksort($hU, fn($a, $b) => [$hU[$b], $a] <=> [$hU[$a], $b]); $hU = array_slice($hU, 0, max(1, (int)(getenv('PP_V8_C24_UNITS') ?: 4)), true); /* 4 = pemilik + 3 pembantu (satu batch paralel); terukur T3+IE: unit ke-4 (G4) tanpa counterfactual -> C4 FAIL */ } catch (Throwable $e) {}
                 $cap = max($cap, count($hU)); if ($ieCapV8 !== null) $cap = min($cap, $ieCapV8); $GLOBALS['ppV8FastCap'] = ['core_simulations_pipeline' => $simU, 'cap' => $cap, 'unresolved_c2_c4_units' => array_map('strtoupper', array_keys($hU))]; $GLOBALS['ppV8FirstUnits'] = $hU; } $maxRounds = min($maxRounds, (int)(getenv('PP_V8_FAST_ROUNDS') ?: 1)); }   /* V15.16 Fastest: review terbatas (bounded race), bukan Maximum Review */ $rankP = pp_priority_rank($m);
         /* V9 REVIEW DELTA: FINAL inkremental kanonik dengan commitment identik dengan FINAL jangkar yang sudah ditinjau.
          * Kandidat pembanding jangkar (valid + gagal window gas) sudah dibawa ke ruang kandidat inkremental dan dievaluasi
