@@ -27,7 +27,7 @@ if T=='T3':
     c('notification_16:00',any('G6 adalah Unit Priority #1 Block 1, tetapi dijadwalkan stop mulai 16:00. Mulai 16:00 Effective Priority berubah menjadi G4 -> G3 -> G6.'==t for t in notes),notes)
     c('effective_row32',('G4 -> G3 -> G6' in ep.get('rows',{}).get('32','')) and ('G6 -> G4 -> G3' in ep.get('rows',{}).get('31','')),[ep.get('rows',{}).get('31'),ep.get('rows',{}).get('32')])
 if T=='T4':
-    g=col('G6'); c('G6_marker_05:00_zero',g[9]<0.01 and all(v<0.01 for v in g[:10]),g[8:12]); c('G6_free_05:30',g[10]>=20-0.01,g[10])
+    g=col('G6'); c('G6_marker_05:00_zero',g[9]<0.01 and all(v<0.01 for v in g[:10]),g[8:12]); mnG6=float(((i.get('SC CC Mode') or {}).get('limits') or {}).get('G6',{}).get('min_sc') or 0); c('G6_free_05:30_ge_user_MIN_SC',mnG6>0 and g[10]>=mnG6-0.01,[g[10],mnG6])
     c('S1_not_fed_by_G6','G6' not in blk['S1']['cc_feed'] and all(s<0.01 for s,a,b in zip(col('S1'),col('G3'),col('G4')) if a<0.01 and b<0.01),blk['S1']['cc_feed'])
     c('G6_SC_last',(i.get('SC CC Mode') or {}).get('sc_units')==['G6'] and any('G4 -> G3 -> G6' in t for t in notes),notes)
 if T=='T5':

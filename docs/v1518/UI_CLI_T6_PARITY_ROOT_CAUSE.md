@@ -68,3 +68,19 @@ Extended to every fixture. The UI `POST mode=run` payload was captured for T0–
 15/15 have CP, HR and fingerprint identical to the CLI fixture. All 16 fixtures (T0–T9, M0–M5) are identical to the
 reference before this fix (the canonical order does not change any result). Golden runs as two steps in the UI; its
 final step was verified identical in the IE scenario (PERFORMANCE_FINAL_COLD_WARM.md).
+
+## 5. XAMPP / Linux (final source)
+Every path enters the same job runner, so the same canonical normalisation applies on all of them. Same payload on the
+XAMPP-like server (PHP 7.4 built-in + proxy) and on Linux (Apache 2.4 + PHP-FPM 7.4):
+
+| Case | Fingerprint (JS) | `normalized_payload_hash` | CP / HR | XAMPP = Linux |
+|---|---|---|---|---|
+| T0 | `e0595f935b4a49ff` | `ec14b3aafaee…` | 71.9896 / 8459.56 | ✔ |
+| T6 | `e0595f935b4a49ff` | `ec14b3aafaee…` | 71.9896 / 8459.56 | ✔ |
+| T1 | `af2a811e9e6e39f9` | `f40c409ac5f1…` | 72.1938 / 8490.96 | ✔ |
+| T3 | `454c6190ba5a6787` | `0b30e9d7b506…` | 71.5546 / 8392.72 | ✔ |
+| T3 → IEW3 | `6fca3a84a9fc0c4e` | `05bb6bbb8b5c…` | 71.4436 / 8375.69 | ✔ |
+| M1 / M3 / golden step 1 / T5 | identical | identical | identical | ✔ |
+
+(The JS fingerprint is a different hash of the same 48 × unit matrix than the CLI `fp.py`; for example, T0 JS
+`e0595f93…` corresponds to CLI `153909b1…`.)

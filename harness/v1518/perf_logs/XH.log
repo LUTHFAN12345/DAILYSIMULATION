@@ -1,0 +1,9 @@
+T3 {"fp":"454c6190ba5a6787","nph":"0b30e9d7b5063945498ac699","t_done":24.61,"job_wall":16.63,"cp":71.5546,"hr":8392.72,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+IEW3_T3 {"fp":"6fca3a84a9fc0c4e","nph":"05bb6bbb8b5c2aec8678d332","t_done":27.102,"job_wall":21.57,"cp":71.4436,"hr":8375.69,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+T3 {"fp":"454c6190ba5a6787","nph":"0b30e9d7b5063945498ac699","t_done":24.339,"job_wall":17.12,"cp":71.5546,"hr":8392.72,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+IEW3_T3 {"fp":"6fca3a84a9fc0c4e","nph":"05bb6bbb8b5c2aec8678d332","t_done":24.726,"job_wall":19.06,"cp":71.4436,"hr":8375.69,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+T3 {"fp":"454c6190ba5a6787","nph":"0b30e9d7b5063945498ac699","t_done":22.897,"job_wall":15.13,"cp":71.5546,"hr":8392.72,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+IEW3_T3 {"fp":"6fca3a84a9fc0c4e","nph":"05bb6bbb8b5c2aec8678d332","t_done":25.311,"job_wall":19.62,"cp":71.4436,"hr":8375.69,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+T0 {"fp":"e0595f935b4a49ff","nph":"ec14b3aafaee1247c3682862","t_done":19.666,"job_wall":10.19,"cp":71.9896,"hr":8459.56,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+T6 {"fp":"e0595f935b4a49ff","nph":"ec14b3aafaee1247c3682862","t_done":19.503,"job_wall":9.94,"cp":71.9896,"hr":8459.56,"helpers":3,"mode":"FASTEST_PIPELINE","status":"FASTEST_FINAL"}
+DONE

@@ -18,9 +18,11 @@ supplier attempts. These must be the same on fast and slow CPUs, with or without
 | Sequence lock R1 (3 stagger variants) | — | variants are evaluated **in a fixed order**, the first one that passes is chosen; helpers only prefetch |
 | Gas window correction att 0 | serial core | isolated core keyed by input hash; **speculative** prefetch during decommit screening (used only if no decommit candidate is accepted) |
 | PGN supplier window repair | budget ladder 60 s → ceiling (watchdog), plafon 32 attempts | new: stop after **3** consecutive in-window landings rejected by the non-gas guard (count) |
-| IE warm stage A polish | `dl = now + 2.5 s`, gate `dl − 2.0` (a 0.5 s window, so the number of evaluations depended on CPU speed) | **1 evaluation** (`PP_IE_WARM_POLISH_N`), dl 30 s = watchdog |
+| IE warm stage A polish | `dl = now + 2.5 s`, gate `dl − 2.0` (a 0.5 s window, so the number of evaluations depended on CPU speed) | **8 evaluations** (`PP_IE_WARM_POLISH_N`), dl 30 s = watchdog. With 8, the IE0–IE8 chain is never worse than the PHP 7.4 wall-clock baseline (REGRESSION_STATUS_FINAL.md) |
 | IE warm stage B (`pp_tl_eval` + landing) | `dl = now + 6 s` (truncated core on a slow CPU) | dl 60 s = watchdog; landing bounded by **N = 10 evaluations** |
 | IE warm landing (`PP_IE_WARM_LAND_S`) | 20 s | 60 s watchdog; N = 10 evaluations |
+| Per-node polish in `pp_tl_eval` (IE stage B, landing, V8 land candidates, family nodes) | `dl = now + 3 s`, gate `dl − 2.0` (a ~1 s window) | **12 evaluations** (`PP_TL_POLISH_N`), dl 30 s = watchdog. Measured T3 → IEW1 → IEW2 in the UI: 13 vs 16 evaluations, so the polish evidence and the C1 priority fix differed (CP 71.5381 vs 71.5365 in 8 of 20 runs) |
+| STG memo (`pp_recompute_stgs`) | key = feeder loads quantised to 0.01 MW and kept for the life of the process, so a hit can return the value of a neighbouring load: measured on T3, 116 193 of 1 092 770 hits (10.6 %) differ from the exact value. The content therefore depended on which tasks the owner had computed itself rather than receiving from a helper | **empty at the start and end of every candidate evaluation** (`pp_tl_eval`, isolated core, helper task, both on HIT and on compute) and at the start of polish, the V8 review and the C1 priority fix. The priority fix also runs isolated from `__pp_*` globals left by the last core run. The memo key and the calculation are unchanged |
 | `pp_budget_exceeded` in the core (async job) | adaptive ladder up to the job ceiling (900 s) | watchdog; on a hit, `stages_truncated` is recorded and publish is blocked |
 
 ## 2. Behaviour when the watchdog is reached
@@ -35,3 +37,6 @@ supplier attempts. These must be the same on fast and slow CPUs, with or without
   the same fingerprint, CP and HR (see `PERFORMANCE_BEFORE_AFTER_V1518.md`).
 - **Slow CPU.** CLI serial is 1.5–2× slower than the UI with helpers. The fingerprint is the same.
 - **Iso-core HIT/MISS.** The evaluation counter is the same, so admission is the same.
+- **Owner vs. helper history (final).** UI, T0 then T3 with IEW1–IEW3 in one tab. Before the fix, T3 IEW2 was 71.5365 in
+  8 of 20 runs and 71.5381 in the others. After the fix (count-limited node polish + STG memo boundaries + isolated
+  priority fix) it was 71.5381 in 4 of 4 runs. CLI T0–T9 and M0–M5 are 17/17 identical to before (fingerprint, CP, HR).

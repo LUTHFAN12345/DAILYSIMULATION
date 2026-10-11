@@ -20,6 +20,35 @@ decommit candidates. If no candidate is accepted, the corrector uses an iso core
 HIT (T3: −7.7 s on the critical path, fingerprint `ad8f9b2e…` identical with `PP_V1518_GWC_ISO=0`). Distillate mode is
 excluded because the distillate schedule pin is read from the global state.
 
+## 2b. Entry prefetch chain for IE commitment repair (pure function of the input)
+In Class B *Commitment repair required*, the IE warm stages A/B (≈ 2.2 s on the owner) prove that the basis commitment is
+infeasible, and the full Fastest pipeline then starts from its entry core. That core's input is
+`pp_v13f_clean(input)` after `pp_normalize_model_arrays`, which is a pure function of the operator input.
+`pp_v1518_entry_prefetch` publishes a helper task `entry1518` **before** stage A. The owner does not wait.
+`pp_v1518_entry_chain`:
+1. computes the entry core (isolated core, task key `core1518`);
+2. derives the sequence-lock R1 variants from that result with `pp_v1518_mk_r1`. This is the same pure function the
+   pipeline uses; the closure was only extracted, not changed;
+3. evaluates them with the same task-lock protocol. It never overwrites the owner's work file and stops as soon as the
+   job is finished.
+
+The pipeline entry uses the isolated core only when the hash of its actual input equals the published key. The R1
+variants are then HITs or are awaited under their lock. Opt-out: `PP_V1518_IE_ENTRY_PRE=0`, or
+`PP_V1518_IE_ENTRY_CHAIN=0` for the entry core only. CLI without helpers is unchanged.
+
+Proof: T3 → IEW3 has fingerprint `6fca3a84a9fc0c4e` / CP 71.4436 in every run on XAMPP-like and on Linux. In the UI,
+IEW3 dropped from 27.3–30.9 s to 26.6–27.2 s. Without a browser, end-to-end it dropped from 26.6–29.2 s to 24.7–27.1 s.
+
+## 2c. Determinism of owner-side stages (STG memo, node polish)
+Two pieces of state could make an owner-side decision depend on *which* tasks it computed itself:
+- the per-node polish in `pp_tl_eval`, which had a ~1 s wall-clock window;
+- the STG memo, whose key quantises loads to 0.01 MW (10.6 % of the hits on T3 are inexact).
+
+Both are now bounded. Node polish is limited to 12 evaluations, and the STG memo is emptied at the start and end of
+every candidate evaluation (pool HIT or compute). See DETERMINISTIC_BUDGET_AUDIT.md. Result: T3 IEW2 is 71.5381 in 4 of
+4 runs in the UI (before: 71.5365 in 8 of 20). CLI T0–T9 and M0–M5 are 17/17 identical, and the 38-case regression is
+identical.
+
 ## 3. Proof reuse
 Proof (C1–C4, STG, block sequence, SC/CC, effective priority, unit limits, normalized payload) is bound to
 `candidate_hash` (48 rows × units). It is reused only when that hash and the context hash are identical. If the

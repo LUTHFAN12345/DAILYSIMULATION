@@ -1,10 +1,11 @@
 // uiie.js <base> <out.json> <ie-spec-json> : satu tab: Run basis (input_data.json server) sampai FINAL, lalu untuk setiap
 // spesifikasi IE Adjustment (array of rule-list) ubah IEADJ_RULES di halaman yang sama, Run, ukur klik->FINAL 48 row (poll 100 ms).
-const { chromium } = require('playwright'); const fs = require('fs'); const [,, BASE, OUT, SPEC] = process.argv; const sleep = ms => new Promise(r => setTimeout(r, ms));
+const { chromium } = require('playwright'); const fs = require('fs'); const [,, BASE, OUT, SPEC, PRE] = process.argv; const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => { const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); const p = await (await b.newContext()).newPage({ viewport: { width: 1400, height: 900 } });
   const R = { errs: [], runs: [] }; let posts = []; p.on('pageerror', e => R.errs.push(String(e.message).slice(0, 160)));
   p.on('request', rq => { if (/mode=run\b/.test(rq.url()) && rq.method() === 'POST') { try { const j = JSON.parse(rq.postData()); posts.push({ t: Date.now(), act: j.data3.modeling.gas_shortage_action, skip: !!j._prelim_skipped, lit: j.data3.modeling.distillate_user_limit_litres || null }); } catch (e) {} } });
   await p.goto(BASE + '/index.php'); await sleep(1500);
+  if (PRE) { await p.evaluate(PRE); await sleep(300); }
   const runOnce = async (label) => { posts = []; const prev = await p.evaluate(() => (typeof OUTPUT !== 'undefined' && OUTPUT) ? 1 : 0);
     await p.evaluate(() => { window.__ppOutBefore = (typeof OUTPUT !== 'undefined') ? OUTPUT : null; document.getElementById('btn-run').click(); }); const t0 = Date.now(); let ok = false;
     while (Date.now() - t0 < 200000) { await sleep(100);

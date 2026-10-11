@@ -1,0 +1,5 @@
+T9_golden base 7.559 True 79.9049 8239.87 PASS PASS None  4.09 [('recommendation', False), ('use_distillate', False)]
+T9_golden ie1 5.523 True 80.1646 8237.16 PASS PASS B FUEL_CLOSING_BERUBAH (keputusan bahan bakar {"action":"use_d 2.373 [('recommendation', False), ('use_distillate', False)]
+T9_golden ie2 4.866 True 79.8254 8238.46 PASS PASS B FUEL_CLOSING_BERUBAH (keputusan bahan bakar {"action":"use_d 1.538 [('recommendation', False), ('use_distillate', False)]
+T9_golden ie3 5.254 True 79.7324 8233.54 PASS PASS B REKONSTRUKSI_GAS_WINDOW_48_ROW_COMMITMENT_BASIS_TETAP (jende 2.393 [('recommendation', False), ('use_distillate', False)]
+DONE

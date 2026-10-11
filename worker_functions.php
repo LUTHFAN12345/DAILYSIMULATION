@@ -2733,6 +2733,7 @@ function pp_v6_stg_life(array $model): ?int {
     $cur = ($GLOBALS['__stg_memo_sig'] ?? null) . '|' . pp_stg_model_sig($model);
     return ($L['sig'] === $cur && empty($GLOBALS['__ppx_stg_memo_freeze'])) ? (int)$L['epoch'] : null;
 }
+function pp_v1518_stg_memo_reset(): void { $g = []; $c = ['cmd' => 'reset']; pp_recompute_stgs($g, [], [], 0, $c); }
 function pp_v6_stg_rec_start(): void { $g = []; $c = ['cmd' => 'rec_start']; pp_recompute_stgs($g, [], [], 0, $c); }
 function pp_v6_stg_rec_stop(): array { $g = []; $c = ['cmd' => 'rec_stop']; pp_recompute_stgs($g, [], [], 0, $c); return [$c['touch'] ?? [], !empty($c['bad'])]; }
 function pp_v6_stg_recording(): bool { $g = []; $c = ['cmd' => 'rec_active']; pp_recompute_stgs($g, [], [], 0, $c); return !empty($c['active']); }
@@ -2780,6 +2781,10 @@ function pp_recompute_stgs(array &$gen, array $d3, array $model, int $row1, ?arr
      * terakhir untuk row ini pada signature dan hold yang sama, kunci memo pasti sama dan hasilnya
      * sama persis; hasil disalin tanpa membangun kunci. */
     static $lastIn = []; static $lastOut = [];
+    /* V15.18 RESET (determinisme tahap akhir Fastest): kunci memo memakai beban feeder terkuantisasi 0,01 MW, sehingga isi memo
+     * bergantung pada RIWAYAT proses (tugas mana yang dihitung pemilik vs pembantu). Tahap yang wajib hanya bergantung pada
+     * inputnya memulai dengan memo kosong; perhitungan sesudahnya berurutan tetap -> hasil identik di setiap run. */
+    if ($v6 !== null && ($v6['cmd'] ?? null) === 'reset') { if (!$recStack) { $memo = []; $lastIn = []; $lastOut = []; $sig = null; } return; }
     if ($curSig !== $sig) { $memo = []; $sig = $curSig; $lastIn = []; $lastOut = [];
         $GLOBALS['ppV6StgLife'] = ['sig' => $curSig, 'epoch' => (int)($GLOBALS['ppV6StgLife']['epoch'] ?? 0) + 1];
         }

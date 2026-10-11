@@ -1,0 +1,15 @@
+ids {"A":["u983e5f18fbb80483532d0d94","t642c3079f0ea7ccc"],"B":["u1fb2de51175860cc833c64c2","teab77dc2461f6a90"],"distinct_uid":true}
+C2_both_run_clicked {}
+A_running_at_6s {"timer":{"state":"running","rid":"plan-2-mv49v65a","elapsed":6.4804000000003725,"running_interval":true},"rid":"plan-2-mv49v65a","msg":"Perhitungan eksak sedang diselesaikan…"}
+B_done {"rows":48,"cp":80.0804,"rid":"plan-2-mv49v628","s":3}
+C3_B_save_while_A_running {"msg":"Input saved — will persist after reload."}
+A_after_B_save {"timer":{"state":"running","rid":"plan-2-mv49v65a","elapsed":12.888099999999627,"running_interval":true},"rid":"plan-2-mv49v65a","msg":"Perhitungan eksak: v7 rerun bahan bakar dari rencana exact basis 15%","still_running":true}
+A_done {"rows":48,"cp":79.9049,"gate":"PASS","rid":"plan-2-mv49v65a","s":8.5,"timeout":false}
+C4_simultaneous_save {"A":"Input saved — will persist after reload.","B":"Input saved — will persist after reload."}
+records {"A":[["SAVE",4,"t642c3079f0ea7ccc","p_12bc23195a4987dc"],["SIMULATION_FINAL",3,"t642c3079f0ea7ccc","p_12bc23195a4987dc"],["AUTOSAVE_RUN",2,"t642c3079f0ea7ccc","p_12bc23195a4987dc"],["AUTOSAVE_RUN",1,"t642c3079f0ea7ccc","p_12bc23195a4987dc"]],"B":[["SAVE",5,"teab77dc2461f6a90","p_12bc23195a4987dc"],
+A_cannot_load_B_record {"ok":false,"err":"NOT_FOUND_OR_NOT_OWNED"}
+C6_reload {"A_ie0":"471","B_ie0":"500","expect":{"A":"471","B":"500"}}
+C0_tabs {"uid_same":true,"tab_diff":true}
+C0_tab_record {"tab_of_latest":"ta56dcbcc4a11e34c","tabA2":"ta56dcbcc4a11e34c"}
+C5_B_cancel {"resp":null}
+C5_A_after_B_cancel {"rows":48,"cp":79.9049,"gate":"PASS","timeout":false}

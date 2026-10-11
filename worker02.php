@@ -196,17 +196,63 @@ function pp_dist_continuous_alloc(array $d3, array $data, array $actualRows, arr
 function pp_v1518_iso_key(array $in): string { return substr(md5(json_encode($in, JSON_PRESERVE_ZERO_FRACTION)), 0, 24); }
 function pp_v1518_iso_file(string $jid, string $k): string { return pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518c_' . $k . '.json'; }
 function pp_v1518_isolated_core(array $in, ?string $jid = null): array {
+    try { return pp_v1518_isolated_core_inner($in, $jid); } finally { if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); }   // V15.18: state memo pemilik sama untuk HIT dan hitung sendiri
+}
+function pp_v1518_isolated_core_inner(array $in, ?string $jid = null): array {
     $k = pp_v1518_iso_key($in);
     /* Jadwal distillate yang terwujud (__pp_dist_schedule) dibaca korektor gas window sesudah lock/decommit. Core biasa
      * meninggalkannya di global; core terisolasi menyimpannya bersama hasil lalu menerapkannya saat kembali (paritas serial). */
     $ret = function (array $o): array { if (array_key_exists('__iso_dist_schedule', $o)) { if ($o['__iso_dist_schedule'] !== null) $GLOBALS['__pp_dist_schedule'] = $o['__iso_dist_schedule']; unset($o['__iso_dist_schedule']); } return $o; };
     if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_file($f = pp_v1518_iso_file($jid, $k))) { $o = json_decode((string)@file_get_contents($f), true); if (is_array($o) && count((array)($o['data'] ?? [])) === 48) { $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + 1; return $ret($o); } }   // hitungan = evaluasi yang diminta (sama dgn/tanpa pembantu)
+    if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     try { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_core($in); $o['__iso_dist_schedule'] = $GLOBALS['__pp_dist_schedule'] ?? null; }
     finally { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
     $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + 1;
     if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_dir(pp_job_dir($jid))) @file_put_contents(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), json_encode($o)) && @rename(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), pp_v1518_iso_file($jid, $k));
     return $ret($o);
+}
+/* V15.18 varian R1 sequence block lock (fungsi murni: input + hasil audit block sequence) — dipakai pipeline dan prefetch rantai entry */
+function pp_v1518_mk_r1(array $inCur, array $bsA, int $stag): array { $r = $inCur; $vS = []; foreach ($bsA['violations'] as $bv) $vS[$bv['stg']] = $bv;
+                $rank = []; foreach ((array)($inCur['data3']['modeling']['unit_priority'] ?? []) as $g) foreach ((array)$g as $x) $rank[strtolower((string)$x)] = count($rank);
+                foreach ($bsA['blocks'] as $bb) { if (!isset($vS[$bb['stg']]) || !is_array($bb['lead'])) continue; $F1 = (int)$vS[$bb['stg']]['stg_first']; $sL1 = strtolower($bb['stg']);
+                    $nl = []; foreach ((array)($r['data3'][$sL1]['gtg'] ?? []) as $gx) { $gx = strtolower((string)$gx); if ($gx !== strtolower($bb['lead']['unit'])) $nl[] = $gx; }
+                    usort($nl, fn($a, $b) => [($rank[$a] ?? 999), $a] <=> [($rank[$b] ?? 999), $b]); $firstConnect = null; $firstLoad = null;
+                    foreach ($nl as $i => $gx) { $Lg = 1 + count(pp_additional_hrsg_caps($gx)); $ex = $F1 + 2 - $Lg;
+                        if ($stag === 2 && $i > 0 && $firstConnect !== null) $ex = max($ex, $firstConnect + 1);
+                        if ($stag === 1 && $i > 0 && $firstLoad !== null) $ex = max($ex, $firstLoad + 1);
+                        if ($i === 0) { $firstConnect = $ex - 1 + $Lg; $firstLoad = $ex; }
+                        if ($ex > 1) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => $gx, 'start' => 1, 'stop' => $ex - 1]; } }
+                foreach ($bsA['violations'] as $bv) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
+                return $r; }
+/* V15.18 RANTAI ENTRY (tugas pembantu 'entry1518'): core entry, lalu varian R1 sequence lock yang diturunkan dari hasilnya (fungsi murni,
+ * pp_v1518_mk_r1). Setiap core memakai protokol kunci tugas yang sama (core1518) -> pemilik yang tiba belakangan memakai/menunggu hasil
+ * yang sama; tidak ada work file yang ditimpa. Berhenti bila job sudah selesai (tidak menyisakan beban CPU ke run berikutnya). */
+function pp_v1518_entry_chain(string $jid, string $k, float $dl): void {
+    $dir = pp_job_dir($jid); $x = json_decode((string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'v1518i_' . $k . '.json'), true); if (!is_array($x)) return;
+    $live = function () use ($jid): bool { $j = pp_job_read($jid); return !is_array($j) || !in_array(strtoupper((string)($j['status'] ?? '')), ['DONE', 'FAILED', 'CANCELLED', 'ERROR'], true); };
+    pp_v4_cooperate($jid, $x, [['type' => 'core1518', 'id' => $k]], $dl, true);
+    if (!$live() || !function_exists('pp_v1518_block_sequence') || !pp_v1518_on() || (string)getenv('PP_V1518_BLOCK_SEQ') === '0') return;
+    $o = pp_v1518_isolated_core($x, $jid); if (count((array)($o['data'] ?? [])) !== 48) return;
+    $bsA = pp_v1518_block_sequence((array)$x['data3'], (array)$x['data3']['modeling'], (array)$o['data']);
+    if (empty($bsA['violations'])) return;
+    foreach ([1, 2, 0] as $st) { if (!$live()) return;
+        $v = pp_v1518_mk_r1($x, $bsA, $st); $kv = pp_v1518_iso_key($v); $fi = $dir . DIRECTORY_SEPARATOR . 'v1518i_' . $kv . '.json';
+        if (!is_file($fi)) @file_put_contents($fi, json_encode($v, JSON_PRESERVE_ZERO_FRACTION));
+        pp_v4_cooperate($jid, $v, [['type' => 'core1518', 'id' => $kv]], $dl, false); }
+}
+/* V15.18 ENTRY PREFETCH — IE commitment repair: bila tahap A/B IE warm tidak valid, Fastest penuh dimulai dari core entry dengan
+ * input pp_v13f_clean(input) ternormalisasi (fungsi murni input). Tugas itu dipublikasikan ke pembantu job SEBELUM tahap A/B
+ * (pemilik tidak menunggu), sehingga core entry sudah tersedia saat jalur penuh dimulai. Tanpa pembantu: pemilik menghitungnya sendiri. */
+function pp_v1518_entry_prefetch(array $inputAsli): void {
+    $jid = (string)($GLOBALS['ppTlHook']['job'] ?? '');
+    if ($jid === '' || (string)getenv('PP_V1518_IE_ENTRY_PRE') === '0' || !function_exists('pp_v4_work_publish') || pp_v4_helper_slots() <= 0 || !is_dir(pp_job_dir($jid))) return;
+    $x = pp_v13f_clean($inputAsli); pp_normalize_model_arrays($x);
+    $k = pp_v1518_iso_key($x); $fi = pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518i_' . $k . '.json';
+    if (!is_file($fi)) @file_put_contents($fi, json_encode($x, JSON_PRESERVE_ZERO_FRACTION));
+    $tt = (string)getenv('PP_V1518_IE_ENTRY_CHAIN') === '0' ? 'core1518' : 'entry1518';
+    try { pp_v4_work_publish($jid, $x, ['kind' => 'tasks', 'tasks' => [['type' => $tt, 'id' => $k]], 'dl' => microtime(true) + 120.0]); } catch (Throwable $e) { return; }
+    $GLOBALS['ppV1518EntryPre'] = $k;
 }
 /* Varian lock dievaluasi berurutan (lazy); bila pembantu job hidup, seluruh varian dipublikasikan sebagai tugas paralel lebih dulu
  * (pemilik ikut mengerjakan). Keputusan tetap: varian pertama (urutan tetap) yang lolos -> deterministik dgn/tanpa pembantu. */
@@ -1279,7 +1325,12 @@ function pp_tl_supplier_target(array $o): ?float {
         return 0.5 * ((float)$rv['under_internal_target'] + (float)$rv['over_internal_target']);
     return null;
 }
+/* V15.18 DETERMINISME: memo STG berkunci beban terkuantisasi -> isinya bergantung riwayat proses. Setiap evaluasi kandidat dimulai dan
+ * diakhiri dengan memo kosong (HIT kolam maupun hitung sendiri), sehingga hasilnya dan state pemilik sesudahnya sama di setiap jalur. */
 function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, array $seedStops = [], ?float $hint = null): ?array {
+    try { return pp_tl_eval_inner($orig, $off, $adj, $deadlineTs, $seedStops, $hint); } finally { if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); }
+}
+function pp_tl_eval_inner(array $orig, array $off, float $adj, float $deadlineTs, array $seedStops = [], ?float $hint = null): ?array {
     if (microtime(true) >= $deadlineTs - 0.2) return null;
     $in = json_decode(json_encode($orig), true);
     $m = &$in['data3']['modeling'];
@@ -1304,6 +1355,7 @@ function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, arra
         if ($hit === null) { $cl = pp_cs_claim($ck, $deadlineTs); if (is_array($cl['hit'] ?? null)) $hit = $cl['hit']; else $lk = $cl['lock'] ?? null; }
         if ($hit !== null) { $hit['off'] = $off; $hit['adj'] = $adj; return $hit; }
     }
+    if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();
     pp_tl_clean_globals();
     pp_budget_start(60.0, true, true);
     $GLOBALS['__pp_budget_deadline'] = $deadlineTs;          // batas operator, bukan plafon 10 detik
@@ -1321,7 +1373,13 @@ function pp_tl_eval(array $orig, array $off, float $adj, float $deadlineTs, arra
     /* V15.17: polish per node dibatasi (PP_TL_POLISH_S, default 3 s). Sebelumnya berjalan sampai deadline job; dengan allocator
      * Distillate kontinu lebih banyak node keluarga Maximum Review yang valid (golden: 4 vs 0) sehingga keluarga 13 node memakan
      * 56 s. Pemenang tetap menjalani review Unit Priority V8 + perbaikan C1-C4 penuh di job. */
-    if (!empty($a['valid']) && function_exists('pp_v6_priority_polish') && empty($orig['data3']['modeling']['__v9_nopolish'])) $a = pp_v6_priority_polish($orig, $a, min($deadlineTs, microtime(true) + (float)(getenv('PP_TL_POLISH_S') ?: 3.0)));   // V6: counterfactual Unit Priority (V9: kandidat local search dinilai mentah, polish pada pemenang)
+    /* V15.18 DETERMINISME: batas polish per node = JUMLAH evaluasi (PP_TL_POLISH_N, default 12), bukan jendela 3 s jam dinding (loop
+     * berhenti di dl-2 s -> efektif ~1 s; terukur T3 IEW2 di UI: 13 vs 16 evaluasi -> bukti polish & perbaikan C1 berbeda, CP 71,5381 vs
+     * 71,5365). Deadline 30 s = watchdog darurat. PP_TL_POLISH_N=0 -> perilaku lama (jam dinding PP_TL_POLISH_S). */
+    $__tlPN = (int)(getenv('PP_TL_POLISH_N') === false || getenv('PP_TL_POLISH_N') === '' ? 12 : getenv('PP_TL_POLISH_N'));
+    if (!empty($a['valid']) && function_exists('pp_v6_priority_polish') && empty($orig['data3']['modeling']['__v9_nopolish'])) {
+        if ($__tlPN > 0) { $GLOBALS['__pp_polish_max_evals'] = $__tlPN; try { $a = pp_v6_priority_polish($orig, $a, min($deadlineTs, microtime(true) + 30.0)); } finally { unset($GLOBALS['__pp_polish_max_evals']); } }
+        else $a = pp_v6_priority_polish($orig, $a, min($deadlineTs, microtime(true) + (float)(getenv('PP_TL_POLISH_S') ?: 3.0))); }   // V6: counterfactual Unit Priority (V9: kandidat local search dinilai mentah, polish pada pemenang)
     if ($aliasV !== null && ($__al = getenv('PP_V5_ALIAS_LOG'))) @file_put_contents($__al, json_encode(['ck' => $ck, 'alias_of' => $aliasV['alias_of'] ?? null,
         'same_cp' => ($aliasV['key']['cp'] ?? null) === ($a['key']['cp'] ?? null), 'same_dev' => ($aliasV['dev'] ?? null) === ($a['dev'] ?? null),
         'same_valid' => ($aliasV['valid'] ?? null) === ($a['valid'] ?? null), 'same_onmask' => ($aliasV['onmask'] ?? null) == $a['onmask'],
@@ -2956,7 +3014,14 @@ function pp_run_simulation_pipeline(array $input): array {
         $GLOBALS['__pp_best_feasible_output']=null;
     }
     $__tBase0 = microtime(true);
-    $inCur = $input; $out = pp_run_simulation_core($inCur); $stopped = [];
+    /* V15.18 ENTRY PREFETCH (IE commitment repair): core entry dipakai dari core terisolasi HANYA bila input identik dengan yang
+     * dipublikasikan pp_v1518_entry_prefetch (kunci hash input); pemilik ikut mengerjakan/menunggu tugas itu. Hasil byte-identik. */
+    $inCur = $input; $__eJid = (string)($GLOBALS['ppTlHook']['job'] ?? ''); $__eK = $GLOBALS['ppV1518EntryPre'] ?? null;
+    if ($__eK !== null && $__eJid !== '' && $__eK === pp_v1518_iso_key($inCur)) { unset($GLOBALS['ppV1518EntryPre']);
+        try { pp_v4_cooperate($__eJid, $inCur, [['type' => 'core1518', 'id' => $__eK]], microtime(true) + 120.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+        $out = pp_v1518_isolated_core($inCur, $__eJid); }
+    else $out = pp_run_simulation_core($inCur);
+    $stopped = [];
     /* V15.18 SEQUENCE BLOCK LOCK: additional GTG CC yang start sebelum STG fresh established ditahan (unit_stop_time) sampai
      * row legal pertamanya, lalu baseline dihitung ulang. Kunci diwarisi seluruh pass hilir (decommit, koreksi gas). Maks 3 iterasi;
      * sisa pelanggaran tetap ditolak validator (block_sequence). */
@@ -3001,18 +3066,7 @@ function pp_run_simulation_pipeline(array $input): array {
              * priority) baru boleh start setelah additional pertama connect (first load >= row legal pertama + lead-in). Bila varian
              * ber-stagger memunculkan pelanggaran baru, varian tanpa stagger dievaluasi (dan run ber-stagger itu menjadi bukti kebutuhan). */
             /* $stag: 2 = stagger penuh (setelah additional pertama connect), 1 = stagger 1 row, 0 = tanpa stagger */
-            $mkR1 = function (int $stag) use ($inCur, $bsA) { $r = $inCur; $vS = []; foreach ($bsA['violations'] as $bv) $vS[$bv['stg']] = $bv;
-                $rank = []; foreach ((array)($inCur['data3']['modeling']['unit_priority'] ?? []) as $g) foreach ((array)$g as $x) $rank[strtolower((string)$x)] = count($rank);
-                foreach ($bsA['blocks'] as $bb) { if (!isset($vS[$bb['stg']]) || !is_array($bb['lead'])) continue; $F1 = (int)$vS[$bb['stg']]['stg_first']; $sL1 = strtolower($bb['stg']);
-                    $nl = []; foreach ((array)($r['data3'][$sL1]['gtg'] ?? []) as $gx) { $gx = strtolower((string)$gx); if ($gx !== strtolower($bb['lead']['unit'])) $nl[] = $gx; }
-                    usort($nl, fn($a, $b) => [($rank[$a] ?? 999), $a] <=> [($rank[$b] ?? 999), $b]); $firstConnect = null; $firstLoad = null;
-                    foreach ($nl as $i => $gx) { $Lg = 1 + count(pp_additional_hrsg_caps($gx)); $ex = $F1 + 2 - $Lg;
-                        if ($stag === 2 && $i > 0 && $firstConnect !== null) $ex = max($ex, $firstConnect + 1);
-                        if ($stag === 1 && $i > 0 && $firstLoad !== null) $ex = max($ex, $firstLoad + 1);
-                        if ($i === 0) { $firstConnect = $ex - 1 + $Lg; $firstLoad = $ex; }
-                        if ($ex > 1) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => $gx, 'start' => 1, 'stop' => $ex - 1]; } }
-                foreach ($bsA['violations'] as $bv) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
-                return $r; };
+            $mkR1 = function (int $stag) use ($inCur, $bsA) { return pp_v1518_mk_r1($inCur, $bsA, $stag); };
             $jidL = (string)($GLOBALS['ppTlHook']['job'] ?? '');
             $r1 = $mkR1(2); pp_v1518_iso_prefetch([$r1, $mkR1(1), $mkR1(0)]);
             $oS = pp_v1518_isolated_core($r1, $jidL); $newS = array_values(array_diff($bsTypes($r1, $oS), $curT));

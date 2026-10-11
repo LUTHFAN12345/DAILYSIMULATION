@@ -2642,12 +2642,17 @@ function pp_v4_helpers_alive(string $jobId): int {
 }
 function pp_v4_task_key(array $t): string { return substr(md5(json_encode([$t['type'], $t['off'] ?? [], $t['seed'] ?? [], isset($t['adj']) ? sprintf('%.9f', $t['adj']) : null, $t['hint'] ?? null, $t['max'] ?? null, $t['id'] ?? null])), 0, 20); }
 function pp_v4_task_exec(array $orig, array $t, float $dl, ?string $jobId = null): void {
+    if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();   // V15.18: tugas = fungsi murni input (memo STG kosong di awal & akhir)
+    try { pp_v4_task_exec_inner($orig, $t, $dl, $jobId); } finally { if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); }
+}
+function pp_v4_task_exec_inner(array $orig, array $t, float $dl, ?string $jobId = null): void {
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $a = null;
     try {
         if ($t['type'] === 'eval') $a = pp_tl_eval($orig, (array)($t['off'] ?? []), (float)$t['adj'], $dl, (array)($t['seed'] ?? []), isset($t['hint']) ? (float)$t['hint'] : null);
         elseif ($t['type'] === 'land') { $L = pp_tl_land_commitment($orig, (array)($t['off'] ?? []), (array)($t['seed'] ?? []), $dl, (int)($t['max'] ?? 5)); $a = $L['a'] ?? null; }
         elseif ($t['type'] === 'v10land') { pp_v10_land_task($orig, $t, $dl, $jobId); $a = null; }
+        elseif ($t['type'] === 'entry1518' && $jobId !== null && function_exists('pp_v1518_entry_chain')) pp_v1518_entry_chain($jobId, (string)$t['id'], $dl);
         elseif ($t['type'] === 'core1518' && $jobId !== null && function_exists('pp_v1518_isolated_core')) { $in = json_decode((string)@file_get_contents(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v1518i_' . preg_replace('~[^a-f0-9]~', '', (string)$t['id']) . '.json'), true); if (is_array($in)) pp_v1518_isolated_core($in, $jobId); $a = null; }
     } finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
     /* Kandidat valid langsung tersedia sebagai VALID PROVISIONAL / Target Selesai (kolam state). */
@@ -2985,6 +2990,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     pp_job_progress($id, 'FASTEST_IE_REDISPATCH_INKREMENTAL', 15.0, ['affected_rows' => count($aff)]);
     $inWin = []; foreach ($win as [$wa, $wb]) for ($r = $wa; $r <= $wb; $r++) $inWin[$r] = true;
     $stages = [];
+    if (function_exists('pp_v1518_entry_prefetch')) pp_v1518_entry_prefetch($inputAsli);   // V15.18: core entry Fastest disiapkan pembantu selama tahap A/B
     /* TAHAP A — jendela lokal: row di luar affected window (+/- 2 row ramp/lead-in) dikunci pada dispatch basis (sudah
      * ter-review Unit Priority & merit), commitment basis dipertahankan, hanya jendela yang di-redispatch. */
     $a = null;
@@ -3001,8 +3007,8 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
         catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a = null; } finally { pp_tl_clean_globals(); }
         if (is_array($a) && !empty($a['valid']) && function_exists('pp_v6_priority_polish') && (string)getenv('PP_IE_WARM_POLISH') !== '0') {
             $tP = microtime(true); $cp0 = $a['key']['cp'] ?? null;
-            /* V15.18 DETERMINISTIK: polish dibatasi JUMLAH evaluasi (1), bukan jendela 0,5 s wall-clock; deadline = watchdog darurat */
-            $GLOBALS['__pp_polish_max_evals'] = (int)(getenv('PP_IE_WARM_POLISH_N') ?: 1);
+            /* V15.18 DETERMINISTIK: polish dibatasi JUMLAH evaluasi (8), bukan jendela 0,5 s wall-clock; 8 = tidak lebih buruk dari baseline wall-clock pada rantai IE0-IE8; deadline = watchdog darurat */
+            $GLOBALS['__pp_polish_max_evals'] = (int)(getenv('PP_IE_WARM_POLISH_N') ?: 8);
             try { $a = pp_v6_priority_polish($c, $a, microtime(true) + (float)(getenv('PP_IE_WARM_POLISH') ?: 30.0)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} finally { unset($GLOBALS['__pp_polish_max_evals']); }
             pp_tl_clean_globals(); $stages[] = ['tahap' => 'A_POLISH_UNIT_PRIORITY', 's' => round(microtime(true) - $tP, 3), 'cp_sebelum' => $cp0, 'cp_sesudah' => is_array($a) ? ($a['key']['cp'] ?? null) : null];
         }
@@ -3196,7 +3202,19 @@ function pp_v15_merit_proof(array $input, array $out): array {
  * bawah window [kuota-0,04] (LNG/kontrak must-take) — temuan sisa mendapat bukti numerik GAS_WINDOW_LOWER_EDGE (ruang gas vs
  * penurunan yang dibutuhkan). Dispatch hasil dievaluasi penuh sekali (engine + validator); tidak valid -> tiap pemindahan
  * ditambahkan satu per satu (greedy) dengan bukti counterfactual tunggal untuk yang tidak valid; hingga 8 lintasan. */
+/* V15.18 DETERMINISME: perbaikan Unit Priority Fastest dijalankan TERISOLASI (seperti core terisolasi): global __pp_* sisa core run
+ * terakhir di proses pemilik dan memo STG (kunci beban terkuantisasi) bergantung pada tugas mana yang dikerjakan pemilik vs pembantu
+ * (urutan waktu). Audit lintasan pertama membacanya -> temuan berbeda antar run (terukur T3 IEW2: 22 vs 24 temuan, CP 71,5365 vs
+ * 71,5381). Kini tahap ini mulai dari state bersih dan state job dipulihkan sesudahnya. PP_V1518_FIX_ISOLATED=0 -> perilaku lama. */
 function pp_v15_fast_priority_fix(array $input, array $out, float $dl): array {
+    if ((string)getenv('PP_V1518_FIX_ISOLATED') === '0') return pp_v15_fast_priority_fix_body($input, $out, $dl);
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+    if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();
+    pp_tl_clean_globals();
+    try { return pp_v15_fast_priority_fix_body($input, $out, $dl); }
+    finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
+}
+function pp_v15_fast_priority_fix_body(array $input, array $out, float $dl): array {
     $GLOBALS['__pp_v15_fixmemo'] = [];
     /* lintasan berulang: pemindahan mengubah headroom, sehingga audit dispatch baru dapat memunculkan pasangan baru */
     $all = []; $proofs = [];
@@ -6664,6 +6682,7 @@ function pp_v1518_family_evidence(array $input, array $out, float $dl): array {
     return $W;
 }
 function pp_v8_priority_review(array $input, array $out, ?float $dl = null): array {
+    if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();   // V15.18: review dimulai dari memo STG kosong (tidak bergantung tugas mana yang dihitung pemilik)
     $t0 = microtime(true); $detV8 = isset($GLOBALS['__pp_v8_fast_wall']) && (string)getenv('PP_V1517_DET_FAST') !== '0'; $ieCapV8 = isset($GLOBALS['ppIeWarmV8Cap']) ? (int)$GLOBALS['ppIeWarmV8Cap'] : null;   // V15.17b (ditangkap sebelum pp_tl_clean_globals menghapus __pp_*)
     try {
         if ((string)getenv('PP_V8_PRIORITY') === '0' || count((array)($out['data'] ?? [])) !== 48) return $out;
@@ -7001,6 +7020,7 @@ function pp_v6_shift_rows(array $rows, array $sh, array $d3, array $m): ?array {
     return $rows;
 }
 function pp_v6_priority_polish(array $orig, array $a, float $dl, ?callable $evalFn = null, int $maxRounds = 4): array {
+    if ((string)getenv('PP_V6_POLISH') !== '0') if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();   // V15.18: bukti counterfactual tidak bergantung riwayat memo proses
     if ((string)getenv('PP_V6_POLISH') === '0' || empty($a['valid']) || !is_array($a['output'] ?? null) || count((array)($a['output']['data'] ?? [])) !== 48) return $a;
     $o = $a['output']; $pp0 = (array)($o['info']['Unit Priority Polish'] ?? []);
     if (!empty($pp0['done']) && ($pp0['rows_sig'] ?? '') === pp_v6_gtg_sig((array)$o['data'])) return $a;

@@ -1,5 +1,8 @@
 # PERFORMANCE_BEFORE_AFTER_V1518
 
+> History of the first V15.18 round. The final numbers are in **PERFORMANCE_FINAL_COLD_WARM.md**. In this table T6 still
+> shows the pre-parity UI payload (CP 71.7732); after the parity fix T6 = T0 = 71.9896.
+
 Measurement is UI end-to-end: Playwright clicks Run, and the clock stops when the app reaches state FINAL with 48 rows
 rendered (500 ms poll; includes ±1.4 s of harness overhead compared with the app's own timer). Cold = server cache
 (`jobs/`) cleared before every run. Machine: 4 cores, PHP 7.4 built-in server behind a multi-backend proxy (XAMPP-like),
