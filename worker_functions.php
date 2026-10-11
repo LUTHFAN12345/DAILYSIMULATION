@@ -555,8 +555,7 @@ function pp_effective_maxload(array $d3, array $model, string $unit, int $row1):
      * Ini implied-hard: load di atas envelope tidak mungkin masuk window tanpa melanggar ramp.
      * Ramp per unit: Babelan (helper, default 10), G8/G9 CC 30, G7/G10 SC 55 MW/30min; unit lain tanpa taper. */
     $bbRE = pp_babelan_ramp_limit($model);
-    static $rampEnvBase = ['g8' => 30.0, 'g9' => 30.0, 'g7' => 55.0, 'g10' => 55.0];
-    $rampEnv = $rampEnvBase + ['b1' => $bbRE, 'b2' => $bbRE];
+    $rampEnv = ['g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9'), 'g7' => 55.0, 'g10' => 55.0, 'b1' => $bbRE, 'b2' => $bbRE];   // V15.18: G8/G9 SC = 55
     $ramp = $rampEnv[strtolower($unit)] ?? null;
     $cap = $base;
     foreach ($rules as $rl) {
@@ -1700,9 +1699,11 @@ function pp_priority_flat(array $model, ?string $pattern = null): array {
     static $memo = []; static $gen = null;
     $g = pp_req_gen();
     if ($g !== $gen) { $memo = []; $gen = $g; }
-    $mk = ($pattern === null) ? "\0null" : $pattern;
-    if (isset($memo[$mk]) && !PP_FUEL_MEMO_VERIFY && !PP_MEMO_OFF) return $memo[$mk];
     $src = $model['unit_priority'] ?? $model['block_priority'] ?? [];
+    /* V15.18: urutan efektif (SC / Stop All Day -> terakhir) membuat sumber prioritas dapat berbeda antara salinan operator dan
+     * salinan engine dalam satu request -> kunci memo memuat tanda tangan sumber. */
+    $mk = (($pattern === null) ? "\0null" : $pattern) . '|' . md5(json_encode($src));
+    if (isset($memo[$mk]) && !PP_FUEL_MEMO_VERIFY && !PP_MEMO_OFF) return $memo[$mk];
     $out = [];
     foreach ((array)$src as $grp) foreach ((array)$grp as $u) {
         $u = strtolower(trim((string)$u));
@@ -2028,6 +2029,319 @@ function pp_stg_hold_from_rows(array $d3, array $model, array $rows): array {
     }
     return $holdN;
 }
+/* =====================================================================================================
+ *  V15.18 SEMANTIK COMMITMENT / STOP STATUS / SC-CC / EFFECTIVE PRIORITY / BLOCK REQUIRED
+ *  (instruksi P0 "SC/CC Continuous Priority Block Sequence"). Satu fungsi bersama, dipanggil pada salinan
+ *  input ENGINE (pp_normalize_model_arrays) dan salinan VALIDATOR/PROOF (pp_normalize_copy) — payload operator
+ *  yang tersimpan/di-hash tidak pernah diubah. Idempoten: seluruh langkah dihitung ulang dari salinan
+ *  "configured_*" (kunci tanpa awalan __ sehingga tidak dibuang pp_v13f_clean).
+ *
+ *  Enum internal (bukan satu flag continuous=true):
+ *    commitment_mode : CONTINUOUS_FULL_HORIZON | START_BASED_ON_SIMULATION | START_AT_REQUEST | NONE
+ *    stop_policy     : HOLD_TO_END_AFTER_START | OPTIMIZE_STOP_OR_HOLD_TO_END | STOP_BASED_ON_SIMULATION |
+ *                      STOP_AT_REQUEST | NONE
+ *  Pemetaan ke primitif engine yang sudah teruji:
+ *    CONTINUOUS_FULL_HORIZON  -> unit_cannot_stop + Last Data Running (berbeban 00:30-00:00)
+ *    HOLD_TO_END_AFTER_START  -> unit_cannot_stop dengan Last Data Stop (boleh 0 sebelum start; validator
+ *                                 commitment_continuous sudah membedakan "belum start") + required_units
+ *  SC/CC (G1-G6, G8, G9; default CC): SC = GTG dikeluarkan dari daftar feed STG blok (hrsg/gtg) sehingga
+ *  engine memperlakukannya persis seperti GTG SC teknis G7/G10 (tanpa kontribusi STG, min_scload, startup
+ *  tanpa ramp berskrip, ramp G8/G9 = 55 MW/30 mnt seperti G7/G10). PP_V1518_SEMANTICS=0 -> perilaku lama.
+ * ===================================================================================================== */
+const PP_V1518_SEMANTICS_VERSION = 'v1518-commitment-sc-cc-1';
+const PP_V1518_SC_ELIGIBLE = ['g1','g2','g3','g4','g5','g6','g8','g9'];
+function pp_v1518_on(): bool { return (string)getenv('PP_V1518_SEMANTICS') !== '0'; }
+/* registri unit SC untuk helper tanpa akses $model (ramp, sequence). Diisi setiap normalisasi engine. */
+function pp_v1518_sc_units(?array $set = null): array {
+    static $cur = [];
+    if ($set !== null) { $cur = array_values(array_unique(array_map('strtolower', $set))); sort($cur); }
+    return $cur;
+}
+function pp_v1518_is_sc(string $u): bool { return in_array(strtolower($u), pp_v1518_sc_units(), true); }
+/* Ramp maksimum MW/30 mnt per unit (satu sumber untuk pass yang memakai helper ini).
+ * G7/G10 SC 55; G8/G9 CC 30, SC = family G7/G10 (55). */
+function pp_unit_ramp_limit(string $u): ?float {
+    $u = strtolower($u);
+    if ($u === 'g7' || $u === 'g10') return 55.0;
+    if ($u === 'g8' || $u === 'g9') return pp_v1518_is_sc($u) ? 55.0 : 30.0;
+    return null;
+}
+function pp_v1518_sc_map(array $m): array {
+    $out = []; foreach (PP_V1518_SC_ELIGIBLE as $u) $out[$u] = 'CC';
+    foreach ((array)($m['sc_cc'] ?? []) as $k => $v) { $k = strtolower((string)$k); if (isset($out[$k]) && strtoupper(trim((string)$v)) === 'SC') $out[$k] = 'SC'; }
+    return $out;
+}
+function pp_v1518_hhmm_row(string $t, bool $isStop): ?int {
+    if (!preg_match('/^(\d{1,2}):(\d{2})$/', trim($t), $mm)) return null;
+    $min = (int)$mm[1] * 60 + (int)$mm[2]; if ($min === 0 && $isStop) return 48;
+    $r = (int)floor($min / 30); return max(1, min(48, $r));
+}
+/* baris (1..48) di mana unit tidak dapat dipakai: Stop All Day, unit_stop_time, Stop At request, unit_present=0 */
+function pp_v1518_unavailable_rows(array $d3, array $m, string $u): array {
+    $u = strtolower($u); $rows = [];
+    if (isset($d3[$u]) && (int)($d3[$u]['unit_present'] ?? 1) === 0) return array_fill(1, 48, 'UNAVAILABLE');
+    if (in_array($u, array_map('strtolower', array_map('strval', (array)($m['unit_stop'] ?? []))), true)) return array_fill(1, 48, 'STOP_ALL_DAY');
+    foreach ((array)($m['unit_stop_time'] ?? []) as $k => $r) {
+        if (is_array($r) && isset($r['unit'])) { if (strtolower((string)$r['unit']) !== $u) continue; $s = $r['start'] ?? 1; $e = $r['stop'] ?? 48; }
+        elseif (is_string($k) && strtolower($k) === $u && is_array($r)) { $s = $r[0] ?? 1; $e = $r[1] ?? 48; }
+        else continue;
+        $s = is_numeric($s) ? (int)$s : (pp_v1518_hhmm_row((string)$s, false) ?? 1); $e = is_numeric($e) ? (int)$e : (pp_v1518_hhmm_row((string)$e, true) ?? 48);
+        for ($q = max(1, $s); $q <= min(48, $e); $q++) $rows[$q] = 'STOP_SCHEDULE';
+    }
+    $sm = $m['stop_mode'][$u] ?? null;
+    if (is_array($sm) && strtolower((string)($sm['mode'] ?? '')) === 'stop_at' && ($sr = pp_v1518_hhmm_row((string)($sm['at'] ?? ''), true)) !== null)
+        for ($q = $sr; $q <= 48; $q++) $rows[$q] = 'STOP_AT_REQUEST';
+    ksort($rows); return $rows;
+}
+/* Effective Priority per row: urutan configured; unit SC (seluruh hari) dan unit stop/trip/unavailable (mulai row efektif)
+ * dipindah ke urutan terakhir grupnya. Configured TIDAK ditimpa. */
+function pp_v1518_effective_priority(array $d3, array $m, ?array $configured = null, ?array $sc = null): array {
+    $cfg = $configured ?? (array)($m['configured_unit_priority'] ?? ($m['unit_priority'] ?? []));
+    $sc = $sc ?? pp_v1518_sc_map($m); $unav = [];
+    foreach ($cfg as $g) foreach ((array)$g as $u) { $u = strtolower((string)$u); if (!isset($unav[$u])) $unav[$u] = pp_v1518_unavailable_rows($d3, $m, $u); }
+    $rows = []; $changes = []; $prevSig = null;
+    for ($r = 1; $r <= 48; $r++) {
+        $eff = [];
+        foreach ($cfg as $gi => $g) {
+            $keep = []; $last = [];
+            foreach ((array)$g as $u) { $lu = strtolower((string)$u);
+                $why = ($sc[$lu] ?? 'CC') === 'SC' ? 'SC' : ($unav[$lu][$r] ?? null);
+                if ($why !== null) $last[] = $lu; else $keep[] = $lu; }
+            $eff[$gi] = array_merge($keep, $last);
+        }
+        $rows[$r] = $eff; $sig = json_encode($eff);
+        if ($sig !== $prevSig) {
+            $why = []; foreach ($unav as $u => $ur) { if (($sc[$u] ?? 'CC') === 'SC') $why[$u] = 'SC'; elseif (isset($ur[$r])) $why[$u] = $ur[$r]; }
+            $changes[] = ['row' => $r, 'effective' => $eff, 'moved_last' => $why];
+            $prevSig = $sig;
+        }
+    }
+    return ['configured' => $cfg, 'rows' => $rows, 'changes' => $changes];
+}
+function pp_v1518_reorder_group(array $g, array $moveLast): array {
+    $units = []; $tail = []; $tok = [];
+    foreach ($g as $x) { $lx = strtolower((string)$x);
+        if (preg_match('/^(g\d+|b\d|ge\d)$/', $lx)) { if (in_array($lx, $moveLast, true)) $tail[] = $x; else $units[] = $x; } else $tok[] = $x; }
+    return array_merge($units, $tail, $tok);
+}
+function pp_v1518_semantics(array &$input): void {
+    if (!pp_v1518_on() || !isset($input['data3']['modeling']) || !is_array($input['data3']['modeling'])) return;
+    $d3 = &$input['data3']; $m = &$d3['modeling'];
+    /* ---- 1. SC/CC ---- */
+    $sc = pp_v1518_sc_map($m); $scU = array_keys(array_filter($sc, fn($v) => $v === 'SC'));
+    foreach (['s1','s2','s3'] as $s) {
+        if (!isset($d3[$s]) || !is_array($d3[$s])) continue;
+        if (!array_key_exists('hrsg_configured', $d3[$s])) { $d3[$s]['hrsg_configured'] = $d3[$s]['hrsg'] ?? null; $d3[$s]['gtg_configured'] = $d3[$s]['gtg'] ?? null; }
+        $h = (array)($d3[$s]['hrsg_configured'] ?? []); $g = (array)($d3[$s]['gtg_configured'] ?? []);
+        if ($d3[$s]['hrsg_configured'] !== null) $d3[$s]['hrsg'] = array_filter($h, fn($x) => !in_array(strtolower((string)$x), $scU, true));
+        if ($d3[$s]['gtg_configured'] !== null) $d3[$s]['gtg'] = array_values(array_filter($g, fn($x) => !in_array(strtolower((string)$x), $scU, true)));
+    }
+    foreach (PP_V1518_SC_ELIGIBLE as $u) { if (!isset($d3[$u]) || !is_array($d3[$u])) continue;
+        $d3[$u]['sc_mode'] = $sc[$u];
+        /* SC G8/G9 = family G7/G10 (max 108, min_scload 30): batas bawah = min_scload; min_ccload (65) hanya berlaku saat CC.
+         * G1-G6 SC TIDAK diturunkan ke min_scload 5: 5/15 MW adalah nilai startup-only (validator Revisi Sec.5-7), sehingga
+         * lantai dispatch bebas G1-G6 tetap min_ccload (20). Nilai konfigurasi disimpan. */
+        if (!array_key_exists('min_ccload_configured', $d3[$u])) $d3[$u]['min_ccload_configured'] = $d3[$u]['min_ccload'] ?? null;
+        if ($sc[$u] === 'SC' && in_array($u, ['g8','g9'], true) && isset($d3[$u]['min_scload'])) $d3[$u]['min_ccload'] = $d3[$u]['min_scload'];
+        elseif ($d3[$u]['min_ccload_configured'] !== null) $d3[$u]['min_ccload'] = $d3[$u]['min_ccload_configured'];
+        else unset($d3[$u]['min_ccload']); }
+    pp_v1518_sc_units($scU);
+    /* ---- 2. Commitment Mode vs Stop Status ---- */
+    $rm = (array)($m['required_mode'] ?? []); $sm = (array)($m['stop_mode'] ?? []);
+    $cs = array_map('strtolower', (array)($m['unit_cannot_stop'] ?? [])); $ru = array_map('strtolower', (array)($m['required_units'] ?? []));
+    $pol = (array)($m['stop_policy'] ?? []); $com = [];
+    foreach ($rm as $u => $cfg) { $lu = strtolower((string)$u); $md = strtolower((string)($cfg['mode'] ?? ''));
+        if ($md === 'continuous') { $com[$lu] = 'CONTINUOUS_FULL_HORIZON';
+            if (!in_array($lu, $cs, true)) $cs[] = $lu;
+            $m['unit_last_data_status'][strtoupper($lu)] = 'Running';            // §1.1: row 1 melanjutkan Running
+            unset($sm[$lu]); $pol[$lu] = 'NONE'; }
+        elseif ($md === 'based_on_sim') $com[$lu] = 'START_BASED_ON_SIMULATION';
+        elseif ($md === 'start_at') $com[$lu] = 'START_AT_REQUEST'; }
+    foreach ($sm as $u => $cfg) { $lu = strtolower((string)$u); $md = strtolower((string)($cfg['mode'] ?? ''));
+        if ($md === 'hold_to_end' || $md === 'continuous') {                   // §1.2 Stop Status = Unit Continuous Running
+            $pol[$lu] = 'HOLD_TO_END_AFTER_START'; if (!in_array($lu, $cs, true)) $cs[] = $lu;
+            if (!in_array($lu, $ru, true) && isset($com[$lu])) $ru[] = $lu; unset($sm[$lu]); }
+        elseif ($md === 'based_on_sim') $pol[$lu] = 'OPTIMIZE_STOP_OR_HOLD_TO_END';
+        elseif ($md === 'based_on_sim_must') $pol[$lu] = 'STOP_BASED_ON_SIMULATION';
+        elseif ($md === 'stop_at') $pol[$lu] = 'STOP_AT_REQUEST'; }
+    $m['stop_mode'] = $sm; $m['stop_policy'] = $pol; $m['commitment_semantics'] = $com;
+    /* ---- 3. Effective priority (configured disimpan; SC / Stop All Day / unavailable seluruh hari -> urutan terakhir) ---- */
+    if (!array_key_exists('configured_unit_priority', $m)) $m['configured_unit_priority'] = $m['unit_priority'] ?? null;
+    if (!array_key_exists('configured_block_priority', $m)) $m['configured_block_priority'] = $m['block_priority'] ?? null;
+    $dayLast = $scU;
+    foreach (array_merge(PP_V1518_SC_ELIGIBLE, ['g7','g10','b1','b2','ge1','ge2','ge3','ge4']) as $u) { $ur = pp_v1518_unavailable_rows($d3, $m, $u); if (count($ur) >= 48) $dayLast[] = $u; }
+    if (is_array($m['configured_unit_priority'])) $m['unit_priority'] = array_map(fn($g) => pp_v1518_reorder_group((array)$g, $dayLast), $m['configured_unit_priority']);
+    /* ---- 4. Block Required: wajib di-start sesuai mode, BUKAN full-horizon (§2) + STG -> lead GTG CC (§6) ---- */
+    $lds = fn($u) => strtolower((string)($m['unit_last_data_status'][strtoupper($u)] ?? ''));
+    $auto = [];
+    if (is_array($m['configured_block_priority'])) {
+        $bp = [];
+        foreach ($m['configured_block_priority'] as $blk) {
+            $blk = (array)$blk; $lb = array_map(fn($x) => strtolower((string)$x), $blk);
+            $isReq = in_array('required', $lb, true); $units = array_values(array_filter($lb, fn($x) => $x !== 'required'));
+            $full = false; foreach ($units as $x) if (($com[$x] ?? '') === 'CONTINUOUS_FULL_HORIZON' || $lds($x) === 'running') $full = true;
+            $blk2 = pp_v1518_reorder_group($blk, $dayLast);
+            if ($isReq && !$full) {
+                /* Token 'required' engine = lantai satu unit per row (pp_solve_block). Bila unit blok sudah diminta eksplisit
+                 * (Start Based On Simulation/Request), startup gating unit itu yang menentukan kapan blok mulai — token dipertahankan.
+                 * Bila TIDAK ada unit yang diminta, token dibuang (tidak boleh menjadi full-horizon diam-diam) dan lead + STG
+                 * dijadikan Required (wajib di-start, waktu dipilih simulasi). */
+                $any = false; foreach ($units as $x) if (in_array($x, $ru, true) || in_array($x, $cs, true) || isset($rm[$x])) $any = true;
+                if (!$any) $blk2 = array_values(array_filter($blk2, fn($x) => strtolower((string)$x) !== 'required'));
+                if (!$any) {                                                  // blok Required tanpa unit diminta -> lead + STG wajib di-start
+                    foreach ($units as $x) if (preg_match('/^s\d$/', $x) && !in_array($x, $ru, true)) { $ru[] = $x; $auto[] = ['unit' => $x, 'reason' => 'BLOCK_REQUIRED_START']; }
+                    $gt = array_values(array_filter($units, fn($x) => preg_match('/^(g\d+|ge\d|b\d)$/', $x)));
+                    if (!preg_grep('/^s\d$/', $units) && $gt) { $lead = null; foreach ($gt as $x) if (!in_array($x, $dayLast, true)) { $lead = $x; break; } if ($lead && !in_array($lead, $ru, true)) { $ru[] = $lead; $auto[] = ['unit' => $lead, 'reason' => 'BLOCK_REQUIRED_START']; } }
+                }
+            }
+            $bp[] = $blk2;
+        }
+        $m['block_priority'] = $bp;
+    }
+    foreach (['s1','s2','s3'] as $s) {
+        if (!isset($d3[$s])) continue;
+        $req = in_array($s, $ru, true) || isset($rm[$s]) || in_array($s, $cs, true);
+        if (!$req) continue;
+        $feed = array_map('strtolower', array_values((array)($d3[$s]['gtg'] ?? []))); if (!$feed) { $auto[] = ['unit' => $s, 'reason' => 'STG_TANPA_GTG_CC', 'lead' => null]; continue; }
+        $hasLead = false; foreach ($feed as $g) if (in_array($g, $ru, true) || in_array($g, $cs, true) || isset($rm[$g]) || $lds($g) === 'running') $hasLead = true;
+        if ($hasLead) continue;
+        /* lead = GTG CC effective-priority pertama yang available (urutan grup unit_priority yang memuat STG) */
+        $order = []; foreach ((array)($m['unit_priority'] ?? []) as $g) { $lg = array_map(fn($x) => strtolower((string)$x), (array)$g); if (in_array($s, $lg, true)) $order = $lg; }
+        $lead = null; foreach ($order as $g) if (in_array($g, $feed, true) && count(pp_v1518_unavailable_rows($d3, $m, $g)) < 48) { $lead = $g; break; }
+        if ($lead === null) { $auto[] = ['unit' => $s, 'reason' => 'TIDAK_ADA_GTG_CC_AVAILABLE', 'lead' => null]; continue; }
+        if (!in_array($lead, $ru, true)) $ru[] = $lead;
+        $sCom = $com[$s] ?? 'START_BASED_ON_SIMULATION';
+        if ($sCom === 'CONTINUOUS_FULL_HORIZON') { $m['required_mode'][$lead] = ['mode' => 'continuous']; $com[$lead] = 'CONTINUOUS_FULL_HORIZON'; if (!in_array($lead, $cs, true)) $cs[] = $lead; $m['unit_last_data_status'][strtoupper($lead)] = 'Running'; }
+        else { if (!isset($m['required_mode'][$lead])) $m['required_mode'][$lead] = ['mode' => 'based_on_sim']; $com[$lead] = $com[$lead] ?? 'START_BASED_ON_SIMULATION';
+               if (($pol[$s] ?? '') === 'HOLD_TO_END_AFTER_START') { $pol[$lead] = 'HOLD_TO_END_AFTER_START'; if (!in_array($lead, $cs, true)) $cs[] = $lead; } }
+        $auto[] = ['unit' => $lead, 'reason' => 'STG_' . strtoupper($s) . '_LEAD_GTG_CC', 'stg' => $s];
+    }
+    $m['unit_cannot_stop'] = array_values(array_unique($cs)); $m['required_units'] = array_values(array_unique($ru));
+    $m['stop_policy'] = $pol; $m['commitment_semantics'] = $com; $m['auto_semantics'] = $auto ?: (array)($m['auto_semantics'] ?? []);
+    $m['commitment_semantics_version'] = PP_V1518_SEMANTICS_VERSION;
+}
+/* V15.18 SEQUENCE BLOCK GTG-STG (instruksi §7). Untuk STG yang start fresh (Last Data Stop):
+ *   lead GTG          = GTG CC blok yang pertama berbeban (seri: urutan effective priority)
+ *   STG first positive= row pertama STG > 0 (setelah cold/warm/hot hold existing)
+ *   additional GTG    = start GTG CC lain di blok yang sama (segmen ON berikutnya)
+ *   lead-in additional= 1 row marker (oranye) + panjang ramp Additional HRSG unit (pp_additional_hrsg_caps:
+ *                       G1-G6 [5,15] -> 3 row = 1,5 jam; G8/G9 [40,40,50,60,60,70] -> 7 row = 3,5 jam)
+ *   syarat            = connect efektif (marker + lead-in) >= STG first positive + 1 row
+ *                       <=> first load row additional >= F + 2 - lead_in
+ * Unit SC tidak termasuk feed CC blok (pp_v1518_semantics), jadi tidak terkena aturan ini. */
+function pp_v1518_block_sequence(array $d3, array $model, array $rows): array {
+    $n = count($rows); $val = function ($r, $u) { return (float)($r[$u] ?? ($r[strtoupper($u)] ?? 0)); };
+    $res = ['blocks' => [], 'violations' => []];
+    $order = []; foreach ((array)($model['unit_priority'] ?? []) as $g) foreach ((array)$g as $x) $order[strtolower((string)$x)] = count($order);
+    foreach (['s1','s2','s3'] as $s) {
+        if (!isset($d3[$s])) continue;
+        $feed = array_map('strtolower', array_values((array)($d3[$s]['gtg'] ?? array_values((array)($d3[$s]['hrsg'] ?? [])))));
+        $fresh = strtolower((string)($model['unit_last_data_status'][strtoupper($s)] ?? '')) !== 'running';
+        $F = null; for ($i = 0; $i < $n; $i++) if ($val($rows[$i], $s) > 0.01) { $F = $i + 1; break; }
+        $starts = [];
+        foreach ($feed as $g) {
+            $ldsRun = strtolower((string)($model['unit_last_data_status'][strtoupper($g)] ?? '')) === 'running';
+            for ($i = 0; $i < $n; $i++) { $on = $val($rows[$i], $g) > 0.01; $prev = $i === 0 ? $ldsRun : ($val($rows[$i - 1], $g) > 0.01);
+                if ($on && !$prev) $starts[] = ['unit' => $g, 'row' => $i + 1, 'rank' => $order[$g] ?? 999]; }
+            if ($ldsRun && $val($rows[0] ?? [], $g) > 0.01) $starts[] = ['unit' => $g, 'row' => 0, 'rank' => $order[$g] ?? 999, 'running_from_yesterday' => true];
+        }
+        usort($starts, fn($a, $b) => [$a['row'], $a['rank']] <=> [$b['row'], $b['rank']]);
+        $blk = ['stg' => strtoupper($s), 'fresh_stg' => $fresh, 'cc_feed' => array_map('strtoupper', $feed), 'stg_first_positive_row' => $F,
+                'stg_established_row' => $F !== null ? min($n, $F + 1) : null, 'lead' => null, 'additional' => []];
+        if ($starts) { $L0 = $starts[0]; $blk['lead'] = ['unit' => strtoupper($L0['unit']), 'first_load_row' => $L0['row'], 'startup_marker_row' => max(0, $L0['row'] - 1)]; }
+        foreach (array_slice($starts, 1) as $st) {
+            $lead = 1 + count(pp_additional_hrsg_caps($st['unit']));
+            $rec = ['unit' => strtoupper($st['unit']), 'first_load_row' => $st['row'], 'startup_marker_row' => max(0, $st['row'] - 1), 'lead_in_rows' => $lead,
+                    'connect_row' => $st['row'] - 1 + $lead];
+            if ($fresh && $F !== null && $st['row'] > 0) {
+                $earliest = $F + 2 - $lead; $rec['earliest_legal_first_load_row'] = $earliest;
+                $rec['legal'] = $st['row'] >= $earliest;
+                if (!$rec['legal']) $res['violations'][] = ['stg' => strtoupper($s), 'unit' => strtoupper($st['unit']), 'row' => $st['row'], 'earliest' => $earliest, 'stg_first' => $F, 'lead_in_rows' => $lead];
+            } else $rec['legal'] = true;
+            $blk['additional'][] = $rec;
+        }
+        $res['blocks'][] = $blk;
+    }
+    $res['status'] = $res['violations'] ? 'FAIL' : 'PASS';
+    return $res;
+}
+/* V15.18 OUTPUT: Commitment Semantics, Effective Priority (configured + per row + notifikasi), SC CC Mode, Block Sequence Audit.
+ * Dihitung dari input OPERATOR (salinan; semantik diterapkan di sini) dan data final — tidak mengubah hasil. */
+function pp_v1518_row_time(int $r): string { $m = ($r * 30) % 1440; return sprintf('%02d:%02d', intdiv($m, 60), $m % 60); }
+function pp_v1518_group_name(array $g): string {
+    $l = array_map(fn($x) => strtolower((string)$x), $g);
+    if (in_array('b1', $l, true) || in_array('b2', $l, true)) return 'Babelan';
+    foreach (['s1' => 'Block 1', 's2' => 'Block 2', 's3' => 'Block 3'] as $s => $nm) if (in_array($s, $l, true)) return $nm;
+    if (preg_grep('/^ge\d$/', $l)) return 'MM2100 GE'; return 'grup ' . implode('/', array_map('strtoupper', $l));
+}
+function pp_v1518_output_info(array $input, array $output): array {
+    $c = $input; pp_v1518_semantics($c); $m = (array)($c['data3']['modeling'] ?? []); $d3 = (array)($c['data3'] ?? []);
+    $ep = pp_v1518_effective_priority($d3, $m); $sc = pp_v1518_sc_map($m);
+    $fmt = fn(array $g) => implode(' -> ', array_map('strtoupper', array_values(array_filter($g, fn($x) => preg_match('/^(g\d+|b\d|ge\d)$/', strtolower((string)$x)))))); 
+    $notes = []; $why0 = [];
+    foreach ((array)$ep['configured'] as $gi => $g) {
+        $g = array_map(fn($x) => strtolower((string)$x), (array)$g); $units = array_values(array_filter($g, fn($x) => preg_match('/^(g\d+|b\d|ge\d)$/', $x)));
+        if (count($units) < 2) continue; $nm = pp_v1518_group_name($g); $prev = $units; $prevR = 1;
+        for ($r = 1; $r <= 48; $r++) {
+            $eff = array_values(array_filter((array)$ep['rows'][$r][$gi], fn($x) => preg_match('/^(g\d+|b\d|ge\d)$/', $x)));
+            if ($eff === $prev) continue;
+            foreach ($units as $k => $u) { if (array_search($u, $eff, true) <= $k || in_array($u, (array)($why0[$gi] ?? []), true)) continue;
+                $why = ($sc[$u] ?? 'CC') === 'SC' ? 'SC' : (pp_v1518_unavailable_rows($d3, $m, $u)[$r] ?? 'UNAVAILABLE'); $pos = $k + 1; $U = strtoupper($u);
+                if ($why === 'STOP_ALL_DAY') $t = sprintf('%s dijadwalkan Stop All Day. Effective Priority %s berubah dari %s menjadi %s untuk seluruh horizon. %s ditempatkan terakhir karena tidak tersedia untuk dispatch.', $U, $nm, $fmt($units), $fmt($eff), $U);
+                elseif ($why === 'SC') $t = sprintf('%s dipindahkan dari CC ke SC: tidak berkontribusi ke STG dan tidak dapat menjadi lead CC. Effective Priority CC %s menjadi %s (configured tetap %s).', $U, $nm, $fmt($eff), $fmt($units));
+                elseif ($why === 'UNAVAILABLE') $t = sprintf('%s adalah Unit Priority #%d %s, tetapi trip/unavailable. Effective Priority menjadi %s.', $U, $pos, $nm, $fmt($eff));
+                elseif ($r === 1) $t = sprintf('%s adalah Unit Priority #%d %s, tetapi dijadwalkan stop sejak 00:30. Effective Priority menjadi %s.', $U, $pos, $nm, $fmt($eff));
+                else $t = sprintf('%s adalah Unit Priority #%d %s, tetapi dijadwalkan stop mulai %s. Mulai %s Effective Priority berubah menjadi %s.', $U, $pos, $nm, pp_v1518_row_time($r), pp_v1518_row_time($r), $fmt($eff));
+                $notes[] = ['type' => 'PRIORITY_' . $why, 'unit' => $U, 'group' => $nm, 'from_row' => $r, 'from_time' => pp_v1518_row_time($r), 'configured' => $fmt($units), 'effective' => $fmt($eff), 'text' => $t];
+                if ($why === 'STOP_ALL_DAY' || $why === 'SC' || $why === 'UNAVAILABLE') $why0[$gi][] = $u; }
+            $prev = $eff;
+        }
+    }
+    foreach ((array)($m['auto_semantics'] ?? []) as $a) {
+        $rs = (string)($a['reason'] ?? '');
+        if (strpos($rs, '_LEAD_GTG_CC') !== false) { $S = strtoupper((string)$a['stg']); $L = strtoupper((string)$a['unit']); $cm = $m['commitment_semantics'][strtolower($L)] ?? ''; $pl = $m['stop_policy'][strtolower($L)] ?? '';
+            $notes[] = ['type' => 'STG_LEAD_AUTO', 'unit' => $L, 'stg' => $S, 'text' => sprintf('%s diminta start; %s (GTG CC effective priority pertama yang available) otomatis Required + %s + %s + CC.', $S, $L,
+                $cm === 'CONTINUOUS_FULL_HORIZON' ? 'Unit Continuous Running' : 'Start Based On Simulation', $pl === 'HOLD_TO_END_AFTER_START' ? 'Stop Status Unit Continuous Running' : 'Stop Status mengikuti simulasi')]; }
+        elseif ($rs === 'TIDAK_ADA_GTG_CC_AVAILABLE' || $rs === 'STG_TANPA_GTG_CC') $notes[] = ['type' => 'STG_NO_CC_GTG', 'unit' => strtoupper((string)$a['unit']), 'text' => sprintf('%s Required tetapi tidak ada GTG CC pasangan yang dapat mengikuti (SC / stop / unavailable). STG tidak dapat running tanpa GTG CC legal.', strtoupper((string)$a['unit']))];
+        elseif ($rs === 'BLOCK_REQUIRED_START') $notes[] = ['type' => 'BLOCK_REQUIRED_START', 'unit' => strtoupper((string)$a['unit']), 'text' => sprintf('Block Required: %s wajib di-start dalam horizon (waktu dipilih simulasi), bukan full-horizon.', strtoupper((string)$a['unit']))];
+    }
+    foreach ((array)($m['configured_block_priority'] ?? []) as $blk) { $lb = array_map(fn($x) => strtolower((string)$x), (array)$blk);
+        if (!in_array('required', $lb, true)) continue; $gt = array_values(array_filter($lb, fn($x) => preg_match('/^(g\d+|ge\d|b\d)$/', $x))); if (!$gt) continue;
+        $ok = false; foreach ($gt as $x) if (($sc[$x] ?? 'CC') !== 'SC' && count(pp_v1518_unavailable_rows($d3, $m, $x)) < 48) $ok = true;
+        if (!$ok) $notes[] = ['type' => 'BLOCK_REQUIRED_ALL_GTG_OFF', 'group' => pp_v1518_group_name($lb), 'text' => sprintf('%s Required, tetapi seluruh GTG block (%s) OFF/unavailable/SC — Required tidak dapat dipenuhi.', pp_v1518_group_name($lb), implode(', ', array_map('strtoupper', $gt)))]; }
+    $rowsEff = []; foreach ($ep['rows'] as $r => $eff) $rowsEff[$r] = implode(' | ', array_map($fmt, $eff));
+    $units = [];
+    foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4'] as $u)
+        $units[strtoupper($u)] = ['commitment' => $m['commitment_semantics'][$u] ?? 'NONE', 'stop_policy' => $m['stop_policy'][$u] ?? 'NONE', 'sc_cc' => in_array($u, PP_V1518_SC_ELIGIBLE, true) ? $sc[$u] : null,
+            'required' => in_array($u, array_map('strtolower', (array)($m['required_units'] ?? [])), true), 'hold_to_end' => in_array($u, array_map('strtolower', (array)($m['unit_cannot_stop'] ?? [])), true)];
+    $rows = (array)($output['data'] ?? []); $bs = pp_v1518_block_sequence($d3, $m, $rows);
+    foreach ($bs['blocks'] as &$b) { if (!$b['lead']) continue; $lu = strtolower($b['lead']['unit']); $sS = strtolower($b['stg']);
+        $b['lead']['startup_rows'] = count(pp_start_sequence($d3, $m, $lu, [], max(0, (int)$b['lead']['first_load_row'] - 1)));
+        $b['lead']['sync_free_row'] = (int)$b['lead']['first_load_row'] + $b['lead']['startup_rows'];
+        $b['stg_release_rows'] = pp_stg_release_rows($sS, (string)($m['stg_startup_mode'][$sS . '_startup'] ?? ($m['stg_startup_mode'][$sS] ?? 'warm')));
+        $b['additional_before_established'] = count(array_filter($b['additional'], fn($a) => $b['stg_established_row'] !== null && $a['connect_row'] <= $b['stg_established_row'] + 1)); }
+    unset($b);
+    $bs['lock'] = $output['info']['Block Sequence Lock'] ?? null;
+    $bs['rule'] = 'additional first_load_row >= STG first positive row + 2 - lead_in_rows (lead_in = 1 marker + caps Additional HRSG per unit: G1-G6 3 row = 1,5 jam; G8/G9 7 row)';
+    $out = ['Commitment Semantics' => ['version' => PP_V1518_SEMANTICS_VERSION, 'units' => $units, 'auto' => (array)($m['auto_semantics'] ?? [])],
+            'Effective Priority' => ['configured' => $ep['configured'], 'changes' => $ep['changes'], 'rows' => $rowsEff, 'notifications' => $notes],
+            'SC CC Mode' => ['units' => $sc, 'sc_units' => array_values(array_map('strtoupper', array_keys(array_filter($sc, fn($v) => $v === 'SC')))),
+                             'technical_family' => 'SC G1-G6: marker 0 MW lalu bebas [min_ccload 20, max]; SC G8/G9: family G7/G10 (marker 0 MW, bebas [min_scload 30, max], ramp 55 MW/30 mnt); tanpa kontribusi STG'],
+            'Block Sequence Audit' => $bs];
+    return $out;
+}
+/* Ringkasan semantik untuk output/proof/snapshot dari input OPERATOR (salinan dinormalisasi). */
+function pp_v1518_semantics_report(array $input): array {
+    $c = $input; pp_v1518_semantics($c); $m = (array)($c['data3']['modeling'] ?? []); $d3 = (array)($c['data3'] ?? []);
+    $ep = pp_v1518_effective_priority($d3, $m);
+    $units = [];
+    foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4'] as $u) {
+        $units[strtoupper($u)] = ['commitment_mode' => $m['commitment_semantics'][$u] ?? 'NONE', 'stop_policy' => $m['stop_policy'][$u] ?? 'NONE',
+            'sc_cc' => in_array($u, PP_V1518_SC_ELIGIBLE, true) ? (pp_v1518_sc_map($m)[$u]) : null, 'last_data' => $m['unit_last_data_status'][strtoupper($u)] ?? null];
+    }
+    return ['version' => PP_V1518_SEMANTICS_VERSION, 'units' => $units, 'sc_cc' => pp_v1518_sc_map($m), 'auto' => $m['auto_semantics'] ?? [],
+            'effective_priority' => ['configured' => $ep['configured'], 'changes' => $ep['changes']], 'block_priority_engine' => $m['block_priority'] ?? null];
+}
 function pp_additional_hrsg_release_rows(string $stg): int {
     return ($stg === 's3') ? 5 : 2;                       // HRSG 8-9: 150min ; HRSG 1-6: 60min
 }
@@ -2035,6 +2349,7 @@ function pp_additional_hrsg_release_rows(string $stg): int {
 function pp_additional_hrsg_caps(string $u): array {
     /* PROMPT FINAL §5: G8/G9 Additional HRSG = 40 MW selama 60 mnt (2 slot), 50 MW 30 mnt,
      * 60 MW 60 mnt (2 slot), 70 MW 30 mnt — baru bebas. Sebelumnya [40,50,60,70] (durasi salah). */
+    if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc($u)) return [];    // V15.18 SC: marker 0 MW lalu bebas (tanpa HRSG)
     if ($u === 'g8' || $u === 'g9') return [40, 40, 50, 60, 60, 70];
     if (in_array($u, ['g1','g2','g3','g4','g5','g6'], true)) return [5, 15];
     return [5];                                       // g7/g10 (no HRSG): single step
@@ -2288,6 +2603,9 @@ function pp_start_sequence(array $d3, array $model, string $u, array $genRows, i
     if (isset($GLOBALS['__pp_seq_ctx'][$__k])) return (array)$GLOBALS['__pp_seq_ctx'][$__k];
     $addl = in_array($u, ['g8','g9'], true) ? [40.0,40.0,50.0,60.0,60.0,70.0]
           : (in_array($u, ['g1','g2','g3','g4','g5','g6'], true) ? [5.0,15.0] : []);
+    /* V15.18 SC: GTG Simple Cycle memakai family teknis G7/G10 — tanpa ramp berskrip (row marker 0 MW oranye, row berikutnya
+     * bebas [min_scload, max]); daftar feed STG blok sudah tidak memuatnya (pp_v1518_semantics), jadi tidak ada kontribusi STG. */
+    if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc($u)) return $GLOBALS['__pp_seq_ctx'][$__k] = [];
     $stg = '';
     foreach (['s1','s2','s3'] as $sC) {
         if (!isset($d3[$sC])) continue;
@@ -2309,6 +2627,18 @@ function pp_start_sequence(array $d3, array $model, string $u, array $genRows, i
     if ($prevRowC >= 0 && $prevRowC < count($genRows)
         && (float)($genRows[$prevRowC][$stg] ?? 0) > 0.01)
         return $GLOBALS['__pp_seq_ctx'][$__k] = $addl;                // HANYA previous-row STG > 0 -> Additional HRSG
+    /* V15.18 SEQUENCE BLOCK (§7.3): GTG CC yang start ketika LEAD GTG blok yang sama sudah berbeban dan STG mencapai first positive
+     * paling lambat satu row setelah start ini (anchor lead + hold STG <= start + 1) adalah ADDITIONAL HRSG ([5,15] / [40..70]),
+     * bukan STG startup kedua. Start yang lebih awal dari itu ditolak validator block_sequence. */
+    if (function_exists('pp_v1518_on') && pp_v1518_on()) {
+        $fdS = array_map('strtolower', array_values((array)($d3[$stg]['gtg'] ?? array_values((array)($d3[$stg]['hrsg'] ?? [])))));
+        $anc0 = null;
+        for ($rA = 0; $rA < min($startRow0, count($genRows)); $rA++) { foreach ($fdS as $fA) if ($fA !== $u && (float)($genRows[$rA][$fA] ?? 0) > 0.01) { $anc0 = $rA; break 2; } }
+        if ($anc0 !== null) {
+            $mdA = strtolower((string)($model['stg_startup_mode'][$stg] ?? ($model['stg_startup_mode'][$stg . '_startup'] ?? 'warm')));
+            if ($anc0 + pp_stg_release_rows($stg, $mdA) <= $startRow0 + 1) return $GLOBALS['__pp_seq_ctx'][$__k] = $addl;
+        }
+    }
     $mdC = strtolower((string)($model['stg_startup_mode'][$stg] ?? ($model['stg_startup_mode'][$stg . '_startup'] ?? 'warm')));
     $cpC = pp_startup_caps($stg, $mdC);
     return $GLOBALS['__pp_seq_ctx'][$__k] = ($cpC ?: $addl);          // STG fresh -> STG Startup sequence
@@ -2316,6 +2646,7 @@ function pp_start_sequence(array $d3, array $model, string $u, array $genRows, i
 
 function pp_startup_caps(string $stg, string $mode): array {
     $mode = strtolower(trim($mode));
+    if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc(strtolower($stg))) return [];   // V15.18 GTG SC: marker 0 MW lalu bebas [min_scload, max]
     // "No Start Up Sequence": no ramp caps at all — STG/unit load is taken directly
     // (STG computed from GTG load via calc_stg). (Revisi STG Start Up Mode Sec.3.2)
     if ($mode === 'none' || $mode === 'no start up sequence' || $mode === 'no startup') return [];
@@ -2613,6 +2944,7 @@ function pp_apply_startup_constraints(array &$genRows, array $d3, array $model, 
         $stg  = pp_gtg_to_stg($d3, $u);
         $mode = $stg ? (string)($smode[$stg . '_startup'] ?? 'Cold') : 'Hot';
         $caps = pp_startup_caps($stg ?: $u, $mode);
+        if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc($u)) $caps = [];   // V15.18 SC: row marker 0 MW lalu bebas [min_scload, max]
         $mr   = $minRun($u);
 
         /* (1) Fix rapid ON -> OFF -> ON (Sec.7.5 / 7.7). The middle 0 is invalid
@@ -3413,6 +3745,27 @@ function pp_export_ramp_repair(array &$genRows, array $d3, array $model, array $
                     }
                     $moved = true; $moves++; break;
                 }
+            }
+        }
+        /* (d) V15.18: H turun SAJA (tanpa pasangan L) — dipakai bila row L tidak punya tuas naik (semua unit max / beku startup),
+         * mis. GTG SC yang start langsung ke beban tinggi. Sah hanya bila export H tetap >= Range Min, langkah yang dilanggar
+         * membaik, dan ramp export H ke tetangga lainnya tidak menjadi melanggar. Gas hanya turun (tidak pernah naik). */
+        if (!$moved && (string)getenv('PP_V1518_XRR_HONLY') !== '0') {
+            $lim = pp_export_step_limit($model);
+            $oth = ($H === $wi) ? $wi - 1 : $wi + 2;
+            foreach ($units as $uH) { if ($moved) break;
+                if ($isBB($uH)) continue;
+                if (pp_get_fixed_load($model, $uH, $H + 1) >= 0 || pp_is_unit_stopped($d3, $model, $uH, $H + 1) || isset($suLock[$uH][$H])) continue;
+                $cH = (float)($genRows[$H][$uH] ?? 0);
+                if ($cH < $minOf($uH) + 0.5 - 1e-9 || !$floorNb($uH, $H, $cH - 0.5)) continue;
+                $dO0 = ($oth >= 0 && $oth < $n) ? abs($expOf($genRows[$H], (float)$ieVals[$H]) - $expOf($genRows[$oth], (float)$ieVals[$oth])) : 0.0;
+                $svH = $genRows[$H]; $genRows[$H][$uH] = $cH - 0.5; pp_recompute_stgs($genRows[$H], $d3, $model, $H + 1);
+                $eH = $expOf($genRows[$H], (float)$ieVals[$H]);
+                $dA = abs($expOf($genRows[$wi + 1], (float)$ieVals[$wi + 1]) - $expOf($genRows[$wi], (float)$ieVals[$wi]));
+                $dO = ($oth >= 0 && $oth < $n) ? abs($eH - $expOf($genRows[$oth], (float)$ieVals[$oth])) : 0.0;
+                if ($eH < $rMin - 1e-6 || $dA >= abs($wd) - 1e-9 || ($dO > $lim + 1e-6 && $dO > $dO0 + 1e-9)) {
+                    $genRows[$H] = $svH; pp_recompute_stgs($genRows[$H], $d3, $model, $H + 1); continue; }
+                $moved = true; $moves++;
             }
         }
         if (!$moved) break;
@@ -7577,6 +7930,7 @@ function pp_validate_hard_constraints(array $input, array $output): array {
      * Waktu run ada di core run dispatch, dan di sana duplikat terukur NOL. Instrumentasi
      * dipertahankan supaya klaim ini dapat diperiksa ulang kapan saja. */
 
+    if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($input);   // V15.18: semantik sama dengan engine (idempoten)
     $model = $input['data3']['modeling'] ?? [];
     /* V5 — VALIDASI CHANGE OVER TANPA GLOBAL PROSES. Timeline sim yang diputuskan sweep
      * sebelumnya hanya tersedia di global proses (__pp_co_resolved), sehingga validasi di proses
@@ -8140,11 +8494,16 @@ function pp_validate_hard_constraints(array $input, array $output): array {
         }
     }
 
+    /* 8f. V15.18 SEQUENCE BLOCK: additional GTG CC tidak boleh connect sebelum STG fresh established (lihat pp_v1518_block_sequence). */
+    if (function_exists('pp_v1518_block_sequence') && pp_v1518_on() && (string)getenv('PP_V1518_BLOCK_SEQ') !== '0') {
+        $bsV = pp_v1518_block_sequence((array)($input['data3'] ?? []), $model, $rows);
+        foreach ($bsV['violations'] as $bv) $V[] = ['block_sequence', sprintf('%s additional HRSG start row %d < earliest legal row %d (STG %s first positive row %d, lead-in %d rows)', $bv['unit'], $bv['row'], $bv['earliest'], $bv['stg'], $bv['stg_first'], $bv['lead_in_rows'])];
+    }
     /* 8e. (PROMPT MM2100 REDESIGN §4) Ramp unit: G7/G10 Simple Cycle <= 55 MW/30min,
      * G8/G9 Combined Cycle <= 30 MW/30min. Transisi start/stop (salah satu sisi = 0) ditangani
      * validator startup/min-load; ramp dihitung hanya bila kedua row on. */
     {
-        $rampLim = ['g7' => 55.0, 'g10' => 55.0, 'g8' => 30.0, 'g9' => 30.0];
+        $rampLim = ['g7' => 55.0, 'g10' => 55.0, 'g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9')];   // V15.18: G8/G9 SC = family G7/G10
         foreach ($rampLim as $uR => $limR) {
             $C = strtoupper($uR); $bad = []; $badH = [];
             for ($i = 1; $i < $n; $i++) {
@@ -10898,7 +11257,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         $w = []; if ($sr >= 0) for ($r = max(0,$sr-1); $r <= $sr + 6 && $r < $n; $r++) $w[$r] = true;
         return $w;
     };
-    foreach (['g8' => 30.0, 'g9' => 30.0, 'g7' => 55.0, 'g10' => 55.0] as $u => $lim) {
+    foreach (['g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9'), 'g7' => 55.0, 'g10' => 55.0] as $u => $lim) {
         if (!pp_unit_present($d3, $u)) continue;
         $win = $startWin($u);
         for ($r = 1; $r < $n; $r++) {
@@ -10944,7 +11303,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     $prevG8 = (float)($genRows[$r - 1]['g8'] ?? $g8v); $bump = 0;
                     while (!$ok && !$isFixed('g8', $r) && !$isFixed('g9', $r) && $bump < 60) {
                         $e2 = $expOf($genRows[$r], $ieVals[$r]);
-                        if ($e2 < $rMinR[$r] - 1e-6 && $genRows[$r]['g8'] < $GMAX - 1e-6 && $genRows[$r]['g8'] < $prevG8 + 30.0 - 1e-6) {
+                        if ($e2 < $rMinR[$r] - 1e-6 && $genRows[$r]['g8'] < $GMAX - 1e-6 && $genRows[$r]['g8'] < $prevG8 + pp_unit_ramp_limit('g8') - 1e-6) {
                             $genRows[$r]['g8'] = min($GMAX, $genRows[$r]['g8'] + 0.5); $genRows[$r]['g9'] = min($GMAX, $genRows[$r]['g9'] + 0.5);
                         } elseif ($e2 > $rMaxR[$r] + 1e-6 && $genRows[$r]['g8'] > $GMIN + 1e-6) {
                             $genRows[$r]['g8'] = max($GMIN, $genRows[$r]['g8'] - 0.5); $genRows[$r]['g9'] = max($GMIN, $genRows[$r]['g9'] - 0.5);
@@ -10972,7 +11331,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     $prevG8b = (float)($genRows[$r - 2]['g8'] ?? $g8v); $bump = 0;
                     while (!$ok2 && !$isFixed('g8', $r - 1) && !$isFixed('g9', $r - 1) && $bump < 60) {
                         $e3 = $expOf($genRows[$r - 1], $ieVals[$r - 1]);
-                        if ($e3 < $rMinR[$r - 1] - 1e-6 && $genRows[$r - 1]['g8'] < $GMAX - 1e-6 && $genRows[$r - 1]['g8'] < $prevG8b + 30.0 - 1e-6) {
+                        if ($e3 < $rMinR[$r - 1] - 1e-6 && $genRows[$r - 1]['g8'] < $GMAX - 1e-6 && $genRows[$r - 1]['g8'] < $prevG8b + pp_unit_ramp_limit('g8') - 1e-6) {
                             $genRows[$r - 1]['g8'] = min($GMAX, $genRows[$r - 1]['g8'] + 0.5); $genRows[$r - 1]['g9'] = min($GMAX, $genRows[$r - 1]['g9'] + 0.5);
                         } elseif ($e3 > $rMaxR[$r - 1] + 1e-6 && $genRows[$r - 1]['g8'] > $GMIN + 1e-6) {
                             $genRows[$r - 1]['g8'] = max($GMIN, $genRows[$r - 1]['g8'] - 0.5); $genRows[$r - 1]['g9'] = max($GMIN, $genRows[$r - 1]['g9'] - 0.5);
@@ -11074,7 +11433,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             // [g3,g4,g6,s1] > [g1,g2,g5], and marginal cost confirms G8/G9 (~70.6 USD/MWh) < G3 (~75.5) < G1-G6
             // (~88.8), so G8/G9 are raised BEFORE G3/G1-G6. Babelan (priority 1, gas-free) is maximised separately
             // by the baseload pass above. ramp = per-step limit (G8/G9 CC 30, G10 SC 55, others none).
-            $rampOf = function (string $u): float { return ($u === 'g8' || $u === 'g9') ? 30.0 : (($u === 'g7' || $u === 'g10') ? 55.0 : 0.0); };
+            $rampOf = function (string $u): float { return pp_unit_ramp_limit($u) ?? 0.0; };
             $maxOf  = function (string $u) use ($d3, $g3max, $g4max, $g6max): float {
                 if ($u === 'g3') return $g3max; if ($u === 'g4') return $g4max; if ($u === 'g6') return $g6max;
                 return (float)($d3[$u]['max_load'] ?? 108);
@@ -11579,7 +11938,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ((float)$genRows[$rr]['g8'] <= 0.0) $trial8 = 0.0;
                     } else {
                         if ($curG8 >= $GMAX - 1e-6) { $stopReason = 'G8/G9 at GMAX'; break; }
-                        if ($curG8 >= $prevG8 + 30.0 - 1e-6) { $stopReason = 'G8/G9 own 30MW ramp budget vs neighbour exhausted'; break; }
+                        if ($curG8 >= $prevG8 + pp_unit_ramp_limit('g8') - 1e-6) { $stopReason = 'G8/G9 own 30MW ramp budget vs neighbour exhausted'; break; }
                         // raising adds gas -> must not push Total Gas over quota
                         $before = calc_fuel($d3, 'g8', $curG8) + calc_fuel($d3, 'g9', (float)$genRows[$rr]['g9']);
                         $trial8 = $g89Cap($rr, 'g8', min($GMAX, $curG8 + 0.5)); $trial9 = $g89Cap($rr, 'g9', min($GMAX, (float)$genRows[$rr]['g9'] + 0.5));
@@ -12420,7 +12779,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                             $em = pp_effective_maxload($d3, $model, $ug, $r + 1);
                             $cap = min($em > 0 ? $em : $GMAX, ($ug === 'g8' || $ug === 'g9') ? $GMAX : (float)($d3[$ug]['max_load'] ?? 31));
                             foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
-                                if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + 30.0); }
+                                if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + pp_unit_ramp_limit($ug)); }
                             if ($cg >= $cap - 1e-6) continue;
                             $svF = $genRows[$r];
                             $genRows[$r][$ug] = min($cap, $cg + 0.5);
@@ -12540,7 +12899,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         $em = pp_effective_maxload($d3, $model, $ug, $r + 1);
                         $cap = min($em > 0 ? $em : $GMAX, ($ug === 'g8' || $ug === 'g9') ? $GMAX : (float)($d3[$ug]['max_load'] ?? 31));
                         foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
-                            if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + 30.0); }
+                            if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + pp_unit_ramp_limit($ug)); }
                         if ($cg >= $cap - 1e-6) continue;
                         $nv = min($cap, $cg + 0.5);
                         $skR = pp_get_skip_load($model, $ug, $r + 1);
@@ -12724,7 +13083,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         $em = pp_effective_maxload($d3, $model, $ug, $r + 1);
                         $cap = min($em > 0 ? $em : $GMAX, ($ug === 'g8' || $ug === 'g9') ? $GMAX : (float)($d3[$ug]['max_load'] ?? 31));
                         foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
-                            if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + 30.0); }
+                            if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + pp_unit_ramp_limit($ug)); }
                         if ($cg >= $cap - 1e-6) continue;
                         $bestR = $r; $bestU = $ug; break;
                     }
@@ -12756,7 +13115,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 if (!$done) break;
             }
             /* (e) UNIT-RAMP CLAMP: G8/G9 <=30, G7/G10 <=55 MW/30min (di luar transisi 0). */
-            foreach ([['g8',30.0],['g9',30.0],['g7',55.0],['g10',55.0]] as [$uRm,$limRm]) {
+            foreach ([['g8',pp_unit_ramp_limit('g8')],['g9',pp_unit_ramp_limit('g9')],['g7',55.0],['g10',55.0]] as [$uRm,$limRm]) {
                 if (!isset($d3[$uRm])) continue;
                 for ($r = 1; $r < $n; $r++) {
                     $a = (float)($genRows[$r-1][$uRm] ?? 0); $b = (float)($genRows[$r][$uRm] ?? 0);
@@ -12867,7 +13226,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             {
                 $tiersMS = pp_priority_flat($model, '/^g(10|[1-9])$/') ?: ['g9','g8','g1','g2','g5','g3','g4','g6','g10','g7'];
                 $rankMS  = array_flip($tiersMS);
-                $rampMS  = ['g7' => 55.0, 'g10' => 55.0, 'g8' => 30.0, 'g9' => 30.0];
+                $rampMS  = ['g7' => 55.0, 'g10' => 55.0, 'g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9')];
                 $flrMS = function (string $u) use ($d3) { return (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 5)); };
                 $capMS = function (string $u, int $r) use ($d3, $model, $GMAX, &$genRows, $rampMS, $n) {
                     $em = pp_effective_maxload($d3, $model, $u, $r + 1);
@@ -12970,7 +13329,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
              * benar-benar exhausted diberi evidence NUMERIK row-level (pola cocok validator) — bukan
              * warning generik (handoff §4). */
             {
-                $rampU = ['g7' => 55.0, 'g10' => 55.0, 'g8' => 30.0, 'g9' => 30.0, 'b1' => $bbRamp, 'b2' => $bbRamp];
+                $rampU = ['g7' => 55.0, 'g10' => 55.0, 'g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9'), 'b1' => $bbRamp, 'b2' => $bbRamp];
                 $flrOf = function (string $u) use ($d3) {
                     if ($u === 'b1' || $u === 'b2') return 0.0;
                     return (float)($d3[$u]['min_ccload'] ?? ($d3[$u]['min_scload'] ?? 5)); };
@@ -13517,7 +13876,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
              * unit, ramp unit, suCap startup, fixed/actual/stop/last-status, Export Range kedua row,
              * BusFlow, must-improve pada gap terburuk (anti-osilasi) + budget iterasi keras. */
             {
-                $rampXR = ['g8' => 30.0, 'g9' => 30.0, 'g1' => 30.0, 'g2' => 30.0, 'g5' => 30.0, 'g3' => 30.0];
+                $rampXR = ['g8' => pp_unit_ramp_limit('g8'), 'g9' => pp_unit_ramp_limit('g9'), 'g1' => 30.0, 'g2' => 30.0, 'g5' => 30.0, 'g3' => 30.0];
                 $minXR = function (string $u) use ($d3, $GMIN) {
                     return in_array($u, ['g8', 'g9'], true) ? $GMIN : (float)($d3[$u]['min_ccload'] ?? 20);
                 };

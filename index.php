@@ -1291,6 +1291,9 @@ ul.csverr li{margin:2px 0}
               • <b>Start Based On Simulation</b> — unit wajib start minimal satu kali; waktu dipilih optimizer (feasibility &amp; cost). Last Data Status otomatis Stop, Start At kosong.<br>
               • <b>Start Based on Request</b> — unit wajib start pada <b>Start At</b> (cell Start At bertanda kuning/oranye di hasil); mulai berbeban 30&nbsp;menit setelahnya mengikuti startup sequence (G1–G6: 5·30′→15·30′; G8/G9: 40·60′→50·30′→60·60′→70). Last Data Status otomatis Stop.<br>
               • <b>Unit Continuous Running</b> — unit wajib berbeban penuh 00:30–00:00 (tidak boleh stop); Last Data Status otomatis Running; Stop Status &amp; Stop At disabled; backend <code>unit_cannot_stop</code> digenerate otomatis dari mode ini.<br>
+              <b>SC/CC</b> (G1–G6, G8, G9; default CC) — <b>CC</b>: GTG berkontribusi ke STG block (lead/additional HRSG). <b>SC</b>: Simple Cycle tanpa kontribusi STG, row startup 0&nbsp;MW oranye lalu dispatch bebas (G8/G9 = family G7/G10), selalu oranye di Simulation Data, dipindah ke urutan terakhir Effective Priority CC (configured tidak ditimpa).<br>
+              <b>Stop Status = Unit Continuous Running</b> — <u>tidak</u> mengubah Commitment Mode: unit boleh OFF sebelum start (Start Based On Simulation/Request), lalu wajib ON sampai 00:00 setelah start. Hanya <b>Commitment Mode = Unit Continuous Running</b> yang memaksa beban 00:30–00:00.<br>
+              <b>STG</b> diminta start → GTG CC effective priority pertama yang available otomatis Required + mengikuti Commitment/Stop Status STG (GTG SC/stop/unavailable dilewati). GTG yang start tidak otomatis menyalakan STG.<br>
               <b>Stop Status</b>: • <b>Stop Based On Simulation or Continuous Running</b> — waktu stop bebas dipilih optimizer, atau unit tetap running sampai akhir hari (constraint &amp; cost terbaik). • <b>Stop Based on Request</b> — unit wajib 0&nbsp;MW pertama kali tepat pada <b>Stop At</b> (cell Stop At berwarna hitam di hasil); row sebelumnya masih berbeban.
             </div>
           </div></details>
@@ -1349,6 +1352,8 @@ ul.csverr li{margin:2px 0}
         <div hidden aria-hidden="true"><textarea id="ta-ie_adjustment" spellcheck="false"></textarea></div>
       </div>
 
+      <!-- V15.18 ringkasan semantik sebelum Run (§2/§3/§4/§6) -->
+      <div class="no-print" id="sem-summary" style="margin-top:14px;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.5;background:#f8fafc"></div>
       <!-- persistent run bar -->
       <div class="runbar no-print" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)">
         <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
@@ -2072,8 +2077,11 @@ function blockPrimaryUnits(b){
   // STG (if any) + priority-1 GTG/GE per Unit Priority; falls back to the block's declared order.
   const out=[];
   if(b.stg) out.push((''+b.stg).toLowerCase());
-  const ord=(UP_STATE[b.name]&&UP_STATE[b.name].length)?UP_STATE[b.name]:b.gtg;
-  if(ord&&ord.length) out.push((''+ord[0]).toLowerCase());
+  const ord=((UP_STATE[b.name]&&UP_STATE[b.name].length)?UP_STATE[b.name]:b.gtg).map(x=>(''+x).toLowerCase());
+  /* V15.18 §6.3: primer = GTG CC effective priority pertama (SC / Stop All Day / unavailable dilewati) */
+  const okU=u=>!(typeof SC_CC==='object'&&SC_CC[u]==='SC')&&!(typeof semUnavail==='function'&&Object.keys(semUnavail(u)).length>=48);
+  const pick=ord.find(okU)||null;
+  if(pick) out.push(pick);
   return out.filter(u=>FLAG_UNITS.includes(u));
 }
 function resetUnitCommitment(u){
@@ -2120,13 +2128,18 @@ function syncBlockRequiredToCommitment(opts){
        * Dulu fase SET menegaskan ulang Continuous Running pada setiap Run/collect sehingga payload berbeda dengan
        * tabel yang dilihat user (reproducer BBLN1: G6/S1 'Start Based On Simulation' terkirim sebagai continuous). */
       /* mode eksplisit Simulation/Request (diubah manual ATAU dimuat dari input tersimpan) = keputusan operator */
-      if((COMMIT_MODE[u]==='simulation'||COMMIT_MODE[u]==='request') && !opts.forceAuto){ keptManual.push(UL(u)); newAuto[bn][u]='continuous'; return; }
-      COMMIT_MODE[u]='continuous'; STOP_MODE[u]='-'; STOP_AT[u]=''; START_AT[u]='';
-      setUnitLast(u,'Running');
-      newAuto[bn][u]='continuous';
+      /* V15.18 §2: Block Required = block wajib di-start dalam horizon sesuai mode, BUKAN full-horizon. Unit primer yang belum
+         punya mode -> Start Based On Simulation (Stop Status tidak diubah); unit yang sudah Running kemarin (Last Data Status)
+         dibiarkan berjalan. Mode eksplisit operator (termasuk Unit Continuous Running) tidak ditimpa. */
+      if((COMMIT_MODE[u]==='simulation'||COMMIT_MODE[u]==='request'||COMMIT_MODE[u]==='continuous') && !opts.forceAuto){ if(COMMIT_MODE[u]!=='continuous'||!(AUTO_BLOCK_UNITS[bn]&&AUTO_BLOCK_UNITS[bn][u])) keptManual.push(UL(u)); newAuto[bn][u]=COMMIT_MODE[u]; return; }
+      if(/run/i.test(uldStatusOf(u)) && !opts.forceAuto){ newAuto[bn][u]='-'; return; }
+      COMMIT_MODE[u]='simulation'; START_AT[u]='';
+      setUnitLast(u,'Stop');
+      newAuto[bn][u]='simulation';
     });
   });
-  if(keptManual.length && typeof toast==='function' && !opts.silent && (window.__ppKeptManualMsg!==keptManual.join(','))){ window.__ppKeptManualMsg=keptManual.join(','); toast(`Block Required: pilihan manual ${keptManual.join(', ')} dipertahankan (tidak diubah otomatis ke Unit Continuous Running).`); }
+  if(keptManual.length && typeof toast==='function' && !opts.silent && (window.__ppKeptManualMsg!==keptManual.join(','))){ window.__ppKeptManualMsg=keptManual.join(','); toast(`Block Required: pilihan manual ${keptManual.join(', ')} dipertahankan.`); }
+  semStgAutoFollow(!!opts.silent);
   AUTO_BLOCK_UNITS=newAuto;   // metadata now reflects exactly the current Required blocks
 
   // 5. Refresh model + UI so backend receives exactly what the table shows.
@@ -2354,6 +2367,100 @@ let COMMIT_MODE={};      // u -> '-','request','simulation','continuous'
 let START_AT={};         // u -> 'HH:MM' (Start Based on Request only)
 let STOP_MODE={};        // u -> '-','sim','request'  (STOP STATUS column)
 let STOP_AT={};          // u -> 'HH:MM' (Stop Based on Request only)
+/* V15.18 SC/CC per GTG (G1-G6, G8, G9; default CC). Disimpan di modeling.sc_cc -> Save/Reload, Snapshot, payload, hasil, Excel. */
+const SC_ELIGIBLE=['g1','g2','g3','g4','g5','g6','g8','g9'];
+let SC_CC={};
+function initScCc(){ const m=(INPUT.data3&&INPUT.data3.modeling)||{}; const s=m.sc_cc||{}; SC_CC={};
+  SC_ELIGIBLE.forEach(u=>{ const v=String(s[u]||s[u.toUpperCase()]||'CC').toUpperCase(); SC_CC[u]=(v==='SC')?'SC':'CC'; }); }
+function buildScCcObj(){ const o={}; SC_ELIGIBLE.forEach(u=>o[u]=(SC_CC[u]==='SC')?'SC':'CC'); return o; }
+/* ---- Effective Priority (cermin pp_v1518_effective_priority engine): configured = Unit Priority user; per row unit SC /
+   Stop All Day / stop schedule / Stop At / unavailable dipindah ke urutan terakhir grupnya. ---- */
+function semRowTime(r){ const mm=(r*30)%1440; return String(Math.floor(mm/60)).padStart(2,'0')+':'+String(mm%60).padStart(2,'0'); }
+function semStopRow(t){ const mt=/^(\d{1,2}):(\d{2})$/.exec(String(t||'').trim()); if(!mt) return null; const mn=(+mt[1])*60+(+mt[2]); if(mn===0) return 48; return Math.max(1,Math.min(48,Math.floor(mn/30))); }
+function semUnavail(u){
+  const out={}; const d=(INPUT.data3&&INPUT.data3[u])||null;
+  if(d && +(d.unit_present??1)===0){ for(let r=1;r<=48;r++) out[r]='UNAVAILABLE'; return out; }
+  (typeof STOP_ROWS!=='undefined'?STOP_ROWS:[]).forEach(x=>{ if(!x||x.unit!==u) return;
+    if(x.allDay){ for(let r=1;r<=48;r++) out[r]='STOP_ALL_DAY'; } else for(let r=Math.max(1,+x.start);r<=Math.min(48,+x.stop);r++) if(!out[r]) out[r]='STOP_SCHEDULE'; });
+  if(STOP_MODE[u]==='request' && STOP_AT[u]){ const sr=semStopRow(STOP_AT[u]); if(sr) for(let r=sr;r<=48;r++) out[r]='STOP_AT_REQUEST'; }
+  return out;
+}
+function semGroups(){ return PRI_BLOCKS.map(b=>({name:(b.name==='Block Babelan'?'Babelan':b.name), stg:b.stg, units:((UP_STATE[b.name]&&UP_STATE[b.name].length)?UP_STATE[b.name]:b.gtg).map(x=>(''+x).toLowerCase())})); }
+function semNotifications(){
+  const notes=[]; const UL2=x=>x.toUpperCase(); const fmt2=a=>a.map(UL2).join(' -> ');
+  semGroups().forEach(g=>{ if(g.units.length<2) return;
+    const un={}; g.units.forEach(u=>un[u]=semUnavail(u)); let prev=g.units.slice(); const done={};
+    for(let r=1;r<=48;r++){
+      const keep=[],last=[]; g.units.forEach(u=>{ ((SC_CC[u]==='SC')||un[u][r])?last.push(u):keep.push(u); }); const eff=keep.concat(last);
+      if(eff.join()===prev.join()) continue;
+      g.units.forEach((u,k)=>{ if(eff.indexOf(u)<=k||done[u]) return;
+        const why=(SC_CC[u]==='SC')?'SC':(un[u][r]||'UNAVAILABLE'); let t;
+        if(why==='STOP_ALL_DAY') t=`${UL2(u)} dijadwalkan Stop All Day. Effective Priority ${g.name} berubah dari ${fmt2(g.units)} menjadi ${fmt2(eff)} untuk seluruh horizon. ${UL2(u)} ditempatkan terakhir karena tidak tersedia untuk dispatch.`;
+        else if(why==='SC') t=`${UL2(u)} dipindahkan dari CC ke SC: tidak berkontribusi ke STG dan tidak dapat menjadi lead CC. Effective Priority CC ${g.name} menjadi ${fmt2(eff)} (configured tetap ${fmt2(g.units)}).`;
+        else if(why==='UNAVAILABLE') t=`${UL2(u)} adalah Unit Priority #${k+1} ${g.name}, tetapi trip/unavailable. Effective Priority menjadi ${fmt2(eff)}.`;
+        else if(r===1) t=`${UL2(u)} adalah Unit Priority #${k+1} ${g.name}, tetapi dijadwalkan stop sejak 00:30. Effective Priority menjadi ${fmt2(eff)}.`;
+        else t=`${UL2(u)} adalah Unit Priority #${k+1} ${g.name}, tetapi dijadwalkan stop mulai ${semRowTime(r)}. Mulai ${semRowTime(r)} Effective Priority berubah menjadi ${fmt2(eff)}.`;
+        notes.push({type:'PRIORITY_'+why,unit:UL2(u),text:t}); if(why==='STOP_ALL_DAY'||why==='SC'||why==='UNAVAILABLE') done[u]=1; });
+      prev=eff; } });
+  /* STG Required tanpa GTG CC yang dapat mengikuti; Block Required dengan seluruh GTG OFF/unavailable/SC */
+  semGroups().forEach(g=>{ if(!g.stg) return; const s=g.stg;
+    if(COMMIT_MODE[s]&&COMMIT_MODE[s]!=='-'){ const ok=g.units.some(u=>SC_CC[u]!=='SC'&&Object.keys(semUnavail(u)).length<48);
+      if(!ok) notes.push({type:'STG_NO_CC_GTG',unit:UL2(s),text:`${UL2(s)} Required tetapi tidak ada GTG CC pasangan yang dapat mengikuti (SC / stop / unavailable). STG tidak dapat running tanpa GTG CC legal.`}); } });
+  (BP_STATE||[]).forEach(row=>{ if(!row||!row.required||!row.block) return; const b=byName(row.block); if(!b) return;
+    const gt=b.gtg.map(x=>(''+x).toLowerCase()); const ok=gt.some(u=>SC_CC[u]!=='SC'&&Object.keys(semUnavail(u)).length<48);
+    if(!ok) notes.push({type:'BLOCK_REQUIRED_ALL_GTG_OFF',text:`${b.name} Required, tetapi seluruh GTG block (${gt.map(UL2).join(', ')}) OFF/unavailable/SC — Required tidak dapat dipenuhi.`}); });
+  return notes;
+}
+/* §6 STG -> lead GTG CC: STG diminta start (Simulation/Request/Continuous) dan belum ada GTG CC block yang diminta -> GTG CC
+   effective priority pertama yang available otomatis Required + mode mengikuti STG (Continuous -> Continuous; lainnya Start Based
+   On Simulation) + Stop Status mengikuti STG + CC. Arah sebaliknya tidak otomatis. */
+let SEM_AUTO_NOTES=[];
+let SEM_AUTO_LEAD={};   // stg -> {u, cm, sm}: lead yang diset otomatis (dipakai untuk mengikuti perubahan STG berikutnya)
+function semStgAutoFollow(silent){
+  const msgs=[];
+  /* lead otomatis yang belum diubah manual mengikuti perubahan Commitment/Stop Status STG berikutnya; STG dilepas -> lead direset */
+  Object.keys(SEM_AUTO_LEAD).forEach(s=>{ const a=SEM_AUTO_LEAD[s]; const L=a.u; const cmS=COMMIT_MODE[s]||'-';
+    if(COMMIT_MODE[L]!==a.cm||(STOP_MODE[L]||'-')!==a.sm||SC_CC[L]==='SC'){ delete SEM_AUTO_LEAD[s]; return; }        // diubah manual -> keputusan operator
+    if(cmS==='-'){ COMMIT_MODE[L]='-'; STOP_MODE[L]='-'; STOP_AT[L]=''; delete SEM_AUTO_LEAD[s]; msgs.push(`${s.toUpperCase()} tidak lagi diminta → lead otomatis ${L.toUpperCase()} direset.`); return; }
+    const wantCm=(cmS==='continuous')?'continuous':'simulation'; const wantSm=(cmS==='continuous')?'-':(STOP_MODE[s]==='continuous'?'continuous':'-');
+    if(wantCm!==a.cm||wantSm!==a.sm){ COMMIT_MODE[L]=wantCm; STOP_MODE[L]=wantSm; STOP_AT[L]=''; setUnitLast(L,wantCm==='continuous'?'Running':'Stop'); SEM_AUTO_LEAD[s]={u:L,cm:wantCm,sm:wantSm};
+      msgs.push(`${L.toUpperCase()} (lead otomatis ${s.toUpperCase()}) mengikuti: ${wantCm==='continuous'?'Unit Continuous Running':'Start Based On Simulation'} + Stop Status ${wantSm==='continuous'?'Unit Continuous Running':'-'}.`); } });
+  semGroups().forEach(g=>{ if(!g.stg) return; const s=g.stg, cm=COMMIT_MODE[s]||'-'; if(cm==='-') return;
+    if(SEM_AUTO_LEAD[s]) return;
+    if(g.units.some(u=>SC_CC[u]!=='SC'&&(COMMIT_MODE[u]||'-')!=='-')) return;
+    const eff=g.units.filter(u=>SC_CC[u]!=='SC'&&Object.keys(semUnavail(u)).length<48); if(!eff.length) return;
+    const L=eff[0];
+    COMMIT_MODE[L]=(cm==='continuous')?'continuous':'simulation'; START_AT[L]='';
+    if(cm==='continuous'){ setUnitLast(L,'Running'); STOP_MODE[L]='-'; STOP_AT[L]=''; }
+    else { setUnitLast(L,'Stop'); if(STOP_MODE[s]==='continuous') STOP_MODE[L]='continuous'; }
+    if(SC_ELIGIBLE.includes(L)) SC_CC[L]='CC';
+    SEM_AUTO_LEAD[s]={u:L,cm:COMMIT_MODE[L],sm:STOP_MODE[L]||'-'};
+    const skipped=g.units.slice(0,g.units.indexOf(L)).map(x=>x.toUpperCase());
+    msgs.push(`${s.toUpperCase()} diminta start → ${L.toUpperCase()} (GTG CC effective priority pertama${skipped.length?'; '+skipped.join(', ')+' dilewati karena SC/stop/unavailable':''}) otomatis Required + ${cm==='continuous'?'Unit Continuous Running':'Start Based On Simulation'} + Stop Status ${STOP_MODE[L]==='continuous'?'Unit Continuous Running':'mengikuti pilihan'} + CC.`);
+  });
+  if(msgs.length){ SEM_AUTO_NOTES=SEM_AUTO_NOTES.concat(msgs).slice(-6); if(!silent&&typeof toast==='function') toast(msgs.join(' ')); }
+  return msgs;
+}
+function renderSemSummary(){
+  const el=document.getElementById('sem-summary'); if(!el) return;
+  const esc2=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const cmL={'-':'-','simulation':'Start Based On Simulation','request':'Start Based On Request','continuous':'Unit Continuous Running (full horizon 00:30–00:00)'};
+  const smL={'-':'bebas','sim_must':'Stop Based On Simulation','request':'Stop Based On Request','sim':'Stop Based On Simulation or Continuous Running (bandingkan kedua family)','continuous':'Unit Continuous Running setelah start (hold sampai 00:00)'};
+  const lines=[];
+  FLAG_UNITS.forEach(u=>{ const cm=COMMIT_MODE[u]||'-', sm=STOP_MODE[u]||'-'; const sc=SC_ELIGIBLE.includes(u)&&SC_CC[u]==='SC';
+    if(cm==='-'&&sm==='-'&&!sc) return;
+    let t=`<b>${u.toUpperCase()}</b>: ${esc2(cmL[cm]||cm)}${cm==='request'&&START_AT[u]?' '+esc2(START_AT[u]):''}`;
+    if(cm!=='continuous') t+=` · Stop: ${esc2(smL[sm]||sm)}${sm==='request'&&STOP_AT[u]?' '+esc2(STOP_AT[u]):''}`;
+    if(sc) t+=' · <span style="color:#a85b00;font-weight:700">SC</span>';
+    lines.push(t); });
+  const req=(BP_STATE||[]).filter(r=>r&&r.required&&r.block).map(r=>r.block);
+  const notes=semNotifications();
+  el.innerHTML='<div style="font-weight:700;margin-bottom:4px">Ringkasan semantik sebelum Run</div>'+
+    (req.length?`<div>Block Required: <b>${esc2(req.join(', '))}</b> — wajib di-start dalam horizon sesuai Commitment Mode (bukan full-horizon kecuali Unit Continuous Running).</div>`:'')+
+    (lines.length?'<div>'+lines.join('<br>')+'</div>':'<div>Tidak ada commitment khusus.</div>')+
+    (notes.length?'<div style="margin-top:6px;color:#9a3412">'+notes.map(n=>'⚠ '+esc2(n.text)).join('<br>')+'</div>':'')+
+    (SEM_AUTO_NOTES.length?'<div style="margin-top:6px;color:#1e40af">'+SEM_AUTO_NOTES.map(x=>'ℹ '+esc2(x)).join('<br>')+'</div>':'');
+}
 function buildRequiredModeObj(){
   const rm={};
   FLAG_UNITS.forEach(u=>{
@@ -2368,6 +2475,7 @@ function buildStopModeObj(){
   FLAG_UNITS.forEach(u=>{
     if(COMMIT_MODE[u]==='continuous') return;                      // continuous: Stop Status/Stop At disabled
     if(STOP_MODE[u]==='request') sm[u]={mode:'stop_at',at:STOP_AT[u]||''};
+    else if(STOP_MODE[u]==='continuous') sm[u]={mode:'hold_to_end'};       // V15.18: ON sampai 00:00 SETELAH start (bukan full horizon)
     else if(STOP_MODE[u]==='sim_must') sm[u]={mode:'based_on_sim_must'};   // mandatory stop
     else if(STOP_MODE[u]==='sim') sm[u]={mode:'based_on_sim'};              // optional stop-or-continuous
   });
@@ -2384,7 +2492,9 @@ function applyCommitToModel(){
   m.unit_cannot_stop=CANNOT_STOP.slice();      // backend structure auto-generated from Unit Continuous Running
   m.required_mode=buildRequiredModeObj();
   m.stop_mode=buildStopModeObj();
+  if(Object.keys(SC_CC).length) m.sc_cc=buildScCcObj();
   if(typeof buildChangeOverObj==='function') m.change_over=buildChangeOverObj();
+  try{ renderSemSummary(); }catch(e){}
 }
 /* ===== Change Over Block 1-2 (Revisi Change Over · hard constraint) =====
    UI writes model.change_over = { enabled, blocks:{ '1':{last,startOther,stopOther}, '2':{...} } }.
@@ -2486,10 +2596,12 @@ function initUnitFlags(){
     const smode=(''+(s.mode||'')).toLowerCase();
     if(COMMIT_MODE[u]==='continuous') STOP_MODE[u]='-';
     else if(smode==='stop_at'){ STOP_MODE[u]='request'; STOP_AT[u]=s.at||s.stop_at||''; }
+    else if(smode==='hold_to_end') STOP_MODE[u]='continuous';
     else if(smode==='based_on_sim_must') STOP_MODE[u]='sim_must';
     else if(smode==='based_on_sim') STOP_MODE[u]='sim';
     else STOP_MODE[u]='-';
   });
+  initScCc();
   syncFlagArrays();
 }
 function uldStatusOf(u){
@@ -2504,7 +2616,8 @@ function renderUnitFlags(){
      Unit Last Data Status moved in from its old standalone table (same select ids, so existing collect/sync
      code keeps working) and is auto-forced by Commitment Mode:
        Continuous -> Running (locked) · Request/Simulation -> Stop (locked) · '-' -> user editable. */
-  let h='<tr><th>Unit</th><th style="text-align:center">Unit Last Data Status</th><th style="text-align:center">Required</th><th style="text-align:center">Commitment Mode</th><th style="text-align:center">Start At</th><th style="text-align:center">Stop Status</th><th style="text-align:center">Stop At</th></tr>';
+  if(!Object.keys(SC_CC).length) initScCc();
+  let h='<tr><th>Unit</th><th style="text-align:center">Unit Last Data Status</th><th style="text-align:center" title="Simple Cycle / Combined Cycle (G1-G6, G8, G9)">SC/CC</th><th style="text-align:center">Required</th><th style="text-align:center">Commitment Mode</th><th style="text-align:center">Start At</th><th style="text-align:center">Stop Status</th><th style="text-align:center">Stop At</th></tr>';
   FLAG_UNITS.forEach(u=>{
     const mode=COMMIT_MODE[u]||'-';
     const req=(mode!=='-'), isReq=(mode==='request'), isCont=(mode==='continuous');
@@ -2513,6 +2626,8 @@ function renderUnitFlags(){
     const uldV=isCont?'Running':(req?'Stop':uldStatusOf(u));
     const uldRun=/run/i.test(uldV);
     const smode=isCont?'continuous':(STOP_MODE[u]||'-');
+    const scE=SC_ELIGIBLE.includes(u), scV=scE?(SC_CC[u]||'CC'):'';
+    const scCell=scE?`<select data-flag="sccc" data-u="${u}" style="min-width:64px${scV==='SC'?';background:#ffe2bd;color:#a85b00;font-weight:700':''}"><option value="CC"${scV==='CC'?' selected':''}>CC</option><option value="SC"${scV==='SC'?' selected':''}>SC</option></select>`:'<select disabled style="min-width:64px;opacity:.45"><option></option></select>';
     const sOpts=STOP_MODES.map(([v,lbl])=>`<option value="${v}"${v===smode?' selected':''}>${lbl}</option>`).join('');
     const isStopReq=(smode==='request');
     const saOpts=['<option value=""'+((STOP_AT[u]||'')===''?' selected':'')+'>-</option>']
@@ -2520,10 +2635,11 @@ function renderUnitFlags(){
     h+=`<tr><td>${UL(u)}</td>
       <td style="text-align:center"><select id="uld-${u.toUpperCase()}" data-flag="uld" data-u="${u}" class="uld-sel ${uldRun?'uld-run':'uld-stop'}" ${uldLocked?'disabled':''}>
         <option value="Running"${uldRun?' selected':''}>Running</option><option value="Stop"${uldRun?'':' selected'}>Stop</option></select></td>
+      <td style="text-align:center">${scCell}</td>
       <td style="text-align:center"><input type="checkbox" data-flag="req" data-u="${u}" ${req?'checked':''}></td>
       <td style="text-align:center"><select class="uld-sel" data-flag="mode" data-u="${u}" ${req?'':'disabled'} style="min-width:190px">${opts}</select></td>
       <td style="text-align:center"><input type="time" data-flag="startat" data-u="${u}" value="${START_AT[u]||''}" ${isReq?'':'disabled'} style="width:108px"></td>
-      <td style="text-align:center"><select data-flag="stopmode" data-u="${u}" style="min-width:230px" title="${isCont?'Unit Continuous Running (sinkron dengan Commitment Mode); pilih status lain untuk melepas continuous':''}">${sOpts}</select></td>
+      <td style="text-align:center"><select data-flag="stopmode" data-u="${u}" style="min-width:230px" ${isCont?'disabled':''} title="${isCont?'Commitment Mode = Unit Continuous Running (full horizon): Stop Status tidak berlaku':'Unit Continuous Running = ON sampai 00:00 setelah start (Commitment Mode tidak berubah)'}">${sOpts}</select></td>
       <td style="text-align:center"><select data-flag="stopat" data-u="${u}" ${isStopReq?'':'disabled'} style="width:90px">${saOpts}</select></td></tr>`;
   });
   const t=$('tbl-unit-flags'); if(!t)return; t.innerHTML=h;
@@ -2540,17 +2656,25 @@ function renderUnitFlags(){
       START_AT[u]=e.target.value;
     } else if(kind==='stopmode'){
       const sv=e.target.value;
-      if(sv==='continuous'){ COMMIT_MODE[u]='continuous'; setUnitLast(u,'Running'); STOP_MODE[u]='-'; STOP_AT[u]='';
-        if(typeof toast==='function')toast(`${UL(u)} Unit Continuous Running → Commitment Mode ikut Continuous Running (wajib berbeban sampai 00:00, tidak boleh stop)`); }
-      else { if(COMMIT_MODE[u]==='continuous'){ COMMIT_MODE[u]='-'; if(typeof toast==='function')toast(`${UL(u)} keluar dari Continuous Running → Commitment Mode '-' (Stop Status: ${e.target.selectedOptions[0].text})`); }
-        STOP_MODE[u]=sv; if(STOP_MODE[u]!=='request') STOP_AT[u]=''; }
+      /* V15.18 §1.2: Stop Status = Unit Continuous Running TIDAK mengubah Commitment Mode / Last Data Status: unit boleh OFF
+         sebelum start, lalu ON sampai 00:00 setelah start (payload stop_mode {mode:'hold_to_end'}). */
+      STOP_MODE[u]=sv; if(STOP_MODE[u]!=='request') STOP_AT[u]='';
+      if(sv==='continuous'&&typeof toast==='function') toast(`${UL(u)} Stop Status = Unit Continuous Running → setelah start wajib ON sampai 00:00. Commitment Mode tetap ${COMMIT_MODES.find(x=>x[0]===(COMMIT_MODE[u]||'-'))[1]} (bukan full-horizon).`);
+      if(sv==='request'&&typeof toast==='function') setTimeout(()=>{ const n=semNotifications().filter(x=>x.unit===UL(u)); if(n.length) toast(n.map(x=>x.text).join(' ')); },0);
     } else if(kind==='stopat'){
       STOP_AT[u]=e.target.value;
+      setTimeout(()=>{ const n=semNotifications().filter(x=>x.unit===UL(u)); if(n.length&&typeof toast==='function') toast(n.map(x=>x.text).join(' ')); },0);
+    } else if(kind==='sccc'){
+      SC_CC[u]=(e.target.value==='SC')?'SC':'CC';
+      if(SC_CC[u]==='SC'){ const n=semNotifications().filter(x=>x.unit===UL(u)&&x.type==='PRIORITY_SC'); if(typeof toast==='function') toast(n.length?n[0].text:`${UL(u)} SC: tidak berkontribusi ke STG.`); }
+      else if(typeof toast==='function') toast(`${UL(u)} kembali CC: Effective Priority kembali ke urutan configured (kecuali terkena stop/trip/unavailable).`);
     } else if(kind==='uld'){
       setUnitLast(u,e.target.value); if(typeof uldColor==='function')uldColor(e.target);
     }
+    if(kind==='req'||kind==='mode'||kind==='stopmode'||kind==='sccc') semStgAutoFollow(false);
     syncFlagArrays(); applyCommitToModel(); renderUnitFlags();
   }));
+  try{ renderSemSummary(); }catch(e){}
 }
 
 /* ===================== tabs ===================== */
@@ -6607,6 +6731,13 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
           '<span class="simsub">Per-row dispatch · 48 × half-hour</span>'+
           '<button type="button" id="btn-sim-fullscreen" class="btn simfs" style="margin-left:auto" title="Buka TABEL DETAIL SLOT dalam tampilan layar penuh">⛶ Full Screen</button>'+
           '<button type="button" id="btn-save-actual" class="btn primary">Save</button></div>';
+  try{ const inf=(o&&o.info)||{}; const ep=inf['Effective Priority']||{}; const nts=(ep.notifications||[]); const bs=inf['Block Sequence Audit']||null; const scm=inf['SC CC Mode']||null;
+    const e3=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    if(nts.length||(scm&&(scm.sc_units||[]).length)||bs){ tbl+='<div class="hint" id="sem-result-notes" style="margin:6px 0;font-size:12px;line-height:1.5">'+
+      (nts.length?nts.map(n=>'⚠ '+e3(n.text)).join('<br>'):'')+
+      (scm&&(scm.sc_units||[]).length?'<br>SC: <b>'+e3(scm.sc_units.join(', '))+'</b> (oranye selama SC, tanpa kontribusi STG)':'')+
+      (bs?'<br>Block Sequence Audit: <b>'+e3(bs.status||'-')+'</b>'+(bs.blocks||[]).filter(b=>b.fresh_stg&&b.lead).map(b=>' · '+e3(b.stg)+': lead '+e3(b.lead.unit)+' row '+b.lead.first_load_row+', STG first '+(b.stg_first_positive_row??'-')+(b.additional||[]).map(a=>', additional '+e3(a.unit)+' row '+a.first_load_row+' (min '+(a.earliest_legal_first_load_row??'-')+')').join('')).join(''):'')+
+      '</div>'; } }catch(e){}
   // PROMPT MONITORING §3.1/§9: kolom TIME PASSED (dropdown Y/N, 48 row) hanya di cabang Monitoring.
   const MON=forceNoMonitoring?false:((typeof dpMon==='function')&&dpMon());
   const tpCut=MON?mdpCutoff():0;
@@ -6676,7 +6807,8 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
       }
       if((g==='gtg'||g==='gtg2') && num){
         const stgMap={G3:'S1',G4:'S1',G6:'S1',G1:'S2',G2:'S2',G5:'S2',G8:'S3',G9:'S3'};
-        const sk=stgMap[k]; const sc=(v>0)?(sk?((r[sk]||0)<=1e-6):true):false;
+        const scU=((o&&o.info&&o.info['SC CC Mode']&&o.info['SC CC Mode'].sc_units)||[]);   // V15.18: GTG mode SC tetap oranye selama SC
+        const sk=stgMap[k]; const sc=(v>0)?((sk&&!scU.includes(k))?((r[sk]||0)<=1e-6):true):false;
         /* PROMPT GAS SHORTAGE Sec.11: cell BIRU + tooltip bila unit memakai Distillate slot ini
            (DistMix_G{n} per row dari engine: 0.3/0.5/0.75/1.0; liter/row = Dist_G{n}). */
         const dmx=+(r['DistMix_'+k]||0); let dCls='', dTitle='Ctrl+Click to fix/cancel load';
@@ -7364,6 +7496,9 @@ function resultToHTMLTable(){
   const dU=['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'].filter(u=>rows.some(r=>+(r['DistMix_'+u]||0)>0));
   const xCols=[]; dU.forEach(u=>{ xCols.push(['DistMix_'+u,'Distillate '+u+' (%)',v=>v?Math.round(+v*100):'']); xCols.push(['Dist_'+u,'Distillate '+u+' (l)',v=>v??'']); });
   if(rows.some(r=>r.IE_Pred!=null)) [['IE_Pred','IE Prediction (MW)'],['IE_Adj','IE Adjustment (MW)'],['IE','IE Effective (MW)']].forEach(([k,t])=>xCols.push([k,t,v=>v??'']));
+  /* V15.18: Effective Priority per row (remark) */
+  const epR=((info['Effective Priority']||{}).rows)||null; if(epR) rows.forEach((r,ri)=>{ r.__EffPrio=epR[ri+1]??epR[String(ri+1)]??''; }); if(epR) xCols.push(['__EffPrio','Effective Priority (row)',v=>v??'']);
+  { const scm=(info['SC CC Mode']||{}).units||((INPUT.data3.modeling||{}).sc_cc)||null; if(scm) s+='<tr><td>SC/CC</td><td>'+Object.keys(scm).map(k=>k.toUpperCase()+'='+scm[k]).join(', ')+'</td></tr>'; }
   s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+xCols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr>';
   rows.forEach((r,ri)=>{s+='<tr>'+COLS.map(c=>{
     const fk=fixKeyOf(c[0]); const fx=fk?cellFixed(fk,ri):null;

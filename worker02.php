@@ -265,6 +265,7 @@ function pp_run_simulation_core_inner(array $input): array {
         $allStopped = true;
         for ($r = 1; $r <= 48; $r++) if (!pp_is_unit_stopped($d3, $model, $uu, $r)) { $allStopped = false; break; }
         if ($allStopped) continue;                              // Stop Schedule penuh -> bukan lever
+        if ($uu === 'g10' && function_exists('pp_g10_autorun_allowed') && !pp_g10_autorun_allowed($d3, $model, pp_kp72_total_quota($model))) continue;   // V15.18: G10 tanpa kuota KP72 bukan lever (aturan autorun existing)
         $cands[] = $uu;
     }
     if (!$cands) return pp_actual_gas_compensation($input, $out);
@@ -2048,6 +2049,7 @@ function pp_normalize_fuel_action(array &$input): void {
 
 function pp_normalize_model_arrays(array &$input): array {
     pp_normalize_fuel_action($input);
+    if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($input);   // V15.18 semantik commitment/stop/SC-CC/priority
     static $ARRAY_FIELDS = ['unit_stop','unit_stop_time','unit_fix_load','unit_skip_load','hrsg_stop',
         'hrsg_stop_time','bus_unit','ie_adjustment','ie_adjustments','required_units','unit_cannot_stop',
         'max_load_rules','gas_quota','required_mode','stop_mode','manual_fixed_flows','unit_start_time',
@@ -2908,6 +2910,81 @@ function pp_run_simulation_pipeline(array $input): array {
     }
     $__tBase0 = microtime(true);
     $inCur = $input; $out = pp_run_simulation_core($inCur); $stopped = [];
+    /* V15.18 SEQUENCE BLOCK LOCK: additional GTG CC yang start sebelum STG fresh established ditahan (unit_stop_time) sampai
+     * row legal pertamanya, lalu baseline dihitung ulang. Kunci diwarisi seluruh pass hilir (decommit, koreksi gas). Maks 3 iterasi;
+     * sisa pelanggaran tetap ditolak validator (block_sequence). */
+    $GLOBALS['ppV1518SeqLock'] = [];
+    if (function_exists('pp_v1518_block_sequence') && pp_v1518_on() && (string)getenv('PP_V1518_BLOCK_SEQ') !== '0') {
+        /* Perbaikan sah, seluruh blok sekaligus (satu core run per langkah, deterministik):
+         *   R2 (cadangan) majukan start lead GTG blok agar STG established tepat waktu untuk additional paling awal yang
+         *      dibutuhkan engine: lead first load = min(L) + lead_in - 2 - hold STG (hold = pp_stg_release_rows mode startup);
+         *      kapasitas yang membuat engine menyalakan additional tetap tersedia.
+         *   R1 (utama) tunda additional GTG ke row legal pertamanya; R2 hanya bila R1 memunculkan pelanggaran baru.
+         *      Sisa pelanggaran tetap ditolak validator. */
+        $bsTypes = function (array $in, array $o): array { $v = pp_validate_hard_constraints($in, $o); $t = [];
+            foreach ((array)($v['violations'] ?? []) as $vi) { $k = is_array($vi) ? (string)($vi[0] ?? ($vi['type'] ?? '?')) : '?'; if ($k !== 'block_sequence') $t[$k] = true; } return array_keys($t); };
+        $bsTried = [];
+        for ($bsI = 0; $bsI < 3; $bsI++) {
+            $bsA = pp_v1518_block_sequence((array)$inCur['data3'], (array)$inCur['data3']['modeling'], (array)($out['data'] ?? []));
+            if (!$bsA['violations']) break;
+            $mC = (array)$inCur['data3']['modeling']; $r2 = $inCur; $r2Any = false; $r2Desc = [];
+            $byStg = []; foreach ($bsA['violations'] as $bv) { $k = $bv['stg']; if (!isset($byStg[$k]) || $bv['row'] + $bv['lead_in_rows'] < $byStg[$k]['row'] + $byStg[$k]['lead_in_rows']) $byStg[$k] = $bv; }
+            foreach ($byStg as $sg => $bv) {
+                $blkL = null; foreach ($bsA['blocks'] as $b) if ($b['stg'] === $sg) $blkL = $b['lead'];
+                $sL = strtolower($sg); $hold = pp_stg_release_rows($sL, (string)($mC['stg_startup_mode'][$sL . '_startup'] ?? ($mC['stg_startup_mode'][$sL] ?? 'warm')));
+                $anc = $bv['row'] + $bv['lead_in_rows'] - 2 - $hold;
+                if (!is_array($blkL) || $anc < 2 || $anc >= (int)$blkL['first_load_row'] || isset($bsTried['R2|' . $sg])) continue;
+                $lu = strtolower($blkL['unit']); $mm2 = ($anc - 1) * 30;
+                $r2['data3']['modeling']['required_mode'][$lu] = ['mode' => 'start_at', 'at' => sprintf('%02d:%02d', intdiv($mm2, 60), $mm2 % 60)];
+                /* sekaligus tahan GTG CC lain blok ini sampai row legal terhadap STG first positive BARU (anc + hold); tanpa ini
+                 * engine menyalakan additional lebih awal lagi mengikuti STG yang lebih awal (umpan balik) -> iterasi tambahan. */
+                $Fn = $anc + $hold;
+                foreach ((array)($r2['data3'][$sL]['gtg'] ?? []) as $gx) { $gx = strtolower((string)$gx); if ($gx === $lu) continue;
+                    $ex = $Fn + 2 - (1 + count(pp_additional_hrsg_caps($gx))); if ($ex > 1) $r2['data3']['modeling']['unit_stop_time'][] = ['unit' => $gx, 'start' => 1, 'stop' => $ex - 1]; }
+                if (!in_array($lu, array_map('strtolower', (array)($r2['data3']['modeling']['required_units'] ?? [])), true)) $r2['data3']['modeling']['required_units'][] = $lu;
+                $r2Any = true; $bsTried['R2|' . $sg] = true; $r2Desc[] = strtoupper($lu) . '@row' . $anc . ' (' . $sg . ')';
+            }
+            /* Urutan evaluasi (deterministik): R1 dulu (tunda additional ke row legal; pilihan lead engine dipertahankan).
+             * R1 diterima bila tidak memunculkan JENIS pelanggaran baru (selain block_sequence) dibanding state saat ini;
+             * bila R1 memunculkan pelanggaran baru, R2 dievaluasi dan dipakai bila bersih, kalau keduanya kotor dipilih yang
+             * jenis pelanggaran barunya paling sedikit (seri -> R1). Pelanggaran sementara (window gas) diselesaikan koreksi hilir. */
+            $curT = $bsTypes($inCur, $out);
+            $r1 = $inCur; foreach ($bsA['violations'] as $bv) $r1['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
+            $o1 = pp_run_simulation_core($r1); $new1 = array_values(array_diff($bsTypes($r1, $o1), $curT));
+            $chosen = 'R1_TUNDA_ADDITIONAL';
+            if (!$new1) { $inCur = $r1; $out = $o1; }
+            elseif ($r2Any) { $o2 = pp_run_simulation_core($r2); $new2 = array_values(array_diff($bsTypes($r2, $o2), $curT));
+                if (count($new2) < count($new1)) { $inCur = $r2; $out = $o2; $chosen = 'R2_MAJUKAN_LEAD:' . implode(',', $r2Desc) . ' (R1 ditolak:' . implode(',', $new1) . ')'; }
+                else { $inCur = $r1; $out = $o1; $chosen .= ' (R1:' . implode(',', $new1) . '; R2 ditolak:' . implode(',', $new2) . ')'; } }
+            else { $inCur = $r1; $out = $o1; $chosen .= ' (R1:' . implode(',', $new1) . '; R2 tidak tersedia)'; }
+            $GLOBALS['ppV1518SeqLock'][] = ['iter' => $bsI + 1, 'violations' => $bsA['violations'], 'chosen' => $chosen];
+            if (getenv('PP_V1518_DEBUG')) fwrite(STDERR, 'SEQLOCK ' . json_encode(end($GLOBALS['ppV1518SeqLock'])) . "\n");
+        }
+        /* §7.5 SATU ADDITIONAL DULU: additional ke-2 dst. yang start pada window yang sama (first load <= connect row additional
+         * pertama) wajib dibuktikan perlu. Counterfactual deterministik: tahan unit itu sampai satu row setelah additional pertama
+         * connect. Diadopsi bila tidak memunculkan jenis pelanggaran baru dan CP tidak lebih mahal; bila tidak, hasil counterfactual
+         * menjadi bukti kebutuhan (tercatat di Block Sequence Lock). Maks satu counterfactual per STG. */
+        if ((string)getenv('PP_V1518_ONE_ADDL') !== '0') {
+            $bsB = pp_v1518_block_sequence((array)$inCur['data3'], (array)$inCur['data3']['modeling'], (array)($out['data'] ?? []));
+            foreach ($bsB['blocks'] as $bb) {
+                if (empty($bb['fresh_stg']) || count($bb['additional']) < 2) continue;
+                $a1 = $bb['additional'][0]; $a2 = $bb['additional'][1];
+                if ((int)$a2['first_load_row'] > (int)$a1['connect_row'] || (int)$a1['first_load_row'] <= 0) continue;
+                $holdTo = (int)$a1['connect_row'] + 1 - (int)$a2['lead_in_rows'] + 1;   // first load a2 paling cepat = connect a1 + 1 - lead_in + 1
+                $holdTo = max($holdTo, (int)$a2['first_load_row'] + 1);
+                $rC = $inCur; $rC['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($a2['unit']), 'start' => (int)$a2['first_load_row'], 'stop' => $holdTo - 1];
+                $oC = pp_run_simulation_core($rC); $curT2 = $bsTypes($inCur, $out); $newC = array_values(array_diff($bsTypes($rC, $oC), $curT2));
+                $cpA = (float)($out['info']['Cost Production (USD/MWh)'] ?? INF); $cpC = (float)($oC['info']['Cost Production (USD/MWh)'] ?? INF);
+                $adopt = !$newC && count($bsTypes($rC, $oC)) <= count($curT2) && $cpC <= $cpA + 1e-9;
+                $GLOBALS['ppV1518SeqLock'][] = ['kind' => 'SECOND_ADDITIONAL_PROOF', 'stg' => $bb['stg'], 'first_additional' => $a1['unit'], 'second_additional' => $a2['unit'],
+                    'counterfactual' => 'tahan ' . $a2['unit'] . ' row ' . $a2['first_load_row'] . '-' . ($holdTo - 1), 'cp_current' => $cpA, 'cp_counterfactual' => $cpC,
+                    'new_violation_types' => $newC, 'chosen' => $adopt ? 'DELAY_SECOND_ADDITIONAL' : 'KEEP (kebutuhan terbukti: ' . ($newC ? 'counterfactual melanggar ' . implode(',', $newC) : 'CP counterfactual lebih mahal') . ')'];
+                if (getenv('PP_V1518_DEBUG')) fwrite(STDERR, 'SEQLOCK ' . json_encode(end($GLOBALS['ppV1518SeqLock'])) . "\n");
+                if ($adopt) { $inCur = $rC; $out = $oC; }
+            }
+        }
+        if ($GLOBALS['ppV1518SeqLock']) { $inCur['data3']['modeling']['block_sequence_lock'] = $GLOBALS['ppV1518SeqLock']; $out['info']['Block Sequence Lock'] = $GLOBALS['ppV1518SeqLock']; }
+    }
     /* Biaya SATU core run pada konfigurasi ini, terukur. Dipakai sebagai perkiraan awal biaya satu
      * iterasi decommit (yang menjalankan beberapa pipeline bersarang) sebelum ada pengukuran nyata. */
     $__baseCoreCost = max(0.05, microtime(true) - $__tBase0);
@@ -2935,7 +3012,7 @@ function pp_run_simulation_pipeline(array $input): array {
          * Evidence, Start Exhaustion Proof) tidak boleh hilang karena penggantian itu — operator
          * kehilangan jejak keputusan komitmen. Kunci-kunci ini dibawa serta bila run baru tidak
          * menghasilkannya sendiri. */
-        $carryKeys = ['Commitment Audit', 'Decommitted Units', 'Mandatory Stop Evidence'];
+        $carryKeys = ['Commitment Audit', 'Decommitted Units', 'Mandatory Stop Evidence', 'Block Sequence Lock'];
         $carry = [];
         foreach ($carryKeys as $ck) if (isset($out['info'][$ck])) $carry[$ck] = $out['info'][$ck];
         $applyCarry = function (array $o) use ($carry): array {
@@ -3092,7 +3169,11 @@ function pp_run_simulation_pipeline(array $input): array {
     for ($iter = 0; $iter < 4; $iter++) {
         if (pp_budget_exceeded('decommit_iteration')) break;                 // candidate budget habis
         $__decEst = ($__decDone > 0) ? ($__decSpent / $__decDone) : ($__baseCoreCost * 4.0);
-        if (!pp_stage_admits($__decEst)) {
+        /* V15.18 DETERMINISME: di Fastest admission decommit memakai JUMLAH simulasi inti yang sudah terpakai (sama di semua mesin),
+         * bukan sisa jam dinding — reproducer monitoring (mesin lambat: baseline 16,8 s) menunda seluruh decommit karena jam dinding. */
+        $__detDec = !empty($GLOBALS['__pp_fastest_no_gcr']) && (string)getenv('PP_V1517_DET_FAST') !== '0';
+        $__admit = $__detDec ? ((int)($GLOBALS['__pp_core_runs'] ?? 0) <= (int)(getenv('PP_FAST_DECOMMIT_SIMS') ?: 12)) : pp_stage_admits($__decEst);
+        if (!$__admit) {
             pp_stage_defer('decommit_iteration', $__decEst,
                 ['iterations_done' => $__decDone,
                  'measured_per_iteration_s' => $__decDone > 0 ? round($__decSpent / $__decDone, 2) : null,
@@ -4556,6 +4637,7 @@ function pp_run_simulation_once_raw(array $input): array {
     $GLOBALS['__pp_reserve_commit'] = [];        // reset shared startup context tiap simulasi
     /* MIGRASI FORMAT di pintu masuk engine: seluruh pass hilir hanya melihat canonical list
      * [{unit,start,stop}] sehingga tidak ada dua interpretasi aktif. */
+    if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($input);   // V15.18: idempoten; setiap simulasi (kandidat juga)
     if (isset($input['data3']['modeling'])) {
         $__stErr = [];
         pp_normalize_unit_stop_time($input['data3']['modeling'], $__stErr);
@@ -6015,7 +6097,7 @@ function pp_run_simulation_once_raw(array $input): array {
          * dgn additional LNG aktif). */
         /* PATCH B03 (unit-ramp guard sistemik): refill/over-trim per-1MW tidak boleh menciptakan
          * pelanggaran ramp unit (G8/G9<=30, G7/G10<=55, BB<=5) thd tetangga current. */
-        $uLimW = ['g7'=>55.0,'g10'=>55.0,'g8'=>30.0,'g9'=>30.0,'b1'=>pp_babelan_ramp_limit($model),'b2'=>pp_babelan_ramp_limit($model)];
+        $uLimW = ['g7'=>55.0,'g10'=>55.0,'g8'=>pp_unit_ramp_limit('g8'),'g9'=>pp_unit_ramp_limit('g9'),'b1'=>pp_babelan_ramp_limit($model),'b2'=>pp_babelan_ramp_limit($model)];
         $uRampOk = function (string $u, int $r, float $nv) use (&$genRows, $nRows, $uLimW): bool {
             if (!isset($uLimW[$u])) return true;
             foreach ([$r-1, $r+1] as $nb) { if ($nb < 0 || $nb >= $nRows) continue;
@@ -6449,7 +6531,7 @@ function pp_run_simulation_once_raw(array $input): array {
                     if (in_array($uF4, ['g7','g8','g9','g10'], true)) { $ok4 = true;
                         foreach ([$r-1,$r+1] as $nb4) { if ($nb4<0||$nb4>=$nRows) continue;
                             $x4=(float)($genRows[$nb4][$uF4]??0);
-                            if ($x4>=1 && abs($nv4-$x4) > (in_array($uF4,['g8','g9'],true)?30.0:55.0)+1e-6) { $ok4=false; break; } }
+                            if ($x4>=1 && abs($nv4-$x4) > (pp_unit_ramp_limit($uF4) ?? 55.0)+1e-6) { $ok4=false; break; } }
                         if (!$ok4) continue; }
                     $sv4 = $genRows[$r]; $genRows[$r][$uF4] = $nv4;
                     pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
@@ -6504,7 +6586,7 @@ function pp_run_simulation_once_raw(array $input): array {
                         if (in_array($uN, ['g7','g8','g9','g10'], true)) { $okN = true;
                             foreach ([$r-1,$r+1] as $nbN) { if ($nbN<0||$nbN>=$nRows) continue;
                                 $xN=(float)($genRows[$nbN][$uN]??0);
-                                if ($xN>=1 && abs($nvN-$xN) > (in_array($uN,['g8','g9'],true)?30.0:55.0)+1e-6) { $okN=false; break; } }
+                                if ($xN>=1 && abs($nvN-$xN) > (pp_unit_ramp_limit($uN) ?? 55.0)+1e-6) { $okN=false; break; } }
                             if (!$okN) continue; }
                         $svN = $genRows[$r]; $genRows[$r][$uN] = $nvN;
                         pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
