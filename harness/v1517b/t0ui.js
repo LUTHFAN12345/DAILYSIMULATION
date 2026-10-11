@@ -1,0 +1,43 @@
+// t0ui.js <base> <outdir> <tag> [fuel] : reproducer T0 lewat UI nyata (P0 + CSV 5 Oct + flag unit), tangkap payload & hasil
+const { chromium } = require('playwright'); const fs = require('fs'); const [,, BASE, OUT, TAG, FUEL] = process.argv; const sleep = ms => new Promise(r => setTimeout(r, ms));
+(async () => { const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); const p = await (await b.newContext()).newPage({ viewport: { width: 1500, height: 1000 } });
+  const R = { errs: [], payloads: [] }; p.on('pageerror', e => R.errs.push(String(e.message).slice(0, 200)));
+  p.on('request', rq => { if (/mode=run\b/.test(rq.url()) && rq.method() === 'POST') { try { const j = JSON.parse(rq.postData()); R.payloads.push({ t: Date.now(), act: j.data3.modeling.gas_shortage_action }); fs.writeFileSync(`${OUT}/${TAG}_payload_${R.payloads.length}.json`, rq.postData()); } catch (e) {} } });
+  await p.goto(BASE + '/index.php'); await sleep(1500);
+  const csv = fs.readFileSync('/home/claude/ab2/bb/csv5oct.csv', 'utf8');
+  R.csv = await p.evaluate(t => { const rep = csvHandleText(t, 'CSV_Load_Pred_dan_Dispatch_5_Oct.csv'); const ok = csvApplyPending(); return { ok: rep.ok, applied: ok, first: INPUT.data1[0], last: INPUT.data1[47], pv11: INPUT.data3.modeling.pv_rows[11] }; }, csv);
+  const sel = async (flag, u, v) => p.evaluate(([f, u, v]) => { const e = document.querySelector(`[data-flag="${f}"][data-u="${u}"]`); if (!e) return 'NO_EL'; e.disabled = false; if (e.type === 'checkbox') e.checked = !!v; else e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); return 'ok'; }, [flag, u, v]);
+  // status sesuai reproducer tertulis
+  for (const u of ['g6', 'g9', 's1']) { await sel('uld', u, 'Stop'); await sel('req', u, true); await sel('mode', u, 'simulation'); await sel('stopmode', u, 'sim'); }
+  for (const u of ['g2', 'g8', 's2', 's3', 'b2']) { await sel('uld', u, 'Running'); await sel('req', u, true); await sel('mode', u, 'continuous'); }
+  R.flags = await p.evaluate(() => ({ commit: COMMIT_MODE, stop: STOP_MODE, rm: buildRequiredModeObj(), sm: buildStopModeObj(), cannot: CANNOT_STOP, req: REQUIRED_ORDER, unit_stop: (INPUT.data3.modeling.unit_stop || []) }));
+  const probe = () => p.evaluate(() => ({ cm: { g6: COMMIT_MODE.g6, s1: COMMIT_MODE.s1, g9: COMMIT_MODE.g9 }, sel: { G6: (document.getElementById('uld-G6') || {}).value, S1: (document.getElementById('uld-S1') || {}).value, G9: (document.getElementById('uld-G9') || {}).value },
+    model: { G6: INPUT.data3.modeling.unit_last_data_status.G6, S1: INPUT.data3.modeling.unit_last_data_status.S1 }, auto: JSON.stringify(AUTO_BLOCK_UNITS), bp: JSON.stringify((BP_STATE || []).map(r => [r.block, r.required])) }));
+const snap = async (lab) => { const st = await p.evaluate(() => { const e = document.getElementById('btn-snapshot'); return e ? { dis: e.disabled, disp: getComputedStyle(e).display, vis: getComputedStyle(e).visibility, top: (() => { const r = e.getBoundingClientRect(); const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return t ? (t.id || t.className || t.tagName) : null; })() } : null; });
+    await p.evaluate(() => { window.scrollTo(0, 0); const e = document.getElementById('btn-snapshot'); if (e) e.scrollIntoView({ block: 'center' }); });
+    try { const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 20000 }), p.click('#btn-snapshot', { timeout: 15000 })]); const fn = dl.suggestedFilename(); await dl.saveAs(`${OUT}/${TAG}_${lab}_${fn}`); console.log('SNAPSHOT', lab, fn); return fn; } catch (e) { console.log('SNAPSHOT ERR', lab, JSON.stringify(st), e.message.split('\n')[0]); return 'ERR'; } };
+  R.snapBefore = await snap('before');
+  R.probes = [['before', await probe()]]; console.log('PROBE', JSON.stringify(R.probes[0]));
+  const NRUN = +(process.env.NRUN || 1); R.runs = [];
+  for (let run = 1; run <= NRUN; run++) {
+  await p.evaluate(() => { window.__prevOut = (typeof OUTPUT !== 'undefined') ? OUTPUT : null; document.getElementById('btn-run').click(); }); const t0 = Date.now(); let clicked = false, tPop = null; R.stop = null;
+  R.t_rows = null; while (Date.now() - t0 < 120000) { await sleep(100);
+    const s = await p.evaluate(() => ({ rows: (typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT.data) ? OUTPUT.data.length : 0, st: window.ppRunTimerState ? window.ppRunTimerState().state : null, pop: !!document.getElementById('gsf-box'), msg: ((document.getElementById('run-msg') || {}).innerText || '').slice(0, 400) }));
+    { const key = s.st + '|' + s.msg.slice(0, 90).replace(/\s+/g, ' '); if (key !== R.__lk) { R.__lk = key; (R.seq = R.seq || []).push([(Date.now() - t0) / 1000, key]); } }
+    if (R.t_rows === null && s.rows === 48 && await p.evaluate(() => typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT !== window.__prevOut)) { R.t_rows = (Date.now() - t0) / 1000; R.st_rows = s.st; }
+    if (s.pop && tPop === null) tPop = (Date.now() - t0) / 1000;
+    if (s.pop && FUEL && !clicked) { const id = FUEL === 'dist' ? 'gsf-dist' : 'gsf-lng'; if (await p.evaluate(id => { const e = document.getElementById(id); return !!e && !e.disabled; }, id)) { clicked = true; await p.click('#' + id); } continue; }
+    if (s.pop && !FUEL) { R.stop = 'POPUP_FUEL_DECISION'; break; }
+    const fresh = await p.evaluate(() => typeof OUTPUT !== 'undefined' && OUTPUT && OUTPUT !== window.__prevOut); if (fresh && s.rows === 48 && /FINAL|MENUNGGU|BLOCK|GAGAL|DITOLAK/i.test(String(s.st))) { R.t_detect = (Date.now() - t0) / 1000; await sleep(800); break; } }
+  R.t_total = (Date.now() - t0) / 1000; R.t_popup = tPop;
+  R.res = await p.evaluate(() => { if (typeof OUTPUT === 'undefined' || !OUTPUT) return null; const i = OUTPUT.info || {}; const mp = i['Merit Proof C1-C4 STG'] || {};
+    return { st: window.ppRunTimerState ? window.ppRunTimerState().state : null, gate: OUTPUT.release_gate || null, cp: i['Cost Production (USD/MWh)'], hr: i['JBBK MM Heat Rate (BTU/kWh)'], mode: (i['Run Status'] || {}).mode,
+      merit: { status: mp.status, C1: mp.C1, C2: mp.C2, C3: mp.C3, C4: mp.C4, stg: mp.stg }, msg: ((document.getElementById('run-msg') || {}).innerText || '').slice(0, 600),
+      save: !(document.getElementById('btn-save') || {}).disabled, locks: ['btn-xls','btn-img-full','btn-publish','btn-save-actual'].map(id => { const e = document.getElementById(id); return id + ':' + (e ? (e.disabled ? 'LOCK' : 'on') : 'na'); }).join(' '), bb1max: Math.max(...OUTPUT.data.map(r => +(r.BB1 || 0))), bind: i['Proof Binding'] || null, rgmode: ((document.getElementById('run-msg') || {}).innerText || '').match(/Fastest[^\n]{0,30}|Maximum Review/) ? ((document.getElementById('run-msg') || {}).innerText.match(/Fastest[^\n]{0,30}|Maximum Review/)[0]) : null, on: (() => { const o = {}; ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3','BB1','BB2'].forEach(U => { const rr = OUTPUT.data.map((r, k) => +(r[U] || 0) > 0.01 ? k + 1 : 0).filter(x => x); if (rr.length) o[U] = rr[0] + '-' + rr[rr.length - 1] + '(' + rr.length + ')'; }); return o; })() }; });
+  R.runs.push({ run, t: R.t_total, t_detect: R.t_detect, t_rows: R.t_rows, st_rows: R.st_rows, ui_s: R.res && R.res.rgmode && (R.res.rgmode.match(/([0-9]+,[0-9]+) detik/) || [])[1], pop: R.t_popup, stop: R.stop, st: R.res && R.res.st, gate: R.res && R.res.gate && R.res.gate.status, blk: R.res && R.res.gate && R.res.gate.blocking_reasons, cp: R.res && R.res.cp, hr: R.res && R.res.hr, merit: R.res && R.res.merit && R.res.merit.status, mode: R.res && R.res.mode, rgmode: R.res && R.res.rgmode, locks: R.res && R.res.locks, save: R.res && R.res.save, bb1max: R.res && R.res.bb1max, cand: R.res && R.res.bind && R.res.bind.candidate_hash, pay: R.res && R.res.bind && R.res.bind.payload_hash, bound: R.res && R.res.bind && R.res.bind.bound_to_rendered, rebound: R.res && R.res.bind && R.res.bind.rebound, pst: R.res && R.res.bind && R.res.bind.proof_status, on: R.res && R.res.on });
+  R.probes.push(['after' + run, await probe()]); console.log('PROBE', JSON.stringify(R.probes[R.probes.length - 1]));
+  console.log('RUN', JSON.stringify(R.runs[R.runs.length - 1])); console.log('SEQ', JSON.stringify(R.seq)); R.seq = []; R.__lk = null;
+  }
+  await p.click('.subtab[data-sub="frequent"]').catch(() => {}); await sleep(400);
+  R.snapshot = await snap('after');
+  fs.writeFileSync(`${OUT}/${TAG}_ui.json`, JSON.stringify(R, null, 1)); console.log(JSON.stringify({ t: R.t_total, pop: R.t_popup, stop: R.stop, csv: R.csv, st: R.res && R.res.st, gate: R.res && R.res.gate && R.res.gate.status, blk: R.res && R.res.gate && R.res.gate.blocking_reasons, cp: R.res && R.res.cp, on: R.res && R.res.on, errs: R.errs }).slice(0, 2500)); await b.close(); })();

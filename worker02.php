@@ -1302,7 +1302,7 @@ function pp_tl_land_commitment(array $orig, array $off, array $seedStops, float 
     }
     return $R;
 }
-function pp_tl_land_commitment_one(array $orig, array $off, array $seedStops, float $deadlineTs, int $maxEvals = 5): array {
+function pp_tl_land_commitment_one(array $orig, array $off, array $seedStops, float $deadlineTs, int $maxEvals = 5, bool $noHint = false): array {
     $a = pp_tl_eval($orig, $off, 0.0, $deadlineTs, $seedStops, null);
     $n = 1;
     if ($a === null) return ['a' => null, 'evals' => 0];
@@ -1311,7 +1311,7 @@ function pp_tl_land_commitment_one(array $orig, array $off, array $seedStops, fl
         if ($a['dev'] > 0) $over = $adj; else $under = $adj;
         if ($under !== null && $over !== null) $adj = 0.5 * ($under + $over);
         else { $step = ($step === null) ? abs($a['dev']) + 0.004 : $step * 2.0; $adj += ($a['dev'] > 0 ? -$step : $step); }
-        $x = pp_tl_eval($orig, $off, $adj, $deadlineTs, $seedStops, $a['supplier_target'] ?? null);
+        $x = pp_tl_eval($orig, $off, $adj, $deadlineTs, $seedStops, $noHint ? null : ($a['supplier_target'] ?? null));   // V15.17b: $noHint = target supplier dicari dari kontrak (tanpa titik awal evaluasi sebelumnya)
         if ($x === null) break;
         $n++; $a = $x;
         if ($a['valid'] || abs($a['dev']) < abs($best['dev'])) $best = $a;
@@ -2115,7 +2115,13 @@ function pp_run_simulation(array $input): array {
             && ($GLOBALS['__pp_econ_review_skipped'] ?? null) === null && empty($GLOBALS['__pp_budget_aborts'])) {
             $oP = $input; foreach (array_keys((array)$oP['data3']['modeling']) as $mk) if (is_string($mk) && strpos($mk, '__') === 0 && $mk !== '__fuel_decision_mode') unset($oP['data3']['modeling'][$mk]);
             $aP = pp_tl_assess($oP, $out);
-            if (!empty($aP['valid'])) { $aP['output'] = $out; $dlP = isset($GLOBALS['__pp_budget_deadline']) ? (float)$GLOBALS['__pp_budget_deadline'] - 2.0 : microtime(true) + 60.0; if ($__ppFastNoFam && (string)getenv('PP_FAST_POLISH_S') !== '0') $dlP = min($dlP, microtime(true) + (float)(getenv('PP_FAST_POLISH_S') ?: 3.0));   /* V15.17 Fastest: satu repair terbatas — polish dibatasi; review V8 job menyusul */ $aP = pp_v6_priority_polish($oP, $aP, $dlP); $out = $aP['output']; }
+            if (!empty($aP['valid'])) { $aP['output'] = $out; $dlP = isset($GLOBALS['__pp_budget_deadline']) ? (float)$GLOBALS['__pp_budget_deadline'] - 2.0 : microtime(true) + 60.0; $__detP = $__ppFastNoFam && (string)getenv('PP_V1517_DET_FAST') !== '0';
+                /* V15.17b DETERMINISME Fastest: polish dibatasi JUMLAH evaluasi (bukan jam dinding 3 s). Batas waktu membuat jumlah evaluasi
+                 * bergantung kecepatan CPU/beban -> kandidat final berbeda antar run dan antar mesin (terukur T0: 7 vs 0 evaluasi, CP 72,6698
+                 * vs 72,6545). Deadline absolut job tetap pengaman. */
+                if ($__detP) $GLOBALS['__pp_polish_max_evals'] = max(1, (int)(getenv('PP_FAST_PIPE_POLISH_EVALS') ?: 8));
+                elseif ($__ppFastNoFam && (string)getenv('PP_FAST_POLISH_S') !== '0') $dlP = min($dlP, microtime(true) + (float)(getenv('PP_FAST_POLISH_S') ?: 3.0));   /* V15.17 Fastest: satu repair terbatas — polish dibatasi; review V8 job menyusul */
+                try { $aP = pp_v6_priority_polish($oP, $aP, $dlP); } finally { unset($GLOBALS['__pp_polish_max_evals']); } $out = $aP['output']; }
         }
         /* V8: review Unit Priority / headroom berbasis kandidat pembanding (row-local, validasi 48 row). */
         if ($__ppOuter && !$__ppFastNoFam && function_exists('pp_v8_priority_review') && empty($input['data3']['modeling']['__tl_no_auto_start'])
@@ -3152,7 +3158,11 @@ function pp_run_simulation_pipeline(array $input): array {
     $__gcrOutermost = ((int)($GLOBALS['__pp_sim_nest'] ?? 0) <= 1)
                    && ((int)($GLOBALS['__pp_sim_depth'] ?? 0) === 0)
                    && empty($GLOBALS['__pp_gcmp_busy']) && empty($GLOBALS['__pp_co_sweeping'])
-                   && !$__tpWillRun;
+                   && !$__tpWillRun
+                   /* V15.17b: Fastest tidak menjalankan comparator (pp_global_commitment_review langsung kembali), maka gerbang
+                    * sisa-waktunya tidak berlaku. Dulu gerbang ini tetap menandai econ_review_skipped bila CPU lambat/sibuk, dan tanda
+                    * itu mematikan polish Unit Priority -> kandidat final Fastest bergantung beban server (non-deterministik). */
+                   && ((string)getenv('PP_V1517_DET_FAST') === '0' || empty($GLOBALS['__pp_fastest_no_gcr']));
     $__gcrElapsed = isset($GLOBALS['__pp_outer_t0'])
                   ? (microtime(true) - (float)$GLOBALS['__pp_outer_t0']) : 0.0;
     $__gcrLeft    = pp_two_phase_time_left();
@@ -4080,6 +4090,19 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         $gapNow = $pu < $lo ? $lo - $pu : ($pu > $pq ? $pu - $pq : 0.0);
         if ($gapNow < $bestGap) { $bestGap = $gapNow; $bestOut = $out; $bestIn = $outIn; }
         if ($gapNow <= 1e-9) break;               // Effective sudah dalam window
+        /* V15.17b HENTI RESPONS TIDAK KONTINU. Terukur (BBLN1 Stop All Day + Block 1 start, PHP 7.4): PGN fisik melompat
+         * 21,47 -> 25,29 BBTUD antara target internal 26,197 dan 26,254 (perubahan commitment/level diskret); window
+         * [22,96 ; 23,00] berada DI DALAM lompatan sehingga bisection menyempit sampai epsilon (11-16 percobaan per core
+         * run, 60 simulasi) tanpa pernah mendarat. Bila dua percobaan berturut-turut menggeser PGN fisik < 25 % jarak
+         * sisi yang sama ke window, pencarian berhenti dengan hasil terdekat (sama dengan akhir pencarian penuh yang
+         * tidak mendarat). PP_SUP_STAGNANT=0 mematikan. */
+        if ($it > 1 && (string)getenv('PP_SUP_STAGNANT') !== '0') {
+            $sideN = $pu < $lo ? 'U' : 'O'; $distPrev = null;
+            if (isset($supLastSide[$sideN])) { $pP = $supLastSide[$sideN]; $distPrev = $sideN === 'U' ? ($lo - $pP) : ($pP - $pq); }
+            if ($distPrev !== null && $distPrev > 0.05 && abs($pu - $supLastSide[$sideN]) < 0.25 * $distPrev) $supStag = ($supStag ?? 0) + 1; else $supStag = 0;
+            $supLastSide[$sideN] = $pu;
+            if ($supStag >= (int)(getenv('PP_SUP_STAGNANT_N') ?: 2)) { $searchMode = 'V1517_RESPON_TIDAK_KONTINU_BERHENTI'; break; }
+        } elseif ($it === 1) { $supLastSide = [($pu < $lo ? 'U' : 'O') => $pu]; $supStag = 0; }
         /* target TENGAH window (pq-0.02), bukan tepi: relasi shift->efektif tidak persis linear
          * (share estimasi slot actual ikut bergeser antar-run), menembak tengah memberi margin
          * +-0.02 sehingga 1-2 iterasi cukup dan tidak osilasi di tepi.
@@ -6266,22 +6289,7 @@ function pp_run_simulation_once_raw(array $input): array {
      * feeder pertama ON; Cold S1/S2 di-cap 20 pada row kemunculan pertama. Lalu recompute kolom S
      * seluruh row non-locked — semua pass sudah selesai menggeser GTG. */
     {
-        $holdN = [];
-        foreach (['s1','s2','s3'] as $sR2) {
-            if (!isset($d3[$sR2])) continue;
-            if (strtolower((string)($model['unit_last_data_status'][strtoupper($sR2)] ?? '')) !== 'stop') continue;
-            $modeR = strtolower((string)($model['stg_startup_mode'][$sR2] ?? ($model['stg_startup_mode'][$sR2 . '_startup'] ?? 'warm')));
-            $lagR = ($sR2 === 's3') ? ['cold' => 11, 'warm' => 5, 'hot' => 1] : ['cold' => 7, 'warm' => 2, 'hot' => 1];
-            $dR = $lagR[$modeR] ?? 2;
-            $feedR2 = array_map('strtolower', array_values($d3[$sR2]['hrsg'] ?? ($d3[$sR2]['gtg'] ?? [])));
-            $anch = -1;
-            for ($rS2 = 0; $rS2 < $nRows; $rS2++) { foreach ($feedR2 as $fR2)
-                if ((float)($genRows[$rS2][$fR2] ?? 0) > 0.01) { $anch = $rS2; break 2; } }
-            if ($anch < 0) continue;
-            for ($rS2 = $anch; $rS2 < min($anch + $dR, $nRows); $rS2++) $holdN[$sR2][$rS2 + 1] = 0.0;
-            if ($modeR === 'cold' && ($sR2 === 's1' || $sR2 === 's2') && $anch + $dR < $nRows)
-                $holdN[$sR2][$anch + $dR + 1] = 20.0;                       // cap kemunculan pertama Cold
-        }
+        $holdN = pp_stg_hold_from_rows($d3, $model, $genRows);              // V15.17b: satu sumber aturan (lihat worker_functions)
         $model['__stg_hold'] = $holdN;                                       // REPLACE map basi
         for ($rS2 = 0; $rS2 < $nRows; $rS2++) {
             if (isset($actualRows[$rS2])) continue;

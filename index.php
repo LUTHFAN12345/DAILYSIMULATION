@@ -1354,6 +1354,7 @@ ul.csverr li{margin:2px 0}
         <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
         <button class="btn ghost" id="btn-save" title="Save Input — menyimpan versi baru input milik Anda (user/tab/proyek) di datastore; tidak menimpa data user lain (selalu aktif)">💾 Save</button>
+        <button class="btn ghost" id="btn-snapshot" title="Export Current Input Snapshot — unduh JSON payload normalisasi yang akan diterima worker (IE/Dispatch/PV, gas, status & commitment unit, Unit Priority, SR, Change Over, mode Fastest/Maximum Review, hash konteks). Read-only: tidak menjalankan simulasi dan tidak menyimpan." onclick="exportInputSnapshot()">⇩ Input Snapshot</button>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
         <span class="hint" id="run-msg"></span>
@@ -2111,15 +2112,21 @@ function syncBlockRequiredToCommitment(opts){
   }
 
   // 4. SET phase: (re)assert every currently-Required block's primary units to Continuous Running + Running.
-  const newAuto={};
+  const newAuto={}; const keptManual=[];
   Object.keys(requiredBlocks).forEach(bn=>{
     newAuto[bn]={};
     requiredBlocks[bn].forEach(u=>{
+      /* V15.17b: pilihan MANUAL operator setelah auto-set (mis. Start Based On Simulation) TIDAK ditimpa diam-diam.
+       * Dulu fase SET menegaskan ulang Continuous Running pada setiap Run/collect sehingga payload berbeda dengan
+       * tabel yang dilihat user (reproducer BBLN1: G6/S1 'Start Based On Simulation' terkirim sebagai continuous). */
+      /* mode eksplisit Simulation/Request (diubah manual ATAU dimuat dari input tersimpan) = keputusan operator */
+      if((COMMIT_MODE[u]==='simulation'||COMMIT_MODE[u]==='request') && !opts.forceAuto){ keptManual.push(UL(u)); newAuto[bn][u]='continuous'; return; }
       COMMIT_MODE[u]='continuous'; STOP_MODE[u]='-'; STOP_AT[u]=''; START_AT[u]='';
       setUnitLast(u,'Running');
       newAuto[bn][u]='continuous';
     });
   });
+  if(keptManual.length && typeof toast==='function' && !opts.silent && (window.__ppKeptManualMsg!==keptManual.join(','))){ window.__ppKeptManualMsg=keptManual.join(','); toast(`Block Required: pilihan manual ${keptManual.join(', ')} dipertahankan (tidak diubah otomatis ke Unit Continuous Running).`); }
   AUTO_BLOCK_UNITS=newAuto;   // metadata now reflects exactly the current Required blocks
 
   // 5. Refresh model + UI so backend receives exactly what the table shows.
@@ -6260,6 +6267,30 @@ function validateStg3SegBeforeSave(payload){
     }
   }
   return true;
+}
+/* V15.17b Export Current Input Snapshot: payload dibangun PERSIS seperti klik Run (assembleInput + pembersihan + flag mode),
+ * dinormalisasi server (mode=input_snapshot, read-only) lalu diunduh sebagai input_snapshot_<project>_<run_id>_<timestamp>.json. */
+async function exportInputSnapshot(){
+  const btn=$('btn-snapshot'); if(btn&&btn.disabled) return;
+  let payload; try{ flushPendingEdits(); payload=assembleInput(); }catch(e){ toast('Snapshot gagal: payload tidak bisa dibangun'); return; }
+  ['_shortage_resolution','_validated_option','_run_source'].forEach(k=>{ delete payload[k]; });
+  try{ ppStripInternalFlags(payload); }catch(e){}
+  const tl=(typeof tlTarget==='function')?tlTarget():'fast'; payload._fast_default=(tl==='fast'); payload._maximum_review=(tl==='max');
+  try{ payload._context=runBranchKey(); }catch(e){}
+  payload._request_id=(window.PP_CUR_RID||'norun');
+  const old=btn?btn.innerHTML:''; if(btn){ btn.disabled=true; btn.innerHTML='<span class="spin"></span> Snapshot…'; }
+  try{
+    const r=await fetch('run.php?mode=input_snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),cache:'no-store'});
+    const t=await r.text(); let d; try{ d=JSON.parse(t.replace(/^\uFEFF/,'')); }catch(e){ throw new Error('server menjawab bukan JSON (HTTP '+r.status+')'); }
+    if(!r.ok||d.result!=='ok'||!d.snapshot) throw new Error((d&&(d.error||d.message))||('HTTP '+r.status));
+    const sn=d.snapshot, cx=sn.context||{}, cl=v=>String(v||'na').replace(/[^A-Za-z0-9_.-]/g,'_');
+    const ts=new Date().toISOString().replace(/[-:]/g,'').replace(/\..*$/,'');
+    const name='input_snapshot_'+cl(cx.project_id)+'_'+cl(cx.run_id)+'_'+ts+'.json';
+    const url=URL.createObjectURL(new Blob([JSON.stringify(sn,null,2)],{type:'application/json'}));
+    const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast('Input snapshot diunduh — '+name+' (payload '+((sn.hashes||{}).payload_hash||'')+')');
+  }catch(e){ toast('Snapshot gagal: '+String(e&&e.message||e)); }
+  finally{ if(btn){ btn.disabled=false; btn.innerHTML=old; } }
 }
 async function saveInput(){
   /* PROMPT SAVE-FI §A3/§A5 — spinner WAJIB selalu berhenti (finally), double-submit dicegah

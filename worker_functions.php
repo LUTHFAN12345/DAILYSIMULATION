@@ -2003,6 +2003,31 @@ function pp_stg_release_rows(string $stg, string $mode): int {
     if ($mode === 'warm') return 2;                       // STG1/2 warm: 60min
     return 1;                                             // STG1/2 hot: 30min
 }
+/* V15.17b SATU SUMBER aturan hold STG fresh-start (dulu hanya inline di PATCH H03 worker02):
+ * STG Last Data Stop -> anchor = row feeder pertama ON; hold 0 pada [anchor .. anchor+delay-1]
+ * (S1/S2: cold 7 / warm 2 / hot 1; S3: cold 11 / warm 5 / hot 1); Cold S1/S2 di-cap 20 MW pada row
+ * kemunculan pertama. Dipakai engine (rebuild final) DAN audit STG merit proof, sehingga keduanya
+ * menilai dispatch final dengan aturan yang identik. $rows boleh ber-key lower (genRows) atau upper (output). */
+function pp_stg_hold_from_rows(array $d3, array $model, array $rows): array {
+    $holdN = []; $n = count($rows);
+    foreach (['s1','s2','s3'] as $sR2) {
+        if (!isset($d3[$sR2])) continue;
+        if (strtolower((string)($model['unit_last_data_status'][strtoupper($sR2)] ?? '')) !== 'stop') continue;
+        $modeR = strtolower((string)($model['stg_startup_mode'][$sR2] ?? ($model['stg_startup_mode'][$sR2 . '_startup'] ?? 'warm')));
+        $lagR = ($sR2 === 's3') ? ['cold' => 11, 'warm' => 5, 'hot' => 1] : ['cold' => 7, 'warm' => 2, 'hot' => 1];
+        $dR = $lagR[$modeR] ?? 2;
+        $feedR2 = array_map('strtolower', array_values($d3[$sR2]['hrsg'] ?? ($d3[$sR2]['gtg'] ?? [])));
+        $anch = -1;
+        for ($rS2 = 0; $rS2 < $n; $rS2++) { foreach ($feedR2 as $fR2) {
+            $v = (float)($rows[$rS2][$fR2] ?? ($rows[$rS2][strtoupper($fR2)] ?? 0));
+            if ($v > 0.01) { $anch = $rS2; break 2; } } }
+        if ($anch < 0) continue;
+        for ($rS2 = $anch; $rS2 < min($anch + $dR, $n); $rS2++) $holdN[$sR2][$rS2 + 1] = 0.0;
+        if ($modeR === 'cold' && ($sR2 === 's1' || $sR2 === 's2') && $anch + $dR < $n)
+            $holdN[$sR2][$anch + $dR + 1] = 20.0;
+    }
+    return $holdN;
+}
 function pp_additional_hrsg_release_rows(string $stg): int {
     return ($stg === 's3') ? 5 : 2;                       // HRSG 8-9: 150min ; HRSG 1-6: 60min
 }
