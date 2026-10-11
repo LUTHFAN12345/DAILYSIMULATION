@@ -2838,7 +2838,39 @@ function pp_v13f_clean(array $input): array {
     return $c;
 }
 /* pipeline engine yang sama dengan jalur exact, anggaran job, review commitment global ditunda (bukan Maximum Review) */
+/* V15.18 HOTFIX EARLY START: unit Required + Start Based On Simulation + Hold to End (Last Data Stop) tidak lagi start pada row legal
+ * pertama. Start = latest legal start (pp_v1518_latest_legal_starts) lewat jendela tahan yang diturunkan engine; satu validasi penuh
+ * terhadap input ASLI. Bila tidak valid: kandidat bounded lebih awal (05:00, 04:00, 01:30) lalu perilaku lama. PP_V1518_LATEST_START=0 -> lama. */
 function pp_v13f_pipeline(array $input): array {
+    $c0 = pp_v13f_clean($input);
+    $plan = ((string)getenv('PP_V1518_LATEST_START') !== '0' && function_exists('pp_v1518_latest_legal_starts')) ? pp_v1518_latest_legal_starts($c0) : [];
+    if (!$plan) return pp_v13f_pipeline_run($input);
+    $cands = []; $base = []; foreach ($plan as $u => $p) $base[$u] = (int)$p['latest_legal_start_row']; $cands[] = $base;
+    foreach ([10, 8, 3] as $R) { $cc = []; foreach ($base as $u => $row) $cc[$u] = min($row, $R); if ($cc !== $cands[count($cands) - 1] && max($cc) > 2) $cands[] = $cc; }
+    $tried = []; $hook = $GLOBALS['ppTlHook'] ?? null;
+    foreach ($cands as $cand) {
+        $tC = microtime(true); $ci = $input; $mi = &$ci['data3']['modeling']; $mi['unit_stop_time'] = array_values((array)($mi['unit_stop_time'] ?? []));
+        foreach ($cand as $u => $row) if ($row > 2) $mi['unit_stop_time'][] = ['unit' => $u, 'start' => 1, 'stop' => $row - 1]; unset($mi);
+        $o = pp_v13f_pipeline_run($ci); if ($hook !== null) $GLOBALS['ppTlHook'] = $hook;
+        $a = null; try { $a = pp_tl_assess($c0, $o); } catch (Throwable $e) { $a = null; }
+        $ok = is_array($a) && !empty($a['valid']);
+        $tried[] = ['start_rows' => $cand, 'valid' => $ok, 's' => round(microtime(true) - $tC, 2), 'cp' => $o['info']['Cost Production (USD/MWh)'] ?? null,
+                    'failed_checks' => is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL']];
+        if ($ok) { $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => $cand, 'tried' => $tried]; $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan, $cand, $o, $tried); return $o; }
+    }
+    $o = pp_v13f_pipeline_run($input); $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => null, 'tried' => $tried];
+    $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan, null, $o, $tried);
+    return $o;
+}
+function pp_v1518_startup_proof(array $plan, ?array $cand, array $o, array $tried): array {
+    $rows = array_values((array)($o['data'] ?? [])); $units = [];
+    foreach ($plan as $u => $p) { $U = strtoupper($u); $first = null; foreach ($rows as $k => $r) if ((float)($r[$U] ?? 0) > 0.01) { $first = $k + 1; break; }
+        $units[$U] = $p + ['selected_start_row' => $first, 'selected_start_time' => $first ? sprintf('%02d:%02d', intdiv($first * 30, 60) % 24, ($first * 30) % 60) : null,
+                          'hold_off_until_row' => $cand[$u] ?? null]; }
+    return ['schema' => 'v1518-startup-timing-1', 'rule' => 'Required + Start Based On Simulation: running fleet dimaksimalkan dahulu; start = latest legal start (first failed row - startup sequence); Hold to End berlaku sesudah startup',
+            'status' => $cand !== null ? 'LATEST_LEGAL_START_APPLIED' : 'FALLBACK_EARLIEST (semua kandidat tunda gagal validasi)', 'units' => $units, 'candidates_tried' => $tried];
+}
+function pp_v13f_pipeline_run(array $input): array {
     $hook = $GLOBALS['ppTlHook'] ?? null;
     $c = pp_v13f_clean($input);
     pp_tl_clean_globals(); pp_budget_start((float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0), true, true);
@@ -3712,6 +3744,9 @@ function pp_job_run_economic_review(string $id, array $input): array {
         $output['info']['Proof Binding']['bound_to_rendered'] = ((string)($output['info']['Proof Binding']['candidate_hash'] ?? '') === pp_v1517_candidate_hash((array)$output['data']));
     }
     if (is_array($output['info'] ?? null) && ($icl = pp_v1518_ie_classification($inputAsli, $output, microtime(true) - $t)) !== null) $output['info']['IE Rerun Classification'] = $icl;
+    /* V15.18 HOTFIX: bukti startup (latest legal start) dihitung ulang pada dispatch FINAL; tanpa bukti startup dini tidak final */
+    if (is_array($output['info'] ?? null) && isset($GLOBALS['ppV1518StartupPlan']) && function_exists('pp_v1518_startup_proof'))
+        $output['info']['Startup Timing Proof'] = pp_v1518_startup_proof($GLOBALS['ppV1518StartupPlan']['plan'], $GLOBALS['ppV1518StartupPlan']['cand'], $output, $GLOBALS['ppV1518StartupPlan']['tried']);
     pp_job_progress($id, 'VALIDASI_SELESAI', 98.0);
     return [
         'schema' => 'co12-async-economic-review-v1',

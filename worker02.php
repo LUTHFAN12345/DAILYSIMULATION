@@ -3985,6 +3985,13 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
         };
         $obB = $outBandOf($out);
         $baseOK = (strtoupper((string)($VB['status'] ?? '')) === 'PASS') && $devB <= 1e-9;
+        /* V15.18 HOTFIX EARLY START: baseline yang HANYA melanggar gas_quota di sisi UNDER (gas di bawah window) tidak dapat diperbaiki
+         * dengan mematikan unit (decommit menurunkan gas lebih jauh) -> jendela trim multi-window tidak berguna; cukup satu kandidat
+         * full-day seperti baseline PASS. Kenaikan gas ditangani koreksi gas window hilir. PP_V1518_DEC_UNDER_FULLDAY=0 -> lama. */
+        $winOK = $baseOK;
+        if (!$baseOK && $qB > 1.0 && (string)getenv('PP_V1518_DEC_UNDER_FULLDAY') !== '0') { [$loBw] = pp_gas_window($qB); $onlyGas = (bool)($VB['violations'] ?? []);
+            foreach ((array)($VB['violations'] ?? []) as $vb) { $tb = is_array($vb) ? (string)($vb[0] ?? ($vb['type'] ?? '')) : ''; if ($tb !== 'gas_quota') { $onlyGas = false; break; } }
+            if ($onlyGas && $uB < $loBw) $winOK = true; }
         /* V15.18 §5.4/§8: kandidat stop-window dievaluasi dengan core TERISOLASI (hasil identik di proses mana pun); bila pembantu job
          * hidup, kandidat yang akan dievaluasi lebih dulu dihitung paralel. Admission Fastest = jumlah core (bukan jam dinding). */
         $isoDec = (string)getenv('PP_V1518_DECOMMIT_ISO') !== '0'; $jidD = (string)($GLOBALS['ppTlHook']['job'] ?? '');
@@ -3994,7 +4001,7 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
             $x['data3']['modeling']['unit_stop_time'][$uu] = $sw; return $x; };
         if ($isoDec) { $pre = []; $tst = 0;
             /* urutan prefetch = urutan evaluasi loop di bawah (unit x stop-window, sesudah prasaring Export yang sama) */
-            $wins = $baseOK ? [['00:00', '24:00']] : [['00:00', '24:00'], ['04:00', '24:00'], ['06:00', '24:00'], ['08:00', '24:00'], ['10:00', '24:00'], ['12:00', '24:00']];
+            $wins = $winOK ? [['00:00', '24:00']] : [['00:00', '24:00'], ['04:00', '24:00'], ['06:00', '24:00'], ['08:00', '24:00'], ['10:00', '24:00'], ['12:00', '24:00']];
             foreach ($order as $uu) { if (!isset($lowCands[$uu]) || $tst >= 3) continue; $tst++;
                 foreach ($wins as $sw) { [$hS, $mS] = array_map('intval', explode(':', (string)$sw[0])); $r0S = intdiv($hS * 60 + $mS, 30) + 1; $offS = [];
                     foreach ((array)$out['data'] as $kS => $rwS) if ($kS + 1 >= $r0S && (float)($rwS[strtoupper($uu)] ?? 0) > 0.01) $offS[] = $kS + 1;
@@ -4013,7 +4020,7 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
              * durasi minimum yang valid ditemukan (04:00, 06:00, 08:00, 10:00, 12:00). */
             /* budget komputasi: kandidat trim (multi-window) HANYA relevan saat baseline INFEASIBLE
              * (§9/§11). Baseline PASS memakai satu kandidat full-day (perilaku & kecepatan lama). */
-            $stopWins = $baseOK
+            $stopWins = $winOK
                 ? [['00:00', '24:00']]
                 : [['00:00', '24:00'], ['04:00', '24:00'], ['06:00', '24:00'], ['08:00', '24:00'],
                    ['10:00', '24:00'], ['12:00', '24:00']];

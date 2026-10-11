@@ -2,7 +2,7 @@
 
 - Branch: `claude/gifted-ritchie-q0hfdp`. Started from `5a60d8a`; intermediate commits `40fc88c`, `210b8a5`, `96b0ba1`.
   The final commit is the commit that adds this file (see `git log`).
-- Package: `php_simulation_SC_CC_SEQUENCE_FAST_FINAL.zip`. It contains the 5 PHP files at the root, `docs/` (this
+- Package: `php_simulation_SC_CC_SEQUENCE_FAST_FINAL.zip` (includes HOTFIX_EARLY_START.md: Required + Start Based On Simulation = latest legal start). It contains the 5 PHP files at the root, `docs/` (this
   checkpoint and all reports) and `SHA256SUMS.txt`.
 - Runtime: PHP 7.4 (XAMPP or Linux Apache + PHP-FPM). The async job CLI worker uses 3 helpers.
 

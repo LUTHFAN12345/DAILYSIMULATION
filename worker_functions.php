@@ -14062,3 +14062,56 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
 
 
 }
+
+/* =============================================================================================
+ *  V15.18 HOTFIX EARLY START — Required + Start Based On Simulation + Hold to End After Start.
+ *  Root cause: pp_v1518_semantics (Stop Status hold_to_end) menaruh unit ke unit_cannot_stop; untuk unit dengan Last Data
+ *  Stop, pass Cannot-Stop memaksa unit online sejak row pertama yang legal (01:00). Semantik yang benar: unit wajib start
+ *  dalam horizon bila perlu, waktu start dipilih solver; Hold to End berlaku SESUDAH startup.
+ *  Fungsi murni: running fleet (Last Data Running / Continuous) pada effective max (urutan Effective Priority) -> row pertama
+ *  yang Export-nya tidak dapat mencapai Range Min (first failed row) -> mundur sepanjang startup sequence unit -> latest legal
+ *  start. Unit target dihitung berurutan (unit yang sudah dijadwalkan ikut menjadi kapasitas untuk unit berikutnya).
+ * ============================================================================================= */
+function pp_v1518_latest_legal_starts(array $c): array {
+    $d3 = (array)($c['data3'] ?? []); $m = (array)($d3['modeling'] ?? []); $n = 48;
+    if (!empty($m['change_over']['enabled'])) return [];
+    $pol = (array)($m['stop_policy'] ?? []); $com = (array)($m['commitment_semantics'] ?? []);
+    $last = []; foreach ((array)($m['unit_last_data_status'] ?? []) as $k => $v) $last[strtolower((string)$k)] = strtolower((string)$v);
+    $req = array_map('strtolower', (array)($m['required_units'] ?? []));
+    $gt = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9', 'g10'];
+    $targets = [];
+    foreach (pp_priority_flat($m) as $u) { $u = strtolower((string)$u);
+        if (!in_array($u, $gt, true) || !in_array($u, $req, true) || in_array($u, $targets, true) || !isset($d3[$u]) || !pp_unit_present($d3, $u)) continue;
+        if (($com[$u] ?? '') !== 'START_BASED_ON_SIMULATION' || ($pol[$u] ?? '') !== 'HOLD_TO_END_AFTER_START' || ($last[$u] ?? '') === 'running') continue;
+        $targets[] = $u; }
+    if (!$targets) return [];
+    $ie = (array)(pp_ie_series($c)['eff'] ?? []); $pt = pp_compute_pln_targets($m, (array)($c['data2'] ?? [])); $lo = (array)($pt['lo'] ?? []);
+    $fleet = [];
+    foreach (array_merge($gt, ['b1', 'b2']) as $u) { if (!isset($d3[$u]) || !pp_unit_present($d3, $u)) continue;
+        if (($last[$u] ?? '') === 'running' || ($com[$u] ?? '') === 'CONTINUOUS_FULL_HORIZON') $fleet[$u] = true; }
+    $sched = []; $seqs = [];
+    $expMax = function (int $r) use (&$sched, &$seqs, $fleet, $d3, $m, $ie): float {
+        $g = [];
+        foreach ($fleet as $u => $_) if (!pp_is_unit_stopped($d3, $m, $u, $r + 1)) $g[$u] = pp_effective_max_load($d3, $m, $u, $r + 1);
+        foreach ($sched as $u => $s0) if ($r >= $s0 && !pp_is_unit_stopped($d3, $m, $u, $r + 1)) { $k = $r - $s0; $g[$u] = $k < count($seqs[$u]) ? (float)$seqs[$u][$k] : pp_effective_max_load($d3, $m, $u, $r + 1); }
+        foreach (['s1', 's2', 's3'] as $s) if (isset($d3[$s])) $g[$s] = 0.0;
+        try { pp_recompute_stgs($g, $d3, $m, $r + 1); } catch (Throwable $e) {}
+        $t = 0.0; foreach ($g as $u => $v) if (!in_array($u, ['g10', 'ge1', 'ge2', 'ge3', 'ge4'], true)) $t += (float)$v;
+        return $t - calc_house_load($g) - (float)($ie[$r] ?? 0); };
+    $rt = pp_runtime_limits($m); $plan = [];
+    foreach ($targets as $u) {
+        $seqs[$u] = pp_start_sequence($d3, $m, $u, [], 1); $L = max(1, count($seqs[$u]));
+        $fail = -1; for ($r = 0; $r < $n; $r++) if ($expMax($r) < (float)($lo[$r] ?? 0) - 0.5) { $fail = $r; break; }
+        $runRows = (int)((pp_gtg_to_stg($d3, $u) !== '') ? ($rt['combined_cycle']['run_rows'] ?? 8) : ($rt['gtg_small']['run_rows'] ?? 4));
+        $latest = $fail >= 0 ? $fail - $L : $n - $L - $runRows;
+        $earliest = (($last[$u] ?? '') === 'stop') ? 1 : 0;
+        $latest = max($earliest, $latest);
+        $hr = $latest > 0 ? round($expMax($latest - 1) - (float)($lo[$latest - 1] ?? 0), 2) : null;
+        $sched[$u] = $latest;
+        $plan[$u] = ['startup_unit' => strtoupper($u), 'latest_legal_start_row' => $latest + 1, 'latest_legal_start_time' => sprintf('%02d:%02d', intdiv(($latest + 1) * 30, 60) % 24, (($latest + 1) * 30) % 60),
+            'first_failed_row_if_delayed' => $fail >= 0 ? $fail + 1 : null, 'startup_sequence_rows' => $L,
+            'running_fleet_headroom_before_start_mw' => $hr,
+            'constraint_that_requires_start' => $fail >= 0 ? 'EXPORT_RANGE_MIN (running fleet at effective max)' : 'REQUIRED_START_WITHIN_HORIZON (latest start that completes startup + minimum runtime)'];
+    }
+    return $plan;
+}
