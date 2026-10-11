@@ -647,7 +647,17 @@ function pp_normalize_unit_stop_time(array &$model, array &$errors = []): array 
 }
 
 function pp_is_unit_stopped(array $d3, array $model, string $unit, int $row1): bool {
-    if(!pp_effective_unit_available($d3,$model,$unit,$row1))return true;
+    /* V15.18 PERF (eksak): unit non-GE -> pp_effective_unit_available = isset($d3[$u]) && pp_unit_present($d3,$u); presence
+     * dimemo per request generation dengan aturan yang SAMA dengan memo pp_unit_present (nilai unit_present tidak pernah dimutasi
+     * dalam satu request). Unit GE tetap lewat jalur lengkap (bergantung $model: kuota KP72 / sumber MM2100). */
+    static $pmGen = null, $pm = [];
+    $uL = strtolower($unit);
+    if (!pp_ge_unit($uL) && !PP_FUEL_MEMO_VERIFY && !PP_MEMO_OFF) {
+        if (!isset($d3[$uL])) return true;
+        $gq = (int)($GLOBALS['__pp_req_gen'] ?? 0); if ($gq !== $pmGen) { $pm = []; $pmGen = $gq; }
+        $pr = $pm[$uL] ?? ($pm[$uL] = pp_unit_present($d3, $uL));
+        if (!$pr) return true;
+    } elseif(!pp_effective_unit_available($d3,$model,$unit,$row1))return true;
     /* V11 OPT-US1 — INDEKS unit_stop / unit_stop_time per unit (hasil identik, bukan penyederhanaan rumus).
      * Terukur ~10 % waktu inklusif pada jalur kuota: setiap panggilan memindai seluruh daftar stop untuk setiap
      * (unit,row). Indeks dibangun ulang hanya bila daftar berubah; pembanding === pada array PHP memakai jalur
@@ -9142,7 +9152,9 @@ function pp_fuel_sum_g19(array $genRows, array $d3, int $n, array &$fc): float {
         $fc['P'][$r] = $g;
         $row = $genRows[$r];
         if (isset($fc['rows'][$r]) && $fc['rows'][$r] === $row) {
-            foreach ($fc['f'][$r] as $f) $g += $f;
+            /* V15.18 PERF: 9 penjumlahan berurutan yang sama (g1..g9, kiri ke kanan) tanpa overhead foreach — bit-identik. */
+            $fr = $fc['f'][$r];
+            $g = (((((((($g + $fr[0]) + $fr[1]) + $fr[2]) + $fr[3]) + $fr[4]) + $fr[5]) + $fr[6]) + $fr[7]) + $fr[8];
             continue;
         }
         $fr = [];

@@ -2918,13 +2918,18 @@ function pp_v1517_ie_store(array $inputAsli, array $output): void {
         $mA = (array)($c['data3']['modeling'] ?? []); $act = ['p' => array_values((array)($mA['actual_pgn_total'] ?? [])), 'j' => array_values((array)($mA['actual_energy_jababeka'] ?? [])), 'm' => array_values((array)($mA['actual_energy_mm2100'] ?? []))];
         pp_tl_write(pp_v1517_ie_base_file($k), ['key' => $k, 'at' => microtime(true), 'ie_eff' => $s['eff'], 'ie_hash' => md5(json_encode($s['eff'])), 'act' => $act, 'act_hash' => md5(json_encode($act)),
             'data' => array_values((array)$output['data']), 'supplier_target' => pp_tl_supplier_target($output),
-            'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null]); } catch (Throwable $e) {}
+            'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null,
+            'fuel' => pp_v1518_fuel_decision($inputAsli)]); } catch (Throwable $e) {}
 }
 /* V15.18 KLASIFIKASI RERUN IE ADJUSTMENT (dari STRUKTUR solusi, bukan waktu):
  *   A = redispatch jendela lokal: commitment, keputusan bahan bakar dan gas-window basis tetap feasible (tahap A valid);
  *   B = commitment/gas-window berubah: rekonstruksi gas-window 48 row dengan commitment basis (tahap B) ATAU commitment repair
  *       (startup/shutdown/family) — difficult feasible, bukan warm fast-path;
  *   C = tidak ada rencana valid (terminal). Bukan rerun IE (cold / IE sama) -> null. */
+/* keputusan bahan bakar operator (aksi + jumlah yang diotorisasi) — bukan konsumsi hasil dispatch */
+function pp_v1518_fuel_decision(array $in): array { $m = (array)($in['data3']['modeling'] ?? []);
+    return ['action' => (string)($m['gas_shortage_action'] ?? 'none'), 'distillate_limit_l' => isset($m['distillate_user_limit_litres']) ? round((float)$m['distillate_user_limit_litres'], 1) : null,
+            'additional_lng' => round((float)($m['additional_lng'] ?? 0), 4)]; }
 function pp_v1518_ie_classification(array $inputAsli, array $output, float $engineS): ?array {
     $rep = (array)($output['info']['IE Incremental Redispatch'] ?? []); $cache = (string)($rep['cache'] ?? '');
     if ($cache !== 'HIT') return null;
@@ -2933,15 +2938,17 @@ function pp_v1518_ie_classification(array $inputAsli, array $output, float $engi
     $after = []; foreach (pp_tl_gt_units() as $u) { $rr = []; foreach ((array)($output['data'] ?? []) as $i => $r) if ((float)($r[strtoupper($u)] ?? 0) > 0.01) $rr[] = $i + 1; if ($rr) $after[strtoupper($u)] = $rr[0] . '-' . $rr[count($rr) - 1] . '(' . count($rr) . ')'; }
     $before = (array)($rep['commitment_sebelum'] ?? []); ksort($before); ksort($after);
     $gate = (string)($output['release_gate']['status'] ?? ''); $terminal = ($output['status'] ?? '') === 'TERMINAL_INFEASIBLE';
+    $fuelSame = !is_array($rep['basis_fuel'] ?? null) || $rep['basis_fuel'] == pp_v1518_fuel_decision($inputAsli);
     if ($terminal || (count((array)($output['data'] ?? [])) !== 48)) { $cl = 'C'; $why = 'TIDAK_ADA_RENCANA_VALID_TERMINAL'; }
-    elseif ($applied && $okA) { $cl = 'A'; $why = 'REDISPATCH_JENDELA_LOKAL_COMMITMENT_BAHAN_BAKAR_GAS_WINDOW_BASIS_TETAP'; }
+    elseif ($applied && $okA && $fuelSame) { $cl = 'A'; $why = 'REDISPATCH_JENDELA_LOKAL_COMMITMENT_BAHAN_BAKAR_GAS_WINDOW_BASIS_TETAP'; }
+    elseif ($applied && $okA) { $cl = 'B'; $why = 'FUEL_CLOSING_BERUBAH (keputusan bahan bakar ' . json_encode($rep['basis_fuel'] ?? null) . ' -> ' . json_encode(pp_v1518_fuel_decision($inputAsli)) . '; commitment basis tetap, redispatch lokal valid)'; }
     elseif ($applied && $okB) { $cl = 'B'; $why = 'REKONSTRUKSI_GAS_WINDOW_48_ROW_COMMITMENT_BASIS_TETAP (jendela lokal tidak valid: ' . implode(',', (array)($st['A_JENDELA_LOKAL']['gagal'] ?? [])) . ')'; }
     else { $cl = 'B'; $why = 'COMMITMENT_REPAIR_REQUIRED (' . (string)($rep['alasan_invalidasi'] ?? 'basis tidak feasible') . ')'; }
     $mF = (array)($inputAsli['data3']['modeling'] ?? []);
     $i = (array)($output['info'] ?? []); $q = (float)($i['Total Gas Quota (BBTUD)'] ?? 0); $g = (float)($i['Total Gas Used (BBTUD)'] ?? 0);
     return ['schema' => 'v1518-ie-class-1', 'class' => $cl, 'reason' => $why, 'stage' => $cl === 'B' && !$applied ? 'Commitment repair required' : ($cl === 'B' ? 'Gas-window reconstruction (48 row)' : ($cl === 'A' ? 'Local redispatch' : 'Terminal proof')),
         'affected_rows' => $rep['affected_rows'] ?? [], 'commitment_before' => $before, 'commitment_after' => $after, 'startup_shutdown_required' => $before !== $after,
-        'fuel_decision' => ['action' => (string)($mF['gas_shortage_action'] ?? ''), 'distillate_limit_l' => $mF['distillate_user_limit_litres'] ?? null, 'additional_lng' => $mF['additional_lng'] ?? null,
+        'fuel_decision' => ['before' => $rep['basis_fuel'] ?? null, 'after' => pp_v1518_fuel_decision($inputAsli), 'unchanged' => $fuelSame,
                             'fuel_prelim' => !empty($inputAsli['_prelim_skipped']) ? 'DILEWATI_KONTEKS_BAHAN_BAKAR_SAMA' : 'TIDAK_DILEWATI', 'distillate_used_l' => $i['Distillate Used (l)'] ?? null],
         'gas_window_after' => ['used' => round($g, 4), 'window' => $q > 0 ? [round($q - 0.04, 4), round($q, 4)] : null], 'basis_cp' => $rep['basis_cp'] ?? null, 'cp_after' => $i['Cost Production (USD/MWh)'] ?? null,
         'release_gate' => $gate, 'stages' => array_values($st), 'engine_s' => round($engineS, 3),
@@ -3022,7 +3029,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
                      'gagal' => is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL']];
     }
     if (isset($GLOBALS['ppIeWarmNoHint'])) { $stages[] = ['tahap' => 'B_PENDARATAN_TANPA_HINT_SUPPLIER'] + $GLOBALS['ppIeWarmNoHint']; unset($GLOBALS['ppIeWarmNoHint']); }
-    $rep += ['cache' => 'HIT', 'basis_file' => basename($f), 'basis_cp' => $B['cp'] ?? null, 'basis_hr' => $B['hr'] ?? null, 'affected_rows' => $aff, 'affected_windows' => $win,
+    $rep += ['cache' => 'HIT', 'basis_file' => basename($f), 'basis_cp' => $B['cp'] ?? null, 'basis_hr' => $B['hr'] ?? null, 'basis_fuel' => $B['fuel'] ?? null, 'affected_rows' => $aff, 'affected_windows' => $win,
              'commitment_sebelum' => $before, 'tahap' => $stages, 'eval_s' => round(microtime(true) - $t0, 3)];
     if (!is_array($a) || empty($a['valid']) || !is_array($a['output'] ?? null)) {
         $rep['alasan_invalidasi'] = 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)';
@@ -8644,7 +8651,9 @@ if (in_array(($_GET['mode'] ?? ''), ['run', 'run_weekly_day'], true)) {
          * sedangkan run memakai payload final keputusan bahan bakar. */
         $__ov = $input['_autosave_override']; unset($input['_autosave_override']);
         foreach ($input as $k => $v) if (is_string($k) && $k !== '' && $k[0] === '_' && !isset($__ov[$k]) && $k !== '_prelim_skipped' && $k !== '_run_source' && $k !== '_shortage_resolution') $__ov[$k] = $v;
-        $__autosave = ['requested' => true, 'override' => 'PRELIM_PAYLOAD'] + pp_v3_autosave($__ov);
+        $__autosave0 = pp_v3_autosave($__ov);
+        /* lalu payload final keputusan bahan bakar — urutan simpanan sama dengan alur dua langkah (pendahuluan, rerun bahan bakar) */
+        $__autosave = ['requested' => true, 'override' => 'PRELIM_PAYLOAD', 'prelim' => $__autosave0] + (!empty($__autosave0['ok']) ? pp_v3_autosave($input) : $__autosave0);
         if (empty($__autosave['ok']))
             pp_fail(500, 'Input TIDAK tersimpan ke input_data.json, sehingga simulasi TIDAK dijalankan. File lama tetap utuh. Sebab: ' . (string)($__autosave['error'] ?? '?'),
                 ['code' => 'INPUT_SAVE_FAILED', 'request_id' => $rid, 'state_revision' => $rev, 'autosave' => $__autosave, 'old_file_intact' => true]);
