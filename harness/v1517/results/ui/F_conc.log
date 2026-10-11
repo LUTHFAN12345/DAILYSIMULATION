@@ -1,0 +1,15 @@
+ids {"A":["u4fea1300389e47bd9a27999d","td67eb8df3accdeb4"],"B":["u153be1bab4fe4eed957120b5","t57144a47997d8844"],"distinct_uid":true}
+C2_both_run_clicked {}
+A_running_at_6s {"timer":{"state":"running","rid":"plan-1-mv33y7kv","elapsed":6.131799999999814,"running_interval":true},"rid":"plan-1-mv33y7kv","msg":"Perhitungan eksak: pipeline end 95%"}
+B_done {"rows":48,"cp":80.0804,"rid":"plan-2-mv33ycxp","s":10}
+C3_B_save_while_A_running {"msg":"Input saved — will persist after reload."}
+A_after_B_save {"timer":{"state":"MENUNGGU_KEPUTUSAN_BAHAN_BAKAR","rid":"plan-1-mv33y7kv","elapsed":18.862600000000093,"running_interval":false},"rid":"plan-1-mv33y7kv","msg":"Done. Perhitungan eksak selesai — Anda tidak perlu menjalankan ulang.\nHasil BELUM final. Kebutuhan gas masih melebihi kuota sebesar 3,4191
+A_done {"rows":48,"cp":71.7739,"gate":"PASS","rid":"plan-2-mv33ymrn","s":59.3,"timeout":false}
+C4_simultaneous_save {"A":"Input saved — will persist after reload.","B":"Input saved — will persist after reload."}
+records {"A":[["SAVE",3,"td67eb8df3accdeb4","p_12bc23195a4987dc"],["SIMULATION_FINAL",2,"td67eb8df3accdeb4","p_12bc23195a4987dc"],["AUTOSAVE_RUN",1,"td67eb8df3accdeb4","p_12bc23195a4987dc"]],"B":[["SAVE",4,"t57144a47997d8844","p_12bc23195a4987dc"],["SAVE",3,"t57144a47997d8844","p_12bc23195a4987dc"],["SIMULA
+A_cannot_load_B_record {"ok":false,"err":"NOT_FOUND_OR_NOT_OWNED"}
+C6_reload {"A_ie0":"471","B_ie0":"500","expect":{"A":"471","B":"500"}}
+C0_tabs {"uid_same":true,"tab_diff":true}
+C0_tab_record {"tab_of_latest":"t115dbf768196e0c4","tabA2":"t115dbf768196e0c4"}
+C5_B_cancel {"job":"economic_review-61f890b0f3579b6d959d","resp":{"ok":true,"job":{"schema":"co12-async-job-v1","job_id":"economic_review-61f890b0f3579b6d959d","kind":"economic_review","input_hash":"61f890b0f3579b6d959dc786e329f61a6512807e69cc56c3448d35716cd6e715","request_id":"plan-2-mv3403yh","status":"CANCEL
+C5_A_after_B_cancel {"rows":48,"cp":71.7739,"gate":"PASS","timeout":false}

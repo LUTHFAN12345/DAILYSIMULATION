@@ -1,0 +1,6 @@
+S1_B_then_A_clicked {}
+S1_jobs [["economic_review-0a06407d4f","DONE",null,null],["economic_review-d1984e1492","DONE",null,null]]
+S1_B_done {"rows":48,"cp":79.9877,"s":11.2,"timeout":false}
+S1_A_done {"rows":48,"cp":71.9048,"s":12.3,"timeout":false}
+S2_own_old_job {"rid":"plan-3-mv33xi9e"}
+S2_A_new_done {"rows":48,"cp":71.9346,"s":2.4,"timeout":false}

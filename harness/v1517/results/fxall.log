@@ -1,0 +1,229 @@
+== COLD
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D0_golden wall 9.83 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+    G6 [(26, 30), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 75), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D2_g6_stop2100 wall 10.68 hard PASS gate PASS CP 80.537 HR 8265.81 dist_l 97961.6 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-48(34)', 'G5': '14-32(19)', 'G6': '1-41(41)'}
+   cont PASS {'G6': ([[20, 41]], [30, 50, 75, 100], [])} []
+    G6 [(20, 30), (21, 50), (22, 75), (23, 100), (24, 100), (25, 100), (26, 100), (27, 75), (28, 100), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100)]
+   ie FASTEST_TERMINAL_CERTIFICATE {}
+D3_g6_unavail wall 0.63 hard FAIL gate FAIL CP 86.827 HR 8536.17 dist_l 149241 mix {'G4': 100, 'G3': 100} merit FAIL
+   viol ["['gas_quota', 'Total Gas Used=80.1538 outside [79.1600,79.2000]']", "['export_range', 'row 1: Export 13.05 < RangeMin 15']", "['runtime_downtime', 'unit G1 down gap rows 14-16 = 3 rows < minimum downtime 6 rows']"]
+   on {'G1': '2-33(29)', 'G2': '1-48(48)', 'G3': '2-46(45)', 'G4': '15-48(26)', 'G5': '2-48(47)'}
+   cont PASS {'G3': ([[22, 46]], [30, 50, 75, 100], []), 'G4': ([[16, 31], [41, 48]], [30, 50, 75, 100], [{'celah_rows': [32, 40], 'proof': 'row 32 tidak eligible (G4 0.00 MW)'}])} []
+    G3 [(22, 30), (23, 50), (24, 50), (25, 50), (26, 50), (27, 50), (28, 50), (29, 50), (30, 50), (31, 50), (32, 50), (33, 50), (34, 50), (35, 50), (36, 50), (37, 50), (38, 50), (39, 50), (40, 50), (41, 50), (42, 50), (43, 50), (44, 75), (45, 75), (46, 100)]
+    G4 [(16, 30), (17, 50), (18, 75), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (30, 100), (31, 100), (41, 30), (42, 50), (43, 75), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   BLOCK ["TERMINAL_INFEASIBLE_EXPORT_ROW_1"]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D3b_first_prio_unavail wall 8.88 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+    G6 [(26, 30), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 75), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D4_g6_stop0800 wall 20.5 hard PASS gate PASS CP 80.453 HR 8264.03 dist_l 97168 mix {'G6': 100, 'G3': 100} merit PASS
+   viol []
+   on {'G1': '16-37(22)', 'G2': '1-48(48)', 'G3': '14-48(35)', 'G5': '14-32(19)', 'G6': '1-15(15)'}
+   cont PASS {'G3': ([[37, 48]], [30, 50, 75, 100], []), 'G6': ([[1, 15]], [30, 50, 75, 100], [])} []
+    G3 [(37, 30), (38, 50), (39, 50), (40, 75), (41, 100), (42, 100), (43, 75), (44, 75), (45, 100), (46, 100), (47, 100), (48, 100)]
+    G6 [(1, 30), (2, 50), (3, 75), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D4b_two_units wall 9.69 hard PASS gate PASS CP 88.1996 HR 8239.87 dist_l 176628.5 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[11, 48]], [30, 50, 75, 100], [])} []
+    G6 [(11, 30), (12, 50), (13, 75), (14, 100), (15, 100), (16, 75), (17, 100), (18, 100), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 75), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D4c_two_units wall 9.84 hard PASS gate PASS CP 99.2948 HR 8239.87 dist_l 287832.9 mix {'G6': 100, 'G4': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G4': ([[17, 34]], [30, 50, 75, 100], []), 'G6': ([[1, 48]], [30, 50, 75, 100], [])} []
+    G4 [(17, 30), (18, 50), (19, 75), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 75), (28, 75), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100)]
+    G6 [(1, 30), (2, 50), (3, 75), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100), (16, 100), (17, 100), (18, 100), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_TERMINAL_CERTIFICATE {}
+D5_g6_stop1000_1400 wall 0.7 hard FAIL gate FAIL CP 91.1641 HR 8552.46 dist_l 188869.6 mix {'G4': 100, 'G3': 50, 'G1': 100} merit FAIL
+   viol ["['gas_quota', 'Total Gas Used=79.5889 outside [79.1600,79.2000]']", "['last_data_status', 'G4 Stop but row0=5']", "['runtime_downtime', 'unit G1 down gap rows 14-16 = 3 rows < minimum downtime 6 rows']", "['last_data_status', 'row 1: G4=5 > 0 but Last Data Status = Stop']", "['min_load', 'row 13: G4=5 below valid minimum 20 outside startup sequence']", "['startup_sequence', 'Invalid 5 MW startup load: G4 has 5 MW at row 13, but unit is not in Additional HRSG or STG 1/2 startup sequence.']"]
+   on {'G1': '2-33(29)', 'G2': '1-48(48)', 'G3': '2-46(45)', 'G4': '1-48(35)', 'G5': '2-48(47)'}
+   cont PASS {'G1': ([[3, 13]], [30, 50, 75, 100], []), 'G3': ([[25, 46]], [30, 50], []), 'G4': ([[2, 12], [16, 31], [46, 48]], [30, 50, 75, 100], [{'celah_rows': [13, 15], 'proof': 'row 13 tidak eligible (G4 5.00 MW)'}, {'celah_rows': [32, 45], 'proof': 'row 32 tidak eligible (G4 0.00 MW)'}])} []
+    G1 [(3, 30), (4, 50), (5, 75), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100)]
+    G3 [(25, 30), (26, 30), (27, 50), (28, 50), (29, 50), (30, 50), (31, 50), (32, 50), (33, 50), (34, 30), (35, 50), (36, 50), (37, 50), (38, 50), (39, 50), (40, 50), (41, 50), (42, 50), (43, 50), (44, 50), (45, 50), (46, 50)]
+    G4 [(2, 30), (3, 50), (4, 75), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 75), (11, 50), (12, 30), (16, 30), (17, 50), (18, 75), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (30, 100), (31, 100), (46, 30), (47, 50), (48, 75)]
+   BLOCK ["TERMINAL_INFEASIBLE_EXPORT_ROW_1"]
+   ie FASTEST_PIPELINE_FUEL_STATE {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D5_two_blocks_fixload wall 16.38 hard FAIL gate FAIL CP 94.6531 HR 8361.6 dist_l 232497.3 mix {'G6': 100, 'G4': 100} merit PASS
+   viol ["['min_load', 'row 30: G6=5 below valid minimum 20 outside startup sequence']", "['startup_sequence', 'Invalid 5 MW startup load: G6 has 5 MW at row 30, but unit is not in Additional HRSG or STG 1/2 startup sequence.']", "['startup_sequence', 'Invalid load drop: G6 dropped from 31 MW to 5 MW without valid startup sequence.']", "['startup_sequence', 'Invalid 5 MW startup load: G6 has 5 MW at row 31, but unit is not in Additional HRSG or STG 1/2 startup sequence.']", "['startup_sequence', 'Invalid 5 MW startup load: G6 has 5 MW at row 32, but unit is not in Additional HRSG or STG 1/2 startup sequence.']", "['startup_sequence', 'Invalid 5 MW startup load: G6 has 5 MW at row 33, but unit is not in Additional HRSG or STG 1/2 startup sequence.']"]
+   on {'G2': '1-48(48)', 'G3': '23-34(12)', 'G4': '15-35(21)', 'G5': '14-37(24)', 'G6': '1-48(48)'}
+   cont PASS {'G4': ([[23, 35]], [30, 50, 75, 100], []), 'G6': ([[1, 29], [34, 48]], [30, 50, 75, 100], [{'celah_rows': [30, 33], 'proof': 'row 30 tidak eligible (G6 5.00 MW)'}])} []
+    G4 [(23, 30), (24, 50), (25, 75), (26, 100), (27, 100), (28, 100), (29, 100), (30, 75), (31, 50), (32, 75), (33, 100), (34, 100), (35, 100)]
+    G6 [(1, 30), (2, 50), (3, 75), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100), (16, 100), (17, 100), (18, 100), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 75), (28, 50), (29, 30), (34, 30), (35, 50), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   BLOCK ["HARD_VALIDATION_FAILED", "NOT_CONVERGED"]
+   ie FASTEST_PIPELINE_FUEL_STATE {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+D5b_two_blocks_stopwin wall 10.58 hard PASS gate PASS CP 98.7983 HR 8462.1 dist_l 267775.5 mix {'G6': 100, 'G4': 100, 'G3': 100} merit PASS
+   viol []
+   on {'G1': '28-48(21)', 'G2': '1-48(48)', 'G3': '30-48(19)', 'G4': '15-31(17)', 'G5': '14-48(35)', 'G6': '1-48(41)'}
+   cont PASS {'G3': ([[38, 48]], [30, 50, 75, 100], []), 'G4': ([[16, 31]], [30, 50, 75, 100], []), 'G6': ([[1, 29], [38, 48]], [30, 50, 75, 100], [{'celah_rows': [30, 37], 'proof': 'row 30 tidak eligible (G6 0.00 MW)'}])} []
+    G3 [(38, 30), (39, 50), (40, 50), (41, 75), (42, 75), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+    G4 [(16, 30), (17, 50), (18, 75), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (30, 100), (31, 100)]
+    G6 [(1, 30), (2, 50), (3, 75), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100), (16, 100), (17, 100), (18, 100), (19, 100), (20, 100), (21, 100), (22, 100), (23, 100), (24, 100), (25, 100), (26, 100), (27, 100), (28, 100), (29, 100), (38, 30), (39, 50), (40, 75), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_PIPELINE {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+R1_pgn25_lng18_pep36_ak4 wall 13.63 hard PASS gate PASS CP 71.7979 HR 8176.34 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '16-35(20)', 'G2': '1-48(48)', 'G3': '10-34(25)', 'G6': '1-48(48)'}
+   cont PASS {} []
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+R2_minflow26 wall 9.87 hard PASS gate PASS CP 79.9047 HR 8239.86 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+    G6 [(26, 30), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 75), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_PIPELINE_FUEL_STATE {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+R2_minflow45_infeas wall 13.76 hard VALID-INFEASIBLE gate FAIL CP 80.8225 HR 8278.33 dist_l 99862.1 mix {'G6': 100} merit PASS
+   viol ["['pgn_rt_min', 'FLOW PGN REAL TIME below Min PGN Flow 45.00 MMSCFD on 34 row(s), first row 1 (30.019 MMSCFD)']"]
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-37(24)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[25, 48]], [30, 50, 75, 100], [])} []
+    G6 [(25, 30), (26, 50), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   BLOCK ["HARD_VALIDATION_FAILED", "NOT_CONVERGED"]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR1_g5_req1600 wall 10.3 hard PASS gate PASS CP 80.8619 HR 8278.58 dist_l 100224 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G3': '25-36(12)', 'G4': '15-37(23)', 'G5': '14-25(12)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[24, 48]], [30, 50, 75, 100], [])} []
+    G6 [(24, 30), (25, 50), (26, 50), (27, 50), (28, 50), (29, 75), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR2_g6_req2100 wall 10.53 hard PASS gate PASS CP 80.537 HR 8265.81 dist_l 97961.6 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-48(34)', 'G5': '14-32(19)', 'G6': '1-41(41)'}
+   cont PASS {'G6': ([[20, 41]], [30, 50, 75, 100], [])} []
+    G6 [(20, 30), (21, 50), (22, 75), (23, 100), (24, 100), (25, 100), (26, 100), (27, 75), (28, 100), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR3_g5_simmust wall 9.69 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+    G6 [(26, 30), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 75), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR4_g6_stop_or_cont wall 9.38 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+    G6 [(26, 30), (27, 50), (28, 50), (29, 50), (30, 75), (31, 75), (32, 100), (33, 100), (34, 100), (35, 75), (36, 75), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR5_g5_continuous wall 6.6 hard PASS gate PASS CP 81.9951 HR 8318.94 dist_l 108816.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '2-48(47)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[23, 48]], [30, 50, 75, 100], [])} []
+    G6 [(23, 30), (24, 50), (25, 75), (26, 100), (27, 100), (28, 75), (29, 100), (30, 100), (31, 100), (32, 100), (33, 100), (34, 100), (35, 100), (36, 100), (37, 100), (38, 100), (39, 100), (40, 100), (41, 100), (42, 100), (43, 100), (44, 100), (45, 100), (46, 100), (47, 100), (48, 100)]
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+SR6_g6_req0800 wall 20.47 hard PASS gate PASS CP 80.453 HR 8264.03 dist_l 97168 mix {'G6': 100, 'G3': 100} merit PASS
+   viol []
+   on {'G1': '16-37(22)', 'G2': '1-48(48)', 'G3': '14-48(35)', 'G5': '14-32(19)', 'G6': '1-15(15)'}
+   cont PASS {'G3': ([[37, 48]], [30, 50, 75, 100], []), 'G6': ([[1, 15]], [30, 50, 75, 100], [])} []
+    G3 [(37, 30), (38, 50), (39, 50), (40, 75), (41, 100), (42, 100), (43, 75), (44, 75), (45, 100), (46, 100), (47, 100), (48, 100)]
+    G6 [(1, 30), (2, 50), (3, 75), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100)]
+== IE WARM
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+IE0_golden wall 9.4 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[18, 26]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 9, 'first_fully_valid_s': 1.151}
+IE3_golden wall 4.27 hard PASS gate PASS CP 80.6838 HR 8234.08 dist_l 101851.8 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[18, 37]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 20, 'first_fully_valid_s': 1.124}
+IE4_golden wall 3.62 hard PASS gate PASS CP 78.8064 HR 8246.91 dist_l 81470.3 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[29, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[23, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 26, 'first_fully_valid_s': 1.13}
+IE5_golden wall 6.64 hard PASS gate PASS CP 80.1821 HR 8232.88 dist_l 96758.1 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[18, 37]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 17, 'first_fully_valid_s': 1.138}
+IE6_golden wall 5.95 hard PASS gate PASS CP 79.9449 HR 8237.63 dist_l 94047.3 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[18, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 31, 'first_fully_valid_s': 1.151}
+IE2_golden wall 4.27 hard PASS gate PASS CP 79.5413 HR 8238.68 dist_l 89701.3 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)', 'affected_windows': [[26, 30]], 'gagal_checks': ['hard_constraints', 'pln_export_48_48', 'full_horizon'], 'violations': ['export_range']}
+IE1_golden wall 10.73 hard PASS gate PASS CP 80.7998 HR 8264.08 dist_l 100814.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G3': '21-32(12)', 'G4': '15-28(14)', 'G5': '14-37(24)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[25, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)', 'affected_windows': [[26, 36]], 'gagal_checks': ['hard_constraints', 'export_reserve_busflow', 'pln_export_48_48', 'full_horizon'], 'violations': ['export_range']}
+IE7_golden wall 10.54 hard PASS gate PASS CP 84.3976 HR 8288.63 dist_l 136400.4 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G3': '21-33(13)', 'G4': '15-36(22)', 'G5': '14-37(24)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[16, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'PENURUNAN_IE_DAPAT_MEMBUAT_UNIT_TIDAK_PERLU -> review commitment penuh (Fastest dingin)'}
+IE0_golden wall 5.52 hard PASS gate PASS CP 79.9049 HR 8239.87 dist_l 93439.7 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '15-34(20)', 'G5': '14-35(22)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[26, 48]], [30, 50, 75, 100], [])} []
+   ie FASTEST_V7_FUEL_FROM_BASIS {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'PENURUNAN_IE_DAPAT_MEMBUAT_UNIT_TIDAK_PERLU -> review commitment penuh (Fastest dingin)'}
+IE8_golden wall 11.85 hard PASS gate PASS CP 72.7544 HR 8248.77 dist_l 20708.8 mix {'G6': 100} merit PASS
+   viol []
+   on {'G2': '1-48(48)', 'G4': '26-37(12)', 'G5': '15-30(16)', 'G6': '1-48(48)'}
+   cont PASS {'G6': ([[42, 48]], [30, 50, 75, 100], [])} []
+== A WARM
+   ie FASTEST_PIPELINE {'cache': 'MISS', 'applied': False, 'alasan_invalidasi': 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA'}
+A0_base wall 13.29 hard PASS gate PASS CP 64.6663 HR 8387.3 dist_l 100939.3 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[11, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 10, 'first_fully_valid_s': 1.436}
+A1_pgn_r13 wall 1.5 hard PASS gate PASS CP 64.7077 HR 8389.74 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[11, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 8, 'first_fully_valid_s': 1.496}
+A3_mm_r13 wall 1.56 hard PASS gate PASS CP 64.6662 HR 8387.03 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[11, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 15, 'first_fully_valid_s': 1.241}
+A7_under wall 1.31 hard PASS gate PASS CP 64.2399 HR 8359.24 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[11, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 15, 'first_fully_valid_s': 1.407}
+A0_base wall 1.47 hard PASS gate PASS CP 64.6652 HR 8386.83 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_IE_WARM_INCREMENTAL {'cache': 'HIT', 'applied': True, 'affected_windows': [[7, 48]], 'commitment_dipertahankan': True, 'rows_dispatch_berubah': 12, 'first_fully_valid_s': 2.924}
+A5_multi wall 3 hard PASS gate PASS CP 64.8157 HR 8396.95 dist_l 0 mix [] merit PASS
+   viol []
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   ie FASTEST_PIPELINE {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)', 'affected_windows': [[7, 48]], 'gagal_checks': ['hard_constraints', 'gas_window', 'pgn_supplier_window', 'full_horizon'], 'violations': ['gas_quota']}
+A2_ffj_r13 wall 11.55 hard VALID-INFEASIBLE gate FAIL CP 64.5684 HR 8394.83 dist_l 105093.2 mix [] merit PASS
+   viol ["['gas_quota', 'Effective PGN PIPE TOTAL 29.7768 < quota-0.04 (29.9600) — pemakaian gas harus dinaikkan (up-dispatch) sampai Pipe masuk window; LNG fixed tidak b", "['gas_quota', 'Total Gas Used=64.4641 outside [64.5600,64.6000]']"]
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   BLOCK ["HARD_VALIDATION_FAILED", "NOT_CONVERGED"]
+   ie FASTEST_PIPELINE {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)', 'affected_windows': [[7, 48]], 'gagal_checks': ['hard_constraints', 'gas_window', 'pgn_supplier_window', 'full_horizon'], 'violations': ['gas_quota']}
+A4_all_r13 wall 11.14 hard VALID-INFEASIBLE gate FAIL CP 64.5964 HR 8394.81 dist_l 101977.8 mix [] merit PASS
+   viol ["['gas_quota', 'Effective PGN PIPE TOTAL 29.8324 < quota-0.04 (29.9600) — pemakaian gas harus dinaikkan (up-dispatch) sampai Pipe masuk window; LNG fixed tidak b", "['gas_quota', 'Total Gas Used=64.5247 outside [64.5600,64.6000]']"]
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   BLOCK ["HARD_VALIDATION_FAILED", "NOT_CONVERGED"]
+   ie FASTEST_PIPELINE {'cache': 'HIT', 'applied': False, 'alasan_invalidasi': 'COMMITMENT_BASIS_TIDAK_FEASIBLE_UNTUK_IE_BARU -> commitment repair (Fastest penuh)', 'affected_windows': [[7, 48]], 'gagal_checks': ['hard_constraints', 'gas_window', 'pgn_supplier_window', 'full_horizon'], 'violations': ['gas_quota']}
+A6_over wall 12.64 hard VALID-INFEASIBLE gate FAIL CP 65.0476 HR 8394.83 dist_l 105093.2 mix [] merit PASS
+   viol ["['gas_quota', 'gas quota exceeded: Effective PGN PIPE TOTAL 30.5177 > quota 30.0000 (over 0.5177) — actual jam terukur menaikkan pemakaian dan redispatch future", "['gas_quota', 'Total Gas Used=65.1050 outside [64.5600,64.6000]']"]
+   on {'G1': '1-48(48)', 'G5': '26-37(12)'}
+   cont PASS {} []
+   BLOCK ["HARD_VALIDATION_FAILED", "NOT_CONVERGED"]
+DONE
+ALLDONE

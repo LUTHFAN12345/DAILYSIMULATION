@@ -1,0 +1,78 @@
+{
+ "errs": [],
+ "sync": {
+  "stop_to_cont": {
+   "commit": "continuous",
+   "stop": "-",
+   "stopAt": "",
+   "modeSel": "continuous",
+   "stopSel": "continuous",
+   "rm": {
+    "mode": "continuous"
+   },
+   "sm": null,
+   "cannot": true
+  },
+  "cont_to_request": {
+   "commit": "-",
+   "stop": "request",
+   "stopAt": "16:00",
+   "modeSel": "-",
+   "stopSel": "request",
+   "rm": null,
+   "sm": {
+    "mode": "stop_at",
+    "at": "16:00"
+   },
+   "cannot": false
+  },
+  "mode_to_cont": {
+   "commit": "continuous",
+   "stop": "-",
+   "stopAt": "",
+   "modeSel": "continuous",
+   "stopSel": "continuous",
+   "rm": {
+    "mode": "continuous"
+   },
+   "sm": null,
+   "cannot": true
+  },
+  "pass": true
+ },
+ "t": 12.317,
+ "msg_desktop": {
+  "text": "FINAL · Fastest - Default · 11,1 detik · kandidat 35 / valid 12 · CP 79.9049 USD/MWh · HR 8,239.87 BTU/kWh · bahan bakar use_distillate (tekan Save untuk menyimpan)",
+  "lines": 1,
+  "h": 0
+ },
+ "msg_full": {
+  "text": "FINAL · Fastest - Default · 11,1 detik · kandidat 35 / valid 12 · CP 79.9049 USD/MWh · HR 8,239.87 BTU/kWh · bahan bakar use_distillate (tekan Save untuk menyimpan)",
+  "lines": 1,
+  "h": 0
+ },
+ "msg_mobile": {
+  "text": "FINAL · Fastest - Default · 11,1 detik · kandidat 35 / valid 12 · CP 79.9049 USD/MWh · HR 8,239.87 BTU/kWh · bahan bakar use_distillate (tekan Save untuk menyimpan)",
+  "lines": 1,
+  "h": 0
+ },
+ "overflow_mobile": 0,
+ "dist": {
+  "excel_cols": [
+   "Distillate G6 (%)"
+  ],
+  "excel_has75": true,
+  "levels_from_rows": {},
+  "audit": "PASS",
+  "keys_sample": [
+   "Dist_Total",
+   "Dist_G6",
+   "DistMix_G6"
+  ]
+ },
+ "msg_error": {
+  "text": "Run gagal: Failed to fetch",
+  "lines": 1,
+  "h": 0
+ }
+}

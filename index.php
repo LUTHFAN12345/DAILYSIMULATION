@@ -1512,7 +1512,7 @@ ul.csverr li{margin:2px 0}
 
   <footer class="main-footer">
     <span><b>Daily Plan Simulation Online - Operation Department</b></span>
-    <span class="ff-right">BUILD SYSTEMIC-SHORTAGE-PROOF-V7-TESTABLE-UNVERIFIED · Light dashboard · runs locally on XAMPP</span>
+    <span class="ff-right">BUILD V15.17-OPERATIONAL-AUDIT-IE-ADJUSTMENT · Light dashboard · runs locally on XAMPP</span>
   </footer>
 
 </div><!-- /wrapper -->
@@ -2336,7 +2336,10 @@ const COMMIT_MODES=[['-','-'],['simulation','Start Based On Simulation'],['reque
    optimizer) | Stop Based On Request (waktu ditentukan user) | Stop Based On Simulation or
    Continuous Running (OPTIONAL: optimizer membandingkan stop vs continuous). Enum internal
    'sim_must' baru; 'sim'/'request' dipertahankan agar data lama tetap terbaca. */
-const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based On Simulation or Continuous Running']];
+const STOP_MODES=[['-','-'],['sim_must','Stop Based On Simulation'],['request','Stop Based On Request'],['sim','Stop Based On Simulation or Continuous Running'],['continuous','Unit Continuous Running']];
+/* V15.17 (ADDENDUM OPERASIONAL §7): 'Unit Continuous Running' di STOP STATUS tersinkron dua arah dengan Commitment Mode = Unit
+   Continuous Running. Enum kanonik payload TETAP satu: required_mode[u] = {mode:'continuous'} + unit_cannot_stop (stop_mode tidak
+   memuat entri untuk unit continuous), sehingga tidak ada dua field yang bertentangan. */
 const STOPAT_TIMES=(()=>{const a=[];for(let m=30;m<24*60;m+=30){const h=String(Math.floor(m/60)).padStart(2,'0'),mm=String(m%60).padStart(2,'0');a.push(h+':'+mm);}a.push('00:00');return a;})();
 let REQUIRED_ORDER=[];   // units committed via Request/Simulation (run at least once)
 let CANNOT_STOP=[];      // units in Continuous Running (cannot stop) — auto-generated, no UI column
@@ -2395,7 +2398,10 @@ function coBlockPrimary(num){
   const ord=(UP_STATE[b.name]&&UP_STATE[b.name].length)?UP_STATE[b.name]:b.gtg;
   return {gtg:(ord&&ord[0]?(''+ord[0]).toLowerCase():''), stg:(b.stg?(''+b.stg).toLowerCase():'')};
 }
+let CO_INITED=false;   /* V15.17: sebelum coInit membaca input, model TIDAK boleh ditimpa default {enabled:false} (bug urutan init:
+   applyCommitToModel() dipanggil lebih dulu -> change_over input hilang -> Change Over tidak pernah terkirim/tersimpan). */
 function buildChangeOverObj(){
+  if(!CO_INITED){ const m0=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{}; return m0.change_over||{enabled:false}; }
   if(!CHANGE_OVER.enabled) return {enabled:false};
   const mk=(num)=>{
     const last=coLastStatus(num); const prim=coBlockPrimary(num);
@@ -2441,7 +2447,7 @@ function coRender(){
 function coInit(){
   const m=(INPUT.data3&&INPUT.data3.modeling)||{};
   const co=m.change_over||{};
-  CHANGE_OVER.enabled=!!co.enabled;
+  CHANGE_OVER.enabled=!!co.enabled; CO_INITED=true;
   if(co.blocks){ ['1','2'].forEach(n=>{ const b=co.blocks[n]||{};
     CHANGE_OVER.b[n].startOther=b.start_other||'sim'; CHANGE_OVER.b[n].stopOther=b.stop_other||'sim'; }); }
   const yes=$('co-yes'), no=$('co-no');
@@ -2499,7 +2505,7 @@ function renderUnitFlags(){
     const uldLocked=(mode!=='-');
     const uldV=isCont?'Running':(req?'Stop':uldStatusOf(u));
     const uldRun=/run/i.test(uldV);
-    const smode=isCont?'-':(STOP_MODE[u]||'-');
+    const smode=isCont?'continuous':(STOP_MODE[u]||'-');
     const sOpts=STOP_MODES.map(([v,lbl])=>`<option value="${v}"${v===smode?' selected':''}>${lbl}</option>`).join('');
     const isStopReq=(smode==='request');
     const saOpts=['<option value=""'+((STOP_AT[u]||'')===''?' selected':'')+'>-</option>']
@@ -2510,7 +2516,7 @@ function renderUnitFlags(){
       <td style="text-align:center"><input type="checkbox" data-flag="req" data-u="${u}" ${req?'checked':''}></td>
       <td style="text-align:center"><select class="uld-sel" data-flag="mode" data-u="${u}" ${req?'':'disabled'} style="min-width:190px">${opts}</select></td>
       <td style="text-align:center"><input type="time" data-flag="startat" data-u="${u}" value="${START_AT[u]||''}" ${isReq?'':'disabled'} style="width:108px"></td>
-      <td style="text-align:center"><select data-flag="stopmode" data-u="${u}" ${isCont?'disabled':''} style="min-width:230px">${sOpts}</select></td>
+      <td style="text-align:center"><select data-flag="stopmode" data-u="${u}" style="min-width:230px" title="${isCont?'Unit Continuous Running (sinkron dengan Commitment Mode); pilih status lain untuk melepas continuous':''}">${sOpts}</select></td>
       <td style="text-align:center"><select data-flag="stopat" data-u="${u}" ${isStopReq?'':'disabled'} style="width:90px">${saOpts}</select></td></tr>`;
   });
   const t=$('tbl-unit-flags'); if(!t)return; t.innerHTML=h;
@@ -2526,8 +2532,11 @@ function renderUnitFlags(){
     } else if(kind==='startat'){
       START_AT[u]=e.target.value;
     } else if(kind==='stopmode'){
-      STOP_MODE[u]=e.target.value;
-      if(STOP_MODE[u]!=='request') STOP_AT[u]='';
+      const sv=e.target.value;
+      if(sv==='continuous'){ COMMIT_MODE[u]='continuous'; setUnitLast(u,'Running'); STOP_MODE[u]='-'; STOP_AT[u]='';
+        if(typeof toast==='function')toast(`${UL(u)} Unit Continuous Running → Commitment Mode ikut Continuous Running (wajib berbeban sampai 00:00, tidak boleh stop)`); }
+      else { if(COMMIT_MODE[u]==='continuous'){ COMMIT_MODE[u]='-'; if(typeof toast==='function')toast(`${UL(u)} keluar dari Continuous Running → Commitment Mode '-' (Stop Status: ${e.target.selectedOptions[0].text})`); }
+        STOP_MODE[u]=sv; if(STOP_MODE[u]!=='request') STOP_AT[u]=''; }
     } else if(kind==='stopat'){
       STOP_AT[u]=e.target.value;
     } else if(kind==='uld'){
@@ -4215,9 +4224,18 @@ function ieChartData(){ const ie=Array(48).fill(null), dp=Array(48).fill(null);
   document.querySelectorAll('[data-disp]').forEach(e=>{const i=+e.dataset.disp; if(i>=0&&i<48) dp[i]=num(e.value);});
   return {ie, dp}; }
 function ieSlotLabel(i){ const m=(i+1)*30, h=Math.floor(m/60)%24, mm=m%60; return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+/* V15.17: deret IE Adjustment per row dari tabel IE Adjustment — aturan SAMA dengan engine (pp_apply_ie_adjustment):
+   Start/Stop = label row inklusif (00:30 = row 1, 00:00 = row 48); Start 00:00 = awal hari. */
+function ieAdjRowsOf(r){ const S=hm2min(r.start), E0=hm2min(r.stop); if(S==null||E0==null) return null; const E=E0===0?1440:E0;
+  const a=S<=0?1:Math.ceil(S/30), b=Math.min(48,Math.ceil(E/30)); return (b>=a)?[a,b]:null; }
+function ieAdjSeries(){ const adj=new Array(48).fill(0);
+  (typeof IEADJ_RULES!=='undefined'?IEADJ_RULES:[]).forEach(r=>{ const v=(r.op==='-'?-1:1)*Math.abs(num(r.value)); if(!v) return; const rr=ieAdjRowsOf(r); if(!rr) return; for(let k=rr[0];k<=rr[1];k++) adj[k-1]+=v; });
+  return adj; }
 function drawIEChart(){ const svg=document.getElementById('ie-chart'); if(!svg) return; const wrap=document.getElementById('ie-chart-wrap');
   const W=Math.max(320, (wrap&&wrap.clientWidth)||900), H=260, L=52, R=14, T=12, B=46; svg.setAttribute('viewBox','0 0 '+W+' '+H);
-  const {ie, dp}=ieChartData(); const vals=ie.concat(dp).filter(v=>v!=null&&isFinite(v));
+  const {ie, dp}=ieChartData(); const adj=ieAdjSeries(); const hasAdj=adj.some(v=>Math.abs(v)>1e-9);
+  const eff=ie.map((v,i)=>v==null?null:v+adj[i]);
+  const vals=ie.concat(dp).concat(hasAdj?eff:[]).filter(v=>v!=null&&isFinite(v));
   let lo=vals.length?Math.min(0,...vals):0, hi=vals.length?Math.max(...vals):1; if(hi<=lo) hi=lo+1; const pad=(hi-lo)*0.08; hi+=pad; if(lo<0) lo-=pad;
   const step=(()=>{const r=(hi-lo)/5, p=Math.pow(10,Math.floor(Math.log10(r))); const n=r/p; return (n<=1?1:n<=2?2:n<=5?5:10)*p;})();
   lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
@@ -4229,17 +4247,19 @@ function drawIEChart(){ const svg=document.getElementById('ie-chart'); if(!svg) 
   const path=a=>a.map((v,i)=>(v==null?'':(i===0||a[i-1]==null?'M':'L')+X(i).toFixed(1)+','+Y(v).toFixed(1))).join(' ');
   g+=`<path d="${path(dp)}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="5 3"/>`;
   g+=`<path d="${path(ie)}" fill="none" stroke="#2563eb" stroke-width="2"/>`;
+  if(hasAdj){ g+=`<path id="ie-chart-eff" d="${path(eff)}" fill="none" stroke="#059669" stroke-width="2.5"/>`;
+    g+=`<g font-size="11" fill="#334155"><rect x="${W-R-250}" y="${T+2}" width="10" height="3" fill="#2563eb"/><text x="${W-R-236}" y="${T+7}">IE Prediction</text><rect x="${W-R-150}" y="${T+2}" width="10" height="3" fill="#059669"/><text x="${W-R-136}" y="${T+7}">IE Effective (+Adj)</text></g>`; }
   g+=`<line id="ie-chart-cross" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#94a3b8" stroke-dasharray="3 3" style="display:none"/>`;
   g+=`<circle id="ie-chart-dot" r="4" fill="#2563eb" stroke="#fff" stroke-width="2" style="display:none"/>`;
   g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="ie-chart-hit"/>`;
-  svg.innerHTML=g; svg.dataset.n=String(ie.filter(v=>v!=null).length);
+  svg.innerHTML=g; svg.dataset.n=String(ie.filter(v=>v!=null).length); svg.dataset.adjRows=String(adj.filter(v=>Math.abs(v)>1e-9).length);
   const ieV=ie.filter(v=>v!=null); const st=document.getElementById('ie-chart-stats');
-  if(st&&ieV.length){ const mx=Math.max(...ieV), mn=Math.min(...ieV); st.textContent=`IE min ${fmt(mn,1)} · max ${fmt(mx,1)} MW (${ieSlotLabel(ie.indexOf(mx))}) · rata-rata ${fmt(ieV.reduce((a,b)=>a+b,0)/ieV.length,1)} MW`; }
+  if(st&&ieV.length){ const mx=Math.max(...ieV), mn=Math.min(...ieV); st.textContent=`IE min ${fmt(mn,1)} · max ${fmt(mx,1)} MW (${ieSlotLabel(ie.indexOf(mx))}) · rata-rata ${fmt(ieV.reduce((a,b)=>a+b,0)/ieV.length,1)} MW`+(hasAdj?` · IE Adjustment pada ${adj.filter(v=>Math.abs(v)>1e-9).length} row (Σ ${fmt(adj.reduce((a,b)=>a+b,0)/2,1)} MWh)`:''); }
   const hit=document.getElementById('ie-chart-hit'), tip=document.getElementById('ie-chart-tip');
   if(hit&&tip){ hit.addEventListener('pointermove',ev=>{ const r=svg.getBoundingClientRect(); const sx=(ev.clientX-r.left)*W/r.width; const i=Math.max(0,Math.min(47,Math.round((sx-L)/(W-L-R)*47)));
       const cr=document.getElementById('ie-chart-cross'), dt=document.getElementById('ie-chart-dot'); const x=X(i);
       cr.setAttribute('x1',x); cr.setAttribute('x2',x); cr.style.display=''; if(ie[i]!=null){ dt.setAttribute('cx',x); dt.setAttribute('cy',Y(ie[i])); dt.style.display=''; }
-      tip.innerHTML=`<b>${ieSlotLabel(i)}</b> (slot ${i+1})<br>IE: ${ie[i]==null?'-':fmt(ie[i],1)} MW<br>Dispatch PLN: ${dp[i]==null?'-':fmt(dp[i],1)} MW`;
+      tip.innerHTML=`<b>${ieSlotLabel(i)}</b> (slot ${i+1})<br>IE: ${ie[i]==null?'-':fmt(ie[i],1)} MW`+(hasAdj?`<br>IE Adjustment: ${(adj[i]>0?'+':'')+fmt(adj[i],1)} MW<br><b>IE Effective: ${eff[i]==null?'-':fmt(eff[i],1)} MW</b>`:'')+`<br>Dispatch PLN: ${dp[i]==null?'-':fmt(dp[i],1)} MW`;
       tip.style.display='block'; const px=x*r.width/W; tip.style.left=Math.min(r.width-170,Math.max(0,px+12))+'px'; tip.style.top='8px'; });
     hit.addEventListener('pointerleave',()=>{ tip.style.display='none'; const cr=document.getElementById('ie-chart-cross'), dt=document.getElementById('ie-chart-dot'); if(cr) cr.style.display='none'; if(dt) dt.style.display='none'; }); }
 }
@@ -5775,7 +5795,12 @@ function finalizeSimulationUI(payload,data,messageHtml){
         title='FINAL OPTIMAL — CATATAN KANDIDAT LEBIH MURAH'; color='amber';
       }
       tlBanner(title,color,st,det+v11AuditExtra(data));
-      if(rm && !/v11-rm/.test(rm.innerHTML)) rm.innerHTML+=(rm.innerHTML?' ':'')+'<span class="v11-rm" style="color:#166534">· <b>'+gsfEsc(title)+'</b> — '+tlSummaryHtml(st)+'</span>';
+      /* V15.17 (ADDENDUM OPERASIONAL §2): area hasil hanya satu baris status ringkas — status, mode, elapsed, kandidat, CP, HR.
+         Uraian/audit lengkap tetap di Summary (banner + Detail audit + Notes & warnings) dan export. */
+      if(rm){ const s2=v11Norm(st); const inf=(data&&data.info)||{}; const hr=inf['JBBK MM Heat Rate (BTU/kWh)'];
+        const fa=String((((payload||{}).data3||{}).modeling||{}).gas_shortage_action||''); const fuelNote=(fa==='add_lng'||fa==='use_distillate')?' · bahan bakar '+gsfEsc(fa)+' (tekan Save untuk menyimpan)':'';
+        rm.innerHTML='<span class="v11-rm" style="color:#166534"><b>'+gsfEsc(/FINAL|VALID/i.test(title)?'FINAL':title)+'</b> · '+v11TargetLabel(s2.target)+' · '+tlFmtS(s2.elapsed)+' detik · kandidat '+s2.evaluated+' / valid '+s2.valid
+          +' · CP '+(s2.cp!=null?fmt(s2.cp,4)+' USD/MWh':'—')+(hr!=null?' · HR '+fmt(hr,2)+' BTU/kWh':'')+fuelNote+'</span>'; }
     }
   }catch(e){ try{ console.error('V11 SUMMARY',e); }catch(_){} }
 }
@@ -6280,7 +6305,7 @@ async function saveInput(){
  * type: 't' time (HH:MM only), 'g' gas (3 dp), 'act:KEY' manual actual input,
  * '' numeric (2 dp). G7/G10, pln_lo/pln_hi/in_band are intentionally NOT shown. */
 const COLS=[
-  ['Time','t','TIME','time'],['HL','','HOUSELOAD (MW)','hl'],['IE','','IE (MW)','ie'],['Dispatch','','DISPATCH PLN (MW)','dispatch'],
+  ['Time','t','TIME','time'],['HL','','HOUSELOAD (MW)','hl'],['IE','','IE EFFECTIVE (MW)','ie'],['Dispatch','','DISPATCH PLN (MW)','dispatch'],
   ['Export_PLN','','EXPORT PLN (MW)','export'],
   ['G3','','G3 (MW)','gtg'],['G4','','G4 (MW)','gtg'],['G6','','G6 (MW)','gtg'],['S1','','S1 (MW)','stg'],
   ['G1','','G1 (MW)','gtg'],['G2','','G2 (MW)','gtg'],['G5','','G5 (MW)','gtg'],['S2','','S2 (MW)','stg'],
@@ -6839,7 +6864,7 @@ function earliestFreeStart(){
 }
 function renderIeAdj(){
   const host=$('tbl-ie-adj'); if(!host) return;
-  let h='<tr><th>No</th><th>Operator</th><th>Adjustment Value</th><th>Start Period</th><th>Stop Period</th><th>Action</th></tr>';
+  let h='<tr><th>No</th><th>Operator</th><th>Adjustment Value</th><th>Start Period</th><th>Stop Period</th><th>Action</th><th>Row</th></tr>';
   if(!IEADJ_RULES.length) h+='<tr><td colspan="6" class="sched-empty">No IE adjustment. Click “+ Add IE Adjustment”.</td></tr>';
   IEADJ_RULES.forEach((r,i)=>{
     h+=`<tr>
@@ -6849,11 +6874,12 @@ function renderIeAdj(){
       <td><select data-ie="start" data-i="${i}">${ieStartOptions(i)}</select></td>
       <td><select data-ie="stop" data-i="${i}">${ieStopOptions(i)}</select></td>
       <td><button type="button" class="rowdel" data-ie="del" data-i="${i}" title="Remove">✕</button></td>
+      <td class="ieadj-rows" style="color:#64748b;font-size:12px">${(()=>{const rr=ieAdjRowsOf(r); return rr?('row '+rr[0]+'–'+rr[1]+' ('+(rr[1]-rr[0]+1)+' slot)'):'-';})()}</td>
     </tr>`;
   });
   host.innerHTML=h;
-  host.querySelectorAll('[data-ie="op"]').forEach(el=>el.onchange=e=>{IEADJ_RULES[+e.target.dataset.i].op=e.target.value;});
-  host.querySelectorAll('[data-ie="value"]').forEach(el=>el.oninput=e=>{IEADJ_RULES[+e.target.dataset.i].value=num(e.target.value);});
+  host.querySelectorAll('[data-ie="op"]').forEach(el=>el.onchange=e=>{IEADJ_RULES[+e.target.dataset.i].op=e.target.value; try{drawIEChart();}catch(x){}});
+  host.querySelectorAll('[data-ie="value"]').forEach(el=>el.oninput=e=>{IEADJ_RULES[+e.target.dataset.i].value=num(e.target.value); try{drawIEChart();}catch(x){}});
   host.querySelectorAll('[data-ie="start"]').forEach(el=>el.onchange=e=>{
     const i=+e.target.dataset.i, v=e.target.value;
     if(ieWouldOverlap(i,v,IEADJ_RULES[i].stop)){ toast('IE Adjustment period cannot overlap with existing adjustment period.'); renderIeAdj(); return; }
@@ -6866,6 +6892,7 @@ function renderIeAdj(){
   });
   host.querySelectorAll('[data-ie="del"]').forEach(el=>el.onclick=e=>{IEADJ_RULES.splice(+e.target.dataset.i,1);renderIeAdj();});
   const add=$('btn-ieadj-add'); if(add) add.disabled=IEADJ_RULES.length>=5;
+  try{ drawIEChart(); }catch(x){}
 }
 function ieWouldOverlap(idx,start,stop){
   const s=hm2min(start), e=ieStopMin(stop); if(s==null||e==null||e<=s) return false;
@@ -7300,13 +7327,18 @@ function resultToHTMLTable(){
   let s='<table border="1"><tr><th colspan="2">'+(INPUT.data3.modeling.name_plan||'Daily Plan')+'</th></tr>';
   if(OUTPUT.time_limited===true) s+='<tr><th colspan="2" style="background:#fef3c7">TIME-LIMITED VALID PLAN — BEST VALID WITHIN TIME LIMIT (Global optimum proven: NO)</th></tr>';
   Object.keys(info).forEach(k=>{if(k==='Warnings'||k==='Distillate per unit (l)')return;
-    s+=`<tr><td>${k}</td><td>${info[k]}</td></tr>`;});
-  s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+'</tr>';
+    const iv=info[k]; const sv=(iv!==null&&typeof iv==='object')?esc(JSON.stringify(iv)):iv;   // V15.17: objek diekspor sebagai JSON, bukan [object Object]
+    s+=`<tr><td>${k}</td><td>${sv}</td></tr>`;});
+  /* V15.17: kolom Distillate per unit (level 30/50/75/100 % dan liter per row) + IE Prediction/Adjustment/Effective */
+  const dU=['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'].filter(u=>rows.some(r=>+(r['DistMix_'+u]||0)>0));
+  const xCols=[]; dU.forEach(u=>{ xCols.push(['DistMix_'+u,'Distillate '+u+' (%)',v=>v?Math.round(+v*100):'']); xCols.push(['Dist_'+u,'Distillate '+u+' (l)',v=>v??'']); });
+  if(rows.some(r=>r.IE_Pred!=null)) [['IE_Pred','IE Prediction (MW)'],['IE_Adj','IE Adjustment (MW)'],['IE','IE Effective (MW)']].forEach(([k,t])=>xCols.push([k,t,v=>v??'']));
+  s+='</table><br><table border="1"><tr>'+COLS.map(c=>`<th>${c[2]}</th>`).join('')+xCols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr>';
   rows.forEach((r,ri)=>{s+='<tr>'+COLS.map(c=>{
     const fk=fixKeyOf(c[0]); const fx=fk?cellFixed(fk,ri):null;
     if(fx!=null) return `<td style="background:#ffd2d2;font-weight:bold">${fmt(fx,2)}</td>`;
     return `<td>${r[c[0]]??''}</td>`;
-  }).join('')+'</tr>';});
+  }).join('')+xCols.map(c=>`<td>${c[2](r[c[0]])}</td>`).join('')+'</tr>';});
   return s+'</table>';
 }
 /* ===== PROMPT PLAN SAVE §2 — pilihan Save khusus tab Plan =====================================

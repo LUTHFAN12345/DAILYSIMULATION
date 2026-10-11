@@ -1,0 +1,28 @@
+{
+ "errs": [],
+ "payloads": [
+  {
+   "t": 1791678747664,
+   "co": true,
+   "act": "recommendation",
+   "lng": 0
+  },
+  {
+   "t": 1791678770390,
+   "co": true,
+   "act": "add_lng",
+   "lng": 0.3325
+  }
+ ],
+ "t_total": 24.737,
+ "t_popup": 22.66,
+ "msg_raw": "FINAL · Fastest - Default · 23,1 detik · kandidat 1 / valid 1 · CP 65.1851 USD/MWh · HR 8,475.31 BTU/kWh · bahan bakar add_lng (tekan Save untuk menyimpan)",
+ "gate": "PASS",
+ "blk": [],
+ "cp": 65.1851,
+ "hr": 8475.31,
+ "merit": "PASS",
+ "co": "sim/sim (bounded timeline optimisation)",
+ "co_exec": true,
+ "msg": "FINAL · Fastest - Default · 23,1 detik · kandidat 1 / valid 1 · CP 65.1851 USD/MWh · HR 8,475.31 BTU/kWh · bahan bakar add_lng (tekan Save untuk menyimpan)"
+}

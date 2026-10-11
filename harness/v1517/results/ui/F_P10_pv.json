@@ -1,0 +1,27 @@
+{
+ "errs": [],
+ "payloads": [
+  {
+   "t": 1791678724460,
+   "co": false,
+   "act": "recommendation",
+   "lng": 0
+  },
+  {
+   "t": 1791678731247,
+   "co": false,
+   "act": "add_lng",
+   "lng": 6.7768
+  }
+ ],
+ "t_total": 15.345,
+ "t_popup": 6.543,
+ "msg_raw": "FINAL · Fastest - Default · 14,1 detik · kandidat 12 / valid 1 · CP 74.933 USD/MWh · HR 8,549.41 BTU/kWh · bahan bakar add_lng (tekan Save untuk menyimpan)",
+ "gate": "PASS",
+ "blk": [],
+ "cp": 74.933,
+ "hr": 8549.41,
+ "merit": "PASS",
+ "msg": "FINAL · Fastest - Default · 14,1 detik · kandidat 12 / valid 1 · CP 74.933 USD/MWh · HR 8,549.41 BTU/kWh · bahan bakar add_lng (tekan Save untuk menyimpan)",
+ "mode": "FASTEST_V7_FUEL_FROM_BASIS"
+}

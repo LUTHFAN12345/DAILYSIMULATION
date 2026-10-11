@@ -1,0 +1,32 @@
+{
+ "errs": [],
+ "A": {
+  "uid": "ue88590b867c1aa4379385830",
+  "gate": "PASS",
+  "cp": 79.9617,
+  "adj_rows": 29,
+  "adj_sum": 30,
+  "consistent": true,
+  "ui_rules": 3,
+  "chart_adj": "29",
+  "s": 17.2,
+  "payload_rules": 3
+ },
+ "B": {
+  "uid": "u2b2ae7e62e932c1ee7167a25",
+  "gate": "PASS",
+  "cp": 79.9049,
+  "adj_rows": 0,
+  "adj_sum": 0,
+  "consistent": true,
+  "ui_rules": 0,
+  "chart_adj": "0",
+  "s": 10.4,
+  "payload_rules": 0
+ },
+ "B_chart_after_A": {
+  "rules": 0,
+  "adjRows": "0"
+ },
+ "pass": true
+}

@@ -1,0 +1,22 @@
+{
+ "errs": [],
+ "payloads": [
+  {
+   "t": 1791680130443,
+   "co": true,
+   "act": "recommendation",
+   "lng": 0
+  }
+ ],
+ "t_total": 3.016,
+ "t_popup": null,
+ "msg_raw": "FINAL · Fastest - Default · 1,7 detik · kandidat 1 / valid 1 · CP 64.5875 USD/MWh · HR 8,369.12 BTU/kWh",
+ "gate": "PASS",
+ "blk": [],
+ "cp": 64.5875,
+ "hr": 8369.12,
+ "merit": "PASS",
+ "co": "sim/sim (bounded timeline optimisation)",
+ "co_exec": true,
+ "msg": "FINAL · Fastest - Default · 1,7 detik · kandidat 1 / valid 1 · CP 64.5875 USD/MWh · HR 8,369.12 BTU/kWh"
+}

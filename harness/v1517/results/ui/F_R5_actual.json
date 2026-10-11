@@ -1,0 +1,21 @@
+{
+ "errs": [],
+ "payloads": [
+  {
+   "t": 1791678774886,
+   "co": false,
+   "act": "recommendation",
+   "lng": 0
+  }
+ ],
+ "t_total": 13.079,
+ "t_popup": null,
+ "msg_raw": "FINAL · Fastest - Default · 12,0 detik · kandidat 14 / valid 2 · CP 64.6663 USD/MWh · HR 8,387.22 BTU/kWh",
+ "gate": "PASS",
+ "blk": [],
+ "cp": 64.6663,
+ "hr": 8387.22,
+ "merit": "PASS",
+ "msg": "FINAL · Fastest - Default · 12,0 detik · kandidat 14 / valid 2 · CP 64.6663 USD/MWh · HR 8,387.22 BTU/kWh",
+ "mode": "FASTEST_PIPELINE"
+}

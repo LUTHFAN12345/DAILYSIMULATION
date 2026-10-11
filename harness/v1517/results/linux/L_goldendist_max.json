@@ -1,0 +1,27 @@
+{
+ "errs": [],
+ "payloads": [
+  {
+   "t": 1791680065530,
+   "co": false,
+   "act": "recommendation",
+   "lng": 0
+  },
+  {
+   "t": 1791680073522,
+   "co": false,
+   "act": "use_distillate",
+   "lng": 0
+  }
+ ],
+ "t_total": 26.055,
+ "t_popup": null,
+ "msg_raw": "FINAL · Maximum Review · 25,1 detik · kandidat 52 / valid 20 · CP 79.9049 USD/MWh · HR 8,239.87 BTU/kWh · bahan bakar use_distillate (tekan Save untuk menyimpan)",
+ "gate": "PASS",
+ "blk": [],
+ "cp": 79.9049,
+ "hr": 8239.87,
+ "merit": "PASS",
+ "msg": "FINAL · Maximum Review · 25,1 detik · kandidat 52 / valid 20 · CP 79.9049 USD/MWh · HR 8,239.87 BTU/kWh · bahan bakar use_distillate (tekan Save untuk menyimpan)",
+ "mode": "V7_FUEL_RERUN_DELTA"
+}

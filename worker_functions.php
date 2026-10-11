@@ -159,8 +159,16 @@ function pp_apply_ie_adjustment(array $data1, array $adjustments): array {
         $sMin = $toMin($adj['start_period'] ?? null, false);
         $eMin = $toMin($adj['stop_period'] ?? null, true);
         if ($sMin !== null && $eMin !== null) {
-            $start = (int)floor($sMin / 30) + 1;               // row whose start >= sMin
-            $stop  = (int)ceil($eMin / 30);                    // row whose end <= eMin
+            if ((string)getenv('PP_IE_LABEL_INCLUSIVE') !== '0') {
+                /* V15.17: Start/Stop Period adalah LABEL row inklusif (row r berlabel r x 30 menit: 00:30 = row 1, 00:00 = row 48),
+                 * sama dengan UI (aturan berikutnya mulai pada label sesudah Stop). "10:00-12:00" = row 20..24; "18:00-00:00" = row 36..48.
+                 * Start 00:00 = awal hari (row 1). Pemetaan lama (floor+1) melewatkan row label Start (mis. 10:00). */
+                $start = $sMin <= 0 ? 1 : (int)ceil($sMin / 30);
+                $stop  = (int)ceil($eMin / 30);
+            } else {
+                $start = (int)floor($sMin / 30) + 1;               // row whose start >= sMin
+                $stop  = (int)ceil($eMin / 30);                    // row whose end <= eMin
+            }
         } else {
             $start = (int)($adj['start'] ?? 1);
             $stop  = (int)($adj['stop'] ?? 48);
@@ -177,6 +185,13 @@ function pp_apply_ie_adjustment(array $data1, array $adjustments): array {
         $vals[$i] = $v;
     }
     return $vals;
+}
+/* V15.17: deret IE per row — prediksi, adjustment (delta), dan efektif = prediksi + adjustment (satu sumber kebenaran). */
+function pp_ie_series(array $input): array {
+    $d1 = (array)($input['data1'] ?? []); $m = (array)($input['data3']['modeling'] ?? []);
+    $adj = $m['ie_adjustments'] ?? $m['ie_adjustment'] ?? []; $eff = pp_apply_ie_adjustment($d1, is_array($adj) ? $adj : []);
+    $pred = []; $delta = []; foreach ($d1 as $i => $r) { $pred[$i] = (float)($r['value'] ?? 0); $delta[$i] = round((float)($eff[$i] ?? $pred[$i]) - $pred[$i], 6); }
+    return ['pred' => $pred, 'adj' => $delta, 'eff' => array_map('floatval', $eff)];
 }
 
 /* -------------------------------------------------------------------------
@@ -2110,6 +2125,11 @@ function pp_normalize_change_over(array &$model): void {
                 $ru = array_map('strtolower', (array)($model['required_units'] ?? []));
                 if ($gtg !== '' && !in_array($gtg, $ru, true)) { $ru[] = $gtg; $model['required_units'] = $ru; }
                 $entry['start_other'] = $so; $entry['start_row'] = $startRow;
+                /* V15.17 §8: kandidat refinement defisit kapasitas — target WAJIB mengikuti start-up sequence
+                 * tepat pada start command (bukan sekadar batas paling awal), supaya headroom/Export tersedia
+                 * pada row defisit. Hanya pada clone kandidat Change Over. */
+                if (!empty($model['change_over_force_target_start']) && $gtg !== '')
+                    $model['required_mode'][$gtg] = ['mode' => 'start_at', 'at' => $so];
                 /* §3 PRIMARY DESTINATION UNIT PRIORITY — HARD SELECTION ORDER.
                  * GTG destination yang ditunjuk change_over ($gtg) WAJIB dicoba lebih dahulu.
                  * Tanpa aturan ini, block dispatcher bebas memilih sibling GTG pada blok yang sama
@@ -7472,6 +7492,49 @@ function pp_instr_report(): array {
     return $out;
 }
 
+/* V15.17 AUDIT KONTINUITAS DISTILLATE (ADDENDUM OPERASIONAL §1.2/§1.3). Per unit: level hanya 30/50/75/100 %,
+ * perubahan level maksimal satu tingkat per row, blok mulai/berakhir pada 30 % bila row tetangga unit masih
+ * berbahan bakar gas (eligible), dan Distillate -> gas -> Distillate hanya sah bila celahnya mengandung row yang
+ * tidak eligible (unit off / lead-in <= 5 MW / row aktual) — itulah proof-nya. */
+function pp_dist_continuity_audit(array $rows): array {
+    $LV = [[0.30, 1], [0.50, 2], [0.75, 3], [1.00, 4]]; $stg = function (float $f) use ($LV) { foreach ($LV as [$k, $v]) if (abs($f - $k) <= 1e-6) return $v; return null; };
+    $n = count($rows); $units = []; $viol = []; $isAct = function (int $i) use ($rows): bool { return !empty($rows[$i]['Actual'] ?? null); };
+    foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10'] as $U) {
+        $mix = []; for ($i = 0; $i < $n; $i++) $mix[$i] = (float)($rows[$i]['DistMix_' . $U] ?? 0);
+        if (max($mix ?: [0]) <= 1e-9) continue;
+        $elig = function (int $i) use ($rows, $U, $isAct): bool { return $i >= 0 && $i < count($rows) && !$isAct($i) && (float)($rows[$i][$U] ?? 0) > 5.0 + 1e-6; };
+        $blocks = []; $cur = null;
+        for ($i = 0; $i < $n; $i++) {
+            if ($mix[$i] > 1e-9) { if ($cur === null) $cur = [$i, $i]; else $cur[1] = $i; }
+            elseif ($cur !== null) { $blocks[] = $cur; $cur = null; }
+        }
+        if ($cur !== null) $blocks[] = $cur;
+        $levels = []; $switch = 0; $gapProof = [];
+        foreach ($blocks as $b => [$a, $z]) {
+            for ($i = $a; $i <= $z; $i++) {
+                if ($isAct($i)) continue;
+                $s = $stg($mix[$i]); $levels[(string)round($mix[$i] * 100)] = true;
+                if ($s === null) { $viol[] = [$i, sprintf('row %d: %s level Distillate %.0f%% tidak sah (hanya 30/50/75/100%%)', $i + 1, $U, $mix[$i] * 100)]; continue; }
+                if ((float)($rows[$i][$U] ?? 0) <= 5.0 + 1e-6) $viol[] = [$i, sprintf('row %d: %s Distillate pada beban %.2f MW (lead-in / minimum-load)', $i + 1, $U, (float)($rows[$i][$U] ?? 0))];
+                if ($i > $a && !$isAct($i - 1)) { $sp = $stg($mix[$i - 1]); if ($sp !== null && abs($s - $sp) > 1) $viol[] = [$i, sprintf('row %d: %s lompatan level Distillate %.0f%% -> %.0f%% (maks satu tingkat per row)', $i + 1, $U, $mix[$i - 1] * 100, $mix[$i] * 100)]; }
+            }
+            $gasOn = function (int $i) use ($rows, $U, $isAct): bool { return $i >= 0 && $i < count($rows) && !$isAct($i) && (float)($rows[$i][$U] ?? 0) > 0.01; };
+            if ($gasOn($a - 1) && $stg($mix[$a]) !== 1 && !$isAct($a)) $viol[] = [$a, sprintf('row %d: %s masuk Distillate dari gas pada %.0f%% (wajib 30%%)', $a + 1, $U, $mix[$a] * 100)];
+            if ($gasOn($z + 1) && $stg($mix[$z]) !== 1 && !$isAct($z)) $viol[] = [$z, sprintf('row %d: %s keluar Distillate ke gas dari %.0f%% (wajib turun bertahap ke 30%%)', $z + 1, $U, $mix[$z] * 100)];
+            if ($b > 0) {
+                $switch++;
+                [$pa, $pz] = $blocks[$b - 1]; $why = null;
+                for ($g = $pz + 1; $g < $a; $g++) if (!$elig($g)) { $why = sprintf('row %d tidak eligible (%s)', $g + 1, $isAct($g) ? 'row aktual' : sprintf('%s %.2f MW', $U, (float)($rows[$g][$U] ?? 0))); break; }
+                if ($why === null) $viol[] = [$a, sprintf('row %d: %s Distillate -> gas (row %d-%d) -> Distillate tanpa proof hard constraint', $a + 1, $U, $pz + 2, $a)];
+                else $gapProof[] = ['celah_rows' => [$pz + 2, $a], 'proof' => $why];
+            }
+        }
+        $units[$U] = ['blok' => array_map(fn($x) => [$x[0] + 1, $x[1] + 1], $blocks), 'jumlah_blok' => count($blocks), 'fuel_switch' => 2 * count($blocks) - (($blocks && $blocks[count($blocks) - 1][1] === $n - 1) ? 1 : 0),
+                      'level_dipakai' => array_keys($levels), 'proof_celah' => $gapProof];
+    }
+    return ['schema' => 'v1517-distillate-continuity-audit-v1', 'status' => $viol ? 'FAIL' : 'PASS', 'unit' => $units,
+            'jumlah_unit_distillate' => count($units), 'violations' => array_map(fn($v) => ['row' => $v[0] + 1, 'detail' => $v[1]], $viol), '_raw' => $viol];
+}
 function pp_validate_hard_constraints(array $input, array $output): array {
     /* ==========================================================================================
      * CACHE REUSE DIHAPUS — KEPUTUSAN BERDASARKAN PENGUKURAN, BUKAN DUGAAN.
@@ -8155,6 +8218,8 @@ function pp_validate_hard_constraints(array $input, array $output): array {
         }
     }
 
+    /* V15.17: kontinuitas Distillate (ADDENDUM OPERASIONAL §1) */
+    if ((string)getenv('PP_DIST_CONT') !== '0') { $__dca = pp_dist_continuity_audit($rows); foreach ($__dca['_raw'] as [$__i, $__m]) $addV('distillate_continuity', $__m, $__i); }
     $status = empty($V) ? 'PASS' : 'FAIL';
     // VALID-INFEASIBLE: every violation category present has explicit, row-level evidence from the engine
     // itself, not silently produced. last_data_status is NEVER valid-infeasible-able — a violation there is
