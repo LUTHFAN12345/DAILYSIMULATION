@@ -1,0 +1,10 @@
+const { chromium } = require('playwright'); const [,, BASE] = process.argv; const sleep = ms => new Promise(r => setTimeout(r, ms));
+(async () => { const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); const p = await (await b.newContext()).newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto(BASE + '/index.php'); await sleep(1500);
+  const setv = (u, k, v) => p.evaluate(([u, k, v]) => { const e = document.querySelector(`#tbl-units [data-u="${u}"][data-k="${k}"]`); if (!e) return 'NO_EL'; e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); return 'ok'; }, [u, k, v]);
+  const r = {};
+  r.set20 = await setv('g6', 'min_scload', '20'); r.after20 = await p.evaluate(() => { const x = assembleInput(); return [x.data3.g6.min_scload, x.data3.g6.min_ccload, x.data3.g6.max_load]; });
+  r.set5 = await setv('g6', 'min_scload', '5'); r.after5 = await p.evaluate(() => { const x = assembleInput(); return [x.data3.g6.min_scload, x.data3.g6.min_ccload, x.data3.g6.max_load]; });
+  r.setMax = await setv('g6', 'max_load', '29'); r.afterMax = await p.evaluate(() => assembleInput().data3.g6.max_load); await setv('g6', 'max_load', '31');
+  r.snap = await p.evaluate(async () => { const x = assembleInput(); x.data3.g6.min_scload = 20; const res = await fetch('run.php?mode=input_snapshot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(x) }); const t = await res.text(); try { const j = JSON.parse(t); return { status: res.status, g6: ((j.snapshot || j).payload || {}).data3 ? (j.snapshot || j).payload.data3.g6 : null, keys: Object.keys(j).slice(0, 8) }; } catch (e) { return { status: res.status, raw: t.slice(0, 120) }; } });
+  console.log(JSON.stringify({ r, errs })); const ok = r.after20[0] === 20 && r.after5[0] === 5 && r.afterMax === 29; console.log(ok ? 'PASS U14_unit_characteristic_to_payload' : 'FAIL U14'); await b.close(); })();

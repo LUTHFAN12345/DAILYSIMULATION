@@ -2138,11 +2138,12 @@ function pp_v1518_semantics(array &$input): void {
     }
     foreach (PP_V1518_SC_ELIGIBLE as $u) { if (!isset($d3[$u]) || !is_array($d3[$u])) continue;
         $d3[$u]['sc_mode'] = $sc[$u];
-        /* SC G8/G9 = family G7/G10 (max 108, min_scload 30): batas bawah = min_scload; min_ccload (65) hanya berlaku saat CC.
-         * G1-G6 SC TIDAK diturunkan ke min_scload 5: 5/15 MW adalah nilai startup-only (validator Revisi Sec.5-7), sehingga
-         * lantai dispatch bebas G1-G6 tetap min_ccload (20). Nilai konfigurasi disimpan. */
+        /* SUMBER KEBENARAN = Unit Characteristic user (Presence & load limits): mode SC -> batas bawah = MIN SC unit, mode CC ->
+         * MIN CC unit; MAX sama untuk keduanya. Seluruh pembaca engine/validator memakai `min_ccload ?? min_scload` sebagai lantai
+         * dispatch stabil, sehingga untuk unit SC lantai itu diisi MIN SC user (salinan engine; nilai CC asli disimpan di
+         * min_ccload_configured). Startup transient tetap mengikuti sequence unit dan tidak menimpa nilai user. */
         if (!array_key_exists('min_ccload_configured', $d3[$u])) $d3[$u]['min_ccload_configured'] = $d3[$u]['min_ccload'] ?? null;
-        if ($sc[$u] === 'SC' && in_array($u, ['g8','g9'], true) && isset($d3[$u]['min_scload'])) $d3[$u]['min_ccload'] = $d3[$u]['min_scload'];
+        if ($sc[$u] === 'SC' && isset($d3[$u]['min_scload'])) $d3[$u]['min_ccload'] = $d3[$u]['min_scload'];
         elseif ($d3[$u]['min_ccload_configured'] !== null) $d3[$u]['min_ccload'] = $d3[$u]['min_ccload_configured'];
         else unset($d3[$u]['min_ccload']); }
     pp_v1518_sc_units($scU);
@@ -2334,7 +2335,7 @@ function pp_v1518_output_info(array $input, array $output): array {
     $out = ['Commitment Semantics' => ['version' => PP_V1518_SEMANTICS_VERSION, 'units' => $units, 'auto' => (array)($m['auto_semantics'] ?? [])],
             'Effective Priority' => ['configured' => $ep['configured'], 'changes' => $ep['changes'], 'rows' => $rowsEff, 'notifications' => $notes],
             'SC CC Mode' => ['units' => $sc, 'sc_units' => array_values(array_map('strtoupper', array_keys(array_filter($sc, fn($v) => $v === 'SC')))),
-                             'technical_family' => 'SC G1-G6: marker 0 MW lalu bebas [min_ccload 20, max]; SC G8/G9: family G7/G10 (marker 0 MW, bebas [min_scload 30, max], ramp 55 MW/30 mnt); tanpa kontribusi STG'],
+                             'technical_family' => 'SC: row marker 0 MW lalu dispatch bebas [MIN SC user, MAX user]; G8/G9 SC = family G7/G10 (ramp 55 MW/30 mnt); tanpa kontribusi STG', 'limits' => (function () use ($d3, $sc) { $L = []; foreach ($sc as $u => $md) $L[strtoupper($u)] = ['mode' => $md, 'min_sc' => $d3[$u]['min_scload'] ?? null, 'min_cc' => $d3[$u]['min_ccload_configured'] ?? ($d3[$u]['min_ccload'] ?? null), 'max' => $d3[$u]['max_load'] ?? null, 'min_effective' => $md === 'SC' ? ($d3[$u]['min_scload'] ?? null) : ($d3[$u]['min_ccload_configured'] ?? ($d3[$u]['min_ccload'] ?? null))]; return $L; })()],
             'Block Sequence Audit' => $bs];
     return $out;
 }
@@ -8899,6 +8900,8 @@ function pp_validate_startup(array $genRows, array $d3, array $model): array {
             if ($seq > 0) $seq--;
             if (pp_is_unit_stopped($d3, $model, $u, $r + 1)) continue;
             $is5 = abs($cur - 5) < 0.6; $is15 = abs($cur - 15) < 0.6;
+            /* V15.18 SC: untuk GTG Simple Cycle, beban di [MIN SC user, MAX] adalah dispatch stabil yang sah (bukan langkah startup CC). */
+            if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc($u) && $cur >= (float)($d3[$u]['min_scload'] ?? 0) - 0.01) { $is5 = false; $is15 = false; }
             if (($is5 || $is15) && !$inRamp)
                 $w[] = sprintf('Invalid %d MW startup load: %s has %.0f MW at row %d, but unit is not in Additional HRSG or STG 1/2 startup sequence.',
                     $is5 ? 5 : 15, strtoupper($u), $cur, $r + 1);

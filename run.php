@@ -2648,6 +2648,7 @@ function pp_v4_task_exec(array $orig, array $t, float $dl, ?string $jobId = null
         if ($t['type'] === 'eval') $a = pp_tl_eval($orig, (array)($t['off'] ?? []), (float)$t['adj'], $dl, (array)($t['seed'] ?? []), isset($t['hint']) ? (float)$t['hint'] : null);
         elseif ($t['type'] === 'land') { $L = pp_tl_land_commitment($orig, (array)($t['off'] ?? []), (array)($t['seed'] ?? []), $dl, (int)($t['max'] ?? 5)); $a = $L['a'] ?? null; }
         elseif ($t['type'] === 'v10land') { pp_v10_land_task($orig, $t, $dl, $jobId); $a = null; }
+        elseif ($t['type'] === 'core1518' && $jobId !== null && function_exists('pp_v1518_isolated_core')) { $in = json_decode((string)@file_get_contents(pp_job_dir($jobId) . DIRECTORY_SEPARATOR . 'v1518i_' . preg_replace('~[^a-f0-9]~', '', (string)$t['id']) . '.json'), true); if (is_array($in)) pp_v1518_isolated_core($in, $jobId); $a = null; }
     } finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
     /* Kandidat valid langsung tersedia sebagai VALID PROVISIONAL / Target Selesai (kolam state). */
     if ($jobId !== null && is_array($a) && !empty($a['valid']) && is_array($a['output'] ?? null)) {
@@ -6708,7 +6709,9 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                 };
                 while ($pos < $nC) {
                     $batch = [];
-                    while ($pos < $nC && count($batch) < 2) {
+                    /* V15.18 §5.4/§8: Fastest deterministik — ukuran batch = cap kandidat (TETAP, tidak bergantung jumlah helper/CPU):
+                     * himpunan kandidat yang dievaluasi identik di semua mesin; helper hanya memparalelkan pendaratannya. */
+                    while ($pos < $nC && count($batch) < ($detV8 && (string)getenv('PP_V1518_V8_BATCH2') !== '1' ? max(2, $cap) : 2)) {
                         $i = $pos++; $c = $C[$i];
                         if (!empty($c['keep'])) continue;
                         if (in_array($c['kind'], ['DECOMMIT', 'STOP', 'EARLY_STOP', 'DELAY'], true) && $c['off_rows'][1] >= $c['off_rows'][0]) {
@@ -7446,6 +7449,7 @@ function pp_v1517_proof_binding(array $input, array $output): array {
         /* V15.18: proof juga terikat pada semantik SC/CC, effective priority, dan milestone sequence block. */
         'sc_cc_hash' => $ph($output['info']['SC CC Mode']['units'] ?? null), 'effective_priority_hash' => $ph(isset($output['info']['Effective Priority']) ? [$output['info']['Effective Priority']['configured'] ?? null, $output['info']['Effective Priority']['rows'] ?? null] : null),
         'block_sequence_hash' => $ph(isset($output['info']['Block Sequence Audit']) ? [$output['info']['Block Sequence Audit']['blocks'] ?? null, $output['info']['Block Sequence Audit']['status'] ?? null] : null),
+        'unit_limits_hash' => $ph(array_map(fn($u) => [(float)($input['data3'][$u]['min_scload'] ?? -1), (float)($input['data3'][$u]['min_ccload'] ?? -1), (float)($input['data3'][$u]['max_load'] ?? -1)], array_combine(['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10'], ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10']))),   // MIN SC / MIN CC / MAX user
         'commitment_semantics_version' => $output['info']['Commitment Semantics']['version'] ?? null, 'commitment_semantics_hash' => $ph($output['info']['Commitment Semantics']['units'] ?? null),
         'proof_hash' => ['C1' => $ph($mp['C1'] ?? null), 'C2' => $ph($mp['C2'] ?? null), 'C3' => $ph($mp['C3'] ?? null), 'C4' => $ph($mp['C4'] ?? null), 'STG' => $ph($mp['stg'] ?? null)],
         'proof_status' => ['merit' => $mp['status'] ?? null, 'C1' => $mp['C1']['status'] ?? null, 'C2' => $mp['C2']['status'] ?? null, 'C3' => $mp['C3']['status'] ?? null, 'C4' => $mp['C4']['status'] ?? null, 'STG' => $mp['stg']['status'] ?? null]];

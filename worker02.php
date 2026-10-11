@@ -191,6 +191,30 @@ function pp_dist_continuous_alloc(array $d3, array $data, array $actualRows, arr
     return ['cells' => $cells, 'energy' => $E, 'litres' => $Lit, 'residual' => max(0.0, $r), 'over' => max(0.0, -$r), 'proof' => $proof];
 }
 
+/* V15.18 CORE TERISOLASI untuk varian lock sequence: globals __pp_* dibersihkan (sama seperti pp_tl_eval) sehingga hasil
+ * identik di proses pemilik maupun pembantu, lalu disimpan per hash input di folder job (dipakai ulang, bukan dihitung ulang). */
+function pp_v1518_iso_key(array $in): string { return substr(md5(json_encode($in, JSON_PRESERVE_ZERO_FRACTION)), 0, 24); }
+function pp_v1518_iso_file(string $jid, string $k): string { return pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518c_' . $k . '.json'; }
+function pp_v1518_isolated_core(array $in, ?string $jid = null): array {
+    $k = pp_v1518_iso_key($in);
+    if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_file($f = pp_v1518_iso_file($jid, $k))) { $o = json_decode((string)@file_get_contents($f), true); if (is_array($o) && count((array)($o['data'] ?? [])) === 48) return $o; }
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+    try { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_core($in); }
+    finally { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
+    $GLOBALS['__pp_core_runs'] = (int)($GLOBALS['__pp_core_runs'] ?? 0) + 1;
+    if ($jid !== null && $jid !== '' && function_exists('pp_job_dir') && is_dir(pp_job_dir($jid))) @file_put_contents(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), json_encode($o)) && @rename(pp_v1518_iso_file($jid, $k) . '.tmp' . getmypid(), pp_v1518_iso_file($jid, $k));
+    return $o;
+}
+/* Varian lock dievaluasi berurutan (lazy); bila pembantu job hidup, seluruh varian dipublikasikan sebagai tugas paralel lebih dulu
+ * (pemilik ikut mengerjakan). Keputusan tetap: varian pertama (urutan tetap) yang lolos -> deterministik dgn/tanpa pembantu. */
+function pp_v1518_iso_prefetch(array $inputs): void {
+    $jid = (string)($GLOBALS['ppTlHook']['job'] ?? ''); if ($jid === '' || !function_exists('pp_v4_helpers_alive') || count($inputs) < 2) return;
+    if (pp_v4_helper_slots() <= 0 || !is_dir(pp_job_dir($jid)) || pp_v4_helpers_wait($jid, 1.5) <= 0) return;   // pembantu dimulai browser saat job berjalan
+    $tasks = [];
+    foreach ($inputs as $in) { $k = pp_v1518_iso_key($in); $fi = pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'v1518i_' . $k . '.json';
+        if (!is_file($fi)) @file_put_contents($fi, json_encode($in, JSON_PRESERVE_ZERO_FRACTION)); $tasks[] = ['type' => 'core1518', 'id' => $k]; }
+    try { $dl = microtime(true) + 120.0; pp_v4_work_publish($jid, $inputs[0], ['kind' => 'tasks', 'tasks' => $tasks, 'dl' => $dl]); pp_v4_cooperate($jid, $inputs[0], $tasks, $dl); } catch (Throwable $e) {}
+}
 function pp_run_simulation_core(array $input): array {
     $out = pp_run_simulation_core_inner($input);
     $T = $GLOBALS['ppExactTrack'] ?? null;
@@ -2913,7 +2937,7 @@ function pp_run_simulation_pipeline(array $input): array {
     /* V15.18 SEQUENCE BLOCK LOCK: additional GTG CC yang start sebelum STG fresh established ditahan (unit_stop_time) sampai
      * row legal pertamanya, lalu baseline dihitung ulang. Kunci diwarisi seluruh pass hilir (decommit, koreksi gas). Maks 3 iterasi;
      * sisa pelanggaran tetap ditolak validator (block_sequence). */
-    $GLOBALS['ppV1518SeqLock'] = [];
+    $GLOBALS['ppV1518SeqLock'] = []; unset($GLOBALS['ppV1518StaggerProven']);
     if (function_exists('pp_v1518_block_sequence') && pp_v1518_on() && (string)getenv('PP_V1518_BLOCK_SEQ') !== '0') {
         /* Perbaikan sah, seluruh blok sekaligus (satu core run per langkah, deterministik):
          *   R2 (cadangan) majukan start lead GTG blok agar STG established tepat waktu untuk additional paling awal yang
@@ -2922,7 +2946,7 @@ function pp_run_simulation_pipeline(array $input): array {
          *   R1 (utama) tunda additional GTG ke row legal pertamanya; R2 hanya bila R1 memunculkan pelanggaran baru.
          *      Sisa pelanggaran tetap ditolak validator. */
         $bsTypes = function (array $in, array $o): array { $v = pp_validate_hard_constraints($in, $o); $t = [];
-            foreach ((array)($v['violations'] ?? []) as $vi) { $k = is_array($vi) ? (string)($vi[0] ?? ($vi['type'] ?? '?')) : '?'; if ($k !== 'block_sequence') $t[$k] = true; } return array_keys($t); };
+            foreach ((array)($v['violations'] ?? []) as $vi) { $k = is_array($vi) ? (string)($vi[0] ?? ($vi['type'] ?? '?')) : '?'; if ($k !== 'block_sequence' && $k !== 'gas_quota') $t[$k] = true; } return array_keys($t); };   // gas_quota: deviasi window ditutup koreksi gas hilir (tetap divalidasi penuh di akhir)
         $bsTried = [];
         for ($bsI = 0; $bsI < 3; $bsI++) {
             $bsA = pp_v1518_block_sequence((array)$inCur['data3'], (array)$inCur['data3']['modeling'], (array)($out['data'] ?? []));
@@ -2953,22 +2977,30 @@ function pp_run_simulation_pipeline(array $input): array {
              * memajukan GTG berikutnya dan perlu iterasi kedua). §7.5 satu additional dulu: GTG non-lead berikutnya (urutan effective
              * priority) baru boleh start setelah additional pertama connect (first load >= row legal pertama + lead-in). Bila varian
              * ber-stagger memunculkan pelanggaran baru, varian tanpa stagger dievaluasi (dan run ber-stagger itu menjadi bukti kebutuhan). */
-            $mkR1 = function (bool $stag) use ($inCur, $bsA) { $r = $inCur; $vS = []; foreach ($bsA['violations'] as $bv) $vS[$bv['stg']] = $bv;
+            /* $stag: 2 = stagger penuh (setelah additional pertama connect), 1 = stagger 1 row, 0 = tanpa stagger */
+            $mkR1 = function (int $stag) use ($inCur, $bsA) { $r = $inCur; $vS = []; foreach ($bsA['violations'] as $bv) $vS[$bv['stg']] = $bv;
                 $rank = []; foreach ((array)($inCur['data3']['modeling']['unit_priority'] ?? []) as $g) foreach ((array)$g as $x) $rank[strtolower((string)$x)] = count($rank);
                 foreach ($bsA['blocks'] as $bb) { if (!isset($vS[$bb['stg']]) || !is_array($bb['lead'])) continue; $F1 = (int)$vS[$bb['stg']]['stg_first']; $sL1 = strtolower($bb['stg']);
                     $nl = []; foreach ((array)($r['data3'][$sL1]['gtg'] ?? []) as $gx) { $gx = strtolower((string)$gx); if ($gx !== strtolower($bb['lead']['unit'])) $nl[] = $gx; }
-                    usort($nl, fn($a, $b) => [($rank[$a] ?? 999), $a] <=> [($rank[$b] ?? 999), $b]); $firstConnect = null;
+                    usort($nl, fn($a, $b) => [($rank[$a] ?? 999), $a] <=> [($rank[$b] ?? 999), $b]); $firstConnect = null; $firstLoad = null;
                     foreach ($nl as $i => $gx) { $Lg = 1 + count(pp_additional_hrsg_caps($gx)); $ex = $F1 + 2 - $Lg;
-                        if ($stag && $i > 0 && $firstConnect !== null) $ex = max($ex, $firstConnect + 1);
-                        if ($i === 0) $firstConnect = $ex - 1 + $Lg;
+                        if ($stag === 2 && $i > 0 && $firstConnect !== null) $ex = max($ex, $firstConnect + 1);
+                        if ($stag === 1 && $i > 0 && $firstLoad !== null) $ex = max($ex, $firstLoad + 1);
+                        if ($i === 0) { $firstConnect = $ex - 1 + $Lg; $firstLoad = $ex; }
                         if ($ex > 1) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => $gx, 'start' => 1, 'stop' => $ex - 1]; } }
                 foreach ($bsA['violations'] as $bv) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
                 return $r; };
-            $r1 = $mkR1(true);
-            $oS = pp_run_simulation_core($r1); $newS = array_values(array_diff($bsTypes($r1, $oS), $curT));
-            if ($newS) { $GLOBALS['ppV1518SeqLock'][] = ['kind' => 'SECOND_ADDITIONAL_PROOF', 'counterfactual' => 'satu additional dulu (stagger)', 'new_violation_types' => $newS, 'chosen' => 'KEEP (kebutuhan terbukti: stagger melanggar ' . implode(',', $newS) . ')'];
-                $r1 = $mkR1(false); }
-            if ($newS) { $o1 = pp_run_simulation_core($r1); $new1 = array_values(array_diff($bsTypes($r1, $o1), $curT)); } else { $o1 = $oS; $new1 = []; }
+            $jidL = (string)($GLOBALS['ppTlHook']['job'] ?? '');
+            $r1 = $mkR1(2); pp_v1518_iso_prefetch([$r1, $mkR1(1), $mkR1(0)]);
+            $oS = pp_v1518_isolated_core($r1, $jidL); $newS = array_values(array_diff($bsTypes($r1, $oS), $curT));
+            if ($newS) { $GLOBALS['ppV1518SeqLock'][] = ['kind' => 'SECOND_ADDITIONAL_PROOF', 'counterfactual' => 'satu additional dulu (stagger penuh)', 'new_violation_types' => $newS, 'chosen' => 'KEEP (kebutuhan terbukti: stagger penuh melanggar ' . implode(',', $newS) . ')'];
+                $GLOBALS['ppV1518StaggerProven'] = true;
+                /* stagger 1 row: additional berikutnya mulai satu row setelah additional pertama (bukan bersamaan) */
+                $r1b = $mkR1(1); $oSb = pp_v1518_isolated_core($r1b, $jidL); $newSb = array_values(array_diff($bsTypes($r1b, $oSb), $curT));
+                if (!$newSb) { $r1 = $r1b; $oS = $oSb; $newS = []; }
+                else { $GLOBALS['ppV1518SeqLock'][] = ['kind' => 'SECOND_ADDITIONAL_PROOF', 'counterfactual' => 'stagger 1 row', 'new_violation_types' => $newSb, 'chosen' => 'KEEP (stagger 1 row melanggar ' . implode(',', $newSb) . ')'];
+                       $r1 = $mkR1(0); } }
+            if ($newS) { $o1 = pp_v1518_isolated_core($r1, $jidL); $new1 = array_values(array_diff($bsTypes($r1, $o1), $curT)); } else { $o1 = $oS; $new1 = []; }
             $chosen = 'R1_TUNDA_ADDITIONAL';
             if (!$new1) { $inCur = $r1; $out = $o1; }
             elseif ($r2Any) { $o2 = pp_run_simulation_core($r2); $new2 = array_values(array_diff($bsTypes($r2, $o2), $curT));
@@ -2982,7 +3014,7 @@ function pp_run_simulation_pipeline(array $input): array {
          * pertama) wajib dibuktikan perlu. Counterfactual deterministik: tahan unit itu sampai satu row setelah additional pertama
          * connect. Diadopsi bila tidak memunculkan jenis pelanggaran baru dan CP tidak lebih mahal; bila tidak, hasil counterfactual
          * menjadi bukti kebutuhan (tercatat di Block Sequence Lock). Maks satu counterfactual per STG. */
-        if ((string)getenv('PP_V1518_ONE_ADDL') !== '0') {
+        if ((string)getenv('PP_V1518_ONE_ADDL') !== '0' && empty($GLOBALS['ppV1518StaggerProven'])) {   // lock R1 sudah mengevaluasi varian satu-additional-dulu -> bukti sudah ada
             $bsB = pp_v1518_block_sequence((array)$inCur['data3'], (array)$inCur['data3']['modeling'], (array)($out['data'] ?? []));
             foreach ($bsB['blocks'] as $bb) {
                 if (empty($bb['fresh_stg']) || count($bb['additional']) < 2) continue;
@@ -3075,7 +3107,7 @@ function pp_run_simulation_pipeline(array $input): array {
          * terpicu karena nilainya berganti. Setelah siklus terulang dua kali, tidak ada percobaan
          * berikutnya yang dapat menghasilkan deviasi lebih kecil dari yang sudah tercatat; hasil terbaik
          * pertama dikembalikan — sama dengan hasil loop penuh. PP_V5_GWC_CYCLE=0 mematikan. */
-        $gwSeen = []; $gwCycle = (string)getenv('PP_V5_GWC_CYCLE') !== '0'; $gwCycleStop = false; $gwUpOver = null; $gwUpUnder = null;
+        $gwSeen = []; $gwCycle = (string)getenv('PP_V5_GWC_CYCLE') !== '0'; $gwCycleStop = false; $gwUpOver = null; $gwUpUnder = null; $gwLastSide = 0; $gwSide = 0;
         for ($att = 0; $att < $maxAtt; $att++) {
             if ($att > 0 && pp_budget_exceeded('gas_window_correction')) break;
             $uW = $gwUsed($out);
@@ -3086,15 +3118,22 @@ function pp_run_simulation_pipeline(array $input): array {
             /* V15.18 BISEKSI 'up': respons gas terhadap __shaper_quota_adjust bertingkat (unit on/off). Begitu bracket diketahui
              * (adj up yang masih UNDER dan yang sudah OVER), percobaan berikutnya = titik tengah bracket, bukan beralih ke trim dari
              * nol (jalur trim jauh lebih mahal dan berosilasi). Deterministik; opt-in PP_V1518_GWC_BISECT=1. */
-            if ((string)getenv('PP_V1518_GWC_BISECT') === '1' && $adjTrim <= 1e-12) {   // opt-in: setelah stagger R1 tidak lagi mempercepat T0-T8; default mempertahankan jalur 78b72d5 (IE5)
-                if ($uW > $hiW) $gwUpOver = ($gwUpOver === null) ? $adjUp : min($gwUpOver, $adjUp); else $gwUpUnder = ($gwUpUnder === null) ? $adjUp : max($gwUpUnder, $adjUp);
-                if ($gwUpOver !== null && $gwUpUnder !== null && $gwUpOver > $gwUpUnder + 0.002 && $gwUpOver > 1e-9) {
-                    $adjUp = 0.5 * ($gwUpUnder + $gwUpOver); $in['data3']['modeling']['__shaper_quota_adjust'] = $adjUp; unset($in['data3']['modeling']['__gas_trim_target_bbtud']);
+            if ((string)getenv('PP_V1518_GWC_BISECT') === '1' && $adjTrim <= 1e-12) {   // opt-in (lihat DETERMINISTIC_BUDGET_AUDIT)
+                /* regula falsi (Illinois) pada adj 'up': titik (adj, gas) under/over terdekat ke window; target = tengah window */
+                if ($uW > $hiW) { if ($gwUpOver === null || $adjUp < $gwUpOver[0]) $gwUpOver = [$adjUp, $uW]; $gwSide = 1; }
+                else { if ($gwUpUnder === null || $adjUp > $gwUpUnder[0]) $gwUpUnder = [$adjUp, $uW]; $gwSide = -1; }
+                if ($gwUpOver !== null && $gwUpUnder !== null && $gwUpOver[0] > $gwUpUnder[0] + 0.002 && $gwUpOver[1] > $gwUpUnder[1] + 1e-6) {
+                    $tgt = 0.5 * ($loW + $hiW); $wU = ($gwLastSide === -1 && $gwSide === -1) ? 0.5 : 1.0; $wO = ($gwLastSide === 1 && $gwSide === 1) ? 0.5 : 1.0;   // Illinois: titik yang tertahan diperlemah
+                    $gu = $gwUpUnder[1] + ($tgt - $gwUpUnder[1]) * (1 - $wU) ; $go = $gwUpOver[1] - ($gwUpOver[1] - $tgt) * (1 - $wO);
+                    $adjUp = $gwUpUnder[0] + ($tgt - $gu) * ($gwUpOver[0] - $gwUpUnder[0]) / max(1e-9, $go - $gu);
+                    $adjUp = min($gwUpOver[0] - 0.001, max($gwUpUnder[0] + 0.001, $adjUp)); $gwLastSide = $gwSide;
+                    $in['data3']['modeling']['__shaper_quota_adjust'] = $adjUp; unset($in['data3']['modeling']['__gas_trim_target_bbtud']);
                     $out = $applyCarry(pp_run_simulation_core($in));
-                    $out['info']['Gas Window Correction'] = ['attempt' => $att + 1, 'trim_target' => 0.0, 'quota_adjust' => round($adjUp, 4), 'gas_before' => round($uW, 4), 'gas_after' => round($gwUsed($out), 4), 'mode' => 'BISEKSI_UP'];
-                    $GLOBALS['__pp_gwc_log'][] = ['att' => $att + 1, 'dev' => round($dev, 4), 'trim' => 0.0, 'up' => round($adjUp, 4), 'neto_sebelum' => round($uW, 4), 'neto_sesudah' => round($gwUsed($out), 4), 'mode' => 'BISEKSI_UP'];
+                    $out['info']['Gas Window Correction'] = ['attempt' => $att + 1, 'trim_target' => 0.0, 'quota_adjust' => round($adjUp, 4), 'gas_before' => round($uW, 4), 'gas_after' => round($gwUsed($out), 4), 'mode' => 'REGULA_FALSI_UP'];
+                    $GLOBALS['__pp_gwc_log'][] = ['att' => $att + 1, 'dev' => round($dev, 4), 'trim' => 0.0, 'up' => round($adjUp, 4), 'neto_sebelum' => round($uW, 4), 'neto_sesudah' => round($gwUsed($out), 4), 'mode' => 'REGULA_FALSI_UP'];
                     continue;
                 }
+                $gwLastSide = $gwSide;
             }
             if ($uW > $hiW) {
                 $adjTrim += $dev + 0.004;
@@ -3866,6 +3905,22 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
         };
         $obB = $outBandOf($out);
         $baseOK = (strtoupper((string)($VB['status'] ?? '')) === 'PASS') && $devB <= 1e-9;
+        /* V15.18 §5.4/§8: kandidat stop-window dievaluasi dengan core TERISOLASI (hasil identik di proses mana pun); bila pembantu job
+         * hidup, kandidat yang akan dievaluasi lebih dulu dihitung paralel. Admission Fastest = jumlah core (bukan jam dinding). */
+        $isoDec = (string)getenv('PP_V1518_DECOMMIT_ISO') !== '0'; $jidD = (string)($GLOBALS['ppTlHook']['job'] ?? '');
+        $detDecW = !empty($GLOBALS['__pp_fastest_no_gcr']) && (string)getenv('PP_V1517_DET_FAST') !== '0';
+        $mkIn2 = function (string $uu, array $sw) use ($input) { $x = json_decode(json_encode($input), true);
+            $x['data3']['modeling']['unit_stop'] = array_values(array_unique(array_merge((array)($x['data3']['modeling']['unit_stop'] ?? []), [$uu])));
+            $x['data3']['modeling']['unit_stop_time'][$uu] = $sw; return $x; };
+        if ($isoDec) { $pre = []; $tst = 0;
+            /* urutan prefetch = urutan evaluasi loop di bawah (unit x stop-window, sesudah prasaring Export yang sama) */
+            $wins = $baseOK ? [['00:00', '24:00']] : [['00:00', '24:00'], ['04:00', '24:00'], ['06:00', '24:00'], ['08:00', '24:00'], ['10:00', '24:00'], ['12:00', '24:00']];
+            foreach ($order as $uu) { if (!isset($lowCands[$uu]) || $tst >= 3) continue; $tst++;
+                foreach ($wins as $sw) { [$hS, $mS] = array_map('intval', explode(':', (string)$sw[0])); $r0S = intdiv($hS * 60 + $mS, 30) + 1; $offS = [];
+                    foreach ((array)$out['data'] as $kS => $rwS) if ($kS + 1 >= $r0S && (float)($rwS[strtoupper($uu)] ?? 0) > 0.01) $offS[] = $kS + 1;
+                    if ($offS && function_exists('pp_v8_export_prescreen') && (string)getenv('PP_V1516_DECOMMIT_PRESCREEN') !== '0' && pp_v8_export_prescreen($input, array_values((array)$out['data']), $uu, $offS) !== null) continue;
+                    $pre[] = $mkIn2((string)$uu, $sw); if (count($pre) >= 4) break 2; } }
+            if (count($pre) >= 2) pp_v1518_iso_prefetch($pre); }
         $tested = 0;
         foreach ($order as $uu) {
             if (!isset($lowCands[$uu]) || $tested >= 3) continue;          // budget uji: 3 kandidat (baseline PASS = 1 core run/kandidat)
@@ -3884,7 +3939,7 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
             /* Safe baseline defaults when the nested core-run budget is exhausted before candidate 1. */
             $o2F=$out; $V2F=pp_validate_hard_constraints($input,$out); $qBase=(float)($out['info']['Total Gas Quota (BBTUD)']??0); $uBase=pp_decision_gas($out); $inWinF=($qBase<=1.0)||pp_gas_in_window($uBase,$qBase); $c2F=$costA;
             foreach ($stopWins as $swI => $sw) {
-                if (pp_budget_exceeded('decommit_stopwindow') && $swI > 0) break;   // sisakan kandidat pertama
+                if (!$detDecW && pp_budget_exceeded('decommit_stopwindow') && $swI > 0) break;   // sisakan kandidat pertama (Fastest: batas jumlah core)
                 /* ADMISSION WAKTU PER KANDIDAT (akar penyebab DEADLINE_REACHED pada skenario KP72).
                  * Ketika baseline INFEASIBLE, satu unit memperoleh enam kandidat stop-window dan
                  * tiap kandidat adalah satu core run penuh — 3 unit x 6 kandidat = sampai 18 core
@@ -3894,7 +3949,7 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                  * satu core run berdasarkan biaya TERUKUR, bukan konstanta. Kandidat yang tidak
                  * dimulai diselesaikan worker asinkron; publish tetap diblokir. */
                 $__coreEst = (float)($GLOBALS['__pp_core_cost_max'] ?? ($GLOBALS['__pp_core_cost_avg'] ?? 1.0));
-                if (!pp_stage_admits($__coreEst)) {
+                if (!$detDecW && !pp_stage_admits($__coreEst)) {
                     pp_stage_defer('decommit_stopwindow_candidate', $__coreEst,
                         ['unit' => strtoupper((string)$uu), 'candidate_index' => $swI,
                          'candidates_total' => count($stopWins),
@@ -3911,16 +3966,14 @@ function pp_decommit_pass(array $input, array $out, bool $auditOnly = false) {
                     $prS = $offS ? pp_v8_export_prescreen($input, array_values((array)$out['data']), $uu, $offS) : null;
                     if ($prS !== null) { $GLOBALS['__pp_decommit_prescreen'][] = ['unit' => strtoupper($uu), 'window' => $sw, 'proof' => $prS]; continue; }
                 }
-                $in2 = json_decode(json_encode($input), true);
-                $in2['data3']['modeling']['unit_stop'] = array_values(array_unique(array_merge((array)($in2['data3']['modeling']['unit_stop'] ?? []), [$uu])));
-                $in2['data3']['modeling']['unit_stop_time'][$uu] = $sw;
+                $in2 = $mkIn2((string)$uu, $sw);
                 /* BUDGET CORE-RUN DETERMINISTIK: satu request tidak boleh meledak menjadi puluhan
                  * pipeline penuh (profil: 47 core run). Setelah batas tercapai, eksplorasi kandidat
                  * dihentikan dan hasil terbaik yang sudah ada dipakai. */
                 if ((int)($GLOBALS['__pp_core_runs'] ?? 0) >= (int)($GLOBALS['__pp_core_budget'] ?? 100)) {
                     $GLOBALS['__pp_core_budget_hit'] = true; break;
                 }
-                $o2 = pp_run_simulation_core($in2);
+                $o2 = $isoDec ? pp_v1518_isolated_core($in2, $jidD) : pp_run_simulation_core($in2);
                 $V2 = pp_validate_hard_constraints($in2, $o2);
                 $okV = (strtoupper((string)($V2['status'] ?? '')) === 'PASS');
                 $q2 = (float)($o2['info']['Total Gas Quota (BBTUD)'] ?? 0);
@@ -4238,7 +4291,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
              * titik berikut = interpolasi linear respons fisik pada braket [under, over] menuju tengah window,
              * dijepit 10 % dari tepi braket; sesudah dua langkah berturut-turut pada sisi yang sama dipakai
              * bisection (pengaman Illinois). Braket tetap menyusut setiap langkah; tanpa penanda perilaku lama. */
-            if (!empty($input['data3']['modeling']['__v10_sup_secant'])) {
+            if (!empty($input['data3']['modeling']['__v10_sup_secant']) || (string)getenv('PP_V1518_SUP_SECANT') === '1') {
                 $pU0 = $supObs[sprintf('%.9f', $underTarget)] ?? null; $pO0 = $supObs[sprintf('%.9f', $overTarget)] ?? null;
                 if ($pU0 !== null && $pO0 !== null && $pO0 - $pU0 > 1e-6 && ($supSideRun ?? 0) < 1) {
                     $wB = $overTarget - $underTarget;
