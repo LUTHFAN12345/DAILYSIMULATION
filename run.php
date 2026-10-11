@@ -3401,8 +3401,12 @@ function pp_job_run_economic_review(string $id, array $input): array {
         if (!empty($GLOBALS['__pp_ie_warm_done']) && $fastJ && (string)getenv('PP_IE_WARM_V8') !== '1') { $GLOBALS['__pp_v8_fast_wall'] = 0.0; $GLOBALS['ppIeWarmInfo']['v8'] = 'DILEWATI_COMMITMENT_BASIS_DIPERTAHANKAN'; }
         elseif (!empty($GLOBALS['__pp_ie_warm_done']) && $fastJ) { $nAffW = count((array)($GLOBALS['ppIeWarmInfo']['affected_rows'] ?? []));
             $tgtW = $nAffW <= 6 ? (float)(getenv('PP_IE_WARM_SMALL_S') ?: 4.5) : (float)(getenv('PP_IE_WARM_MULTI_S') ?: 9.0);
-            $GLOBALS['__pp_v8_fast_wall'] = max(0.3, $tgtW - (microtime(true) - $t)); $GLOBALS['ppIeWarmInfo']['v8_wall_s'] = round($GLOBALS['__pp_v8_fast_wall'], 3); $GLOBALS['ppIeWarmInfo']['target_s'] = $tgtW; }
-        try { $output = pp_v8_priority_review($inputAsli, $output); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall']); }
+            /* V15.18 §12: anggaran review V8 jalur IE warm dalam JUMLAH kandidat (bukan sisa jam dinding -> hasil bergantung kecepatan
+             * CPU, terukur IE5 80,1822 vs 80,1881 pada kode yang sama). Jam dinding hanya pengaman. PP_IE_WARM_V8_WALLCLOCK=1 = perilaku lama. */
+            if ((string)getenv('PP_IE_WARM_V8_WALLCLOCK') === '1') $GLOBALS['__pp_v8_fast_wall'] = max(0.3, $tgtW - (microtime(true) - $t));
+            else { $GLOBALS['__pp_v8_fast_wall'] = (float)(getenv('PP_V8_FAST_SAFETY_S') ?: 45.0); $GLOBALS['ppIeWarmV8Cap'] = (int)(getenv('PP_IE_WARM_V8_CAP') ?: ($nAffW <= 6 ? 2 : 3)); $GLOBALS['ppIeWarmInfo']['v8_candidate_cap'] = $GLOBALS['ppIeWarmV8Cap']; }
+            $GLOBALS['ppIeWarmInfo']['v8_wall_s'] = round($GLOBALS['__pp_v8_fast_wall'], 3); $GLOBALS['ppIeWarmInfo']['target_s'] = $tgtW; }
+        try { $output = pp_v8_priority_review($inputAsli, $output); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall'], $GLOBALS['ppIeWarmV8Cap']); }
         if (function_exists('pp_v1518_family_evidence')) { pp_job_progress($id, 'FAMILY_STOP_ATAU_HOLD', 75.0); try { $output = pp_v1518_family_evidence($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} }
         /* V15.15: setiap rencana final job (Fastest dan Maximum Review) wajib C1-C4 FAIL = 0: temuan Unit Priority tanpa alasan diselesaikan
          * atau dibuktikan numerik (pass yang sama). */
@@ -5504,8 +5508,14 @@ function pp_v8_export_prescreen(array $orig, array $rows, string $u, array $offR
         $gm = $g;
         foreach ($g as $k => $x) { if (!preg_match('~^g\d+$~', $k) || $k === 'g10') continue;
             if ($k === $u) { $gm[$k] = 0.0; continue; }
+            /* V15.18: unit di dalam langkah startup tetap (5/15 MW, Additional/STG startup G8/G9) tidak dapat dinaikkan pada row itu */
+            if ($x > 0.01 && (string)getenv('PP_V1518_PRESCREEN_SU') !== '0') { $K = strtoupper($k); $a = $r; while ($a > 1 && (float)($rows[$a - 2][$K] ?? 0) > 0.01) $a--;
+                $fresh = !($a === 1 && strtolower((string)($m['unit_last_data_status'][$K] ?? '')) === 'running');
+                if ($fresh) { $seqP = pp_start_sequence($d3, $m, $k, array_map(fn($rw) => array_change_key_case((array)$rw, CASE_LOWER), $rows), $a - 1); if ($r - $a < count($seqP)) continue; } }
             if ($x > 0.01 && pp_get_fixed_load($m, $k, $r) < 0) $gm[$k] = max($x, pp_effective_max_load($d3, $m, $k, $r)); }
         try { pp_recompute_stgs($gm, $d3, $m, $r); } catch (Throwable $e) { return null; }
+        /* V15.18: STG yang masih ditahan (0 MW pada row ini padahal GTG blok on) tetap 0 — hold startup STG adalah hard constraint */
+        if ((string)getenv('PP_V1518_PRESCREEN_SU') !== '0') foreach (['s1','s2','s3'] as $sk) if (isset($gm[$sk]) && (float)($g[$sk] ?? 0) <= 0.01) $gm[$sk] = 0.0;
         $mx = 0.0; foreach ($gm as $k => $x) if ($k !== 'g10' && preg_match('~^(g\d+|s\d)$~', $k)) $mx += $x;
         $bb = 0.0; foreach (['b1' => 'BB1', 'b2' => 'BB2'] as $bk => $bc) { $bv = (float)($row[$bc] ?? 0); if ($bv > 0.01) $bb += max(0.0, pp_effective_max_load($d3, $m, $bk, $r) - $bv); }
         $expMax = $exp + ($mx - $cur) + $bb;
@@ -6572,6 +6582,11 @@ function pp_v1518_family_evidence(array $input, array $out, float $dl): array {
             else { $alt = 'A_STOP'; $k = min(48, max($s + $runR, $s + 1)); if ($k > 48) { $ev[] = ['unit' => $U, 'family_current' => $cur, 'family_alt' => $alt, 'status' => 'TIDAK_ADA_STOP_LEGAL', 'note' => 'runtime minimum melewati 00:00']; continue; }
                 $stops[] = ['unit' => $u, 'start' => $k, 'stop' => 48]; $desc = sprintf('%s stop legal pertama %s (start %s + runtime minimum %d row)', $U, pp_v1518_row_time($k), pp_v1518_row_time($s), $runR); }
             $sl = pp_v1518_unavailable_rows($d3, $m, $u); if ($alt === 'B_HOLD_TO_END' && $sl && max(array_keys($sl)) >= $s) { $ev[] = ['unit' => $U, 'family_current' => $cur, 'family_alt' => $alt, 'status' => 'TIDAK_LEGAL', 'note' => 'stop schedule/stop at operator setelah start']; continue; }
+            /* prasaring kapasitas Export (bukti numerik tanpa simulasi, sama dengan review V8): stop family A yang pasti membuat Export < Range Min */
+            if ($alt === 'A_STOP' && function_exists('pp_v8_export_prescreen')) { $pr = pp_v8_export_prescreen($orig, $rows, $u, range($k, 48));
+                if ($pr !== null) { $ev[] = ['unit' => $U, 'family_current' => $cur, 'current' => ['segment' => [$s, $e], 'valid' => !empty($aW['valid']), 'cp' => $aW['key']['cp'] ?? null], 'family_alt' => $alt,
+                    'alt_candidate' => $desc, 'alt_evaluations' => 0, 'alt' => ['valid' => false, 'method' => 'PRASARING_KAPASITAS_EXPORT', 'proof' => $pr], 'chosen' => $cur, 'status' => 'EVALUATED']; continue; } }
+            $origX['data3']['modeling']['__v9_nopolish'] = true;   // polish per node tidak perlu: perbaikan C1-C4 Fastest berjalan sesudahnya pada pemenang
             $R = pp_tl_land_commitment($origX, [], $stops, max($dl, microtime(true) + 30.0), $maxE); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
             $a = $R['a'];
             $rec = ['unit' => $U, 'family_current' => $cur, 'current' => ['segment' => [$s, $e], 'valid' => !empty($aW['valid']), 'cp' => $aW['key']['cp'] ?? null, 'hr' => $aW['key']['hr'] ?? null, 'starts' => $aW['key']['starts'] ?? null],
@@ -6590,7 +6605,7 @@ function pp_v1518_family_evidence(array $input, array $out, float $dl): array {
     return $W;
 }
 function pp_v8_priority_review(array $input, array $out, ?float $dl = null): array {
-    $t0 = microtime(true); $detV8 = isset($GLOBALS['__pp_v8_fast_wall']) && (string)getenv('PP_V1517_DET_FAST') !== '0';   // V15.17b (ditangkap sebelum pp_tl_clean_globals menghapus __pp_*)
+    $t0 = microtime(true); $detV8 = isset($GLOBALS['__pp_v8_fast_wall']) && (string)getenv('PP_V1517_DET_FAST') !== '0'; $ieCapV8 = isset($GLOBALS['ppIeWarmV8Cap']) ? (int)$GLOBALS['ppIeWarmV8Cap'] : null;   // V15.17b (ditangkap sebelum pp_tl_clean_globals menghapus __pp_*)
     try {
         if ((string)getenv('PP_V8_PRIORITY') === '0' || count((array)($out['data'] ?? [])) !== 48) return $out;
         $sig0 = pp_v6_gtg_sig((array)$out['data']);
@@ -6630,7 +6645,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                     foreach ((array)($HV['flags'] ?? []) as $fV) if (in_array($fV['type'] ?? '', ['LOWER_PRIORITY_RUNNING_WHILE_HIGHER_HEADROOM', 'LOWER_PRIORITY_START_WHILE_HIGHER_HEADROOM'], true)
                         && (empty($fV['resolved']) || !array_diff((array)($fV['reasons'] ?? []), ['V8_REVIEW_TIDAK_ADA']))) { $kU = strtolower((string)$fV['unit']); $hU[$kU] = ($hU[$kU] ?? 0) + 1; }   // 'V8_REVIEW_TIDAK_ADA' = menunggu review, bukan bukti
                     uksort($hU, fn($a, $b) => [$hU[$b], $a] <=> [$hU[$a], $b]); $hU = array_slice($hU, 0, 3, true); } catch (Throwable $e) {}
-                $cap = max($cap, count($hU)); $GLOBALS['ppV8FastCap'] = ['core_simulations_pipeline' => $simU, 'cap' => $cap, 'unresolved_c2_c4_units' => array_map('strtoupper', array_keys($hU))]; $GLOBALS['ppV8FirstUnits'] = $hU; } $maxRounds = min($maxRounds, (int)(getenv('PP_V8_FAST_ROUNDS') ?: 1)); }   /* V15.16 Fastest: review terbatas (bounded race), bukan Maximum Review */ $rankP = pp_priority_rank($m);
+                $cap = max($cap, count($hU)); if ($ieCapV8 !== null) $cap = min($cap, $ieCapV8); $GLOBALS['ppV8FastCap'] = ['core_simulations_pipeline' => $simU, 'cap' => $cap, 'unresolved_c2_c4_units' => array_map('strtoupper', array_keys($hU))]; $GLOBALS['ppV8FirstUnits'] = $hU; } $maxRounds = min($maxRounds, (int)(getenv('PP_V8_FAST_ROUNDS') ?: 1)); }   /* V15.16 Fastest: review terbatas (bounded race), bukan Maximum Review */ $rankP = pp_priority_rank($m);
         /* V9 REVIEW DELTA: FINAL inkremental kanonik dengan commitment identik dengan FINAL jangkar yang sudah ditinjau.
          * Kandidat pembanding jangkar (valid + gagal window gas) sudah dibawa ke ruang kandidat inkremental dan dievaluasi
          * ulang pada state baru bila dapat menyalip; bukti per row (kapasitas Export, runtime, blok, ramp) dipakai ulang. */

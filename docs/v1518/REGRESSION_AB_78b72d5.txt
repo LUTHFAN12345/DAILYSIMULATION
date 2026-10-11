@@ -1,38 +1,38 @@
-== COLD                      D0_golden                old   PASS  79.9049   7.4s | new   PASS  79.9049   7.5s
-== COLD                      D2_g6_stop2100           old   PASS  80.3643   6.3s | new   PASS  80.3643   6.8s
-== COLD                      D3_g6_unavail            old   FAIL   86.827   0.8s | new   PASS  80.0815   6.1s GATE FAIL->PASS CP-6.7455
-== COLD                      D3b_first_prio_unavail   old   PASS  79.9049   7.2s | new   PASS  79.9049   6.6s
-== COLD                      D4_g6_stop0800           old   PASS   80.365  21.4s | new   PASS   80.365  22.1s
-== COLD                      D4b_two_units            old   PASS  88.1996   8.4s | new   PASS  88.1996   6.6s
-== COLD                      D4c_two_units            old   PASS  99.2948   7.6s | new   PASS  99.2948   6.1s
-== COLD                      D5_g6_stop1000_1400      old   FAIL  91.1641   0.7s | new   FAIL  91.0548   0.6s CP-0.1093
-== COLD                      D5_two_blocks_fixload    old   FAIL  94.6531  13.8s | new   FAIL  94.6531  11.5s
-== COLD                      D5b_two_blocks_stopwin   old   PASS  98.9126   7.7s | new   PASS  98.9126   7.7s
-== COLD                      R1_pgn25_lng18_pep36_ak4 old   PASS  71.7383  10.3s | new   PASS  71.7259   7.3s CP-0.0124
-== COLD                      R2_minflow26             old   PASS  79.9047   7.1s | new   PASS  79.9047   7.0s
-== COLD                      R2_minflow45_infeas      old   FAIL  80.8225   9.8s | new   FAIL  80.8225   8.8s
-== COLD                      SR1_g5_req1600           old   PASS  80.7861   6.9s | new   PASS  80.7861   6.1s
-== COLD                      SR2_g6_req2100           old   PASS  80.3643   8.5s | new   PASS  80.3643   6.2s
-== COLD                      SR3_g5_simmust           old   PASS  79.9049   7.8s | new   PASS  79.9049   6.7s
-== COLD                      SR4_g6_stop_or_cont      old   PASS  79.9049   9.3s | new   PASS  79.9049   9.5s
-== COLD                      SR5_g5_continuous        old   PASS  81.9951   5.3s | new   PASS  81.8185   4.5s CP-0.1766
-== COLD                      SR6_g6_req0800           old   PASS   80.365  21.0s | new   PASS   80.365  17.8s
+== COLD                      D0_golden                old   PASS  79.9049   7.4s | new   PASS  79.9049   9.3s
+== COLD                      D2_g6_stop2100           old   PASS  80.3643   6.3s | new   PASS  80.3643   7.7s
+== COLD                      D3_g6_unavail            old   FAIL   86.827   0.8s | new   PASS  80.0815   7.8s GATE FAIL->PASS CP-6.7455
+== COLD                      D3b_first_prio_unavail   old   PASS  79.9049   7.2s | new   PASS  79.9049   7.2s
+== COLD                      D4_g6_stop0800           old   PASS   80.365  21.4s | new   PASS   80.365  16.2s
+== COLD                      D4b_two_units            old   PASS  88.1996   8.4s | new   PASS  88.1996   6.9s
+== COLD                      D4c_two_units            old   PASS  99.2948   7.6s | new   PASS  99.2948   7.2s
+== COLD                      D5_g6_stop1000_1400      old   FAIL  91.1641   0.7s | new   FAIL  91.0548   0.8s CP-0.1093
+== COLD                      D5_two_blocks_fixload    old   FAIL  94.6531  13.8s | new   FAIL  94.6531  12.0s
+== COLD                      D5b_two_blocks_stopwin   old   PASS  98.9126   7.7s | new   PASS  98.9126   8.5s
+== COLD                      R1_pgn25_lng18_pep36_ak4 old   PASS  71.7383  10.3s | new   PASS  71.7259   7.4s CP-0.0124
+== COLD                      R2_minflow26             old   PASS  79.9047   7.1s | new   PASS  79.9047   6.8s
+== COLD                      R2_minflow45_infeas      old   FAIL  80.8225   9.8s | new   FAIL  80.8225   8.9s
+== COLD                      SR1_g5_req1600           old   PASS  80.7861   6.9s | new   PASS  80.7861   7.0s
+== COLD                      SR2_g6_req2100           old   PASS  80.3643   8.5s | new   PASS  80.3643   6.8s
+== COLD                      SR3_g5_simmust           old   PASS  79.9049   7.8s | new   PASS  79.9049   6.5s
+== COLD                      SR4_g6_stop_or_cont      old   PASS  79.9049   9.3s | new   PASS  79.9049   6.4s
+== COLD                      SR5_g5_continuous        old   PASS  81.9951   5.3s | new   PASS  81.8185   4.7s CP-0.1766
+== COLD                      SR6_g6_req0800           old   PASS   80.365  21.0s | new   PASS   80.365  11.9s
 == IE WARM                   IE0_golden               old   PASS  79.9049   7.7s | new   PASS  79.9049   6.3s
-== IE WARM                   IE3_golden               old   PASS  80.6848   2.9s | new   PASS  80.6848   2.8s
-== IE WARM                   IE4_golden               old   PASS  78.8064   2.9s | new   PASS  78.7567   2.5s CP-0.0497
-== IE WARM                   IE5_golden               old   PASS   80.182   7.4s | new   PASS  80.1822   5.5s
-== IE WARM                   IE6_golden               old   PASS  79.9451   4.5s | new   PASS  79.9449   3.8s
-== IE WARM                   IE2_golden               old   PASS  79.5409   3.4s | new   PASS  79.5409   3.0s
-== IE WARM                   IE1_golden               old   PASS  81.1737   7.6s | new   PASS  81.1737   6.2s
-== IE WARM                   IE7_golden               old   PASS  84.4288  11.6s | new   PASS  84.4288   8.6s
-== IE WARM                   IE0_golden#2             old   PASS  79.9049   3.3s | new   PASS  79.9049   3.0s
-== IE WARM                   IE8_golden               old   PASS   72.742   5.3s | new   PASS   72.742   4.8s
-== A WARM                    A0_base                  old   FAIL  64.5684  12.5s | new   FAIL  64.5684  11.8s
-== A WARM                    A1_pgn_r13               old   FAIL  64.6007  11.6s | new   FAIL  64.6007  11.4s
-== A WARM                    A3_mm_r13                old   FAIL  64.5641  12.0s | new   FAIL  64.5641   9.9s
-== A WARM                    A7_under                 old   FAIL  64.3361  14.0s | new   FAIL  64.3361  11.6s
-== A WARM                    A0_base#2                old   FAIL  64.5684  13.7s | new   FAIL  64.5684  10.8s
-== A WARM                    A5_multi                 old   PASS  64.6554  44.7s | new   PASS  64.6542  39.6s CP-0.0012
-== A WARM                    A2_ffj_r13               old   FAIL  64.5684  14.0s | new   FAIL  64.5684  13.6s
-== A WARM                    A4_all_r13               old   FAIL  64.5964  13.3s | new   FAIL  64.5964  12.9s
-== A WARM                    A6_over                  old   FAIL  65.0476  14.0s | new   FAIL  65.0476  13.8s
+== IE WARM                   IE3_golden               old   PASS  80.6848   2.9s | new   PASS  80.6848   3.1s
+== IE WARM                   IE4_golden               old   PASS  78.8064   2.9s | new   PASS  78.7567   2.4s CP-0.0497
+== IE WARM                   IE5_golden               old   PASS   80.182   7.4s | new   PASS  80.1822   6.6s
+== IE WARM                   IE6_golden               old   PASS  79.9451   4.5s | new   PASS  79.9451   4.0s
+== IE WARM                   IE2_golden               old   PASS  79.5409   3.4s | new   PASS  79.5406   3.2s
+== IE WARM                   IE1_golden               old   PASS  81.1737   7.6s | new   PASS  81.1737   6.5s
+== IE WARM                   IE7_golden               old   PASS  84.4288  11.6s | new   PASS  84.4288   9.2s
+== IE WARM                   IE0_golden#2             old   PASS  79.9049   3.3s | new   PASS  79.9049   3.2s
+== IE WARM                   IE8_golden               old   PASS   72.742   5.3s | new   PASS   72.742   5.8s
+== A WARM                    A0_base                  old   FAIL  64.5684  12.5s | new   FAIL  64.5684  13.6s
+== A WARM                    A1_pgn_r13               old   FAIL  64.6007  11.6s | new   FAIL  64.6007  13.9s
+== A WARM                    A3_mm_r13                old   FAIL  64.5641  12.0s | new   FAIL  64.5641  12.7s
+== A WARM                    A7_under                 old   FAIL  64.3361  14.0s | new   FAIL  64.3361  13.8s
+== A WARM                    A0_base#2                old   FAIL  64.5684  13.7s | new   FAIL  64.5684  11.1s
+== A WARM                    A5_multi                 old   PASS  64.6554  44.7s | new   PASS  64.6542  43.3s CP-0.0012
+== A WARM                    A2_ffj_r13               old   FAIL  64.5684  14.0s | new   FAIL  64.5684  15.0s
+== A WARM                    A4_all_r13               old   FAIL  64.5964  13.3s | new   FAIL  64.5964  13.6s
+== A WARM                    A6_over                  old   FAIL  65.0476  14.0s | new   FAIL  65.0476  13.9s

@@ -2949,8 +2949,26 @@ function pp_run_simulation_pipeline(array $input): array {
              * bila R1 memunculkan pelanggaran baru, R2 dievaluasi dan dipakai bila bersih, kalau keduanya kotor dipilih yang
              * jenis pelanggaran barunya paling sedikit (seri -> R1). Pelanggaran sementara (window gas) diselesaikan koreksi hilir. */
             $curT = $bsTypes($inCur, $out);
-            $r1 = $inCur; foreach ($bsA['violations'] as $bv) $r1['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
-            $o1 = pp_run_simulation_core($r1); $new1 = array_values(array_diff($bsTypes($r1, $o1), $curT));
+            /* R1 satu langkah: SELURUH GTG CC non-lead blok yang melanggar ditahan [1 .. row legal - 1] sekaligus (tanpa ini engine
+             * memajukan GTG berikutnya dan perlu iterasi kedua). §7.5 satu additional dulu: GTG non-lead berikutnya (urutan effective
+             * priority) baru boleh start setelah additional pertama connect (first load >= row legal pertama + lead-in). Bila varian
+             * ber-stagger memunculkan pelanggaran baru, varian tanpa stagger dievaluasi (dan run ber-stagger itu menjadi bukti kebutuhan). */
+            $mkR1 = function (bool $stag) use ($inCur, $bsA) { $r = $inCur; $vS = []; foreach ($bsA['violations'] as $bv) $vS[$bv['stg']] = $bv;
+                $rank = []; foreach ((array)($inCur['data3']['modeling']['unit_priority'] ?? []) as $g) foreach ((array)$g as $x) $rank[strtolower((string)$x)] = count($rank);
+                foreach ($bsA['blocks'] as $bb) { if (!isset($vS[$bb['stg']]) || !is_array($bb['lead'])) continue; $F1 = (int)$vS[$bb['stg']]['stg_first']; $sL1 = strtolower($bb['stg']);
+                    $nl = []; foreach ((array)($r['data3'][$sL1]['gtg'] ?? []) as $gx) { $gx = strtolower((string)$gx); if ($gx !== strtolower($bb['lead']['unit'])) $nl[] = $gx; }
+                    usort($nl, fn($a, $b) => [($rank[$a] ?? 999), $a] <=> [($rank[$b] ?? 999), $b]); $firstConnect = null;
+                    foreach ($nl as $i => $gx) { $Lg = 1 + count(pp_additional_hrsg_caps($gx)); $ex = $F1 + 2 - $Lg;
+                        if ($stag && $i > 0 && $firstConnect !== null) $ex = max($ex, $firstConnect + 1);
+                        if ($i === 0) $firstConnect = $ex - 1 + $Lg;
+                        if ($ex > 1) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => $gx, 'start' => 1, 'stop' => $ex - 1]; } }
+                foreach ($bsA['violations'] as $bv) $r['data3']['modeling']['unit_stop_time'][] = ['unit' => strtolower($bv['unit']), 'start' => $bv['row'], 'stop' => max($bv['row'], $bv['earliest'] - 1)];
+                return $r; };
+            $r1 = $mkR1(true);
+            $oS = pp_run_simulation_core($r1); $newS = array_values(array_diff($bsTypes($r1, $oS), $curT));
+            if ($newS) { $GLOBALS['ppV1518SeqLock'][] = ['kind' => 'SECOND_ADDITIONAL_PROOF', 'counterfactual' => 'satu additional dulu (stagger)', 'new_violation_types' => $newS, 'chosen' => 'KEEP (kebutuhan terbukti: stagger melanggar ' . implode(',', $newS) . ')'];
+                $r1 = $mkR1(false); }
+            if ($newS) { $o1 = pp_run_simulation_core($r1); $new1 = array_values(array_diff($bsTypes($r1, $o1), $curT)); } else { $o1 = $oS; $new1 = []; }
             $chosen = 'R1_TUNDA_ADDITIONAL';
             if (!$new1) { $inCur = $r1; $out = $o1; }
             elseif ($r2Any) { $o2 = pp_run_simulation_core($r2); $new2 = array_values(array_diff($bsTypes($r2, $o2), $curT));
@@ -3057,7 +3075,7 @@ function pp_run_simulation_pipeline(array $input): array {
          * terpicu karena nilainya berganti. Setelah siklus terulang dua kali, tidak ada percobaan
          * berikutnya yang dapat menghasilkan deviasi lebih kecil dari yang sudah tercatat; hasil terbaik
          * pertama dikembalikan — sama dengan hasil loop penuh. PP_V5_GWC_CYCLE=0 mematikan. */
-        $gwSeen = []; $gwCycle = (string)getenv('PP_V5_GWC_CYCLE') !== '0'; $gwCycleStop = false;
+        $gwSeen = []; $gwCycle = (string)getenv('PP_V5_GWC_CYCLE') !== '0'; $gwCycleStop = false; $gwUpOver = null; $gwUpUnder = null;
         for ($att = 0; $att < $maxAtt; $att++) {
             if ($att > 0 && pp_budget_exceeded('gas_window_correction')) break;
             $uW = $gwUsed($out);
@@ -3065,6 +3083,19 @@ function pp_run_simulation_pipeline(array $input): array {
             $dev = ($uW > $hiW) ? ($uW - $hiW) : (($uW < $loW) ? ($loW - $uW) : 0.0);
             if ($dev < $bestDev) { $bestDev = $dev; $best = $out; $bestIn = $in; }
             if ($dev <= 1e-9) break;
+            /* V15.18 BISEKSI 'up': respons gas terhadap __shaper_quota_adjust bertingkat (unit on/off). Begitu bracket diketahui
+             * (adj up yang masih UNDER dan yang sudah OVER), percobaan berikutnya = titik tengah bracket, bukan beralih ke trim dari
+             * nol (jalur trim jauh lebih mahal dan berosilasi). Deterministik; opt-in PP_V1518_GWC_BISECT=1. */
+            if ((string)getenv('PP_V1518_GWC_BISECT') === '1' && $adjTrim <= 1e-12) {   // opt-in: setelah stagger R1 tidak lagi mempercepat T0-T8; default mempertahankan jalur 78b72d5 (IE5)
+                if ($uW > $hiW) $gwUpOver = ($gwUpOver === null) ? $adjUp : min($gwUpOver, $adjUp); else $gwUpUnder = ($gwUpUnder === null) ? $adjUp : max($gwUpUnder, $adjUp);
+                if ($gwUpOver !== null && $gwUpUnder !== null && $gwUpOver > $gwUpUnder + 0.002 && $gwUpOver > 1e-9) {
+                    $adjUp = 0.5 * ($gwUpUnder + $gwUpOver); $in['data3']['modeling']['__shaper_quota_adjust'] = $adjUp; unset($in['data3']['modeling']['__gas_trim_target_bbtud']);
+                    $out = $applyCarry(pp_run_simulation_core($in));
+                    $out['info']['Gas Window Correction'] = ['attempt' => $att + 1, 'trim_target' => 0.0, 'quota_adjust' => round($adjUp, 4), 'gas_before' => round($uW, 4), 'gas_after' => round($gwUsed($out), 4), 'mode' => 'BISEKSI_UP'];
+                    $GLOBALS['__pp_gwc_log'][] = ['att' => $att + 1, 'dev' => round($dev, 4), 'trim' => 0.0, 'up' => round($adjUp, 4), 'neto_sebelum' => round($uW, 4), 'neto_sesudah' => round($gwUsed($out), 4), 'mode' => 'BISEKSI_UP'];
+                    continue;
+                }
+            }
             if ($uW > $hiW) {
                 $adjTrim += $dev + 0.004;
                 $in['data3']['modeling']['__gas_trim_target_bbtud']=$adjTrim;
