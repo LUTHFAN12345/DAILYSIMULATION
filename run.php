@@ -2688,7 +2688,7 @@ function pp_v4_cooperate(string $jobId, array $orig, array $tasks, float $dl, bo
             if (is_file($done)) continue;
             $h = @fopen($dir . DIRECTORY_SEPARATOR . 'v4t_' . $tk . '.lock', 'c');
             if ($h && @flock($h, LOCK_EX | LOCK_NB)) {
-                if (!is_file($done)) { $tt0 = microtime(true); pp_v4_task_exec($orig, $t, $dl, $jobId); @file_put_contents($done, json_encode(['pid' => getmypid(), 't0' => $tt0, 't1' => microtime(true), 'type' => $t['type'], 'off' => $t['off'] ?? [], 'adj' => $t['adj'] ?? null])); $mine++; }
+                if (!is_file($done)) { $tt0 = microtime(true); pp_v4_task_exec($orig, $t, $dl, $jobId); @file_put_contents($done, json_encode(['pid' => getmypid(), 'wid' => pp_v1518_worker_id(), 'role' => !empty($GLOBALS['ppTlHook']['helper']) ? 'helper' : 'owner', 't0' => $tt0, 't1' => microtime(true), 'type' => $t['type'], 'off' => $t['off'] ?? [], 'adj' => $t['adj'] ?? null])); $mine++; }
                 @flock($h, LOCK_UN); @fclose($h);
                 if ($more !== null) { $n0 = count($pending); $pull(); for ($q = $n0; $q < count($pending); $q++) $left[] = $pending[$q]; }
                 if (isset($GLOBALS['ppTlHook']) && function_exists('pp_tl_abort_poll')) pp_tl_abort_poll();
@@ -2868,12 +2868,14 @@ function pp_v13f_pipeline(array $input): array {
 }
 /* V15.18 DIAGNOSTIK RUNTIME PLATFORM (observasi saja, tidak memengaruhi hasil): platform/SAPI/ZTS/OPcache, core & slot pembantu,
  * serta tugas pembantu dari penanda v4t_*.done (pid, t0, t1) -> konkurensi maksimum = bukti paralel vs serial (Windows/XAMPP vs Linux). */
+/* Identitas pekerja per REQUEST (bukan PID): Apache mpm_winnt menjalankan semua request sebagai thread dalam SATU proses (PID sama). */
+function pp_v1518_worker_id(): string { static $w = null; if ($w === null) $w = substr(bin2hex(random_bytes(6)), 0, 12); return $w; }
 function pp_v1518_runtime_diag(string $jid): array {
     $dir = pp_job_dir($jid); $job = pp_job_read($jid) ?: []; $ownerPid = (int)($job['pid'] ?? 0);
     $ev = []; $byPid = []; $busy = 0.0; $tMin = INF; $tMax = 0.0;
     foreach (glob($dir . DIRECTORY_SEPARATOR . 'v4t_*.done') ?: [] as $f) { $d = json_decode((string)@file_get_contents($f), true);
         if (!is_array($d) || !isset($d['t0'], $d['t1'])) continue; $p = (int)($d['pid'] ?? 0); $dt = max(0.0, (float)$d['t1'] - (float)$d['t0']);
-        $k = 'pid:' . $p . ($p === $ownerPid ? ' (owner)' : ''); $byPid[$k]['tasks'] = ($byPid[$k]['tasks'] ?? 0) + 1; $byPid[$k]['busy_s'] = round(($byPid[$k]['busy_s'] ?? 0) + $dt, 2);
+        $k = (string)($d['role'] ?? '?') . ':' . (string)($d['wid'] ?? ('pid' . $p)) . ' pid ' . $p; $byPid[$k]['tasks'] = ($byPid[$k]['tasks'] ?? 0) + 1; $byPid[$k]['busy_s'] = round(($byPid[$k]['busy_s'] ?? 0) + $dt, 2);
         $byPid[$k]['types'][(string)($d['type'] ?? '?')] = ($byPid[$k]['types'][(string)($d['type'] ?? '?')] ?? 0) + 1;
         $busy += $dt; $tMin = min($tMin, (float)$d['t0']); $tMax = max($tMax, (float)$d['t1']); $ev[] = [(float)$d['t0'], 1]; $ev[] = [(float)$d['t1'], -1]; }
     usort($ev, fn($a, $b) => $a[0] <=> $b[0] ?: $a[1] <=> $b[1]); $c = 0; $mx = 0; foreach ($ev as $e) { $c += $e[1]; $mx = max($mx, $c); }
@@ -2882,7 +2884,7 @@ function pp_v1518_runtime_diag(string $jid): array {
         'opcache' => function_exists('opcache_get_status') ? (bool)(@opcache_get_status(false)['opcache_enabled'] ?? false) : false,
         'cores_detected' => pp_v4_cores(), 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
         'tasks_total' => count($ev) / 2, 'tasks_by_process' => $byPid, 'task_busy_s' => round($busy, 2), 'task_span_s' => round($span, 2),
-        'max_concurrency' => $mx, 'parallel' => $mx >= 2 ? 'PARALLEL' : ((count($ev) / 2) > 0 ? 'SERIAL' : 'NO_TASKS'),
+        'workers' => count($byPid), 'max_concurrency' => $mx, 'parallel' => ($mx >= 2 && count($byPid) >= 2) ? 'PARALLEL' : ((count($ev) / 2) > 0 ? 'SERIAL_OR_UNPROVEN' : 'NO_TASKS'),
         'job_started_at' => $job['started_at_ts'] ?? null, 'job_finished_at' => $job['finished_at'] ?? null];
 }
 function pp_v1518_startup_proof(array $plan, ?array $cand, array $o, array $tried): array {
