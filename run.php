@@ -2866,6 +2866,25 @@ function pp_v13f_pipeline(array $input): array {
     $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan, null, $o, $tried);
     return $o;
 }
+/* V15.18 DIAGNOSTIK RUNTIME PLATFORM (observasi saja, tidak memengaruhi hasil): platform/SAPI/ZTS/OPcache, core & slot pembantu,
+ * serta tugas pembantu dari penanda v4t_*.done (pid, t0, t1) -> konkurensi maksimum = bukti paralel vs serial (Windows/XAMPP vs Linux). */
+function pp_v1518_runtime_diag(string $jid): array {
+    $dir = pp_job_dir($jid); $job = pp_job_read($jid) ?: []; $ownerPid = (int)($job['pid'] ?? 0);
+    $ev = []; $byPid = []; $busy = 0.0; $tMin = INF; $tMax = 0.0;
+    foreach (glob($dir . DIRECTORY_SEPARATOR . 'v4t_*.done') ?: [] as $f) { $d = json_decode((string)@file_get_contents($f), true);
+        if (!is_array($d) || !isset($d['t0'], $d['t1'])) continue; $p = (int)($d['pid'] ?? 0); $dt = max(0.0, (float)$d['t1'] - (float)$d['t0']);
+        $k = 'pid:' . $p . ($p === $ownerPid ? ' (owner)' : ''); $byPid[$k]['tasks'] = ($byPid[$k]['tasks'] ?? 0) + 1; $byPid[$k]['busy_s'] = round(($byPid[$k]['busy_s'] ?? 0) + $dt, 2);
+        $byPid[$k]['types'][(string)($d['type'] ?? '?')] = ($byPid[$k]['types'][(string)($d['type'] ?? '?')] ?? 0) + 1;
+        $busy += $dt; $tMin = min($tMin, (float)$d['t0']); $tMax = max($tMax, (float)$d['t1']); $ev[] = [(float)$d['t0'], 1]; $ev[] = [(float)$d['t1'], -1]; }
+    usort($ev, fn($a, $b) => $a[0] <=> $b[0] ?: $a[1] <=> $b[1]); $c = 0; $mx = 0; foreach ($ev as $e) { $c += $e[1]; $mx = max($mx, $c); }
+    $span = is_finite($tMin) ? $tMax - $tMin : 0.0;
+    return ['schema' => 'v1518-runtime-diag-1', 'os' => PHP_OS_FAMILY, 'sapi' => PHP_SAPI, 'php' => PHP_VERSION, 'zts' => (bool)PHP_ZTS,
+        'opcache' => function_exists('opcache_get_status') ? (bool)(@opcache_get_status(false)['opcache_enabled'] ?? false) : false,
+        'cores_detected' => pp_v4_cores(), 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
+        'tasks_total' => count($ev) / 2, 'tasks_by_process' => $byPid, 'task_busy_s' => round($busy, 2), 'task_span_s' => round($span, 2),
+        'max_concurrency' => $mx, 'parallel' => $mx >= 2 ? 'PARALLEL' : ((count($ev) / 2) > 0 ? 'SERIAL' : 'NO_TASKS'),
+        'job_started_at' => $job['started_at_ts'] ?? null, 'job_finished_at' => $job['finished_at'] ?? null];
+}
 function pp_v1518_startup_proof(array $plan, ?array $cand, array $o, array $tried): array {
     $rows = array_values((array)($o['data'] ?? [])); $units = [];
     foreach ($plan as $u => $p) { $U = strtoupper($u); $first = null; foreach ($rows as $k => $r) if ((float)($r[$U] ?? 0) > 0.01) { $first = $k + 1; break; }
@@ -3753,6 +3772,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
     /* V15.18 HOTFIX: bukti startup (latest legal start) dihitung ulang pada dispatch FINAL; tanpa bukti startup dini tidak final */
     if (is_array($output['info'] ?? null) && isset($GLOBALS['ppV1518StartupPlan']) && function_exists('pp_v1518_startup_proof'))
         $output['info']['Startup Timing Proof'] = pp_v1518_startup_proof($GLOBALS['ppV1518StartupPlan']['plan'], $GLOBALS['ppV1518StartupPlan']['cand'], $output, $GLOBALS['ppV1518StartupPlan']['tried']);
+    if (is_array($output['info'] ?? null)) try { $output['info']['Runtime Platform Diagnostics'] = pp_v1518_runtime_diag($id) + ['phase_timeline' => $output['info']['Run Status']['phase_timeline'] ?? null, 'engine_s' => round(microtime(true) - $t, 2)]; } catch (Throwable $e) {}
     pp_job_progress($id, 'VALIDASI_SELESAI', 98.0);
     return [
         'schema' => 'co12-async-economic-review-v1',
@@ -7633,7 +7653,9 @@ function pp_v1517_input_snapshot(array $input): array {
         $jid = basename(dirname(dirname($sf))); $j = pp_job_read($jid); $jin = json_decode((string)@file_get_contents(pp_job_dir($jid) . '/input.json'), true);
         $jobs[] = ['job_id' => $jid, 'kind' => $j['kind'] ?? null, 'status' => $j['status'] ?? null, 'finished_at' => $j['finished_at'] ?? null,
                    'job_operator_payload_hash' => is_array($jin) ? pp_v1517_operator_payload_hash($jin) : null,
-                   'same_payload_as_snapshot' => is_array($jin) ? hash_equals(pp_v1517_operator_payload_hash($jin), $opH) : null]; }
+                   'same_payload_as_snapshot' => is_array($jin) ? hash_equals(pp_v1517_operator_payload_hash($jin), $opH) : null,
+                   'runtime_diagnostics' => (function () use ($jid) { $r = json_decode((string)@file_get_contents(pp_job_dir($jid) . '/result.json'), true);
+                        return $r['output']['info']['Runtime Platform Diagnostics'] ?? (function_exists('pp_v1518_runtime_diag') ? pp_v1518_runtime_diag($jid) : null); })()]; }
     $mode = !empty($input['_maximum_review']) ? 'maximum_review' : (!empty($input['_fast_default']) ? 'fastest_default' : 'run');
     return ['schema' => 'v1517b-input-snapshot-1', 'generated_at' => date('c'), 'engine_build' => PP_ENGINE_BUILD_ID, 'engine_fingerprint' => pp_engine_fingerprint(),
         'context' => ['uid' => $ctx['uid'], 'tab_id' => $ctx['tab'], 'project_id' => $ctx['project'], 'run_id' => $ctx['run'] !== '' ? $ctx['run'] : null,
