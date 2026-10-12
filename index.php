@@ -1358,7 +1358,7 @@ ul.csverr li{margin:2px 0}
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
         <button class="btn ghost" id="btn-save" title="Save Input — menyimpan versi baru input milik Anda (user/tab/proyek) di datastore; tidak menimpa data user lain (selalu aktif)">💾 Save</button>
         <button class="btn ghost" id="btn-snapshot" title="Export Current Input Snapshot — unduh JSON payload normalisasi yang akan diterima worker (IE/Dispatch/PV, gas, status & commitment unit, Unit Priority, SR, Change Over, mode Fastest/Maximum Review, hash konteks). Read-only: tidak menjalankan simulasi dan tidak menyimpan." onclick="exportInputSnapshot()">⇩ Input Snapshot</button>
-        <a class="btn ghost" href="run.php?mode=runtime_profile" title="SEMENTARA: unduh jobs/&lt;job-id&gt;/runtime_profile.json dari Run terakhir">⇩ Download Runtime Profile</a>
+        <?php if (is_file(__DIR__ . '/run_prof.php')): ?><a class="btn ghost" href="run.php?mode=runtime_profile" title="SEMENTARA: unduh jobs/&lt;job-id&gt;/runtime_profile.json dari Run terakhir">⇩ Download Runtime Profile</a><?php endif; ?>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
         <span class="hint" id="run-msg"></span>

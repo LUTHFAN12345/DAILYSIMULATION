@@ -18,6 +18,9 @@ if (!defined('PP_FUEL_MEMO_VERIFY')) define('PP_FUEL_MEMO_VERIFY', (bool)getenv(
 if (!defined('PP_MEMO_OFF')) define('PP_MEMO_OFF', (bool)getenv('PP_MEMO_OFF'));
 /* V15.18 RUNTIME 1-CPU: saklar tunggal seluruh optimasi runtime eksak (cache fungsi murni + skip-ahead gas top-up).
  * PP_V1518_RTOPT=0 = jalur penuh lama; dipakai cek INCREMENTAL VS FULL PARITY (harus identik bit-for-bit). */
+/* V15.18 HOTLOOP: lookup lazy per unit x row (pp_is_unit_stopped / pp_effective_maxload / pp_get_fixed_load) di loop pass yang tidak
+ * mengubah $d3/$model, dan cache bahan bakar per row selama row identik (===). PP_V1518_HOTLOOP_OPT=0 = jalur lama. */
+if (!defined('PP_V1518_HOTLOOP_OPT')) define('PP_V1518_HOTLOOP_OPT', (string)getenv('PP_V1518_HOTLOOP_OPT') !== '0' && !PP_MEMO_OFF && !PP_FUEL_MEMO_VERIFY);
 if (!defined('PP_V1518_RTOPT')) define('PP_V1518_RTOPT', (string)getenv('PP_V1518_RTOPT') !== '0' && !PP_MEMO_OFF && !PP_FUEL_MEMO_VERIFY);
 if (!defined('PP_V6_WMEMO')) define('PP_V6_WMEMO', (string)getenv('PP_V6_WMEMO') !== '0');   // V6: memo lintas core run (OPT-W1..W4)
 
@@ -12696,10 +12699,13 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         $qG = $model['gas_quota'] ?? [];
         $ffJDf = ((float)(($qG['pep'] ?? 0) + ($qG['akasia'] ?? 0) + ($qG['baskara'] ?? 0) + ($qG['bbg'] ?? 0)))
                  * ((float)($model['ghv_jababeka'] ?? 1034.7564)) / 1000.0;   // §2: + BBG (MMSCFD)
-        $gasJRowF = function (int $r) use (&$genRows, $d3): float {
+        $__gjC = [];
+        $gasJRowF = function (int $r) use (&$genRows, $d3, &$__gjC): float {
+            if (PP_V1518_HOTLOOP_OPT && isset($__gjC[$r]) && $__gjC[$r][0] === $genRows[$r]) return $__gjC[$r][1];
             $s = 0.0;
             foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9'] as $u)
                 $s += calc_fuel($d3, $u, (float)($genRows[$r][$u] ?? 0));
+            if (PP_V1518_HOTLOOP_OPT) $__gjC[$r] = [$genRows[$r], $s];
             return $s;
         };
         $pgnRTof = fn(int $r): float => 24.0 * $gasJRowF($r) - $ffJDf;
@@ -13159,7 +13165,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             }
             /* (d) QUOTA TOP-UP pasca-repair: repair dapat menurunkan gas di bawah window
              * [quota-0.04, quota]; kembalikan dgn menaikkan unit gas pada rows ber-slack. */
-            $gT = 0;
+            $gT = 0; $__hS = []; $__hE = [];
             while ($trueGasNow() < $quota - 0.0395 && $gT++ < 160) {
                 $bestR = -1; $bestU = '';
                 for ($r = 0; $r < $n && $bestR < 0; $r++) {
@@ -13171,10 +13177,10 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ($eProbe - $expOf($genRows[$nb], $ieVals[$nb]) > 30.0 - 0.5) { $rampBad = true; break; } }
                     if ($rampBad) continue;
                     foreach (['g9','g8','g5','g1','g2'] as $ug) {
-                        if (!isset($d3[$ug]) || $isFixed($ug, $r) || isset($suCap[$ug][$r]) || pp_is_unit_stopped($d3, $model, $ug, $r + 1)) continue;
+                        if (!isset($d3[$ug]) || $isFixed($ug, $r) || isset($suCap[$ug][$r]) || (PP_V1518_HOTLOOP_OPT ? ($__hS[$ug][$r] ?? ($__hS[$ug][$r] = pp_is_unit_stopped($d3, $model, $ug, $r + 1))) : pp_is_unit_stopped($d3, $model, $ug, $r + 1))) continue;
                         $cg = (float)($genRows[$r][$ug] ?? 0); if ($cg < 0.01) continue;
                         if (!$isBusA($ug) && $needBus && $busOf($genRows[$r], $ieVals[$r]) - 0.5 < $busMin - 1e-6) continue;
-                        $em = pp_effective_maxload($d3, $model, $ug, $r + 1);
+                        $em = PP_V1518_HOTLOOP_OPT ? ($__hE[$ug][$r] ?? ($__hE[$ug][$r] = pp_effective_maxload($d3, $model, $ug, $r + 1))) : pp_effective_maxload($d3, $model, $ug, $r + 1);
                         $cap = min($em > 0 ? $em : $GMAX, ($ug === 'g8' || $ug === 'g9') ? $GMAX : (float)($d3[$ug]['max_load'] ?? 31));
                         foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
                             if ((float)($genRows[$nb][$ug] ?? 0) >= 1 && ($ug === 'g8' || $ug === 'g9')) $cap = min($cap, (float)$genRows[$nb][$ug] + pp_unit_ramp_limit($ug)); }
@@ -13392,7 +13398,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             /* V15.18 RUNTIME 1-CPU (eksak): row < r*-1 (r* = row yang baru dinaikkan) tidak berubah dan tetangganya pun tidak,
              * sehingga tetap tidak eligible pada iterasi berikutnya (cap G8/G9 hanya bergantung pada row sendiri dan tetangga;
              * cek kuota gas hanya dicapai oleh unit eligible). Pemindaian dimulai dari r*-1 -> urutan langkah identik. */
-            $__tuStart = 0;
+            $__tuStart = 0; $__hS = []; $__hE = [];
             while ($trueGasNow() < $quota - 0.038 && $gTU++ < 400) {
                 $doneU = false;
                 for ($r = $__tuStart; $r < $n && !$doneU; $r++) {
@@ -13400,9 +13406,9 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                     if ($expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] - 0.6) continue;
                     /* PRIORITY AUDIT (sistemik): top-up gas mengikuti Unit Priority input user. */
                     foreach (pp_priority_flat($model, '/^g([1-6]|8|9)$/') ?: ['g9','g8','g4'] as $uT) {
-                        if (!isset($d3[$uT]) || $isFixed($uT, $r) || isset($suCap[$uT][$r]) || pp_is_unit_stopped($d3, $model, $uT, $r + 1)) continue;
+                        if (!isset($d3[$uT]) || $isFixed($uT, $r) || isset($suCap[$uT][$r]) || (PP_V1518_HOTLOOP_OPT ? ($__hS[$uT][$r] ?? ($__hS[$uT][$r] = pp_is_unit_stopped($d3, $model, $uT, $r + 1))) : pp_is_unit_stopped($d3, $model, $uT, $r + 1))) continue;
                         $cT = (float)($genRows[$r][$uT] ?? 0); if ($cT < 0.01) continue;
-                        $em = pp_effective_maxload($d3, $model, $uT, $r + 1);
+                        $em = PP_V1518_HOTLOOP_OPT ? ($__hE[$uT][$r] ?? ($__hE[$uT][$r] = pp_effective_maxload($d3, $model, $uT, $r + 1))) : pp_effective_maxload($d3, $model, $uT, $r + 1);
                         $cap = min($em > 0 ? $em : $GMAX, in_array($uT, ['g8','g9'], true) ? $GMAX : (float)($d3[$uT]['max_load'] ?? 31));
                         if (in_array($uT, ['g8','g9'], true))
                             foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
@@ -13938,6 +13944,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         /* §7.3 — BB UP-FILL (generik): setelah konformansi, naikkan Babelan menuju Effective Max
          * pada row yang masih punya ruang ramp DAN export tetap dalam Range. Iterasi kecil (0.5)
          * sampai tidak ada kenaikan valid; menutup celah "BB di bawah max tanpa limiter". */
+        $__hS = []; $__hE = []; $__hF = [];
         foreach (['b2', 'b1'] as $bu) {
             for ($sweep = 0; $sweep < 200; $sweep++) {
                 if(pp_budget_exceeded('bb_upfill'))break;
@@ -13945,11 +13952,11 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                 $movedUF = false;
                 for ($r = 0; $r < $n; $r++) {
                     if (isset($actualRows[$r])) continue;
-                    if (pp_get_fixed_load($model, $bu, $r + 1) >= 0) continue;
-                    if (pp_is_unit_stopped($d3, $model, $bu, $r + 1)) continue;
+                    if ((PP_V1518_HOTLOOP_OPT ? ($__hF[$bu][$r] ?? ($__hF[$bu][$r] = pp_get_fixed_load($model, $bu, $r + 1))) : pp_get_fixed_load($model, $bu, $r + 1)) >= 0) continue;
+                    if (PP_V1518_HOTLOOP_OPT ? ($__hS[$bu][$r] ?? ($__hS[$bu][$r] = pp_is_unit_stopped($d3, $model, $bu, $r + 1))) : pp_is_unit_stopped($d3, $model, $bu, $r + 1)) continue;
                     $cur = (float)($genRows[$r][$bu] ?? 0);
                     if ($cur < 0.01) continue;                               // startup placement bukan urusan pass ini
-                    $bMaxU = pp_effective_maxload($d3, $model, $bu, $r + 1);
+                    $bMaxU = PP_V1518_HOTLOOP_OPT ? ($__hE[$bu][$r] ?? ($__hE[$bu][$r] = pp_effective_maxload($d3, $model, $bu, $r + 1))) : pp_effective_maxload($d3, $model, $bu, $r + 1);
                     if ($bMaxU <= 0) $bMaxU = (float)($d3[$bu]['max_load'] ?? 120);
                     foreach ([$r - 1, $r + 1] as $nb) { if ($nb < 0 || $nb >= $n) continue;
                         $bMaxU = min($bMaxU, (float)($genRows[$nb][$bu] ?? 0) + $bbLim); }

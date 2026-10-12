@@ -7123,6 +7123,7 @@ function pp_run_simulation_once_raw(array $input): array {
             $bbLimRM = pp_babelan_ramp_limit($model);
             $busMinRM = (float)($model['busflow_min'] ?? 0);
             $needRM = pp_reserve_min_peak($model);   // HARD CONSTRAINT: re-maximize adalah optimisasi BIAYA (V15.15: per row di bawah)
+            $__hS = []; $__hE = []; $__hF = [];   // V15.18 HOTLOOP: $d3/$model tetap selama loop ini -> lookup lazy eksak
             for ($sw = 0; $sw < 400; $sw++) {
                 if (pp_budget_exceeded('bb_remaximize')) break;
                 if (pp_budget_repeat('bbrm', pp_rows_signature($genRows))) break;
@@ -7130,11 +7131,11 @@ function pp_run_simulation_once_raw(array $input): array {
                 foreach (['b2', 'b1'] as $uRM) {
                     for ($r = 0; $r < $nRows; $r++) {
                         if (isset($actualRows[$r])) continue;
-                        if (pp_get_fixed_load($model, $uRM, $r + 1) >= 0) continue;
-                        if (pp_is_unit_stopped($d3, $model, $uRM, $r + 1)) continue;
+                        if ((PP_V1518_HOTLOOP_OPT ? ($__hF[$uRM][$r] ?? ($__hF[$uRM][$r] = pp_get_fixed_load($model, $uRM, $r + 1))) : pp_get_fixed_load($model, $uRM, $r + 1)) >= 0) continue;
+                        if (PP_V1518_HOTLOOP_OPT ? ($__hS[$uRM][$r] ?? ($__hS[$uRM][$r] = pp_is_unit_stopped($d3, $model, $uRM, $r + 1))) : pp_is_unit_stopped($d3, $model, $uRM, $r + 1)) continue;
                         $cRM = (float)($genRows[$r][$uRM] ?? 0);
                         if ($cRM < 0.01) continue;                                  // startup placement: bukan urusan pass ini
-                        $capRM = pp_effective_maxload($d3, $model, $uRM, $r + 1);
+                        $capRM = PP_V1518_HOTLOOP_OPT ? ($__hE[$uRM][$r] ?? ($__hE[$uRM][$r] = pp_effective_maxload($d3, $model, $uRM, $r + 1))) : pp_effective_maxload($d3, $model, $uRM, $r + 1);
                         if ($capRM <= 0) $capRM = (float)($d3[$uRM]['max_load'] ?? 120);
                         foreach ([$r - 1, $r + 1] as $nbRM) { if ($nbRM < 0 || $nbRM >= $nRows) continue;
                             $capRM = min($capRM, (float)($genRows[$nbRM][$uRM] ?? 0) + $bbLimRM); }
