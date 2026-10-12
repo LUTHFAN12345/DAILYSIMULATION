@@ -107,6 +107,35 @@ register_shutdown_function(function () {
 });
 header('Cache-Control: no-store');
 
+/* V15.18 POLLING RINGAN (bukti: runtime_profile server 1 CPU — 231 request poll x ~0,08 s CPU = 19 s CPU, hampir seluruhnya
+ * memuat worker02.php + worker_functions.php, merebut CPU dari job owner). prelim_progress dan job_poll yang job-nya BELUM selesai
+ * hanya butuh fungsi job di file ini, jadi dijawab SEBELUM engine dimuat. Respons identik dengan jalur penuh; job DONE (hasil,
+ * cek input_hash, kolam kandidat) tetap lewat jalur penuh. PP_LIGHT_POLL=0 mematikan. */
+if (!defined('PP_LIB_ONLY') && PHP_SAPI !== 'cli' && (string)getenv('PP_LIGHT_POLL') !== '0') {
+    $__lpm = (string)($_GET['mode'] ?? '');
+    if ($__lpm === 'prelim_progress') {
+        $rid = preg_replace('~[^A-Za-z0-9_.\-]~', '', (string)($_GET['rid'] ?? ''));
+        $f = __DIR__ . DIRECTORY_SEPARATOR . 'jobs' . DIRECTORY_SEPARATOR . '_prelim' . DIRECTORY_SEPARATOR . ($rid !== '' ? $rid : 'unknown') . '.json';
+        $out = ($rid !== '' && is_file($f)) ? json_decode((string)@file_get_contents($f), true) : null;
+        header('Content-Type: application/json');
+        echo json_encode(is_array($out) ? $out : ['phase' => null, 'steps' => [], 'elapsed_s' => null]);
+        exit;
+    }
+    if ($__lpm === 'job_poll') {
+        $jid = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['job'] ?? ''));
+        $job = $jid !== '' ? pp_job_read($jid) : null;
+        if ($job !== null && (string)($job['status'] ?? '') !== 'DONE') {
+            if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+            $ridS = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['rid'] ?? ''));
+            $subDir = pp_job_dir($jid) . '/subs';
+            if ($ridS !== '') { if (!is_dir($subDir)) @mkdir($subDir, 0775, true); @touch($subDir . '/' . $ridS); }
+            pp_job_sweep();
+            $job = pp_job_read($jid) ?? $job;
+            if ((string)($job['status'] ?? '') !== 'DONE') { echo json_encode(['ok' => true, 'job' => $job], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); exit; }
+        }
+    }
+    unset($__lpm);
+}
 require_once __DIR__ . '/worker02.php';   // defines pp_run_simulation(), pp_release_gate(), pp_validate_hard_constraints()
 
 /* ---- PROMPT SAVE-FI §A2 — ATOMIC WRITE (ALL OR NOTHING) ---------------------------------------
