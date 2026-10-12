@@ -8189,6 +8189,12 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
     exit;
 }
 /* TARGET SELESAI — kandidat valid terbaik saat ini (GET, ringan, tidak menyentuh engine). */
+/* SEMENTARA (debug runtime Windows): unduh hasil windows_profile.php */
+if (($_GET['mode'] ?? '') === 'runtime_profile') {
+    $f = pp_job_root() . DIRECTORY_SEPARATOR . 'windows_profile.json';
+    if (!is_file($f)) { header('Content-Type: text/plain; charset=utf-8'); http_response_code(404); echo "Belum ada profil. Jalankan sekali di folder aplikasi: php.exe windows_profile.php"; exit; }
+    header('Content-Type: application/json'); header('Content-Disposition: attachment; filename="windows_profile.json"'); readfile($f); exit;
+}
 if (in_array(($_GET['mode'] ?? ''), ['tl_best', 'tl_stop', 'tl_pool'], true)) {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8');
