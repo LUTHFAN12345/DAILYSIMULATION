@@ -2840,13 +2840,14 @@ function pp_v13f_clean(array $input): array {
 /* pipeline engine yang sama dengan jalur exact, anggaran job, review commitment global ditunda (bukan Maximum Review) */
 /* V15.18 HOTFIX EARLY START: unit Required + Start Based On Simulation + Hold to End (Last Data Stop) tidak lagi start pada row legal
  * pertama. Start = latest legal start (pp_v1518_latest_legal_starts) lewat jendela tahan yang diturunkan engine; satu validasi penuh
- * terhadap input ASLI. Bila tidak valid: kandidat bounded lebih awal (05:00, 04:00, 01:30) lalu perilaku lama. PP_V1518_LATEST_START=0 -> lama. */
+ * terhadap input ASLI. Bila tidak valid: kandidat bounded lebih awal (latest-2, latest-4, earliest+1 row) lalu perilaku lama. PP_V1518_LATEST_START=0 -> lama. */
 function pp_v13f_pipeline(array $input): array {
     $c0 = pp_v13f_clean($input);
     $plan = ((string)getenv('PP_V1518_LATEST_START') !== '0' && function_exists('pp_v1518_latest_legal_starts')) ? pp_v1518_latest_legal_starts($c0) : [];
     if (!$plan) return pp_v13f_pipeline_run($input);
     $cands = []; $base = []; foreach ($plan as $u => $p) $base[$u] = (int)$p['latest_legal_start_row']; $cands[] = $base;
-    foreach ([10, 8, 3] as $R) { $cc = []; foreach ($base as $u => $row) $cc[$u] = min($row, $R); if ($cc !== $cands[count($cands) - 1] && max($cc) > 2) $cands[] = $cc; }
+    /* fallback bounded RELATIF terhadap latest legal start per unit (tanpa jam tetap): latest-2, latest-4, earliest legal+1 */
+    foreach ([2, 4, null] as $D) { $cc = []; foreach ($base as $u => $row) $cc[$u] = $D === null ? min($row, 3) : max(2, $row - $D); if ($cc !== $cands[count($cands) - 1] && max($cc) > 2) $cands[] = $cc; }
     $tried = []; $hook = $GLOBALS['ppTlHook'] ?? null;
     foreach ($cands as $cand) {
         $tC = microtime(true); $ci = $input; $mi = &$ci['data3']['modeling']; $mi['unit_stop_time'] = array_values((array)($mi['unit_stop_time'] ?? []));

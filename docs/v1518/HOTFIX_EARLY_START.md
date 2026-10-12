@@ -29,3 +29,12 @@ because stopping a unit cannot raise gas.
 
 Runtime with UI helpers: job 24.2–25.7 s, end-to-end 28.7–30.7 s. Opt-out: `PP_V1518_LATEST_START=0`,
 `PP_V1518_DEC_UNDER_FULLDAY=0`.
+
+## Revision (UI + generic audit)
+- UI: the "Ringkasan semantik sebelum Run" box was removed (only the `#sem-summary` element). Data, payload, logic and
+  the buttons are unchanged.
+- The bounded fallback is now relative to the latest legal start per unit (latest−2, latest−4, earliest+1 row). There
+  are no fixed times and no unit names.
+- Start smoke (monitoring snapshot): G9 03:30 / G6 05:00, CP 71.1216, PASS. Stop smoke (SR3, G5 Stop Based On
+  Simulation): stops 18:00, 0 until 00:00, winner by HR tie-break inside the 0.2 % CP band (79.9049 / 8239.87 vs
+  79.7527 / 8252.41), PASS.

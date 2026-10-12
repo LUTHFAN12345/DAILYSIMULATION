@@ -1352,8 +1352,6 @@ ul.csverr li{margin:2px 0}
         <div hidden aria-hidden="true"><textarea id="ta-ie_adjustment" spellcheck="false"></textarea></div>
       </div>
 
-      <!-- V15.18 ringkasan semantik sebelum Run (§2/§3/§4/§6) -->
-      <div class="no-print" id="sem-summary" style="margin-top:14px;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.5;background:#f8fafc"></div>
       <!-- persistent run bar -->
       <div class="runbar no-print" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--card-line)">
         <button type="button" class="btn primary" id="btn-run" onclick="return window.gsRunFromButton(event)">▶ Run simulation</button>
