@@ -8192,6 +8192,9 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
 /* SEMENTARA (debug runtime Windows): unduh hasil windows_profile.php */
 /* SEMENTARA — profiler runtime satu Run browser (run_prof.php). rtprof_client: timing browser (klik -> request -> polling ->
  * renderResult -> 48 row) disimpan lalu fragmen request digabung ke jobs/<job>/runtime_profile.json. runtime_profile: unduh profil terbaru. */
+if (in_array(($_GET['mode'] ?? ''), ['rtprof_client', 'runtime_profile'], true) && !is_file(__DIR__ . '/run_prof.php')) {
+    header('Content-Type: text/plain; charset=utf-8'); http_response_code(404); echo "run_prof.php belum ada di folder aplikasi (" . __DIR__ . "). Salin run_prof.php ke folder ini, muat ulang halaman, lalu klik Run sekali."; exit;
+}
 if (in_array(($_GET['mode'] ?? ''), ['rtprof_client', 'runtime_profile'], true) && is_file(__DIR__ . '/run_prof.php')) {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     if (!defined('PP_RTP_LIB_ONLY')) define('PP_RTP_LIB_ONLY', 1);

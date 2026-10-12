@@ -1561,7 +1561,10 @@ ul.csverr li{margin:2px 0}
       u=u.replace(/^(\.\/)?run\.php\?/,'run_prof.php?');
       const m=(u.match(/[?&]mode=([a-z_]+)/)||[])[1]||'run', j=(u.match(/[?&]job=([A-Za-z0-9_\-]+)/)||[])[1];
       if(j) R.job=j; const e={mode:m,job:j||null,slot:(u.match(/[?&]slot=(\d+)/)||[])[1]||null,send:+(performance.now()-R.t0).toFixed(1)}; R.reqs.push(e);
-      const p=of(u,o); p.then(r=>{e.headers=+(performance.now()-R.t0).toFixed(1);e.status=r.status;e.bytes=+(r.headers.get('content-length')||0)||null;},()=>{e.error=1;}); return p; }
+      const u0=u.replace(/^run_prof\.php\?/,'run.php?');
+      /* run_prof.php tidak ada/404: profiler dimatikan dan request diulang ke run.php (Run tetap jalan). */
+      return of(u,o).then(r=>{e.headers=+(performance.now()-R.t0).toFixed(1);e.status=r.status;e.bytes=+(r.headers.get('content-length')||0)||null;
+        if(r.status===404){R.active=false;window.PP_RTP_ENABLED=false;try{console.warn('run_prof.php tidak ditemukan; profiler dimatikan');}catch(x){} return of(u0,o);} return r;},err=>{e.error=1;throw err;}); }
     return of(u,o); };
 })();
 </script>
@@ -7915,7 +7918,7 @@ function renderCompare(){
 
 window.gsRunFromButton=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(window.PP_RTP_ENABLED&&!(window.PP_RTP&&window.PP_RTP.active)){window.PP_RTP={active:true,t0:performance.now(),epoch:Date.now(),reqs:[],renders:[],job:null};}const b=document.getElementById('btn-run'),m=document.getElementById('run-msg');try{if(typeof window.runSim!=='function')throw new Error('runSim belum tersedia');if(b&&b.dataset.gsRunning==='1')return false;if(b)b.dataset.gsRunning='1';Promise.resolve(window.runSim()).catch(e=>{if(m)m.textContent='Run gagal: '+String(e&&e.message||e);}).finally(()=>{if(b)delete b.dataset.gsRunning;});}catch(e){if(m)m.textContent='Run gagal dipanggil: '+String(e&&e.message||e);if(b)delete b.dataset.gsRunning;}return false;};
 /* SEMENTARA — profiler runtime (hapus bersama run_prof.php). Aktif untuk satu Run per klik. */
-window.PP_RTP_ENABLED=true;
+window.PP_RTP_ENABLED=<?= is_file(__DIR__ . '/run_prof.php') ? 'true' : 'false' ?>;  /* aktif hanya bila run_prof.php ada */
 (function(){const orig=window.renderResult; if(typeof orig!=='function')return;
   window.renderResult=function(o){const R=window.PP_RTP; const a=performance.now(); const r=orig.apply(this,arguments);
     if(R&&R.active){const b=performance.now(); const n=document.querySelectorAll('#result-simdata tbody tr').length;
