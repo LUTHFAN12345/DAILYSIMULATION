@@ -2852,11 +2852,14 @@ function pp_v13f_pipeline(array $input): array {
     foreach ($cands as $cand) {
         $tC = microtime(true); $ci = $input; $mi = &$ci['data3']['modeling']; $mi['unit_stop_time'] = array_values((array)($mi['unit_stop_time'] ?? []));
         foreach ($cand as $u => $row) if ($row > 2) $mi['unit_stop_time'][] = ['unit' => $u, 'start' => 1, 'stop' => $row - 1]; unset($mi);
-        $o = pp_v13f_pipeline_run($ci); if ($hook !== null) $GLOBALS['ppTlHook'] = $hook;
+        $o = pp_v13f_pipeline_run($ci, (float)(getenv('PP_V1518_LATEST_WATCHDOG_S') ?: 300.0)); if ($hook !== null) $GLOBALS['ppTlHook'] = $hook;
         $a = null; try { $a = pp_tl_assess($c0, $o); } catch (Throwable $e) { $a = null; }
         $ok = is_array($a) && !empty($a['valid']);
         $tried[] = ['start_rows' => $cand, 'valid' => $ok, 's' => round(microtime(true) - $tC, 2), 'cp' => $o['info']['Cost Production (USD/MWh)'] ?? null,
                     'failed_checks' => is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL']];
+        /* V15.18 RUNTIME: kegagalan yang HANYA karena watchdog (not_truncated) bukan bukti constraint -> jangan jalankan pipeline
+         * kandidat lain (dulu: pipeline kedua + pemenang ditentukan kecepatan CPU, terukur 145 s / CP 71,4265). */
+        if (!$ok && $tried[count($tried) - 1]['failed_checks'] === ['not_truncated']) break;
         if ($ok) { $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => $cand, 'tried' => $tried]; $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan, $cand, $o, $tried); return $o; }
     }
     $o = pp_v13f_pipeline_run($input); $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => null, 'tried' => $tried];
@@ -2871,9 +2874,11 @@ function pp_v1518_startup_proof(array $plan, ?array $cand, array $o, array $trie
     return ['schema' => 'v1518-startup-timing-1', 'rule' => 'Required + Start Based On Simulation: running fleet dimaksimalkan dahulu; start = latest legal start (first failed row - startup sequence); Hold to End berlaku sesudah startup',
             'status' => $cand !== null ? 'LATEST_LEGAL_START_APPLIED' : 'FALLBACK_EARLIEST (semua kandidat tunda gagal validasi)', 'units' => $units, 'candidates_tried' => $tried];
 }
-function pp_v13f_pipeline_run(array $input): array {
+function pp_v13f_pipeline_run(array $input, ?float $watchdogS = null): array {
     $hook = $GLOBALS['ppTlHook'] ?? null;
     $c = pp_v13f_clean($input);
+    /* V15.18: kandidat latest-start dinilai tanpa deadline 60 s jam dinding (hasil tidak boleh bergantung kecepatan CPU); watchdog darurat saja */
+    if ($watchdogS !== null) { $c['data3']['modeling']['time_budget_max_seconds'] = $watchdogS; $c['data3']['modeling']['time_budget_seconds'] = $watchdogS; }
     pp_tl_clean_globals(); pp_budget_start((float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0), true, true);
     if ($hook !== null) $GLOBALS['ppTlHook'] = $hook;
     $GLOBALS['__pp_fastest_no_gcr'] = true;

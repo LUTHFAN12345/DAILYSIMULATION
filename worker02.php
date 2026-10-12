@@ -1269,7 +1269,7 @@ function pp_v3_stops(array $data): array {
 function pp_tl_clean_globals(array $keep = []): void {
     foreach (array_keys($GLOBALS) as $g)
         if (is_string($g) && strpos($g, '__pp_') === 0 && $g !== '__pp_fuel_decision_mode' && !in_array($g, $keep, true)
-            && !in_array($g, ['__pp_prelim_rid', '__pp_prelim_t0', '__pp_prelim_steps'], true)) unset($GLOBALS[$g]);   // jejak progres UI (observasi saja)
+            && !in_array($g, ['__pp_prelim_rid', '__pp_prelim_t0', '__pp_prelim_steps', '__pp_async_worker', '__pp_async_worker_ceiling'], true)) unset($GLOBALS[$g]);   // jejak progres UI; V15.18: plafon job async TIDAK boleh hilang (dulu jatuh ke 60 s -> pemotongan bergantung kecepatan CPU)
 }
 /* Penilaian satu dispatch terhadap input ASLI. valid=true hanya bila semua pemeriksaan lulus. */
 function pp_tl_assess(array $orig, array $o): array {
@@ -4357,6 +4357,12 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
             $supLastSide[$sideN] = $pu;
             if ($supStag >= (int)(getenv('PP_SUP_STAGNANT_N') ?: 2)) { $searchMode = 'V1517_RESPON_TIDAK_KONTINU_BERHENTI'; break; }
         } elseif ($it === 1) { $supLastSide = [($pu < $lo ? 'U' : 'O') => $pu]; $supStag = 0; }
+        /* V15.18 RUNTIME — SIKLUS STATE FISIK: respons PGN fisik bolak-balik persis antara dua state (A,B,A,B,A,B) sementara target
+         * internal terus bergerak = bukti stagnasi (terukur snapshot plan-1: 22,8681/22,9067 dari percobaan 4 s.d. plafon 32, 15 s per core).
+         * Hasil = $bestOut, persis keluaran pencarian penuh (state yang sama tidak pernah memperbaiki gap). PP_V1518_SUP_CYCLE=0 mematikan. */
+        if ((string)getenv('PP_V1518_SUP_CYCLE') !== '0') { $supPuH[] = sprintf('%.6f', $pu); $nH = count($supPuH);
+            if ($nH >= 6) { $h6 = array_slice($supPuH, -6);
+                if ($h6[0] !== $h6[1] && $h6[0] === $h6[2] && $h6[2] === $h6[4] && $h6[1] === $h6[3] && $h6[3] === $h6[5]) { $searchMode = 'V1518_SUPPLIER_PHYSICAL_CYCLE'; $out = $bestOut; $outIn = $bestIn ?? $outIn; break; } } }
         /* target TENGAH window (pq-0.02), bukan tepi: relasi shift->efektif tidak persis linear
          * (share estimasi slot actual ikut bergeser antar-run), menembak tengah memberi margin
          * +-0.02 sehingga 1-2 iterasi cukup dan tidak osilasi di tepi.
@@ -4732,6 +4738,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
         : ($budgetStopped ? 'budget waktu habis'
           : ($searchMode==='BRACKET_RESOLUTION_EXHAUSTED'
              ? sprintf('respons fisik diskret melompati window: bracket target internal menyempit sampai %.6f tanpa satu pun nilai mendarat di [%.4f, %.4f]', abs((float)$underTarget-(float)$overTarget), $finalQT-0.04, $finalQT)
+             : ($searchMode==='V1518_SUPPLIER_PHYSICAL_CYCLE' ? 'siklus dua state fisik berulang (A,B,A,B,A,B) — gap tidak dapat membaik'
              : ($searchMode==='V1518_WINDOW_LANDING_REJECTED_NON_GAS'
                 ? sprintf('pendaratan di dalam window [%.4f, %.4f] berulang kali ditolak guard non-gas (constraint prioritas lebih tinggi memburuk); kandidat terakhir yang diterima dipertahankan', $finalQT-0.04, $finalQT)
              : ($searchMode==='V7_ENVELOPE_CONFLICT'
@@ -4740,7 +4747,7 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
                 ? sprintf('kekurangan gas nyata: pipe %.4f dan total efektif sama-sama > 0,2 BBTUD di atas kuota pada gas minimum commitment ini; diselesaikan alur keputusan bahan bakar, bukan target internal', $finalPuT)
              : ($searchMode==='V4_FUTILE_OVER_AT_ZERO' || $searchMode==='V7_SHORTAGE_PROBE_ZERO'
                 ? sprintf('PGN fisik tidak bereaksi terhadap target internal: pada target internal terendah (0) masih %.4f > kuota %.4f; tidak ada target internal yang dapat mendaratkannya', $finalPuT, $finalQT)
-                : sprintf('plafon %d rerun tercapai', $maxAttempts)))))))];
+                : sprintf('plafon %d rerun tercapai', $maxAttempts))))))))];
     if ($v7EnvStop !== null) $out['info']['PGN Supplier Repair Review']['v7_envelope'] = $v7EnvStop;
     if ($ev) {
         $pu = (float)($out['info']['PGN Pipe Used (BBTUD)'] ?? 0); $pq = (float)($out['info']['PGN Pipe Quota (BBTUD)'] ?? 0);
