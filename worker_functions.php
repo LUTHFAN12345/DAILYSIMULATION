@@ -16,6 +16,9 @@ if (!defined('PP_FUEL_MEMO_VERIFY')) define('PP_FUEL_MEMO_VERIFY', (bool)getenv(
  * dengan dirinya sendiri untuk memastikan apakah sebuah perbedaan berasal dari memo atau bukan.
  * Default mati (memo aktif). Ini alat diagnosa, bukan jalur produksi. */
 if (!defined('PP_MEMO_OFF')) define('PP_MEMO_OFF', (bool)getenv('PP_MEMO_OFF'));
+/* V15.18 RUNTIME 1-CPU: saklar tunggal seluruh optimasi runtime eksak (cache fungsi murni + skip-ahead gas top-up).
+ * PP_V1518_RTOPT=0 = jalur penuh lama; dipakai cek INCREMENTAL VS FULL PARITY (harus identik bit-for-bit). */
+if (!defined('PP_V1518_RTOPT')) define('PP_V1518_RTOPT', (string)getenv('PP_V1518_RTOPT') !== '0' && !PP_MEMO_OFF && !PP_FUEL_MEMO_VERIFY);
 if (!defined('PP_V6_WMEMO')) define('PP_V6_WMEMO', (string)getenv('PP_V6_WMEMO') !== '0');   // V6: memo lintas core run (OPT-W1..W4)
 
 /* ==============================================================================================
@@ -650,9 +653,11 @@ function pp_is_unit_stopped(array $d3, array $model, string $unit, int $row1): b
     /* V15.18 PERF (eksak): unit non-GE -> pp_effective_unit_available = isset($d3[$u]) && pp_unit_present($d3,$u); presence
      * dimemo per request generation dengan aturan yang SAMA dengan memo pp_unit_present (nilai unit_present tidak pernah dimutasi
      * dalam satu request). Unit GE tetap lewat jalur lengkap (bergantung $model: kuota KP72 / sumber MM2100). */
-    static $pmGen = null, $pm = [];
-    $uL = strtolower($unit);
-    if (!pp_ge_unit($uL) && !PP_FUEL_MEMO_VERIFY && !PP_MEMO_OFF) {
+    static $pmGen = null, $pm = [], $uMeta = [];
+    /* V15.18 RUNTIME 1-CPU (eksak): strtolower + pp_ge_unit per nama unit dihitung sekali per proses (fungsi murni dari string). */
+    $mt = PP_V1518_RTOPT ? ($uMeta[$unit] ?? ($uMeta[$unit] = [strtolower($unit), pp_ge_unit(strtolower($unit))])) : [strtolower($unit), pp_ge_unit(strtolower($unit))];
+    $uL = $mt[0];
+    if (!$mt[1] && !PP_FUEL_MEMO_VERIFY && !PP_MEMO_OFF) {
         if (!isset($d3[$uL])) return true;
         $gq = (int)($GLOBALS['__pp_req_gen'] ?? 0); if ($gq !== $pmGen) { $pm = []; $pmGen = $gq; }
         $pr = $pm[$uL] ?? ($pm[$uL] = pp_unit_present($d3, $uL));
@@ -1353,6 +1358,21 @@ function pp_stg_migrate_3segment(array &$d3): array {
 }
 
 function calc_stg(array $d3, string $stg, array $loads): float {
+    /* V15.18 RUNTIME 1-CPU (eksak): calc_stg murni terhadap (koefisien $d3[$stg], $stg, $loads). Hasil dimemo per STG selama array
+     * koefisien identik (===); kunci = serialize($loads) (nama, urutan, tipe dan nilai biner). PP_CALC_STG_MEMO=0 mematikan. */
+    static $csOn = null, $csC = [], $csM = [];
+    if ($csOn === null) $csOn = (string)getenv('PP_CALC_STG_MEMO') !== '0' && PP_V1518_RTOPT;
+    if ($csOn) {
+        $cfA = $d3[$stg] ?? [];
+        if (!isset($csC[$stg]) || $csC[$stg] !== $cfA) { $csC[$stg] = $cfA; $csM[$stg] = []; }
+        $ck = serialize($loads);
+        if (isset($csM[$stg][$ck])) return $csM[$stg][$ck];
+        if (count($csM[$stg]) > 50000) $csM[$stg] = [];
+        return $csM[$stg][$ck] = calc_stg_raw($d3, $stg, $loads);
+    }
+    return calc_stg_raw($d3, $stg, $loads);
+}
+function calc_stg_raw(array $d3, string $stg, array $loads): float {
     $coeffs = $d3[$stg] ?? [];
     /* PROMPT ISOLASI FORMULA STG (§3/§4): feed BER-NAMA (assoc 'g1'=>load, dikirim jalur
      * dispatch/materialisasi via pp_recompute_stgs) memakai koefisien PER-KOMBO — suffix
@@ -4234,8 +4254,15 @@ function pp_budget_report(): array {
 }
 /* Signature ringan utk deteksi oscillation pada baris dispatch (dibulatkan ke 0.1 MW). */
 function pp_rows_signature(array $genRows, array $units = ['g1','g2','g3','g5','g8','g9','b1','b2']): string {
+    /* V15.18 RUNTIME 1-CPU (eksak): potongan string per row di-cache selama row identik (===) -> string $acc byte-identik. */
+    static $pc = []; $uk = implode(',', $units); if (count($pc) > 8) $pc = []; $C = &$pc[$uk];
     $acc = '';
-    foreach ($genRows as $g) { foreach ($units as $u) $acc .= (string)round((float)($g[$u] ?? 0), 1) . ','; $acc .= ';'; }
+    foreach ($genRows as $i => $g) {
+        if (PP_V1518_RTOPT && isset($C[$i]) && $C[$i][0] === $g) { $acc .= $C[$i][1]; continue; }
+        $pce = ''; foreach ($units as $u) $pce .= (string)round((float)($g[$u] ?? 0), 1) . ','; $pce .= ';';
+        $C[$i] = [$g, $pce]; $acc .= $pce;
+    }
+    unset($C);
     return substr(hash('crc32b', $acc), 0, 8) . ':' . strlen($acc);
 }
 
@@ -9149,7 +9176,10 @@ function pp_fuel_sum_g19(array $genRows, array $d3, int $n, array &$fc): float {
     $k = 0;
     if (isset($fc['n']) && $fc['n'] === $n) {
         $rowsC = $fc['rows'];
-        while ($k < $n && isset($rowsC[$k]) && $rowsC[$k] === $genRows[$k]) $k++;
+        /* V15.18 RUNTIME 1-CPU (eksak): row yang ISINYA identik (===) disimpan ulang sebagai salinan yang sedang dipakai pemanggil,
+         * sehingga pembandingan berikutnya mengenai jalur cepat identitas array PHP (bukan perbandingan per elemen). Isi cache
+         * tidak berubah (=== menjamin key, urutan, tipe dan nilai sama). */
+        while ($k < $n && isset($rowsC[$k]) && $rowsC[$k] === $genRows[$k]) { if (PP_V1518_RTOPT) $fc['rows'][$k] = $genRows[$k]; $k++; }
         if ($k === $n) return $fc['P'][$n];
     } else { $fc = ['n' => $n, 'rows' => [], 'f' => [], 'P' => [0 => 0.0], 'cell' => []]; }
     $g = $fc['P'][$k];
@@ -9157,6 +9187,7 @@ function pp_fuel_sum_g19(array $genRows, array $d3, int $n, array &$fc): float {
         $fc['P'][$r] = $g;
         $row = $genRows[$r];
         if (isset($fc['rows'][$r]) && $fc['rows'][$r] === $row) {
+            if (PP_V1518_RTOPT) $fc['rows'][$r] = $row;
             /* V15.18 PERF: 9 penjumlahan berurutan yang sama (g1..g9, kiri ke kanan) tanpa overhead foreach — bit-identik. */
             $fr = $fc['f'][$r];
             $g = (((((((($g + $fr[0]) + $fr[1]) + $fr[2]) + $fr[3]) + $fr[4]) + $fr[5]) + $fr[6]) + $fr[7]) + $fr[8];
@@ -9724,16 +9755,25 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
     // Block2 levers g1/g2 (Bus A/B, feed S2 steam) — g1/g2 default to their already-escalated state above.
     /* PHP 8.4: an implicit nullable parameter (`float $x = null`) is deprecated. The explicit `?float`
        is the same type the engine already accepted, so call sites and behaviour are unchanged. */
-    $mkFull = function (float $v, float $g3, float $bb, float $g4, float $g6, ?float $g1 = null, ?float $g2 = null, float $g5v = 0.0, int $rr = 1) use ($blank, $d3, $model, $g1Base) {
+    /* V15.18 RUNTIME 1-CPU (eksak): batas per row ($d3/$model ditangkap BY VALUE -> fungsi murni dari $rr) dihitung sekali per row. */
+    $__mkC = [];
+    $mkFull = function (float $v, float $g3, float $bb, float $g4, float $g6, ?float $g1 = null, ?float $g2 = null, float $g5v = 0.0, int $rr = 1) use ($blank, $d3, $model, $g1Base, &$__mkC) {
         /* PROMPT 3JUL §3.1: probe menghormati scheduled stop per-row (lihat mkG12). */
-        $cap8 = pp_effective_max_load($d3, $model, 'g8', $rr); if ($cap8 <= 0) $cap8 = (float)($d3['g8']['max_load'] ?? 108);
-        $cap9 = pp_effective_max_load($d3, $model, 'g9', $rr); if ($cap9 <= 0) $cap9 = (float)($d3['g9']['max_load'] ?? 108);
-        $g8v = pp_is_unit_stopped($d3, $model, 'g8', $rr) ? 0.0 : min($v, $cap8);
-        $g9v = pp_is_unit_stopped($d3, $model, 'g9', $rr) ? 0.0 : min($v, $cap9);
+        if (!PP_V1518_RTOPT) $__mkC = [];
+        if (!isset($__mkC[$rr])) {
+            $c8 = pp_effective_max_load($d3, $model, 'g8', $rr); if ($c8 <= 0) $c8 = (float)($d3['g8']['max_load'] ?? 108);
+            $c9 = pp_effective_max_load($d3, $model, 'g9', $rr); if ($c9 <= 0) $c9 = (float)($d3['g9']['max_load'] ?? 108);
+            $__mkC[$rr] = [$c8, $c9, pp_is_unit_stopped($d3, $model, 'g8', $rr), pp_is_unit_stopped($d3, $model, 'g9', $rr),
+                pp_effective_max_load($d3, $model, 'g3', $rr), pp_effective_max_load($d3, $model, 'g4', $rr), pp_effective_max_load($d3, $model, 'g6', $rr),
+                pp_effective_max_load($d3, $model, 'g1', $rr), pp_effective_max_load($d3, $model, 'g2', $rr), pp_effective_max_load($d3, $model, 'g5', $rr)];
+        }
+        $C = $__mkC[$rr];
+        $g8v = $C[2] ? 0.0 : min($v, $C[0]);
+        $g9v = $C[3] ? 0.0 : min($v, $C[1]);
         $g = $blank(); $g['g8'] = $g8v; $g['g9'] = $g9v; $g['g3'] = $g3; $g['b1'] = $bb/2; $g['b2'] = $bb/2; $g['g4'] = $g4; $g['g6'] = $g6;
-        foreach (['g3','g4','g6'] as $cu) { $cm = pp_effective_max_load($d3, $model, $cu, $rr); if ($cm > 0) $g[$cu] = min((float)$g[$cu], $cm); }
+        if ($C[4] > 0) $g['g3'] = min((float)$g['g3'], $C[4]); if ($C[5] > 0) $g['g4'] = min((float)$g['g4'], $C[5]); if ($C[6] > 0) $g['g6'] = min((float)$g['g6'], $C[6]);
         $g1v = $g1 ?? $g1Base; $g2v = $g2 ?? 0.0;
-        foreach (['g1'=>&$g1v,'g2'=>&$g2v,'g5'=>&$g5v] as $cu=>&$cv) { $cm = pp_effective_max_load($d3, $model, $cu, $rr); if ($cm > 0) $cv = min((float)$cv, $cm); } unset($cv);
+        if ($C[7] > 0) $g1v = min((float)$g1v, $C[7]); if ($C[8] > 0) $g2v = min((float)$g2v, $C[8]); if ($C[9] > 0) $g5v = min((float)$g5v, $C[9]);
         $g['g1'] = $g1v; $g['g2'] = $g2v; $g['g5'] = $g5v;   // ZERO TOLERANCE §4: G5 anggota Block Required
         pp_recompute_stgs($g, $d3, $model, $rr); return $g;
     };
@@ -10056,15 +10096,26 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
         if ($pl2 !== null) $__v6P[$__pSig . '|' . $pl2 . '|' . pack('d', $L)] = $val;
         return $val;
     };
-    $planForLevelRaw = function (float $L) use ($n, $vLo, $vHi, $exAt, $g3row, $g4row, $g6row, $g1row, $g2row, $bb, $d3, $RAMP, $ieVals, $vSnap, $vSnapDown) {
+    /* V15.18 RUNTIME 1-CPU (eksak): bahan bakar G3/G4/G6/G1/G2 per row konstan selama closure hidup (array ditangkap BY VALUE,
+     * calc_fuel murni) -> dihitung sekali per row, dijumlahkan dengan URUTAN yang sama (bit-identik). */
+    $__pfC = [];
+    if (PP_V1518_RTOPT) for ($r = 0; $r < $n; $r++) $__pfC[$r] = [calc_fuel($d3, 'g3', $g3row[$r]), calc_fuel($d3, 'g4', $g4row[$r]), calc_fuel($d3, 'g6', $g6row[$r]), calc_fuel($d3, 'g1', $g1row[$r]), calc_fuel($d3, 'g2', $g2row[$r])];
+    $planForLevelRaw = function (float $L) use ($n, $vLo, $vHi, $exAt, $g3row, $g4row, $g6row, $g1row, $g2row, $bb, $d3, $RAMP, $ieVals, $vSnap, $vSnapDown, $__pfC) {
         $v = [];
+        /* Nilai $exAt(r, v[r]) di-cache per row selama v[r] tidak berubah: panggilan yang dilewati adalah hit memo lokal $exAt
+         * (tanpa efek samping); setiap evaluasi baru tetap terjadi pada titik dan urutan yang sama. */
+        $__ek = []; $__ev = [];
         /* $vSnap inert bila tidak ada Unit Skip Load pada G8/G9 (lihat catatan di atas). */
         for ($r = 0; $r < $n; $r++) $v[$r] = $vSnap(min($vHi[$r], max($vLo[$r], $L)), $r);
         // export ramp smoothing (<=RAMP) by nudging the higher side down within its window
         for ($pass = 0; $pass < 40; $pass++) {
             $ch = false;
             for ($r = 1; $r < $n; $r++) {
-                $d = $exAt($r, $v[$r]) - $exAt($r-1, $v[$r-1]);
+                if (PP_V1518_RTOPT) {
+                $__a = (isset($__ek[$r]) && $__ek[$r] === $v[$r]) ? $__ev[$r] : ($__ev[$r] = $exAt($r, $__ek[$r] = $v[$r]));
+                $__b = (isset($__ek[$r-1]) && $__ek[$r-1] === $v[$r-1]) ? $__ev[$r-1] : ($__ev[$r-1] = $exAt($r-1, $__ek[$r-1] = $v[$r-1]));
+                $d = $__a - $__b;
+                } else $d = $exAt($r, $v[$r]) - $exAt($r-1, $v[$r-1]);
                 /* ARAH NUDGE DIPERTAHANKAN. Snap dengan preferensi 'near' dapat mengembalikan nilai
                  * yang LEBIH TINGGI dari nilai sebelum nudge (bila tepi band bawah lebih jauh),
                  * sehingga smoothing tidak pernah konvergen dan 40 pass terbuang. Preferensi
@@ -10081,7 +10132,8 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
             if (!$ch) break;
         }
         $gas = 0.0;
-        for ($r = 0; $r < $n; $r++) $gas += (calc_fuel($d3, 'g8', $v[$r]) + calc_fuel($d3, 'g9', $v[$r]) + calc_fuel($d3, 'g3', $g3row[$r]) + calc_fuel($d3, 'g4', $g4row[$r]) + calc_fuel($d3, 'g6', $g6row[$r]) + calc_fuel($d3, 'g1', $g1row[$r]) + calc_fuel($d3, 'g2', $g2row[$r])) / 2.0;
+        if (PP_V1518_RTOPT) { for ($r = 0; $r < $n; $r++) { $c = $__pfC[$r]; $gas += (calc_fuel($d3, 'g8', $v[$r]) + calc_fuel($d3, 'g9', $v[$r]) + $c[0] + $c[1] + $c[2] + $c[3] + $c[4]) / 2.0; } }
+        else for ($r = 0; $r < $n; $r++) $gas += (calc_fuel($d3, 'g8', $v[$r]) + calc_fuel($d3, 'g9', $v[$r]) + calc_fuel($d3, 'g3', $g3row[$r]) + calc_fuel($d3, 'g4', $g4row[$r]) + calc_fuel($d3, 'g6', $g6row[$r]) + calc_fuel($d3, 'g1', $g1row[$r]) + calc_fuel($d3, 'g2', $g2row[$r])) / 2.0;
         return [$gas, $v];
     };
     [$gLo, $vAtLo] = $planForLevel($GMIN);
@@ -13337,9 +13389,13 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
              * konsolidasi/penghematan — naikkan unit priority tertinggi (G9 -> G8 -> G4) pada rows
              * dgn headroom, export <= Range Max - 0.6, ramp/pgn/bus valid. */
             $gTU = 0;
+            /* V15.18 RUNTIME 1-CPU (eksak): row < r*-1 (r* = row yang baru dinaikkan) tidak berubah dan tetangganya pun tidak,
+             * sehingga tetap tidak eligible pada iterasi berikutnya (cap G8/G9 hanya bergantung pada row sendiri dan tetangga;
+             * cek kuota gas hanya dicapai oleh unit eligible). Pemindaian dimulai dari r*-1 -> urutan langkah identik. */
+            $__tuStart = 0;
             while ($trueGasNow() < $quota - 0.038 && $gTU++ < 400) {
                 $doneU = false;
-                for ($r = 0; $r < $n && !$doneU; $r++) {
+                for ($r = $__tuStart; $r < $n && !$doneU; $r++) {
                     if (isset($actualRows[$r])) continue;
                     if ($expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] - 0.6) continue;
                     /* PRIORITY AUDIT (sistemik): top-up gas mengikuti Unit Priority input user. */
@@ -13358,6 +13414,7 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ($trueGasNow() + 0.03 > $quota + 0.0004) { $doneU = false; break; }   // jangan overshoot
                         $genRows[$r][$uT] = $nvT;
                         pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                        if (PP_V1518_RTOPT) $__tuStart = max(0, $r - 1);
                         $doneU = true; break;
                     }
                 }
