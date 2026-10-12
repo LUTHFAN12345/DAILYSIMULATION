@@ -1358,7 +1358,7 @@ ul.csverr li{margin:2px 0}
         <button class="btn ghost" id="btn-reset">Reload saved input</button>
         <button class="btn ghost" id="btn-save" title="Save Input — menyimpan versi baru input milik Anda (user/tab/proyek) di datastore; tidak menimpa data user lain (selalu aktif)">💾 Save</button>
         <button class="btn ghost" id="btn-snapshot" title="Export Current Input Snapshot — unduh JSON payload normalisasi yang akan diterima worker (IE/Dispatch/PV, gas, status & commitment unit, Unit Priority, SR, Change Over, mode Fastest/Maximum Review, hash konteks). Read-only: tidak menjalankan simulasi dan tidak menyimpan." onclick="exportInputSnapshot()">⇩ Input Snapshot</button>
-        <a class="btn ghost" href="run.php?mode=runtime_profile" title="SEMENTARA: unduh jobs/windows_profile.json (dibuat oleh windows_profile.php)">⇩ Download Runtime Profile</a>
+        <a class="btn ghost" href="run.php?mode=runtime_profile" title="SEMENTARA: unduh jobs/&lt;job-id&gt;/runtime_profile.json dari Run terakhir">⇩ Download Runtime Profile</a>
         <span class="hint" id="autosave-msg" style="font-size:11.5px;color:#64748b"></span>
         <span class="spacer"></span>
         <span class="hint" id="run-msg"></span>
@@ -1555,6 +1555,13 @@ ul.csverr li{margin:2px 0}
   window.fetch=function(u,o){ try{ if(typeof u==='string' && /^(\.\/)?run\.php\?/.test(u) && u.indexOf('uid=')<0){
         u+=(u.indexOf('?')<0?'?':'&')+'uid='+encodeURIComponent(uid)+'&tab='+encodeURIComponent(tab);
         if(/mode=job_(poll|cancel)/.test(u) && u.indexOf('rid=')<0 && window.PP_CUR_RID) u+='&rid='+encodeURIComponent(window.PP_CUR_RID); } }catch(e){}
+    /* SEMENTARA — profiler runtime: selama satu Run aktif, request run.php dialihkan ke run_prof.php (salinan berinstrumen). */
+    const R=window.PP_RTP;
+    if(R&&R.active&&typeof u==='string'&&/^(\.\/)?run\.php\?/.test(u)&&!/mode=(rtprof_client|runtime_profile)/.test(u)){
+      u=u.replace(/^(\.\/)?run\.php\?/,'run_prof.php?');
+      const m=(u.match(/[?&]mode=([a-z_]+)/)||[])[1]||'run', j=(u.match(/[?&]job=([A-Za-z0-9_\-]+)/)||[])[1];
+      if(j) R.job=j; const e={mode:m,job:j||null,slot:(u.match(/[?&]slot=(\d+)/)||[])[1]||null,send:+(performance.now()-R.t0).toFixed(1)}; R.reqs.push(e);
+      const p=of(u,o); p.then(r=>{e.headers=+(performance.now()-R.t0).toFixed(1);e.status=r.status;e.bytes=+(r.headers.get('content-length')||0)||null;},()=>{e.error=1;}); return p; }
     return of(u,o); };
 })();
 </script>
@@ -7906,7 +7913,26 @@ function renderCompare(){
   $('tbl-cmp').innerHTML=h+'</tbody>';
 }
 
-window.gsRunFromButton=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}const b=document.getElementById('btn-run'),m=document.getElementById('run-msg');try{if(typeof window.runSim!=='function')throw new Error('runSim belum tersedia');if(b&&b.dataset.gsRunning==='1')return false;if(b)b.dataset.gsRunning='1';Promise.resolve(window.runSim()).catch(e=>{if(m)m.textContent='Run gagal: '+String(e&&e.message||e);}).finally(()=>{if(b)delete b.dataset.gsRunning;});}catch(e){if(m)m.textContent='Run gagal dipanggil: '+String(e&&e.message||e);if(b)delete b.dataset.gsRunning;}return false;};
+window.gsRunFromButton=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(window.PP_RTP_ENABLED&&!(window.PP_RTP&&window.PP_RTP.active)){window.PP_RTP={active:true,t0:performance.now(),epoch:Date.now(),reqs:[],renders:[],job:null};}const b=document.getElementById('btn-run'),m=document.getElementById('run-msg');try{if(typeof window.runSim!=='function')throw new Error('runSim belum tersedia');if(b&&b.dataset.gsRunning==='1')return false;if(b)b.dataset.gsRunning='1';Promise.resolve(window.runSim()).catch(e=>{if(m)m.textContent='Run gagal: '+String(e&&e.message||e);}).finally(()=>{if(b)delete b.dataset.gsRunning;});}catch(e){if(m)m.textContent='Run gagal dipanggil: '+String(e&&e.message||e);if(b)delete b.dataset.gsRunning;}return false;};
+/* SEMENTARA — profiler runtime (hapus bersama run_prof.php). Aktif untuk satu Run per klik. */
+window.PP_RTP_ENABLED=true;
+(function(){const orig=window.renderResult; if(typeof orig!=='function')return;
+  window.renderResult=function(o){const R=window.PP_RTP; const a=performance.now(); const r=orig.apply(this,arguments);
+    if(R&&R.active){const b=performance.now(); const n=document.querySelectorAll('#result-simdata tbody tr').length;
+      const e={start:+(a-R.t0).toFixed(1),end:+(b-R.t0).toFixed(1),render_ms:+(b-a).toFixed(1),rows_dom:n,rows_data:((o&&o.data)||[]).length,cp:o&&o.info?o.info['Cost Production (USD/MWh)']:null};
+      R.renders.push(e); requestAnimationFrame(()=>requestAnimationFrame(()=>{e.painted=+(performance.now()-R.t0).toFixed(1);}));
+      if(n>=48){clearTimeout(R.tm); R.tm=setTimeout(rtpSend,2500);}}
+    return r;};
+  function rtpSend(){const R=window.PP_RTP; if(!R||!R.active)return; R.active=false;
+    const f=R.renders.filter(x=>x.rows_dom>=48), first=f[0], last=f[f.length-1], polls=R.reqs.filter(x=>x.mode==='job_poll');
+    const sum={click_to_first_48_rows_painted_s:first?+((first.painted||first.end)/1000).toFixed(3):null,click_to_last_render_painted_s:last?+((last.painted||last.end)/1000).toFixed(3):null,
+      render_ms_total:+R.renders.reduce((t,x)=>t+x.render_ms,0).toFixed(1),renders:R.renders.length,requests:R.reqs.length,polls:polls.length,
+      poll_rtt_ms_avg:polls.length?+(polls.reduce((t,x)=>t+((x.headers||x.send)-x.send),0)/polls.length).toFixed(1):null,cp:last?last.cp:null};
+    const body={rid:window.PP_CUR_RID||null,epoch_click:R.epoch,ua:navigator.userAgent,summary:sum,requests:R.reqs,renders:R.renders};
+    if(!R.job){console.warn('runtime profile: job id tidak diketahui');return;}
+    fetch('run.php?mode=rtprof_client&job='+encodeURIComponent(R.job),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'})
+      .then(r=>r.json()).then(j=>{try{toast('Runtime profile tersimpan: '+(j.file||'?')+' — klik "Download Runtime Profile"');}catch(e){}}).catch(()=>{});}
+})();
 /* ===================== wire up ===================== */
 if(HAVE_INPUT){
   buildPeriodic(); buildFrequent();

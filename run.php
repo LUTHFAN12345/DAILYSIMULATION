@@ -8190,10 +8190,25 @@ if (($_GET['mode'] ?? '') === 'job_exec') {
 }
 /* TARGET SELESAI — kandidat valid terbaik saat ini (GET, ringan, tidak menyentuh engine). */
 /* SEMENTARA (debug runtime Windows): unduh hasil windows_profile.php */
-if (($_GET['mode'] ?? '') === 'runtime_profile') {
-    $f = pp_job_root() . DIRECTORY_SEPARATOR . 'windows_profile.json';
-    if (!is_file($f)) { header('Content-Type: text/plain; charset=utf-8'); http_response_code(404); echo "Belum ada profil. Jalankan sekali di folder aplikasi: php.exe windows_profile.php"; exit; }
-    header('Content-Type: application/json'); header('Content-Disposition: attachment; filename="windows_profile.json"'); readfile($f); exit;
+/* SEMENTARA — profiler runtime satu Run browser (run_prof.php). rtprof_client: timing browser (klik -> request -> polling ->
+ * renderResult -> 48 row) disimpan lalu fragmen request digabung ke jobs/<job>/runtime_profile.json. runtime_profile: unduh profil terbaru. */
+if (in_array(($_GET['mode'] ?? ''), ['rtprof_client', 'runtime_profile'], true) && is_file(__DIR__ . '/run_prof.php')) {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    if (!defined('PP_RTP_LIB_ONLY')) define('PP_RTP_LIB_ONLY', 1);
+    require_once __DIR__ . '/run_prof.php';
+    $jid = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($_GET['job'] ?? ''));
+    if ($_GET['mode'] === 'rtprof_client') {
+        $c = json_decode((string)file_get_contents('php://input'), true);
+        if ($jid === '' || !is_array($c) || !is_dir(pp_job_dir($jid))) { http_response_code(400); echo '{"ok":false}'; exit; }
+        @file_put_contents(pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'rtprof_client.json', json_encode($c));
+        $r = pp_rtp_merge(__DIR__, $jid);
+        header('Content-Type: application/json'); echo json_encode(['ok' => $r !== null, 'file' => 'jobs/' . $jid . '/runtime_profile.json']); exit;
+    }
+    if ($jid === '') { $best = 0; foreach (glob(pp_job_root() . DIRECTORY_SEPARATOR . '*' . DIRECTORY_SEPARATOR . 'rtprof', GLOB_ONLYDIR) ?: [] as $d) { $m = filemtime($d); if ($m > $best) { $best = $m; $jid = basename(dirname($d)); } } }
+    $r = $jid !== '' ? pp_rtp_merge(__DIR__, $jid) : null;
+    if ($r === null) { header('Content-Type: text/plain; charset=utf-8'); http_response_code(404); echo "Belum ada profil: klik Run simulation sekali (profil aktif otomatis), tunggu 48 row tampil, lalu klik lagi tombol ini."; exit; }
+    header('Content-Type: application/json'); header('Content-Disposition: attachment; filename="runtime_profile.json"');
+    readfile(pp_job_dir($jid) . DIRECTORY_SEPARATOR . 'runtime_profile.json'); exit;
 }
 if (in_array(($_GET['mode'] ?? ''), ['tl_best', 'tl_stop', 'tl_pool'], true)) {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
@@ -8755,6 +8770,10 @@ if (in_array(($_GET['mode'] ?? ''), ['run', 'run_weekly_day'], true)) {
                 ['code' => 'INPUT_SAVE_FAILED', 'request_id' => $rid, 'state_revision' => $rev, 'autosave' => $__autosave, 'old_file_intact' => true]);
     }
     unset($input['_autosave']);
+    /* V15.18 RUNTIME: arsip Report Planning (UI) dibuang SEBELUM hashing, input.json job, payload pembantu, salinan kandidat, core, proof
+     * dan persistensi job. Autosave di atas tetap menyimpan arsip apa adanya. Identitas job tidak berubah (pp_job_input_hash sudah
+     * mengecualikannya); engine sudah membuangnya di pp_v1517_engine_input. */
+    if ((string)getenv('PP_V1517_STRIP_RP') !== '0' && isset($input['data3']['modeling']['report_planning'])) unset($input['data3']['modeling']['report_planning']);
     $phash = pp_payload_hash($input);
     /* ADAPTIVE HTTP BUDGET: start at 10 seconds and extend only while work remains,
      * in 5-second stages, with an absolute internal ceiling of 40 seconds. Core-run count is
