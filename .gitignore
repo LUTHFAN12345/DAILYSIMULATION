@@ -1,0 +1,8 @@
+jobs/
+.co_cache/
+saved/
+data/
+*.lock
+input_data.json
+output_data.json
+.tl/

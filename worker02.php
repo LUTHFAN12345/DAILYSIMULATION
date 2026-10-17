@@ -3316,7 +3316,12 @@ function pp_run_simulation_pipeline(array $input): array {
      * decommit terukur berbiaya beberapa kali satu core run), sehingga penyesuaiannya otomatis
      * mengikuti kecepatan mesin dan berat konfigurasi. */
     $__decSpent = 0.0; $__decDone = 0;
-    for ($iter = 0; $iter < 4; $iter++) {
+    /* V15.23: di Fastest, decommit SEHARIAN di dalam pipeline digantikan Commitment Tightening (decommit / tunda start / stop awal per
+     * interval dengan redispatch engine, dievaluasi pada state bahan bakar). Decommit seharian di sini dinilai pada state basis
+     * kekurangan gas sehingga tidak pernah lolos (terukur 4,9 s per pipeline tanpa hasil). PP_V1523_PIPE_DECOMMIT=1 -> lama. */
+    $__skipDec = !empty($GLOBALS['__pp_fastest_no_gcr']) && (string)getenv('PP_V1523_PIPE_DECOMMIT') !== '1' && (string)getenv('PP_V1523_TIGHTEN') !== '0';
+    if ($__skipDec) $out['info']['Decommit Screening'] = ['status' => 'DIGANTIKAN_COMMITMENT_TIGHTENING_V1523'];
+    for ($iter = 0; $iter < ($__skipDec ? 0 : 4); $iter++) {
         if (pp_budget_exceeded('decommit_iteration')) break;                 // candidate budget habis
         $__decEst = ($__decDone > 0) ? ($__decSpent / $__decDone) : ($__baseCoreCost * 4.0);
         /* V15.18 DETERMINISME: di Fastest admission decommit memakai JUMLAH simulasi inti yang sudah terpakai (sama di semua mesin),
