@@ -54,7 +54,7 @@ Laporan lengkap (48 row before/after, konteks numerik per start, periode G8/G9 �
 | A3 konfigurasi G6→G4 | 93,6116 | 93,1676 | PASS/true | 87,0 → 20,3 |
 | A4 Unit Priority blok 1 di atas blok 2 | 105,6953 | 95,3471 | PASS/true | 85,1 → 33,7 |
 | A5 Block 2 Required ON | 105,8901 | 93,4422 | PASS/true | 85,7 → 31,8 |
-| A6 IE −40 MW | 73,5813 | 72,8295 | PASS/true | 71,6 → 18,3 |
+| A6 IE −40 MW | 73,5813 | 72,8132 | PASS/true | 71,6 → 18,3 |
 | A7 IE +20 MW (infeasible) | 122,0047 | 122,0047 | VALID-INFEASIBLE/false (sama) | 163,3 → 130,6 |
 | A8 konfigurasi G9→G5 | 106,0179 | 102,2652 | PASS/true | 117,3 → 35,0 |
 | B0 `input_data.json` (07-Oct) | 68,4541 | 68,4541 | VALID-INFEASIBLE/false (sama, row 1) | 2,1 → 1,9 |
@@ -68,6 +68,7 @@ Rollback: `PP_V1523_FUEL_ASSESS=0 PP_V1523_TIGHTEN=0 PP_V1523_STAGE_GUARD=0 PP_V
 4. Hasil tightening sensitif terhadap urutan/anggaran pencarian (lokal, bukan optimum global).
 5. `pp_stg_model_sig()` meng-cache signature per jumlah entri (potensi memo STG basi lintas kandidat); percobaan perbaikan mengubah hasil tanpa bukti manfaat → tidak diterapkan, perlu investigasi tersendiri.
 6. Matriks UI 342 kasus dan injeksi helper failure tidak dijalankan ulang (UI tidak diubah).
+7. Seluruh uji runtime dijalankan pada PHP 8.3.6 (CLI + `php -S` untuk jalur helper); kompatibilitas PHP 7.4 (server user) hanya diperiksa statis (tanpa `match`, nullsafe, `??=`, named args; arrow function = PHP 7.4). Uji di Apache/PHP-FPM 7.4 server user belum dilakukan.
 
 ## 7. Flag
 `PP_V1523_FUEL_ASSESS`, `PP_V1523_TIGHTEN`, `PP_V1523_STAGE_GUARD`, `PP_V1523_SHORTAGE_SEED`, `PP_V1523_CAND_GAS_LAND`, `PP_V1523_SINGLE_SEED`, `PP_V1523_PIPE_DECOMMIT=1` (decommit lama), `PP_V1523_EVAL_CAP` (36), `PP_V1523_PROOF_CAP` (12), `PP_V1523_BACKFILL`, `PP_V1523_HOLD_IV`, `PP_V1523_SHORT_WINDOW`, `PP_V1523_GAS_BOUND_N` (6), `PP_V1523_LEFT_MARGIN` (1), `PP_V1523_IE_KEY_FP`.
