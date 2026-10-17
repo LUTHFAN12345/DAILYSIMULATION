@@ -2597,7 +2597,21 @@ function pp_v4_cores(): int {
     static $n = null; if ($n !== null) return $n;
     $e = (int)getenv('NUMBER_OF_PROCESSORS'); if ($e <= 0) $e = (int)($_SERVER['NUMBER_OF_PROCESSORS'] ?? 0);
     if ($e <= 0 && @is_readable('/proc/cpuinfo')) { $c = (string)@file_get_contents('/proc/cpuinfo'); $e = (int)preg_match_all('~^processor\s*:~m', $c); }
+    /* V15.24: CPU yang benar-benar boleh dipakai proses = min(processor, affinity, kuota cgroup) — server 1 vCPU / taskset / cgroup
+     * cpu.max tidak boleh terbaca sebagai multi-core (helper paralel hanya menambah overhead time-slicing) */
+    $lim = pp_v1524_cpu_limits(); foreach (['affinity_cpus', 'cgroup_cpus'] as $k) if (($lim[$k] ?? 0) > 0) $e = $e > 0 ? min($e, (int)$lim[$k]) : (int)$lim[$k];
     return $n = max(1, $e > 0 ? $e : 2);
+}
+function pp_v1524_cpu_limits(): array {
+    static $r = null; if ($r !== null) return $r; $r = ['affinity_list' => null, 'affinity_cpus' => null, 'cgroup_quota' => null, 'cgroup_cpus' => null];
+    $st = @is_readable('/proc/self/status') ? (string)@file_get_contents('/proc/self/status') : '';
+    if (preg_match('~^Cpus_allowed_list:\s*(\S+)~m', $st, $mm)) { $n = 0; foreach (explode(',', $mm[1]) as $p) { $ab = explode('-', $p); $n += count($ab) === 2 ? ((int)$ab[1] - (int)$ab[0] + 1) : 1; }
+        $r['affinity_list'] = $mm[1]; $r['affinity_cpus'] = $n; }
+    foreach (['/sys/fs/cgroup/cpu.max', '/sys/fs/cgroup/cpu/cpu.cfs_quota_us'] as $f) if (@is_readable($f)) { $t = trim((string)@file_get_contents($f));
+        if ($f === '/sys/fs/cgroup/cpu.max') { [$q, $pd] = array_pad(explode(' ', $t), 2, '100000'); if ($q !== 'max' && (int)$pd > 0) { $r['cgroup_quota'] = $t; $r['cgroup_cpus'] = max(1, (int)ceil((int)$q / (int)$pd)); } }
+        else { $q = (int)$t; $pd = (int)@file_get_contents('/sys/fs/cgroup/cpu/cpu.cfs_period_us'); if ($q > 0 && $pd > 0) { $r['cgroup_quota'] = $q . ' ' . $pd; $r['cgroup_cpus'] = max(1, (int)ceil($q / $pd)); } }
+        break; }
+    return $r;
 }
 /* Jumlah pekerja pembantu per job pemilik: inti CPU dikurangi satu (pemilik), maks. 3, sehingga
  * tidak terjadi oversubscription. Dapat ditetapkan dengan PP_V4_HELPERS (0 = tanpa pembantu). */
@@ -3135,6 +3149,7 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
         $clean(); $o = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPre, $o);
         $clean(); $tV = microtime(true); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_proof_completion', $tV);
         if (is_array($plan) && $cand !== null) $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan['plan'], $cand, $o, $plan['tried']);
+        $clean(); $tV = microtime(true); try { $o['info']['Commitment Event Proof'] = pp_v1524_event_proof($inputAsli, $o); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Event Proof'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } $clean(); pp_sp_prof('event_proof', $tV);
         if (is_array($consol)) $o['info']['Block Consolidation Review'] = $consol;
         if (is_array($GLOBALS['ppV1523Tight'] ?? null)) $o['info']['Commitment Tightening'] = $GLOBALS['ppV1523Tight'];
         if (is_array($GLOBALS['ppV1523Tight2'] ?? null)) $o['info']['Commitment Tightening Post V8'] = $GLOBALS['ppV1523Tight2'];
@@ -3505,7 +3520,7 @@ function pp_v1518_runtime_diag(string $jid): array {
     $span = is_finite($tMin) ? $tMax - $tMin : 0.0;
     return ['schema' => 'v1518-runtime-diag-1', 'os' => PHP_OS_FAMILY, 'sapi' => PHP_SAPI, 'php' => PHP_VERSION, 'zts' => (bool)PHP_ZTS,
         'opcache' => function_exists('opcache_get_status') ? (bool)(@opcache_get_status(false)['opcache_enabled'] ?? false) : false,
-        'cores_detected' => pp_v4_cores(), 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
+        'cores_detected' => pp_v4_cores(), 'cpu_limits' => pp_v1524_cpu_limits(), 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
         'tasks_total' => count($ev) / 2, 'tasks_by_process' => $byPid, 'task_busy_s' => round($busy, 2), 'task_span_s' => round($span, 2),
         'workers' => count($byPid), 'max_concurrency' => $mx, 'parallel' => ($mx >= 2 && count($byPid) >= 2) ? 'PARALLEL' : ((count($ev) / 2) > 0 ? 'SERIAL_OR_UNPROVEN' : 'NO_TASKS'),
         'job_started_at' => $job['started_at_ts'] ?? null, 'job_finished_at' => $job['finished_at'] ?? null];
@@ -8055,22 +8070,53 @@ function pp_v1523_classes(array $orig): array {
     return ['free' => $free, 'hold' => $hold, 'req' => $reqStop, 'level' => pp_v9_priority_level($m), 'rank' => pp_priority_rank($m)];
 }
 function pp_v1523_metrics(array $orig, array $o, array $K): array {
-    $rows = array_values((array)($o['data'] ?? [])); $m = (array)($orig['data3']['modeling'] ?? []);
-    $starts = 0; $mand = 0; $prio = 0.0; $sp = (array)($m['startup_penalty'] ?? []); $stCost = 0.0;
+    $rows = array_values((array)($o['data'] ?? [])); $d3 = (array)($orig['data3'] ?? []); $m = (array)($d3['modeling'] ?? []);
+    $starts = 0; $mand = 0; $prio = 0.0; $sp = (array)($m['startup_penalty'] ?? []); $stCost = 0.0; $online = 0; $startSum = 0; $stopSum = 0;
     foreach (array_merge(pp_tl_gt_units(), ['s1', 's2', 's3']) as $u) { $U = strtoupper($u); $prev = preg_match('/run/i', (string)($m['unit_last_data_status'][$U] ?? '')) ? 1.0 : 0.0; $n = 0;
-        foreach ($rows as $k => $r) { $v = (float)($r[$U] ?? 0); if ($v > 0.01 && $prev <= 0.01) $n++; $prev = $v;
-            if ($v > 0.01 && (isset($K['free'][$u]) || isset($K['hold'][$u]) || isset($K['req'][$u]))) $prio += 1.0 + (float)($K['level'][$u] ?? 9); }
+        $var = isset($K['free'][$u]) || isset($K['hold'][$u]) || isset($K['req'][$u]);
+        foreach ($rows as $k => $r) { $v = (float)($r[$U] ?? 0);
+            if ($v > 0.01 && $prev <= 0.01) { $n++; if ($var) $startSum += $k + 1; }
+            if ($v <= 0.01 && $prev > 0.01 && isset($K['free'][$u])) $stopSum += $k + 1;
+            $prev = $v; if ($v > 0.01 && $var) { $prio += 1.0 + (float)($K['level'][$u] ?? 9); $online++; } }
         if (!$n) continue;
         $cls = preg_match('~^s~', $u) ? 'startup_penalty_cost_stg' : (in_array($u, ['g7','g8','g9','g10'], true) ? 'startup_penalty_cost_gtg_large' : 'startup_penalty_cost_gtg_small');
         $stCost += $n * (float)($sp[$cls] ?? 0);
         if (preg_match('~^g~', $u)) { $starts += $n; if (isset($K['hold'][$u]) || isset($K['req'][$u])) $mand++; } }
+    /* INVERSI RUNNING-UNIT-FIRST (generik): unit-row unit tak-kontinu level L berbeban sementara legal headroom (effective max, dibatasi ramp
+     * dari row sebelumnya) unit online ber-level lebih tinggi pada row itu >= bebannya. */
+    $inv = 0; $gt = pp_tl_gt_units();
+    foreach ($rows as $k => $r) { $hd = [];
+        foreach (array_merge($gt, ['b1', 'b2']) as $x) { $c = pp_sup_col($x); $v = (float)($r[$c] ?? 0); if ($v <= 0.01) continue;
+            $mx = pp_effective_max_load($d3, $m, $x, $k + 1); $rl = pp_unit_ramp_limit($x); $pv = $k > 0 ? (float)($rows[$k - 1][$c] ?? 0) : $v;
+            if ($rl !== null && $pv > 0.01) $mx = min($mx, $pv + $rl); $hd[$x] = max(0.0, $mx - $v); }
+        foreach ($gt as $u) { $v = (float)($r[strtoupper($u)] ?? 0); if ($v <= 0.01 || !(isset($K['free'][$u]) || isset($K['hold'][$u]) || isset($K['req'][$u]))) continue;
+            $L = (int)($K['level'][$u] ?? 9); $H = 0.0; foreach ($hd as $x => $h) if ((int)($K['level'][$x] ?? 9) < $L) $H += $h;
+            if ($H >= $v - 1e-6) $inv++; } }
+    /* blok baru: blok (STG) atau unit tanpa STG yang seluruhnya OFF pada row 1 lalu berbeban */
+    $blk = []; foreach ($gt as $u) { if (!isset($d3[$u])) continue; $s = pp_gtg_to_stg($d3, $u) ?: $u; $on1 = (float)($rows[0][strtoupper($u)] ?? 0) > 0.01; $any = false;
+        foreach ($rows as $r) if ((float)($r[strtoupper($u)] ?? 0) > 0.01) { $any = true; break; }
+        $blk[$s]['on1'] = ($blk[$s]['on1'] ?? false) || $on1; $blk[$s]['any'] = ($blk[$s]['any'] ?? false) || $any; }
+    $newB = 0; foreach ($blk as $b) if (!$b['on1'] && $b['any']) $newB++;
     $i = (array)($o['info'] ?? []); $tc = (float)($i['Total Cost (USD)'] ?? 0); $cp = (float)($i['Cost Production (USD/MWh)'] ?? 0); $net = $cp > 0 ? $tc / $cp : 0.0;
-    return ['startups_nm' => max(0, $starts - $mand), 'startups' => $starts, 'prio' => round($prio, 3), 'cp' => round($cp, 4),
+    return ['inv' => $inv, 'startups_nm' => max(0, $starts - $mand), 'new_blocks' => $newB, 'startups' => $starts, 'prio' => round($prio, 3), 'cp' => round($cp, 4),
             'econ_cp' => $net > 0 ? round(($tc + $stCost) / $net, 4) : INF, 'hr' => (float)($i['JBBK MM Heat Rate (BTU/kWh)'] ?? INF),
-            'dist_l' => (float)($i['Distillate Used (l)'] ?? 0)];
+            'online_rows' => $online, 'start_sum' => $startSum, 'stop_sum' => $stopSum, 'dist_l' => (float)($i['Distillate Used (l)'] ?? 0)];
 }
-/* comparator V15.23: -1 bila A lebih baik dari B */
+/* comparator V15.24 (urutan Bagian VII instruksi; validitas hard/semantik dinilai sebelumnya): inversi running-unit-first -> startup tak-wajib ->
+ * blok baru -> CP ekonomi (band 0,02%) -> HR -> jumlah startup -> online unit-row -> startup lebih lambat -> stop unit tak-diminta lebih awal.
+ * -1 bila A lebih baik. Sidik jari commitment dipakai pemanggil sebagai tie-break terakhir. PP_V1524_CMP=0 -> comparator V15.23. */
 function pp_v1523_cmp(array $a, array $b): int {
+    if ((string)getenv('PP_V1524_CMP') !== '0' && isset($a['inv'], $b['inv'])) {
+        foreach (['inv', 'startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
+        $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
+        if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
+        if (abs($a['hr'] - $b['hr']) > 1e-6) return $a['hr'] <=> $b['hr'];
+        if (abs($a['econ_cp'] - $b['econ_cp']) > 1e-4) return $a['econ_cp'] <=> $b['econ_cp'];
+        foreach (['startups', 'online_rows'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
+        if ($a['start_sum'] !== $b['start_sum']) return $b['start_sum'] <=> $a['start_sum'];
+        if ($a['stop_sum'] !== $b['stop_sum']) return $a['stop_sum'] <=> $b['stop_sum'];
+        return 0;
+    }
     if ($a['startups_nm'] !== $b['startups_nm']) return $a['startups_nm'] <=> $b['startups_nm'];
     $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
     if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
@@ -8182,13 +8228,103 @@ function pp_v1523_start_context(array $orig, array $W, string $u, int $a, array 
         'startup_leadin_mw' => pp_start_sequence($d3, $m, $u, array_map(fn($rw) => array_change_key_case((array)$rw, CASE_LOWER), $rows), $a - 1),
         'delay_test_deficits' => array_slice($def, 0, 8)];
 }
+/* V15.24 BUKTI EVENT COMMITMENT pada dispatch FINAL (sesudah seluruh tahap: konsolidasi, V8, family, tightening, Unit Priority Fix, pelengkap
+ * bukti). Untuk setiap event START dan setiap interval beban minimum unit yang commitment-nya diputuskan engine (Auto/Required Simulation):
+ * first-needed row + defisit MW (analitik: Export tanpa unit + legal headroom unit online lain, kopling STG tidak dihitung = estimasi
+ * konservatif), unit running (beban, min/max legal, ramp, headroom), prioritas efektif, kandidat same-block / cross-block, status bahan bakar &
+ * window gas, margin Export/SR/BusFlow/STG, lead time, CP/CP ekonomi/HR, uji tanpa-tunda (start +1 row) dan tanpa-stop-awal (stop -1 row)
+ * dengan redispatch engine (evaluator jendela lokal yang sama dengan tightening), serta kode alasan. Tidak mengubah dispatch. */
+function pp_v1524_event_proof(array $input, array $o): array {
+    if ((string)getenv('PP_V1524_EVENT_PROOF') === '0' || count((array)($o['data'] ?? [])) !== 48 || !function_exists('pp_v1523_local_eval')) return ['status' => 'SKIPPED'];
+    $t0 = microtime(true); $orig = pp_v1523_orig($input); $d3 = (array)$orig['data3']; $m = (array)$d3['modeling']; $K = pp_v1523_classes($orig);
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+    $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
+    $rows = array_values((array)$o['data']); $XW = pp_v8_masks($rows); $mW = pp_v1523_metrics($orig, $o, $K); $info = (array)($o['info'] ?? []);
+    $busMin = (float)($m['busflow_min'] ?? 0); $gt = pp_tl_gt_units(); $nEval = 0; $cap = (int)(getenv('PP_V1524_PROOF_EVALS') ?: 24);
+    $blockOf = fn(string $u) => pp_gtg_to_stg($d3, $u) ?: $u;
+    $runRows = fn(string $u) => max(1, (int)(pp_runtime_limits($m)[pp_runtime_class($u, $d3)]['run_rows'] ?? 8));
+    $ev = function (array $X, bool $compound) use (&$nEval, $cap, $orig, $o, $XW, $K, $restore) {
+        if ($nEval >= $cap) return null; $chg = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) $chg[$r] = true;
+        if (!$chg) return null; $nEval++; $R = pp_v1523_local_eval($orig, $o, $XW, $X, $K, $restore, $chg, null, $compound); $nEval += max(0, count((array)($R['attempts'] ?? [])) - 1); $restore(); return $R; };
+    $verdict = function (?array $R) use ($mW): string { if ($R === null) return 'TIDAK_DIEVALUASI_BATAS'; if (empty($R['valid'])) return 'TIDAK_VALID'; return pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK'; };
+    /* margin per row */
+    $margins = function (int $r) use ($rows, $busMin): array { $w = (array)($rows[$r - 1] ?? []); $ex = (float)($w['Export_PLN'] ?? 0);
+        return ['export_mw' => round($ex, 2), 'export_min_margin_mw' => round($ex - (float)($w['pln_lo'] ?? 0), 2), 'export_max_margin_mw' => round((float)($w['pln_hi'] ?? 0) - $ex, 2),
+            'sr_mw' => $w['Spin_Res'] ?? null, 'sr_min_mw' => $w['SR_Min'] ?? null, 'sr_margin_mw' => isset($w['Spin_Res'], $w['SR_Min']) ? round((float)$w['Spin_Res'] - (float)$w['SR_Min'], 2) : null,
+            'busflow_mw' => $w['BusFlow'] ?? null, 'busflow_min_mw' => $busMin ?: null, 'busflow_margin_mw' => $busMin && isset($w['BusFlow']) ? round((float)$w['BusFlow'] - $busMin, 2) : null]; };
+    /* defisit analitik bila unit u dilepas pada row r: Export - beban u + legal headroom unit online lain (GT + Babelan, ramp dari row sebelumnya) */
+    $defIfOff = function (string $u, int $r) use ($rows, $d3, $m, $gt): array { $w = (array)($rows[$r - 1] ?? []); $pv = $r > 1 ? (array)$rows[$r - 2] : $w; $H = 0.0;
+        foreach (array_merge($gt, ['b1', 'b2']) as $x) { if ($x === $u) continue; $c = pp_sup_col($x); $v = (float)($w[$c] ?? 0); if ($v <= 0.01) continue;
+            $mx = pp_effective_max_load($d3, $m, $x, $r); $rl = pp_unit_ramp_limit($x); $p = (float)($pv[$c] ?? 0); if ($rl !== null && $p > 0.01) $mx = min($mx, $p + $rl); $H += max(0.0, $mx - $v); }
+        $mw = (float)($w[strtoupper($u)] ?? 0); $ex = (float)($w['Export_PLN'] ?? 0); $lo = (float)($w['pln_lo'] ?? 0); $wo = $ex - $mw + $H;
+        return ['row' => $r, 'unit_mw' => round($mw, 2), 'others_headroom_mw' => round($H, 2), 'export_without_unit_max_mw' => round($wo, 2), 'export_min_mw' => $lo, 'deficit_mw' => round(max(0.0, $lo - $wo), 2)]; };
+    $fuel = ['fuel_action' => $info['Gas Shortage Action'] ?? null, 'fuel_action_source' => $info['Fuel Action Source'] ?? null, 'gas_quota_status' => $info['Gas Quota Status'] ?? null,
+        'gas_utilization_status' => $info['Gas Utilization Status'] ?? null, 'total_gas_bbtud' => $info['Total Gas Used (BBTUD)'] ?? null, 'gas_quota_bbtud' => $info['Total Gas Quota (BBTUD)'] ?? null,
+        'gas_window_deviation_bbtud' => $info['Gas Quota Deviation (BBTUD)'] ?? null, 'distillate_l' => $info['Required Distillate (l/day)'] ?? null, 'lng_bbtud' => $info['Recommended LNG (BBTUD)'] ?? null];
+    $events = []; $minLoad = [];
+    foreach ($gt as $u) { $var = isset($K['free'][$u]) || isset($K['hold'][$u]) || isset($K['req'][$u]); if (!$var) continue; $U = strtoupper($u); $lv = $K['level'][$u] ?? null;
+        foreach (pp_v8_intervals((array)($XW[$u] ?? [])) as [$a, $b]) {
+            $ctx = null; $fn = null; $defs = [];
+            for ($r = $a; $r <= $b; $r++) { $dd = $defIfOff($u, $r); if ($dd['deficit_mw'] > 0) { $defs[] = $dd; if ($fn === null) $fn = $dd; } }
+            if ($a > 1) {
+                $ctx = pp_v1523_start_context($orig, $o, $u, $a, $K, null);
+                /* kandidat pengganti (unit tak-diminta OFF sepanjang interval +/-4 row): same-block lebih dulu, lalu cross-block; diuji redispatch
+                 * untuk peer berprioritas lebih tinggi atau setara (kandidat inversi prioritas) */
+                $cands = ['same_block' => [], 'cross_block' => []]; $tested = ['same_block' => false, 'cross_block' => false];
+                $peers = array_keys($K['free']); usort($peers, fn($x, $y) => (($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99)) ?: strcmp($x, $y));
+                foreach ($peers as $p) { if ($p === $u) continue; $grp = $blockOf($p) === $blockOf($u) ? 'same_block' : 'cross_block'; $busy = false;
+                    for ($r = max(1, $a - 4); $r <= min(48, $b + 4); $r++) if (!empty($XW[$p][$r])) { $busy = true; break; }
+                    $e = ['unit' => strtoupper($p), 'priority_level' => isset($K['level'][$p]) ? $K['level'][$p] + 1 : null, 'higher_priority' => ($K['rank'][$p] ?? 99) < ($K['rank'][$u] ?? 99), 'status' => $busy ? 'ONLINE_ATAU_DIPAKAI_DEKAT_INTERVAL' : 'TERSEDIA'];
+                    if (!$busy && !$tested[$grp] && ($K['level'][$p] ?? 9) <= ($K['level'][$u] ?? 9)) { $X = $XW; for ($r = $a; $r <= $b; $r++) { $X[$u][$r] = false; $X[$p][$r] = true; }
+                        $R = $ev($X, true); $e['swap_test'] = sprintf('SWAP %s->%s row %d-%d', $U, strtoupper($p), $a, $b); $e['swap_result'] = $verdict($R);
+                        $e['swap_reason'] = $R === null ? null : ($R['valid'] ? $R['met'] : array_slice((array)$R['why'], 0, 4)); $tested[$grp] = true; }
+                    $cands[$grp][] = $e; }
+                $X = $XW; $X[$u][$a] = false; $R = $ev($X, false); $vd = $verdict($R);
+                $stg = pp_gtg_to_stg($d3, $u); $md = $stg ? strtolower((string)($m['stg_startup_mode'][$stg . '_startup'] ?? ($m['stg_startup_mode'][$stg] ?? 'warm'))) : '';
+                $lead = count((array)($ctx['startup_leadin_mw'] ?? []));
+                $code = $vd === 'VALID_LEBIH_BAIK' ? 'BELUM_TERBUKTI_TUNDA_LEBIH_BAIK' : ($vd === 'TIDAK_VALID' ? (isset($K['free'][$u]) ? 'DIPERLUKAN_START_PALING_LAMBAT_LEGAL' : 'REQUIRED_START_PALING_LAMBAT_LEGAL') : ($vd === 'VALID_TIDAK_LEBIH_BAIK' ? 'START_SEKARANG_LEBIH_EKONOMIS' : 'TIDAK_DIEVALUASI'));
+                if (is_array($R) && empty($R['valid'])) { $k = []; foreach ((array)$R['why'] as $w) $k[preg_replace('~:.*$~', '', (string)$w)] = true; $code .= ':' . implode('+', array_keys($k)); }
+                $events[] = ['unit' => $U, 'event' => 'START', 'row' => $a, 'time' => pp_v1518_row_time($a), 'interval' => [$a, $b], 'interval_time' => [pp_v1518_row_time($a), pp_v1518_row_time($b)],
+                    'requested' => isset($K['free'][$u]) ? 'AUTO_START' : 'REQUIRED_START_BASED_ON_SIMULATION', 'effective_priority_level' => $lv !== null ? $lv + 1 : null, 'block' => strtoupper($blockOf($u)),
+                    'first_needed_row' => $fn['row'] ?? null, 'first_needed_time' => isset($fn['row']) ? pp_v1518_row_time($fn['row']) : null, 'deficit_at_first_needed' => $fn,
+                    'max_deficit_if_off' => $defs ? array_reduce($defs, fn($c, $x) => $c === null || $x['deficit_mw'] > $c['deficit_mw'] ? $x : $c) : null, 'rows_needed_count' => count($defs),
+                    'lead_time_rows' => $lead, 'startup_sequence_mw' => $ctx['startup_leadin_mw'] ?? null, 'lead_rows_before_first_needed' => isset($fn['row']) ? $fn['row'] - $a : null,
+                    'stg' => $stg ? ['unit' => strtoupper($stg), 'startup_mode' => $md, 'mw_at_start' => $rows[$a - 1][strtoupper($stg)] ?? null] : null,
+                    'running_units_row_before' => $ctx['running_units'] ?? null, 'higher_priority_legal_headroom_mw' => $ctx['higher_priority_legal_headroom_mw'] ?? null,
+                    'candidates' => $cands, 'fuel_state' => $fuel, 'margins_at_start' => $margins($a), 'margins_at_first_needed' => isset($fn['row']) ? $margins($fn['row']) : null,
+                    'no_delay_test' => ['test' => 'START_SATU_ROW_LEBIH_LAMBAT (row ' . ($a + 1) . ')', 'result' => $vd, 'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'final' => $mW] : array_slice((array)$R['why'], 0, 6))],
+                    'reason_code' => $code]; }
+            if ($b < 48 && isset($K['free'][$u])) { $rr = $runRows($u); $legal = ($b - $a + 1) > $rr; $R = null; $vd = 'TIDAK_LEGAL_RUNTIME_MINIMUM';
+                if ($legal) { $X = $XW; $X[$u][$b] = false; $R = $ev($X, false); $vd = $verdict($R); }
+                $events[] = ['unit' => $U, 'event' => 'STOP', 'row' => $b + 1, 'time' => pp_v1518_row_time($b + 1), 'interval' => [$a, $b], 'min_runtime_rows' => $rr, 'rows_on' => $b - $a + 1,
+                    'last_needed_row' => $defs ? end($defs)['row'] : null, 'margins_last_row' => $margins($b), 'deficit_if_off_last_row' => $defIfOff($u, $b),
+                    'no_early_stop_test' => ['test' => 'STOP_SATU_ROW_LEBIH_AWAL (off row ' . $b . ')', 'result' => $vd, 'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'final' => $mW] : array_slice((array)$R['why'], 0, 6))],
+                    'reason_code' => $vd === 'VALID_LEBIH_BAIK' ? 'BELUM_TERBUKTI_STOP_AWAL_LEBIH_BAIK' : ($vd === 'TIDAK_LEGAL_RUNTIME_MINIMUM' ? 'RUNTIME_MINIMUM' : ($vd === 'TIDAK_VALID' ? 'STOP_PALING_AWAL_LEGAL' : ($vd === 'VALID_TIDAK_LEBIH_BAIK' ? 'STOP_SEKARANG_LEBIH_EKONOMIS' : 'TIDAK_DIEVALUASI')))]; }
+            /* interval beban minimum (<= min legal + 0,5 MW) di dalam interval online */
+            $cur = null; $seqN = count(pp_start_sequence($d3, $m, $u, array_map(fn($rw) => array_change_key_case((array)$rw, CASE_LOWER), $rows), $a - 1));
+            for ($r = $a; $r <= $b + 1; $r++) { $at = false;
+                if ($r <= $b) { $v = (float)($rows[$r - 1][$U] ?? 0); $mn = pp_effective_min_load($d3, $m, $u, $r); $at = $v > 0.01 && $v <= $mn + 0.5; }
+                if ($at) { if ($cur === null) $cur = ['a' => $r, 'b' => $r]; else $cur['b'] = $r; continue; }
+                if ($cur === null) continue; [$ia, $ib] = [$cur['a'], $cur['b']]; $cur = null; $dl = []; for ($q = $ia; $q <= $ib; $q++) $dl[] = $defIfOff($u, $q);
+                $mx = array_reduce($dl, fn($c, $x) => $c === null || $x['deficit_mw'] > $c['deficit_mw'] ? $x : $c);
+                $mg = array_map($margins, range($ia, $ib)); $hiCap = min(array_map(fn($x) => $x['export_max_margin_mw'], $mg));
+                $why = $ia < $a + $seqN ? 'STARTUP_SEQUENCE' : ($mx['deficit_mw'] > 0 ? 'DIPERLUKAN_KAPASITAS_EXPORT_MIN' : ($hiCap <= 1.0 ? 'BATAS_ATAS_EXPORT_UNIT_DITURUNKAN_KE_MIN' : ($ib >= $b - 1 && ($b - $a + 1) <= $runRows($u) + 1 ? 'RUNTIME_MINIMUM' : 'COMMITMENT_DIPERTAHANKAN_RAMP_ATAU_BUKTI_STOP')));
+                $minLoad[] = ['unit' => $U, 'rows' => [$ia, $ib], 'time' => [pp_v1518_row_time($ia), pp_v1518_row_time($ib)], 'mw' => array_map(fn($x) => $x['unit_mw'], $dl),
+                    'min_legal_mw' => round(pp_effective_min_load($d3, $m, $u, $ia), 2), 'max_deficit_if_off' => $mx, 'export_max_margin_min_mw' => round($hiCap, 2), 'margins' => $mg, 'reason_code' => $why]; } } }
+    $bad = array_values(array_filter($events, fn($e) => strpos((string)$e['reason_code'], 'BELUM_TERBUKTI') === 0));
+    $unev = array_values(array_filter($events, fn($e) => $e['reason_code'] === 'TIDAK_DIEVALUASI'));
+    return ['schema' => 'v1524-event-proof-1', 'status' => $bad ? 'TIDAK_TERBUKTI' : ($unev ? 'SEBAGIAN_TIDAK_DIEVALUASI' : 'TERBUKTI'), 'final_metrics' => $mW,
+        'events' => $events, 'minimum_load_intervals' => $minLoad, 'not_proven' => array_map(fn($e) => $e['unit'] . ' ' . $e['event'] . ' ' . $e['time'], $bad),
+        'evaluations' => $nEval, 'wall_s' => round(microtime(true) - $t0, 3),
+        'method' => 'defisit analitik (Export - beban unit + legal headroom GT/Babelan online lain; STG tidak dihitung) + uji redispatch engine jendela lokal (tunda start 1 row / stop 1 row lebih awal / swap peer) terhadap dispatch FINAL'];
+}
 function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     if (($dump = (string)getenv('PP_V1523_DUMP')) !== '') @file_put_contents($dump, json_encode(['input' => $input, 'out' => $out]));   // harness
     if ((string)getenv('PP_V1523_TIGHTEN') === '0' || count((array)($out['data'] ?? [])) !== 48 || !function_exists('pp_tl_land_commitment')) return $out;
     $t0 = microtime(true); $orig = pp_v1523_orig($input); $m = (array)$orig['data3']['modeling']; $d3 = (array)$orig['data3'];
     if (!empty($m['change_over']['enabled'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'CHANGE_OVER']; return $out; }
     $K = pp_v1523_classes($orig);
-    $cap = !empty($opt['post_v8']) ? (int)(getenv('PP_V1523_EVAL_CAP2') ?: 24) : (int)(getenv('PP_V1523_EVAL_CAP') ?: 36); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 16); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
+    $cap = (int)(getenv('PP_V1523_EVAL_CAP') ?: 120); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 16); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     $cache = []; $nEval = 0; $nHit = 0; $log = [];
@@ -8200,157 +8336,158 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
      * dispatch incumbent (sudah valid), commitment kandidat sebagai jendela stop, engine me-redispatch jendela; dinilai penuh 48 row terhadap
      * input asli. Gagal pada W=3 -> diulang W=8 (redispatch lebih luas). Core run ulang tanpa kunci TIDAK mereproduksi incumbent (terukur:
      * tunda satu row memunculkan defisit Export di row lain) sehingga tidak dipakai sebagai bukti. */
-    $GLOBALS['ppV1523GasFail'] = 0;
-    $ev = function (array $X, bool $proof = false, bool $compound = false) use (&$cache, &$nEval, &$nHit, &$W, &$XW, $cap, $proofCap, $dl, $orig, $K, $restore) {
+    $truncated = false;
+    /* V15.24 PEMAKAIAN ULANG VERDICT ANTAR-RONDE (deterministik, fungsi riwayat baseline saja): kandidat dengan perubahan sel commitment
+     * yang SAMA terhadap baseline, yang pada ronde sebelumnya TIDAK VALID karena pelanggaran per-row (bukan kuota harian/gas) atau VALID TIDAK
+     * LEBIH BAIK, tidak dievaluasi ulang bila sejak itu baseline hanya berubah pada unit lain DAN row di luar jendela redispatch-nya +/-2 row
+     * (row terkunci & seluruh input jendela identik). Kandidat yang lebih baik, gagal pada batas harian, atau beririsan selalu dievaluasi ulang.
+     * Bukti (proof) selalu evaluasi segar. PP_V1524_REUSE=0 -> evaluasi penuh setiap ronde. */
+    $bGen = 0; $bHist = []; $dmap = []; $nReuse = 0; $reuse = (string)getenv('PP_V1524_REUSE') !== '0';
+    $ev = function (array $X, bool $proof = false, bool $compound = false) use (&$cache, &$nEval, &$nHit, &$W, &$XW, &$mW, $cap, $proofCap, $dl, $orig, $K, $restore, &$truncated, &$bGen, &$bHist, &$dmap, &$nReuse, $reuse) {
         $sig = pp_v3_sig(pp_v8_stops($X));
         if (isset($cache[$sig])) { $nHit++; return $cache[$sig]; }
-        if ((int)($GLOBALS['ppV1523GasFail'] ?? 0) >= (int)(getenv('PP_V1523_GAS_BOUND_N') ?: 6)) return null;
-        if ((!$proof && $nEval >= $cap) || ($proof && $nEval >= $cap + $proofCap) || microtime(true) > $dl) return null;
-        $chg = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) $chg[$r] = true;
+        $chg = []; $cells = []; $units = [];
+        foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) { $chg[$r] = true; $cells[] = $u . ':' . $r . ':' . (int)(bool)$on; $units[$u] = true; }
         if (!$chg) return $cache[$sig] = $cache[pp_v3_sig(pp_v8_stops($XW))] ?? null;
+        sort($cells); $dk = implode(',', $cells) . '|' . (int)$compound;
+        if ($reuse && !$proof && isset($dmap[$dk])) { $E = $dmap[$dk]; $ok = true;
+            for ($g = $E['gen']; $g < $bGen && $ok; $g++) { if (array_intersect_key($bHist[$g]['u'], $units)) { $ok = false; break; }
+                foreach ($bHist[$g]['r'] as $r => $_) if ($r >= $E['lo'] - 2 && $r <= $E['hi'] + 2) { $ok = false; break; } }
+            if ($ok) { $R = $E['R'];
+                if (!empty($R['valid'])) { if (pp_v1523_cmp($R['met'], $E['mW']) < 0) $ok = false; }
+                else foreach ((array)$R['why'] as $w) if (!preg_match('~^[a-z_]+: row \d+~', (string)$w)) { $ok = false; break; }
+                if ($ok) { $nReuse++; $R['reused_from_round_base'] = $E['gen']; if (!empty($R['valid'])) $R['reused_not_better'] = true; return $cache[$sig] = $R; } } }
+        if (($proof && $nEval >= $cap + $proofCap) || microtime(true) > $dl) { if (!$proof) $truncated = true; return null; }
         $nEval++; $res = pp_v1523_local_eval($orig, $W, $XW, $X, $K, $restore, $chg, null, $compound); $nEval += max(0, count((array)($res['attempts'] ?? [])) - 1);
-        /* window gas wajib-terpakai (take-or-pay) mengikat: bila 6 evaluasi pertama seluruhnya gagal HANYA karena gas_quota, pelepasan/penundaan
-         * unit terbukti menurunkan pemakaian gas di bawah window -> pencarian dihentikan (alasan numerik tetap tercatat) */
-        if ((int)($GLOBALS['ppV1523GasFail'] ?? 0) >= 0) { if (!empty($res['valid'])) $GLOBALS['ppV1523GasFail'] = -999;
-            else { $onlyGas = (bool)($res['why'] ?? []); foreach ((array)($res['why'] ?? []) as $w) if (strpos((string)$w, 'gas_quota') !== 0) { $onlyGas = false; break; }
-                $GLOBALS['ppV1523GasFail'] = $onlyGas ? (int)($GLOBALS['ppV1523GasFail'] ?? 0) + 1 : -999; } }
+        if (($al = (string)getenv('PP_V1524_ATTLOG')) !== '') @file_put_contents($al, json_encode(['cells' => $dk, 'att' => $res['attempts'] ?? null]) . "\n", FILE_APPEND);   // harness
+        $na = count((array)($res['attempts'] ?? [])); $GLOBALS['ppV1524AttStat'][!empty($res['valid']) ? 'valid_at_' . $na : 'invalid_after_' . $na] = ($GLOBALS['ppV1524AttStat'][!empty($res['valid']) ? 'valid_at_' . $na : 'invalid_after_' . $na] ?? 0) + 1;
+        if (is_array($res) && !$proof) { $lo = 48; $hi = 1; foreach ((array)($res['attempts'] ?? []) as $at) { $lo = min($lo, (int)$at['window'][0]); $hi = max($hi, (int)$at['window'][1]); }
+            $dmap[$dk] = ['gen' => $bGen, 'lo' => $lo, 'hi' => $hi, 'R' => $res, 'mW' => $mW]; }
         return $cache[$sig] = $res;
     };
+    /* catat perubahan baseline (unit & row) -> dasar pemakaian ulang verdict */
+    $setBase = function (array $Xn) use (&$XW, &$bGen, &$bHist) { $d = ['u' => [], 'r' => []];
+        foreach ($Xn as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) { $d['u'][$u] = true; $d['r'][$r] = true; }
+        $bHist[$bGen] = $d; $bGen++; $XW = $Xn; };
     $runRows = function (string $u) use ($m, $d3): int { return max(1, (int)(pp_runtime_limits($m)[pp_runtime_class($u, $d3)]['run_rows'] ?? 8)); };
-    $try = function (string $id, array $X, string $kind, bool $guardCp = false) use (&$W, &$XW, &$mW, &$log, $ev, &$nEval): bool {
-        $R = $ev($X, false, in_array($kind, ['ADVANCE_REPLACE_PEER', 'DELAY_REQUIRED_BACKFILL', 'SWAP', 'ADVANCE_REPLACE'], true)); if ($R === null) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_DIEVALUASI_BATAS']; return false; }
-        if (!$R['valid']) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_VALID', 'reason' => $R['why']]; return false; }
-        $c = pp_v1523_cmp($R['met'], $mW); $cpOk = !$guardCp || $R['met']['econ_cp'] <= $mW['econ_cp'] * 1.002 + 1e-9;
-        if ($c < 0 && $cpOk) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'DITERAPKAN', 'at_eval' => $nEval, 'before' => $mW, 'after' => $R['met']]; $W = $R['o']; $XW = $X; $mW = $R['met']; return true; }
-        $log[] = ['move' => $id, 'kind' => $kind, 'result' => $cpOk ? 'VALID_TIDAK_LEBIH_BAIK' : 'DITOLAK_CP_LEBIH_BURUK', 'metrics' => $R['met'], 'incumbent' => $mW]; return false;
-    };
-    /* pencarian biner: pred(s) diasumsikan monoton; mengembalikan s terbaik yang diterapkan atau null */
     $order = function (array $set) use ($K): array { $u = array_keys($set); usort($u, fn($a, $b) => (($K['rank'][$b] ?? 99) <=> ($K['rank'][$a] ?? 99)) ?: strcmp($a, $b)); return $u; };
-    $seenU = [];
-    for ($pass = 0; $pass < 3; $pass++) { $chg = false;
-        /* unit Required + Start Based On Simulation: start paling lambat (Hold To End dipertahankan) */
+    $better = function (?array $R) use (&$mW): bool { return is_array($R) && !empty($R['valid']) && empty($R['reused_not_better']) && pp_v1523_cmp($R['met'], $mW) < 0; };
+    $off = function (array $X, string $u, int $a, int $b): array { for ($r = max(1, $a); $r <= min(48, $b); $r++) $X[$u][$r] = false; return $X; };
+    $blockOf = function (string $u) use ($d3): string { return pp_gtg_to_stg($d3, $u) ?: $u; };
+    /* V15.24 PENCARIAN ORDER-INDEPENDENT (best-improvement per ronde). Setiap ronde: (1) seluruh kandidat neighborhood material dibentuk dari
+     * baseline kanonik yang SAMA (incumbent ronde), (2) seluruhnya dievaluasi (redispatch engine, dedup sidik jari commitment) tanpa mengubah
+     * baseline, (3) diranking comparator deterministik + sidik jari commitment, (4) satu pemenang diterapkan. Anggaran diperiksa per ronde
+     * (ronde dimulai hanya bila sisa anggaran >= ukuran ronde maksimum) sehingga himpunan yang dievaluasi tidak bergantung urutan.
+     * Pencarian biner (latest legal start / earliest legal stop) adalah fungsi baseline saja. PP_V1523_SHUFFLE=<seed> mengacak urutan kandidat (uji). */
+    /* pencarian galloping (1, 2, 4, ... row lalu biner pada rentang terakhir): posisi terbaik monoton dari posisi $best yang sudah terbukti
+     * lebih baik ke arah $dir sampai batas $lim; hasil sama dengan biner penuh di bawah asumsi monoton, evaluasi O(log jarak) */
+    $gallop = function (int $best, int $lim, int $dir, callable $mk) use ($ev, $better): int {
+        $step = 1; $bad = null;
+        while (true) { $p = $best + $dir * $step; if (($dir > 0 && $p > $lim) || ($dir < 0 && $p < $lim)) { $p = $lim; if ($p === $best) return $best; }
+            $R = $ev($mk($p)); if ($R === null) return $best; if ($better($R)) { $best = $p; if ($p === $lim) return $best; $step *= 2; } else { $bad = $p; break; } }
+        $lo = min($best, $bad) + 1; $hi = max($best, $bad) - 1;
+        while ($lo <= $hi) { $mid = $dir > 0 ? intdiv($lo + $hi + 1, 2) : intdiv($lo + $hi, 2); $R = $ev($mk($mid)); if ($R === null) break;
+            if ($better($R)) { $best = $mid; if ($dir > 0) $lo = $mid + 1; else $hi = $mid - 1; } else { if ($dir > 0) $hi = $mid - 1; else $lo = $mid + 1; } }
+        return $best; };
+    $gen = function () use (&$XW, &$mW, $K, $m, $runRows, $order, $better, $off, $blockOf, $ev, $gallop): array {
+        $C = [];
+        $add = function (string $id, string $kind, array $X, bool $comp = false, bool $guard = false) use (&$C) { $C[] = ['id' => $id, 'kind' => $kind, 'X' => $X, 'compound' => $comp, 'guard' => $guard]; };
+        /* unit Required + Start Based On Simulation: tunda satu row; bila valid & lebih baik -> start paling lambat (biner) */
         foreach ($order($K['hold'] + $K['req']) as $u) { $U = strtoupper($u); $ivs = pp_v8_intervals((array)$XW[$u]); if (!$ivs) continue; [$a, $b] = $ivs[0];
-            $hiS = isset($K['hold'][$u]) ? 48 : $b; $lo = $a + 1; $hi = $hiS; $best = null;
-            /* uji satu row lebih lambat lebih dulu (= bukti invariant B); gagal -> start sudah paling lambat, pencarian biner tidak perlu */
-            $X1 = $XW; $X1[$u][$a] = false; $R1 = $ev($X1); if ($R1 === null || !$R1['valid'] || pp_v1523_cmp($R1['met'], $mW) >= 0) $hi = $lo - 1; else { $best = $a + 1; $lo = $a + 2; }
-            while ($lo <= $hi) { $mid = intdiv($lo + $hi + 1, 2); $X = $XW; for ($r = $a; $r < $mid; $r++) $X[$u][$r] = false;
-                $R = $ev($X); if ($R === null) break;
-                if ($R['valid'] && pp_v1523_cmp($R['met'], $mW) < 0) { $best = $mid; $lo = $mid + 1; } else $hi = $mid - 1; }
-            if ($best !== null) { $X = $XW; for ($r = $a; $r < $best; $r++) $X[$u][$r] = false; if ($try(sprintf('DELAY_REQUIRED_START:%s:%d->%d', $U, $a, $best), $X, 'DELAY_REQUIRED_START')) { $chg = true; continue; } }
-        }
-        foreach ($order($K['free']) as $u) { $U = strtoupper($u);
-            $sgU = pp_v3_sig(pp_v8_stops($XW)); if (($seenU[$u] ?? null) === $sgU) continue; $seenU[$u] = $sgU;   // commitment tidak berubah sejak pass sebelumnya: langkah identik tidak diulang
-            foreach (pp_v8_intervals((array)$XW[$u]) as [$a, $b]) {
-                $X = $XW; for ($r = $a; $r <= $b; $r++) $X[$u][$r] = false;
-                if ($try(sprintf('DECOMMIT:%s:%d-%d', $U, $a, $b), $X, 'DECOMMIT')) { $chg = true; continue; }
-                $mr = $runRows($u);
-                /* EARLY STOP: stop legal paling awal s (off s..b), s >= a+mr */
-                $X1 = $XW; $X1[$u][$b] = false; $R1 = ($b > $a && $b - $a + 1 > $mr) ? $ev($X1) : null;
-                if ($R1 !== null && $R1['valid'] && pp_v1523_cmp($R1['met'], $mW) < 0 && $b >= $a + $mr) { $lo = $a + $mr; $hi = $b; $done = false;
-                    $X = $XW; for ($r = $lo; $r <= $b; $r++) $X[$u][$r] = false;
-                    if ($try(sprintf('EARLY_STOP:%s:%d-%d:@%d', $U, $a, $b, $lo), $X, 'EARLY_STOP')) { $chg = true; $done = true; }
-                    $lo++;
-                    while (!$done && $lo <= $hi) { $mid = intdiv($lo + $hi, 2); $X = $XW; for ($r = $mid; $r <= $b; $r++) $X[$u][$r] = false;
-                        $R = $ev($X); if ($R === null) break;
-                        if ($R['valid'] && pp_v1523_cmp($R['met'], $mW) < 0) $hi = $mid - 1; else $lo = $mid + 1; }
-                    if (!$done && $lo <= $b) { $X = $XW; for ($r = $lo; $r <= $b; $r++) $X[$u][$r] = false; if ($try(sprintf('EARLY_STOP:%s:%d-%d:@%d', $U, $a, $b, $lo), $X, 'EARLY_STOP')) { $chg = true; } }
-                    foreach (pp_v8_intervals((array)$XW[$u]) as $iv2) if ($iv2[0] === $a) { $b = $iv2[1]; break; } }
-                /* DELAY START: start legal paling lambat s (off a..s-1), interval sisa >= runtime minimum (kecuali berakhir 00:00) */
-                if ($a > 1 || !preg_match('/run/i', (string)($m['unit_last_data_status'][$U] ?? ''))) {
-                    $hiS = $b === 48 ? 47 : $b - $mr + 1; $loS = $a + 1;
-                    $X1 = $XW; $X1[$u][$a] = false; $R1 = $hiS >= $loS ? $ev($X1) : null;
-                    /* uji satu row gagal HANYA di luar jendela uji (artefak redispatch) -> tidak dianggap bukti; penundaan maksimum tetap diuji */
-                    $artifact = false; if ($R1 !== null && !$R1['valid'] && is_array($R1['window'] ?? null)) { $artifact = true;
-                        foreach ((array)$R1['why'] as $w) if (!preg_match('/row (\d+)/', (string)$w, $mm) || ((int)$mm[1] >= $R1['window'][0] && (int)$mm[1] <= $R1['window'][1])) { $artifact = false; break; } }
-                    if ($R1 !== null && ($artifact || ($R1['valid'] && pp_v1523_cmp($R1['met'], $mW) < 0)) && $hiS >= $loS) { $X = $XW; for ($r = $a; $r < $hiS; $r++) $X[$u][$r] = false;
-                        if ($try(sprintf('DELAY_START:%s:%d-%d:@%d', $U, $a, $b, $hiS), $X, 'DELAY_START')) $chg = true;
-                        else { $lo = $loS; $hi = $hiS - 1;
-                            while ($lo <= $hi) { $mid = intdiv($lo + $hi + 1, 2); $X = $XW; for ($r = $a; $r < $mid; $r++) $X[$u][$r] = false;
-                                $R = $ev($X); if ($R === null) break;
-                                if ($R['valid'] && pp_v1523_cmp($R['met'], $mW) < 0) $lo = $mid + 1; else $hi = $mid - 1; }
-                            if ($hi >= $loS) { $X = $XW; for ($r = $a; $r < $hi; $r++) $X[$u][$r] = false; if ($try(sprintf('DELAY_START:%s:%d-%d:@%d', $U, $a, $b, $hi), $X, 'DELAY_START')) $chg = true; } } } }
-            } }
-        /* SWAP: interval unit tak-diminta digantikan unit tak-diminta berprioritas LEBIH TINGGI yang Stop pada interval yang sama */
-        foreach ($order($K['free']) as $u) foreach (pp_v8_intervals((array)$XW[$u]) as [$a, $b]) {
-            $peers = array_keys($K['free']); usort($peers, fn($x, $y) => ($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99));
-            $nSw = 0; foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue;
-                $busy = false; for ($r = max(1, $a - 4); $r <= min(48, $b + 4); $r++) if (!empty($XW[$p][$r])) { $busy = true; break; } if ($busy) continue;
-                if (++$nSw > 2) break;   // dua peer prioritas tertinggi yang Stop
-                $X = $XW; for ($r = $a; $r <= $b; $r++) { $X[$u][$r] = false; $X[$p][$r] = true; }
-                if ($try(sprintf('SWAP:%s>%s:%d-%d', strtoupper($u), strtoupper($p), $a, $b), $X, 'SWAP')) { $chg = true; continue 3; } } }
-        /* ADVANCE-REPLACE: unit Required (start belum di row awal) dimajukan ke start interval unit tak-diminta yang dilepas */
-        foreach ($order($K['free']) as $u) foreach (pp_v8_intervals((array)$XW[$u]) as [$a, $b]) foreach ($order($K['hold']) as $h) {
-            $ivh = pp_v8_intervals((array)$XW[$h]); if (!$ivh || $ivh[0][0] <= $a) continue; $sh = $ivh[0][0];
-            foreach ([max(2, $a)] as $na) { if ($na >= $sh) continue;
-                $X = $XW; for ($r = $a; $r <= $b; $r++) $X[$u][$r] = false; for ($r = $na; $r < $sh; $r++) $X[$h][$r] = true;
-                if ($try(sprintf('ADVANCE_REPLACE:%s@%d>%s:%d-%d', strtoupper($h), $na, strtoupper($u), $a, $b), $X, 'ADVANCE_REPLACE', true)) { $chg = true; continue 4; }
-                /* gagal pada row tertentu: tutup row defisit dengan unit tak-diminta berprioritas LEBIH TINGGI (sub-interval, runtime minimum) */
-                $R0 = $ev($X, false, true); $fr = []; foreach ((array)($R0['why'] ?? []) as $w) if (preg_match('/row (\d+)/', (string)$w, $mm)) $fr[] = (int)$mm[1];
-                if ($R0 && is_array($R0['o'] ?? null)) foreach (array_values((array)$R0['o']['data']) as $kk => $rw) if ((float)($rw['Export_PLN'] ?? 0) < (float)($rw['pln_lo'] ?? -INF) - 1e-6) $fr[] = $kk + 1;
-                if (!$R0 || $R0['valid'] || !$fr) continue;
-                $peers = array_keys($K['free']); usort($peers, fn($x, $y) => ($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99));
-                foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue;
-                    $busy = false; for ($r = max(1, min($fr) - 6); $r <= min(48, max($fr) + 4); $r++) if (!empty($X[$p][$r])) { $busy = true; break; } if ($busy) continue;
-                    for ($it = 0; $it < 2; $it++) {   // perluasan iteratif ke row defisit berikutnya
-                        $pa = max(2, min($fr) - 2); $pb = min(48, max(max($fr) + 1, $pa + $runRows($p) - 1));
-                        $X2 = $X; for ($r = $pa; $r <= $pb; $r++) $X2[$p][$r] = true;
-                        if ($try(sprintf('ADVANCE_REPLACE+PEER:%s@%d>%s:%d-%d+%s:%d-%d', strtoupper($h), $na, strtoupper($u), $a, $b, strtoupper($p), $pa, $pb), $X2, 'ADVANCE_REPLACE_PEER', true)) { $chg = true; continue 6; }
-                        $R2 = $ev($X2, false, true); if (!$R2 || $R2['valid'] || !is_array($R2['o'] ?? null)) break; $n0 = count(array_unique($fr));
-                        foreach (array_values((array)$R2['o']['data']) as $kk => $rw) if ((float)($rw['Export_PLN'] ?? 0) < (float)($rw['pln_lo'] ?? -INF) - 1e-6) $fr[] = $kk + 1;
-                        if (count(array_unique($fr)) === $n0) break; }
-                    break; } } }
-        /* tunda Required + BACKFILL (sesudah langkah lain) */
-        if ((string)getenv('PP_V1523_BACKFILL') !== '0') foreach ($order($K['hold'] + $K['req']) as $u) { $U = strtoupper($u); $ivs = pp_v8_intervals((array)$XW[$u]); if (!$ivs) continue; [$a, $b] = $ivs[0];
-            $hiS = isset($K['hold'][$u]) ? 48 : $b;
-            $bestX = null; $bestM = $mW; $bestId = null;
-            foreach ([2, 4, 6, 8] as $dd) { $ns = $a + $dd; if ($ns > $hiS) break;
-                $X = $XW; for ($r = $a; $r < $ns; $r++) $X[$u][$r] = false; $R = $ev($X); if ($R === null) break;
-                if ($R['valid']) { if (pp_v1523_cmp($R['met'], $bestM) < 0) { $bestX = $X; $bestM = $R['met']; $bestId = sprintf('DELAY_REQUIRED_START:%s:%d->%d', $U, $a, $ns); } continue; }
+            $hiS = isset($K['hold'][$u]) ? 48 : $b; if ($a + 1 > $hiS) continue;
+            $X1 = $off($XW, $u, $a, $a); $add(sprintf('DELAY_REQUIRED_START:%s:%d->%d', $U, $a, $a + 1), 'DELAY_REQUIRED_START', $X1);
+            if ($better($ev($X1))) { $best = $gallop($a + 1, $hiS, 1, fn($p) => $off($XW, $u, $a, $p - 1));
+                if ($best > $a + 1) $add(sprintf('DELAY_REQUIRED_START:%s:%d->%d', $U, $a, $best), 'DELAY_REQUIRED_START', $off($XW, $u, $a, $best - 1)); }
+            else { $R1 = $ev($X1); /* +1 row gagal HANYA pada batas bawah Export (kapasitas): penundaan lebih lama mengurangi sel online (subset) ->
+                 * pasti gagal juga (monoton), tidak dievaluasi; baris defisit +1 row dipakai untuk BACKFILL */
+                $mono = is_array($R1) && empty($R1['valid']) && $R1['why'] && !array_filter((array)$R1['why'], fn($w) => !preg_match('~^export_range: row \d+: Export -?[\d.]+ < RangeMin~', (string)$w));
+              /* tunda + BACKFILL bertingkat (galloping): +2 row dievaluasi; +4/+6 hanya bila tingkat sebelumnya valid DAN lebih baik */
+              $prevBetter = true;
+              foreach ([2, 4, 6] as $dd) { $ns = $a + $dd; if ($ns > $hiS || !$prevBetter) break; $prevBetter = false;   // tunda + BACKFILL unit tak-diminta berprioritas lebih tinggi
+                $X = $off($XW, $u, $a, $ns - 1); $R = $mono ? $R1 : $ev($X); if ($R === null) break; if (!empty($R['valid'])) { $add(sprintf('DELAY_REQUIRED_START:%s:%d->%d', $U, $a, $ns), 'DELAY_REQUIRED_START', $X); $prevBetter = $better($R); continue; }
                 $fr = []; if (is_array($R['o'] ?? null)) foreach (array_values((array)$R['o']['data']) as $kk => $rw) if ((float)($rw['Export_PLN'] ?? 0) < (float)($rw['pln_lo'] ?? -INF) - 1e-6) $fr[] = $kk + 1;
-                if (!$fr) continue; $f0 = min($fr);
-                $peers = array_keys($K['free']); usort($peers, fn($x, $y) => ($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99));
-                foreach ($peers as $p) { if (($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue;
-                    $ivp = pp_v8_intervals((array)$X[$p]); $na = max(2, $f0 - 2); $X2 = $X; $ok2 = false;
-                    foreach ($ivp as [$pa, $pb]) if ($pa > $na && $pa <= max($fr) + 2) { for ($r = $na; $r < $pa; $r++) $X2[$p][$r] = true; $ok2 = true; break; }
-                    if (!$ok2) { $busy = false; foreach ($ivp as [$pa, $pb]) if ($pb >= $na - 4 && $pa <= max($fr) + 4) $busy = true; if ($busy) continue;
+                if (!$fr) continue; $f0 = min($fr); $peers = array_keys($K['free']); usort($peers, fn($x, $y) => (($blockOf($x) === $blockOf($u) ? 0 : 1) <=> ($blockOf($y) === $blockOf($u) ? 0 : 1)) ?: (($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99)) ?: strcmp($x, $y));
+                foreach ($peers as $p) { if (($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $na = max(2, $f0 - 2); $X2 = $X; $ok2 = false;
+                    foreach (pp_v8_intervals((array)$X[$p]) as [$pa, $pb]) if ($pa > $na && $pa <= max($fr) + 2) { for ($r = $na; $r < $pa; $r++) $X2[$p][$r] = true; $ok2 = true; break; }
+                    if (!$ok2) { $busy = false; foreach (pp_v8_intervals((array)$X[$p]) as [$pa, $pb]) if ($pb >= $na - 4 && $pa <= max($fr) + 4) $busy = true; if ($busy) continue;
                         for ($r = $na; $r <= min(48, max(max($fr), $na + $runRows($p) - 1)); $r++) $X2[$p][$r] = true; }
-                    $R2 = $ev($X2, false, true); if ($R2 === null) break 2;
-                    if ($R2['valid'] && pp_v1523_cmp($R2['met'], $bestM) < 0 && $R2['met']['econ_cp'] <= $mW['econ_cp'] * 1.002 + 1e-9) { $bestX = $X2; $bestM = $R2['met']; $bestId = sprintf('DELAY_REQUIRED_START+BACKFILL:%s:%d->%d+%s@%d', $U, $a, $ns, strtoupper($p), $na); }
-                    break; } }
-            if ($bestX !== null && $try($bestId, $bestX, 'DELAY_REQUIRED_BACKFILL', true)) $chg = true; }
-        if (!$chg) break; }
-    /* BUKTI per event start/stop final (invariant B dan C) */
-    $proofs = [];
-    foreach (pp_tl_gt_units() as $u) { if (!isset($K['free'][$u]) && !isset($K['hold'][$u]) && !isset($K['req'][$u])) continue; $U = strtoupper($u);
-        foreach (pp_v8_intervals((array)$XW[$u]) as [$a, $b]) {
-            if ($a > 1) { $X = $XW; $X[$u][$a] = false; $R = $ev($X, true);
-                $proofs[] = ['unit' => $U, 'event' => 'START', 'row' => $a, 'time' => pp_v1518_row_time($a), 'requested' => isset($K['free'][$u]) ? 'AUTO_START' : 'REQUIRED_START_BASED_ON_SIMULATION',
-                    'priority_level' => ($K['level'][$u] ?? null) !== null ? $K['level'][$u] + 1 : null, 'test' => 'START_SATU_ROW_LEBIH_LAMBAT (row ' . ($a + 1) . ')',
-                    'result' => $R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID'),
-                    'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why']), 'attempts' => $R['attempts'] ?? null,
-                    'context' => pp_v1523_start_context($orig, $W, $u, $a, $K, $R)]; }
-            /* invariant E: unit tak-diminta berprioritas lebih rendah running -> uji penggantian oleh peer tak-diminta berprioritas tertinggi yang Stop */
-            if (isset($K['free'][$u])) { $peers = array_keys($K['free']); usort($peers, fn($x, $y) => ($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99));
-                foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $busy = false;
+                    $add(sprintf('DELAY_REQUIRED_START+BACKFILL:%s:%d->%d+%s@%d', $U, $a, $ns, strtoupper($p), $na), 'DELAY_REQUIRED_BACKFILL', $X2, true, true);
+                    $R2 = $ev($X2, false, true); $prevBetter = $better($R2) && (float)$R2['met']['econ_cp'] <= (float)$mW['econ_cp'] * 1.002 + 1e-9; break; } } } }
+        /* unit tak-diminta: decommit, stop satu row lebih awal -> stop legal paling awal, tunda satu row -> start paling lambat, swap (same-block lebih dulu) */
+        foreach ($order($K['free']) as $u) { $U = strtoupper($u); $mr = $runRows($u);
+            foreach (pp_v8_intervals((array)$XW[$u]) as [$a, $b]) {
+                $add(sprintf('DECOMMIT:%s:%d-%d', $U, $a, $b), 'DECOMMIT', $off($XW, $u, $a, $b));
+                if ($b - $a + 1 > $mr) { $X1 = $off($XW, $u, $b, $b); $add(sprintf('EARLY_STOP:%s:%d-%d:@%d', $U, $a, $b, $b), 'EARLY_STOP', $X1);
+                    if ($better($ev($X1))) { $best = $gallop($b, $a + $mr, -1, fn($p) => $off($XW, $u, $p, $b));
+                        if ($best < $b) $add(sprintf('EARLY_STOP:%s:%d-%d:@%d', $U, $a, $b, $best), 'EARLY_STOP', $off($XW, $u, $best, $b)); } }
+                $runY = $a === 1 && preg_match('/run/i', (string)($m['unit_last_data_status'][$U] ?? ''));
+                $hiS = $b === 48 ? 47 : $b - $mr + 1;
+                if (!$runY && $hiS >= $a + 1) { $X1 = $off($XW, $u, $a, $a); $add(sprintf('DELAY_START:%s:%d-%d:@%d', $U, $a, $b, $a + 1), 'DELAY_START', $X1);
+                    if ($better($ev($X1))) { $best = $gallop($a + 1, $hiS, 1, fn($p) => $off($XW, $u, $a, $p - 1));
+                        if ($best > $a + 1) $add(sprintf('DELAY_START:%s:%d-%d:@%d', $U, $a, $b, $best), 'DELAY_START', $off($XW, $u, $a, $best - 1)); } }
+                $peers = array_keys($K['free']); usort($peers, fn($x, $y) => (($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99)) ?: strcmp($x, $y)); $seenSame = false; $seenCross = false;
+                foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $same = $blockOf($p) === $blockOf($u);
+                    if (($same && $seenSame) || (!$same && $seenCross)) continue; $busy = false;
                     for ($r = max(1, $a - 4); $r <= min(48, $b + 4); $r++) if (!empty($XW[$p][$r])) { $busy = true; break; } if ($busy) continue;
-                    $X = $XW; for ($r = $a; $r <= $b; $r++) { $X[$u][$r] = false; $X[$p][$r] = true; } $R = $ev($X, true, true);
-                    $proofs[] = ['unit' => $U, 'event' => 'PRIORITY_REPLACEMENT', 'row' => $a, 'time' => pp_v1518_row_time($a), 'test' => sprintf('SWAP %s->%s row %d-%d', $U, strtoupper($p), $a, $b),
-                        'result' => $R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID'),
-                        'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why'])];
-                    break; } }
-            if ($b < 48 && isset($K['free'][$u])) { $X = $XW; $X[$u][$b] = false; $R = $ev($X, true);
-                $proofs[] = ['unit' => $U, 'event' => 'STOP', 'row' => $b + 1, 'time' => pp_v1518_row_time($b + 1), 'test' => 'STOP_SATU_ROW_LEBIH_AWAL (off row ' . $b . ')',
-                    'min_runtime_rows' => $runRows($u), 'rows_on' => $b - $a + 1,
-                    'result' => ($b - $a + 1) <= $runRows($u) ? 'TIDAK_LEGAL_RUNTIME_MINIMUM' : ($R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID')),
-                    'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why'])]; } } }
-    $applied = array_values(array_filter($log, fn($x) => ($x['result'] ?? '') === 'DITERAPKAN'));
+                    $X = $off($XW, $u, $a, $b); for ($r = $a; $r <= $b; $r++) $X[$p][$r] = true;
+                    $add(sprintf('SWAP%s:%s>%s:%d-%d', $same ? '_SAME_BLOCK' : '_CROSS_BLOCK', $U, strtoupper($p), $a, $b), 'SWAP', $X, true);
+                    if ($same) $seenSame = true; else $seenCross = true; if ($seenSame && $seenCross) break; }
+                /* unit Required yang sudah dijadwalkan lebih lambat dimajukan menggantikan interval ini (+ peer prioritas lebih tinggi untuk row defisit) */
+                foreach ($order($K['hold']) as $h) { $ivh = pp_v8_intervals((array)$XW[$h]); if (!$ivh || $ivh[0][0] <= $a) continue; $sh = $ivh[0][0]; $na = max(2, $a);
+                    $X = $off($XW, $u, $a, $b); for ($r = $na; $r < $sh; $r++) $X[$h][$r] = true;
+                    $add(sprintf('ADVANCE_REPLACE:%s@%d>%s:%d-%d', strtoupper($h), $na, $U, $a, $b), 'ADVANCE_REPLACE', $X, true, true);
+                    $R0 = $ev($X, false, true); $fr = []; if (is_array($R0) && empty($R0['valid']) && is_array($R0['o'] ?? null)) foreach (array_values((array)$R0['o']['data']) as $kk => $rw) if ((float)($rw['Export_PLN'] ?? 0) < (float)($rw['pln_lo'] ?? -INF) - 1e-6) $fr[] = $kk + 1;
+                    if (!$fr) continue;
+                    foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $busy = false;
+                        for ($r = max(1, min($fr) - 6); $r <= min(48, max($fr) + 4); $r++) if (!empty($X[$p][$r])) { $busy = true; break; } if ($busy) continue;
+                        $pa = max(2, min($fr) - 2); $pb = min(48, max(max($fr) + 1, $pa + $runRows($p) - 1)); $X2 = $X; for ($r = $pa; $r <= $pb; $r++) $X2[$p][$r] = true;
+                        $add(sprintf('ADVANCE_REPLACE+PEER:%s@%d>%s:%d-%d+%s:%d-%d', strtoupper($h), $na, $U, $a, $b, strtoupper($p), $pa, $pb), 'ADVANCE_REPLACE_PEER', $X2, true, true); break; } } } }
+        return $C;
+    };
+    $rounds = []; $stopReason = null; $maxRounds = (int)(getenv('PP_V1523_ROUNDS') ?: 6);
+    for ($rd = 1; $rd <= $maxRounds; $rd++) {
+        if ($nEval >= $cap) { $stopReason = 'ANGGARAN_RONDE'; break; }
+        $e0 = $nEval; $C = $gen(); $genE = $nEval - $e0; $sd = (string)getenv('PP_V1523_SHUFFLE');
+        if ($sd !== '') { mt_srand(crc32($sd . '|' . $rd)); for ($i = count($C) - 1; $i > 0; $i--) { $j = mt_rand(0, $i); [$C[$i], $C[$j]] = [$C[$j], $C[$i]]; } }
+        $seen = []; $res = []; $allGas = true; $nValid = 0;
+        foreach ($C as $c) { $sig = pp_v3_sig(pp_v8_stops($c['X'])); if (isset($seen[$sig])) continue; $seen[$sig] = true;
+            $R = $ev($c['X'], false, $c['compound']); if ($R === null) { $log[] = ['round' => $rd, 'move' => $c['id'], 'kind' => $c['kind'], 'result' => 'TIDAK_DIEVALUASI_BATAS']; continue; }
+            if (empty($R['valid'])) { $log[] = ['round' => $rd, 'move' => $c['id'], 'kind' => $c['kind'], 'result' => 'TIDAK_VALID', 'reason' => $R['why'], 'attempts' => count((array)($R['attempts'] ?? [])), 'reused_from_round_base' => $R['reused_from_round_base'] ?? null];
+                foreach ((array)$R['why'] as $w) if (strpos((string)$w, 'gas_quota') !== 0) { $allGas = false; break; } continue; }
+            $allGas = false; $nValid++;
+            if (!empty($R['reused_not_better'])) { $log[] = ['round' => $rd, 'move' => $c['id'], 'kind' => $c['kind'], 'result' => 'VALID_TIDAK_LEBIH_BAIK', 'reused_from_round_base' => $R['reused_from_round_base']]; continue; }
+            $cpOk = !$c['guard'] || $R['met']['econ_cp'] <= $mW['econ_cp'] * 1.002 + 1e-9; $cmp0 = pp_v1523_cmp($R['met'], $mW);
+            $log[] = ['round' => $rd, 'move' => $c['id'], 'kind' => $c['kind'], 'result' => $cmp0 < 0 ? ($cpOk ? 'VALID_LEBIH_BAIK' : 'DITOLAK_CP_LEBIH_BURUK') : 'VALID_TIDAK_LEBIH_BAIK', 'metrics' => $R['met']];
+            if ($cmp0 < 0 && $cpOk) $res[] = ['c' => $c, 'R' => $R, 'sig' => $sig]; }
+        if (!$res) { $stopReason = ($allGas && $C) ? 'GAS_WINDOW_BOUND: seluruh kandidat ronde gagal HANYA pada window gas wajib-terpakai' : 'TIDAK_ADA_KANDIDAT_LEBIH_BAIK'; $rounds[] = ['round' => $rd, 'candidates' => count($seen), 'improving' => 0, 'evaluations_end' => $nEval, 'gen_evals' => $genE, 'wall_s' => round(microtime(true) - $t0, 3)]; break; }
+        usort($res, fn($x, $y) => pp_v1523_cmp($x['R']['met'], $y['R']['met']) ?: strcmp($x['sig'], $y['sig']));
+        $win = $res[0]; foreach ($log as $li => $le) if (($le['round'] ?? 0) === $rd && $le['move'] === $win['c']['id']) $log[$li]['result'] = 'DITERAPKAN';
+        $rounds[] = ['round' => $rd, 'candidates' => count($seen), 'improving' => count($res), 'applied' => $win['c']['id'], 'before' => $mW, 'after' => $win['R']['met'], 'evaluations_end' => $nEval, 'gen_evals' => $genE, 'wall_s' => round(microtime(true) - $t0, 3)];
+        $XW0 = $XW; $W = $win['R']['o']; $setBase($win['c']['X']); $mW = $win['R']['met'];
+        /* perbaikan lain yang sel commitment-nya (unit,row) tidak beririsan dengan perubahan yang sudah diterapkan diproyeksikan ke baseline baru
+         * berurutan rank, masing-masing dievaluasi penuh dan diterima hanya bila lebih baik (deterministik: urutan rank + sidik jari) */
+        $cellsOf = function (array $X) use ($XW0): array { $d = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW0[$u][$r] ?? false)) $d[$u . ':' . $r] = [$u, $r, (bool)$on]; return $d; };
+        $used = $cellsOf($XW);
+        foreach (array_slice($res, 1) as $x) { $d = $cellsOf($x['c']['X']); if (!$d || array_intersect_key($d, $used)) continue;
+            $Xc = $XW; foreach ($d as [$u, $r, $on]) $Xc[$u][$r] = $on;
+            $Rc = $ev($Xc, false, true); if ($Rc === null || empty($Rc['valid']) || !empty($Rc['reused_not_better']) || pp_v1523_cmp($Rc['met'], $mW) >= 0) continue;
+            if ($x['c']['guard'] && $Rc['met']['econ_cp'] > $mW['econ_cp'] * 1.002 + 1e-9) continue;
+            $W = $Rc['o']; $setBase($Xc); $mW = $Rc['met']; $used += $d;
+            $rounds[count($rounds) - 1]['combined'][] = $x['c']['id']; foreach ($log as $li => $le) if (($le['round'] ?? 0) === $rd && $le['move'] === $x['c']['id']) $log[$li]['result'] = 'DITERAPKAN_GABUNGAN'; }
+        $rounds[count($rounds) - 1]['after_combined'] = $mW;
+    }
+    /* BUKTI per event start/stop dihitung pada dispatch FINAL (pp_v1524_event_proof, sesudah Unit Priority Fix & pelengkap bukti), bukan pada
+     * dispatch antara tahap ini. Ronde terakhir pencarian di atas sudah membuktikan tidak ada kandidat neighborhood yang lebih baik. */
+    $proofs = ['see' => 'Commitment Event Proof (dispatch FINAL)'];
+    usort($log, fn($x, $y) => (($x['round'] ?? 0) <=> ($y['round'] ?? 0)) ?: strcmp((string)$x['move'], (string)$y['move']));   // log kanonik (independen urutan kandidat)
+    $applied = array_values(array_filter($log, fn($x) => in_array($x['result'] ?? '', ['DITERAPKAN', 'DITERAPKAN_GABUNGAN'], true)));
     if ($applied) { foreach (['Run Status', 'Startup Timing Proof', 'Block Consolidation Review', 'V15.23 Fuel State Assessment', 'Candidate Registry'] as $k2) if (isset($out['info'][$k2])) $W['info'][$k2] = $out['info'][$k2];
         if (function_exists('pp_v3_relabel')) pp_v3_relabel($W, $input); }
     $W['info']['Commitment Tightening'] = ['schema' => 'v1523-commitment-tightening-1', 'status' => $applied ? 'APPLIED' : 'NO_IMPROVEMENT', 'before' => $m0, 'after' => $mW,
-        'applied' => array_map(fn($x) => $x['move'], $applied), 'moves' => $log, 'proofs' => $proofs, 'evaluations' => $nEval, 'cache_hits' => $nHit,
+        'applied' => array_map(fn($x) => $x['move'], $applied), 'moves' => $log, 'proofs' => $proofs, 'evaluations' => $nEval, 'cache_hits' => $nHit, 'verdicts_reused' => $nReuse, 'attempt_stats' => $GLOBALS['ppV1524AttStat'] ?? [],
         'unique_commitments' => count($cache), 'wall_s' => round(microtime(true) - $t0, 3),
-        'stopped' => (int)($GLOBALS['ppV1523GasFail'] ?? 0) >= (int)(getenv('PP_V1523_GAS_BOUND_N') ?: 6) ? 'GAS_WINDOW_BOUND: setiap pelepasan/penundaan yang diuji menurunkan pemakaian gas di bawah window kuota wajib-terpakai (lihat alasan numerik per langkah)' : null,
-        'comparator' => 'valid -> startup tak-wajib -> penalti prioritas (row x level) -> CP ekonomi (incl. startup) -> HR; ADVANCE_REPLACE hanya bila CP ekonomi tidak naik > 0,2%'];
+        'stopped' => $stopReason, 'rounds' => $rounds, 'round_truncated' => $truncated,
+        'comparator' => 'V15.24 (order-independent, best-improvement per ronde): valid -> inversi running-unit-first -> startup tak-wajib -> blok baru -> CP ekonomi (band 0,02%) -> HR -> startup -> online unit-row -> startup lebih lambat -> stop lebih awal -> sidik jari; ADVANCE/BACKFILL hanya bila CP ekonomi tidak naik > 0,2%'];
     $restore();
     return $W;
 }
