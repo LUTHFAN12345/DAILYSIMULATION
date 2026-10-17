@@ -1,0 +1,431 @@
+[
+ {
+  "id": "UI-S1-G1",
+  "desc": "Initial Stop + Simulation + Hold after Start -> required_mode based_on_sim, stop_mode hold_to_end, bukan unit_cannot_stop, Last Status Stop",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "based_on_sim"
+   },
+   "stop": {
+    "mode": "hold_to_end"
+   },
+   "cannot": false,
+   "last": "Stop",
+   "inReq": true
+  }
+ },
+ {
+  "id": "UI-S1-G3",
+  "desc": "Initial Stop + Simulation + Hold after Start -> required_mode based_on_sim, stop_mode hold_to_end, bukan unit_cannot_stop, Last Status Stop",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "based_on_sim"
+   },
+   "stop": {
+    "mode": "hold_to_end"
+   },
+   "cannot": false,
+   "last": "Stop",
+   "inReq": true
+  }
+ },
+ {
+  "id": "UI-S1-G4",
+  "desc": "Initial Stop + Simulation + Hold after Start -> required_mode based_on_sim, stop_mode hold_to_end, bukan unit_cannot_stop, Last Status Stop",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "based_on_sim"
+   },
+   "stop": {
+    "mode": "hold_to_end"
+   },
+   "cannot": false,
+   "last": "Stop",
+   "inReq": true
+  }
+ },
+ {
+  "id": "UI-S1-G5",
+  "desc": "Initial Stop + Simulation + Hold after Start -> required_mode based_on_sim, stop_mode hold_to_end, bukan unit_cannot_stop, Last Status Stop",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "based_on_sim"
+   },
+   "stop": {
+    "mode": "hold_to_end"
+   },
+   "cannot": false,
+   "last": "Stop",
+   "inReq": true
+  }
+ },
+ {
+  "id": "UI-SWAP-1",
+  "desc": "Pertukaran konfigurasi antarunit: semantik payload identik untuk G1/G3/G4/G5 (tanpa hard-code unit)",
+  "status": "PASS",
+  "detail": {
+   "g1": "{\"req\":{\"mode\":\"based_on_sim\"},\"stop\":{\"mode\":\"hold_to_end\"},\"cannot\":false,\"last\":\"Stop\"}",
+   "g3": "{\"req\":{\"mode\":\"based_on_sim\"},\"stop\":{\"mode\":\"hold_to_end\"},\"cannot\":false,\"last\":\"Stop\"}",
+   "g4": "{\"req\":{\"mode\":\"based_on_sim\"},\"stop\":{\"mode\":\"hold_to_end\"},\"cannot\":false,\"last\":\"Stop\"}",
+   "g5": "{\"req\":{\"mode\":\"based_on_sim\"},\"stop\":{\"mode\":\"hold_to_end\"},\"cannot\":false,\"last\":\"Stop\"}"
+  }
+ },
+ {
+  "id": "UI-S2-G1",
+  "desc": "Commitment Mode Unit Continuous Running -> unit_cannot_stop + Last Status Running",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "continuous"
+   },
+   "stop": null,
+   "cannot": true,
+   "last": "Running",
+   "inReq": false
+  }
+ },
+ {
+  "id": "UI-S2-G5",
+  "desc": "Commitment Mode Unit Continuous Running -> unit_cannot_stop + Last Status Running",
+  "status": "PASS",
+  "detail": {
+   "req": {
+    "mode": "continuous"
+   },
+   "stop": null,
+   "cannot": true,
+   "last": "Running",
+   "inReq": false
+  }
+ },
+ {
+  "id": "UI-SWAP-2",
+  "desc": "Continuous G1 vs G5 simetris",
+  "status": "PASS",
+  "detail": {
+   "g1": "{\"req\":{\"mode\":\"continuous\"},\"stop\":null,\"cannot\":true,\"last\":\"Running\",\"inReq\":false}",
+   "g5": "{\"req\":{\"mode\":\"continuous\"},\"stop\":null,\"cannot\":true,\"last\":\"Running\",\"inReq\":false}"
+  }
+ },
+ {
+  "id": "UI-S3-B0-ON",
+  "desc": "Block Required Block Babelan ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block Babelan",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": true,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B0-OFF",
+  "desc": "Block Required Block Babelan OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block Babelan",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B1-ON",
+  "desc": "Block Required Block 3 ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 3",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": true,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B1-OFF",
+  "desc": "Block Required Block 3 OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 3",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B2-ON",
+  "desc": "Block Required Block 2 ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 2",
+   "bru": {
+    "Block 1": false,
+    "Block 2": true,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B2-OFF",
+  "desc": "Block Required Block 2 OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 2",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B3-ON",
+  "desc": "Block Required Block 1 ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 1",
+   "bru": {
+    "Block 1": true,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B3-OFF",
+  "desc": "Block Required Block 1 OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Block 1",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B4-ON",
+  "desc": "Block Required Gas Engine ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Gas Engine",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": true,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B4-OFF",
+  "desc": "Block Required Gas Engine OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Gas Engine",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B5-ON",
+  "desc": "Block Required Standby Unit MM2100 ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Standby Unit MM2100",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": true
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B5-OFF",
+  "desc": "Block Required Standby Unit MM2100 OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Standby Unit MM2100",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B6-ON",
+  "desc": "Block Required Standby Unit Jababeka ON -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Standby Unit Jababeka",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": true,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S3-B6-OFF",
+  "desc": "Block Required Standby Unit Jababeka OFF -> block_required_user, tanpa token required di block_priority",
+  "status": "PASS",
+  "detail": {
+   "name": "Standby Unit Jababeka",
+   "bru": {
+    "Block 1": false,
+    "Block 2": false,
+    "Block 3": false,
+    "Gas Engine": false,
+    "Block Babelan": false,
+    "Standby Unit Jababeka": false,
+    "Standby Unit MM2100": false
+   }
+  }
+ },
+ {
+  "id": "UI-S4-SAVE",
+  "desc": "Save Input berhasil",
+  "status": "PASS",
+  "detail": "Input saved — will persist after reload."
+ },
+ {
+  "id": "UI-S4-RELOAD",
+  "desc": "Save/Reload/Reload: semantik G5 identik sesudah dua kali reload",
+  "status": "PASS",
+  "detail": {
+   "before": {
+    "req": {
+     "mode": "based_on_sim"
+    },
+    "stop": {
+     "mode": "hold_to_end"
+    },
+    "cannot": false,
+    "last": "Stop",
+    "inReq": true
+   },
+   "r1": {
+    "req": {
+     "mode": "based_on_sim"
+    },
+    "stop": {
+     "mode": "hold_to_end"
+    },
+    "cannot": false,
+    "last": "Stop",
+    "inReq": true
+   },
+   "r2": {
+    "req": {
+     "mode": "based_on_sim"
+    },
+    "stop": {
+     "mode": "hold_to_end"
+    },
+    "cannot": false,
+    "last": "Stop",
+    "inReq": true
+   }
+  }
+ },
+ {
+  "id": "UI-S4-OTHER",
+  "desc": "Unit lain (G3) tidak berubah oleh Save/Reload",
+  "status": "PASS",
+  "detail": {
+   "before3": {
+    "req": null,
+    "stop": null,
+    "cannot": false,
+    "last": "Stop",
+    "inReq": false
+   },
+   "r2g3": {
+    "req": null,
+    "stop": null,
+    "cannot": false,
+    "last": "Stop",
+    "inReq": false
+   }
+  }
+ },
+ {
+  "id": "UI-S5-STALE",
+  "desc": "Nilai false/empty membersihkan state lama (required_mode/stop_mode/unit_cannot_stop G5 hilang)",
+  "status": "PASS",
+  "detail": {
+   "req": null,
+   "stop": null,
+   "cannot": false,
+   "last": "Stop",
+   "inReq": false
+  }
+ }
+]

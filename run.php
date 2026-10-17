@@ -2773,6 +2773,7 @@ function pp_v4_helpers_alive(string $jobId): int {
 }
 function pp_v4_task_key(array $t): string { return substr(md5(json_encode([$t['type'], $t['off'] ?? [], $t['seed'] ?? [], isset($t['adj']) ? sprintf('%.9f', $t['adj']) : null, $t['hint'] ?? null, $t['max'] ?? null, $t['id'] ?? null])), 0, 20); }
 function pp_v4_task_exec(array $orig, array $t, float $dl, ?string $jobId = null): void {
+    pp_v1524_fault('task');
     if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset();   // V15.18: tugas = fungsi murni input (memo STG kosong di awal & akhir)
     try { pp_v4_task_exec_inner($orig, $t, $dl, $jobId); } finally { if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); }
 }
@@ -2801,7 +2802,7 @@ function pp_v4_task_done(string $jobId, array $t): bool { return is_file(pp_job_
 /* $more (opsional, pemilik): dipanggil di antara tugas; mengembalikan null bila belum siap, atau
  * daftar tugas tambahan (gelombang berikutnya) yang digabung ke antrean yang sedang berjalan. */
 function pp_v4_cooperate(string $jobId, array $orig, array $tasks, float $dl, bool $wait = true, ?callable $more = null): int {
-    $dir = pp_job_dir($jobId); $mine = 0;
+    $dir = pp_job_dir($jobId); $mine = 0; $heldSince = []; $durMax = 0.0; $owner = empty($GLOBALS['ppTlHook']['helper']);
     $pending = $tasks;
     $pull = function () use (&$more, &$pending) {
         if ($more === null) return;
@@ -2820,12 +2821,21 @@ function pp_v4_cooperate(string $jobId, array $orig, array $tasks, float $dl, bo
             if (is_file($done)) continue;
             $h = @fopen($dir . DIRECTORY_SEPARATOR . 'v4t_' . $tk . '.lock', 'c');
             if ($h && @flock($h, LOCK_EX | LOCK_NB)) {
-                if (!is_file($done)) { $tt0 = microtime(true); pp_v4_task_exec($orig, $t, $dl, $jobId); @file_put_contents($done, json_encode(['pid' => getmypid(), 'wid' => pp_v1518_worker_id(), 'role' => !empty($GLOBALS['ppTlHook']['helper']) ? 'helper' : 'owner', 't0' => $tt0, 't1' => microtime(true), 'type' => $t['type'], 'off' => $t['off'] ?? [], 'adj' => $t['adj'] ?? null])); $mine++; }
+                if (!is_file($done)) { $tt0 = microtime(true); pp_v4_task_exec($orig, $t, $dl, $jobId); @file_put_contents($done, json_encode(['pid' => getmypid(), 'wid' => pp_v1518_worker_id(), 'role' => !empty($GLOBALS['ppTlHook']['helper']) ? 'helper' : 'owner', 't0' => $tt0, 't1' => microtime(true), 'type' => $t['type'], 'off' => $t['off'] ?? [], 'adj' => $t['adj'] ?? null])); $mine++; $durMax = max($durMax, microtime(true) - $tt0); }
                 @flock($h, LOCK_UN); @fclose($h);
                 if ($more !== null) { $n0 = count($pending); $pull(); for ($q = $n0; $q < count($pending); $q++) $left[] = $pending[$q]; }
                 if (isset($GLOBALS['ppTlHook']) && function_exists('pp_tl_abort_poll')) pp_tl_abort_poll();
                 if (!empty($GLOBALS['ppTlHook']['aborted'])) return $mine;
-            } else { if ($h) @fclose($h); $left[] = $t; }
+            } else { if ($h) @fclose($h);
+                /* V15.24 AMBIL ALIH (pemilik saja): tugas yang terkunci pembantu lebih lama dari ambang (maks(PP_V4_TAKEOVER_S=45 s, 3x durasi
+                 * tugas terlama pemilik)) dikerjakan sendiri oleh pemilik tanpa menunggu (tugas = fungsi murni input; hasil identik, ditulis atomik) —
+                 * pembantu hang/lambat tidak menahan job. */
+                $heldSince[$tk] = $heldSince[$tk] ?? microtime(true);
+                if ($owner && microtime(true) - $heldSince[$tk] > max((float)(getenv('PP_V4_TAKEOVER_S') ?: 45.0), 3.0 * $durMax)) {
+                    $tt0 = microtime(true); pp_v4_task_exec($orig, $t, $dl, $jobId); $GLOBALS['ppV1524Takeover'][] = ['task' => $tk, 'type' => $t['type'], 'held_s' => round($tt0 - $heldSince[$tk], 2)];
+                    if (!is_file($done)) @file_put_contents($done, json_encode(['pid' => getmypid(), 'wid' => pp_v1518_worker_id(), 'role' => 'owner_takeover', 't0' => $tt0, 't1' => microtime(true), 'type' => $t['type']]));
+                    $mine++; continue; }
+                $left[] = $t; }
         }
         if (!$wait) break;
         if ($more !== null) { $pending = $left; $pull(); $left = $pending; }
@@ -3075,7 +3085,14 @@ function pp_sp_par_pipeline(array $inputs, array $wds, array $orig): array {
         $tasks[] = ['type' => 'spcand', 'id' => $h]; }
     $dl = microtime(true) + 900.0;
     try { pp_v4_work_publish($jid, $orig, ['kind' => 'tasks', 'tasks' => $tasks, 'dl' => $dl]); pp_v4_cooperate($jid, $orig, $tasks, $dl); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
-    $res = []; foreach ($keys as $k => $h) { $o = json_decode((string)@file_get_contents($dir . DIRECTORY_SEPARATOR . 'spco_' . $h . '.json'), true); if (is_array($o) && count((array)($o['data'] ?? [])) > 0) $res[$k] = $o; }
+    /* V15.24 HASIL PEMBANTU DITERIMA HANYA BILA LENGKAP & UTUH: isi berkas cocok dengan sidik SHA-1 sidecar (.ok, ditulis sesudah berkas hasil),
+     * tepat 48 row, info ada, dan tidak terpotong darurat. Hasil parsial / rusak / tanpa sidecar ditolak -> kandidat dihitung ulang serial oleh
+     * pemilik (fungsi murni input -> hasil identik). Penolakan dicatat. */
+    $res = []; foreach ($keys as $k => $h) { $f = $dir . DIRECTORY_SEPARATOR . 'spco_' . $h . '.json'; $raw = @file_get_contents($f); $ok = @file_get_contents($f . '.ok'); $why = null;
+        if (!is_string($raw) || $raw === '') $why = 'TIDAK_ADA_HASIL'; elseif (!is_string($ok) || !hash_equals(trim($ok), sha1($raw))) $why = 'SIDIK_TIDAK_COCOK';
+        else { $o = json_decode($raw, true); if (!is_array($o)) $why = 'JSON_RUSAK'; elseif (count((array)($o['data'] ?? [])) !== 48) $why = 'ROW_TIDAK_48';
+            elseif (!is_array($o['info'] ?? null)) $why = 'INFO_HILANG'; elseif (function_exists('pp_v1520_run_truncated') && pp_v1520_run_truncated($o)) $why = 'TERPOTONG'; }
+        if ($why === null) $res[$k] = $o; else $GLOBALS['ppV1524HelperReject'][] = ['key' => $h, 'reason' => $why]; }
     return $res;
 }
 /* REGISTRY PIPELINE KANDIDAT: satu simulasi penuh per input kandidat kanonik (pp_cs_key: payload ternormalisasi lengkap + sidik jari engine;
@@ -3097,8 +3114,19 @@ function pp_sp_cand_task(string $jid, string $h): void {
     $nest = (string)getenv('PP_V1522_NESTED_PAR') !== '0';
     if (!$nest) $GLOBALS['ppSpNoPublish'] = true;   // pipeline di dalam tugas tidak menimpa daftar tugas job (pembantu lain tetap mengerjakan kandidat lain)
     try { $o = pp_sp_cand_run($x['ci'], (float)($x['wd'] ?? 600.0)); } finally { if (!$nest) unset($GLOBALS['ppSpNoPublish']); }
-    $j = json_encode($o, JSON_PRESERVE_ZERO_FRACTION);
-    if (is_string($j)) { $tmp = $out . '.tmp' . getmypid() . bin2hex(random_bytes(3)); if (@file_put_contents($tmp, $j) !== false) @rename($tmp, $out); }
+    $fm = pp_v1524_fault('result');
+    if ($fm === 'partial') $o['data'] = array_slice((array)($o['data'] ?? []), 0, 24);
+    $j = $fm === 'malformed' ? '{"data":[{"G1":' : json_encode($o, JSON_PRESERVE_ZERO_FRACTION);
+    if (is_string($j)) { $tmp = $out . '.tmp' . getmypid() . bin2hex(random_bytes(3)); if (@file_put_contents($tmp, $j) !== false) @rename($tmp, $out);
+        $sk = $fm === 'malformed' ? str_repeat('0', 40) : sha1($j); $tmp = $out . '.ok.tmp' . getmypid(); if (@file_put_contents($tmp, $sk) !== false) @rename($tmp, $out . '.ok'); }
+}
+/* V15.24 INJEKSI KEGAGALAN PEMBANTU (uji saja; non-aktif tanpa env): PP_V1524_FAULT = crash | hang | slow | malformed | partial, hanya pada
+ * proses pembantu (opsional PP_V1524_FAULT_SLOTS=1,2). Tidak pernah aktif pada pemilik job. */
+function pp_v1524_fault(string $point): ?string {
+    $m = (string)getenv('PP_V1524_FAULT'); if ($m === '' || empty($GLOBALS['ppTlHook']['helper'])) return null;
+    $sl = (string)getenv('PP_V1524_FAULT_SLOTS'); if ($sl !== '' && !in_array((string)($GLOBALS['ppTlHook']['slot'] ?? ''), explode(',', $sl), true)) return null;
+    if ($point === 'task') { if ($m === 'crash') exit(3); if ($m === 'hang') sleep((int)(getenv('PP_V1524_FAULT_HANG_S') ?: 900)); if ($m === 'slow') sleep((int)(getenv('PP_V1524_FAULT_SLOW_S') ?: 20)); return $m; }
+    return in_array($m, ['malformed', 'partial'], true) ? $m : null;
 }
 /* DETERMINISME: pp_tl_assess membaca state global sisa run sebelumnya (terukur: dispatch & info identik, 'startup_sequence' gagal sesudah
  * pipeline lain di proses yang sama, lolos pada state bersih). Penilaian kandidat Start Priority selalu pada state bersih (fungsi murni). */
@@ -3520,7 +3548,7 @@ function pp_v1518_runtime_diag(string $jid): array {
     $span = is_finite($tMin) ? $tMax - $tMin : 0.0;
     return ['schema' => 'v1518-runtime-diag-1', 'os' => PHP_OS_FAMILY, 'sapi' => PHP_SAPI, 'php' => PHP_VERSION, 'zts' => (bool)PHP_ZTS,
         'opcache' => function_exists('opcache_get_status') ? (bool)(@opcache_get_status(false)['opcache_enabled'] ?? false) : false,
-        'cores_detected' => pp_v4_cores(), 'cpu_limits' => pp_v1524_cpu_limits(), 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
+        'cores_detected' => pp_v4_cores(), 'cpu_limits' => pp_v1524_cpu_limits(), 'helper_results_rejected' => $GLOBALS['ppV1524HelperReject'] ?? [], 'helper_tasks_taken_over' => $GLOBALS['ppV1524Takeover'] ?? [], 'cores_env' => getenv('NUMBER_OF_PROCESSORS') ?: null, 'helper_slots' => pp_v4_helper_slots(), 'job_helpers' => $job['helpers'] ?? null,
         'tasks_total' => count($ev) / 2, 'tasks_by_process' => $byPid, 'task_busy_s' => round($busy, 2), 'task_span_s' => round($span, 2),
         'workers' => count($byPid), 'max_concurrency' => $mx, 'parallel' => ($mx >= 2 && count($byPid) >= 2) ? 'PARALLEL' : ((count($ev) / 2) > 0 ? 'SERIAL_OR_UNPROVEN' : 'NO_TASKS'),
         'job_started_at' => $job['started_at_ts'] ?? null, 'job_finished_at' => $job['finished_at'] ?? null];

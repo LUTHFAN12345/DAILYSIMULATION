@@ -1,0 +1,18 @@
+ref_serial.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_allfail.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_crash.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_hang.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_malformed.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_none.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_partial.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+hf_slow1.json ['b776a41fa4', '2260e2f35e', 'ec415d8702', '747a124d6b', 'f69346ab2b', '4f96f48911', '37a6259cc0']
+ref_serial.json 48 93.4567 PASS rej= [] takeover= [] par= NO_TASKS 0
+hf_allfail.json 48 93.4567 PASS rej= [] takeover= [] par= SERIAL_OR_UNPROVEN 1
+hf_crash.json 48 93.4567 PASS rej= [] takeover= [] par= PARALLEL 4
+hf_hang.json 48 93.4567 PASS rej= [] takeover= [{'task': 'e86f2811636a56a19b69', 'type': 'core1518', 'held_s': 20.03}, {'task': 'ba4e6385919d825f8433', 'type': 'spcand', 'held_s': 20.04}] par= PARALLEL 4
+hf_malformed.json 48 93.4567 PASS rej= ['SIDIK_TIDAK_COCOK', 'SIDIK_TIDAK_COCOK'] takeover= [] par= PARALLEL 5
+hf_none.json 48 93.4567 PASS rej= [] takeover= [] par= PARALLEL 5
+hf_partial.json 48 93.4567 PASS rej= ['ROW_TIDAK_48', 'ROW_TIDAK_48'] takeover= [] par= PARALLEL 5
+hf_slow1.json 48 93.4567 PASS rej= [] takeover= [{'task': 'e2e2953cf03ee7d36a21', 'type': 'spcand', 'held_s': 45.04}] par= PARALLEL 4
+
+[exited with code 0]

@@ -1,0 +1,24 @@
+rc=0 wall=41.47 cpu=40.73 rss=455MB aff=Cpus_allowed_list:	0-3 php=7.4.33
+hf_none id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=38.317000404 rc_helpers={"ok":true,"slot":1,"tasks_done":2,"wall_s":38.05,"stats":{"cs_computed":1}} 
+|{"ok":true,"slot":2,"tasks_done":4,"wall_s":38.04,"stats":{"cs_computed":3}} 
+|{"ok":true,"slot":3,"tasks_done":2,"wall_s":38.01,"stats":{"cs_computed":1}} 
+|
+hf_crash id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=36.469505224 rc_helpers=|{"ok":true,"slot":2,"tasks_done":3,"wall_s":36.16,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":3,"tasks_done":5,"wall_s":36.16,"stats":{"cs_computed":3}} 
+|
+hf_hang id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=80.169854684 rc_helpers=|{"ok":true,"slot":2,"tasks_done":3,"wall_s":79.9,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":3,"tasks_done":4,"wall_s":79.9,"stats":{"cs_computed":3}} 
+|
+hf_malformed id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=37.635860165 rc_helpers={"ok":true,"slot":1,"tasks_done":2,"wall_s":37.27,"stats":{"cs_computed":1}} 
+|{"ok":true,"slot":2,"tasks_done":2,"wall_s":37.17,"stats":{"cs_computed":1}} 
+|{"ok":true,"slot":3,"tasks_done":4,"wall_s":37.24,"stats":{"cs_computed":3}} 
+|
+hf_partial id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=37.014554375 rc_helpers={"ok":true,"slot":1,"tasks_done":3,"wall_s":36.66,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":2,"tasks_done":3,"wall_s":36.63,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":3,"tasks_done":2,"wall_s":36.63,"stats":{"cs_computed":1}} 
+|
+hf_slow1 id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=138.991930008 rc_helpers={"ok":true,"slot":1,"tasks_done":3,"wall_s":138.71,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":2,"tasks_done":3,"wall_s":138.71,"stats":{"cs_computed":2}} 
+|{"ok":true,"slot":3,"tasks_done":3,"wall_s":138.66,"stats":{"cs_computed":1}} 
+|
+hf_allfail id=economic_review-63c6d64d1bdf02938142 helpers=3 wall=44.272890264 rc_helpers=|||
