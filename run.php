@@ -3122,17 +3122,15 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
         if ((string)getenv('PP_SP_BLOCK_CONSOL') !== '0') { try { $o = pp_sp_block_consolidation($inputAsli, $o); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Block Consolidation Review'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
             $consol = $GLOBALS['ppSpBlockConsol'] ?? ($o['info']['Block Consolidation Review'] ?? null); }
         $GLOBALS['ppSpBlockConsol'] = $svK; $clean();
-        $tT = microtime(true); unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Tight2'], $GLOBALS['ppV1523Guard']); try { $o = pp_v1523_tighten($inputAsli, $o); $GLOBALS['ppV1523Tight'] = $o['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tT); $clean();
+        unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Tight2'], $GLOBALS['ppV1523Guard']);
         $GLOBALS['__pp_v8_job'] = $id; $GLOBALS['__pp_v8_fast_wall'] = min((float)(getenv('PP_V8_FAST_SAFETY_S') ?: $em), $em);
         $oPre = $o; try { $o = pp_v8_priority_review($inputAsli, $o); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall']); }
         $clean(); $o = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPre, $o);
         foreach ((array)(($o['info']['V8 Priority Review'] ?? [])['final_candidates'] ?? []) as $vc) if (strpos(json_encode($vc), 'BATAS_WAKTU_REVIEW') !== false) { $emHit[] = 'V8'; break; }
-        if (!empty((($o['info']['V8 Priority Review'] ?? [])['applied'] ?? [])) && empty(($o['info']['V8 Priority Review'] ?? [])['reverted_by_comparator_invariant']) && (string)getenv('PP_V1523_POST_V8') !== '0') { $clean(); $tT = microtime(true);
-            try { $o2 = pp_v1523_tighten($inputAsli, $o, ['post_v8' => true]); if (($o2['info']['Commitment Tightening']['status'] ?? '') === 'APPLIED') { $o2['info']['V8 Priority Review'] = $o['info']['V8 Priority Review']; $o = $o2; }
-                  $GLOBALS['ppV1523Tight2'] = $o2['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('commitment_tightening_post_v8', $tT); }
         if (!empty(($o['info']['V8 Priority Review'] ?? [])['truncated'])) $emHit[] = 'V8';
         $clean(); $oPre = $o; try { $o = pp_v1518_family_evidence($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
         $clean(); $o = pp_v1523_stage_guard('FAMILY_STOP_HOLD', $inputAsli, $oPre, $o);
+        $clean(); $tT = microtime(true); try { $o = pp_v1523_tighten($inputAsli, $o); $GLOBALS['ppV1523Tight'] = $o['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tT);
         $clean(); $oPre = $o; try { $o = pp_v15_fast_priority_fix($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
         $clean(); $o = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPre, $o);
         $clean(); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
@@ -3368,7 +3366,7 @@ function pp_v13f_pipeline_core(array $input): array {
         $nb = $base; foreach ($plan as $u => $p) $nb[$u] = max(2, $base[$u] - 1);
         /* V15.23: tetangga satu-row-lebih-awal tidak lagi disimulasikan sebagai pipeline penuh (8 s/kandidat): Commitment Tightening
          * menguji start unit Required per unit (tunda / majukan) dengan redispatch engine pada kandidat pemenang. PP_V1523_SINGLE_SEED=0 -> lama. */
-        $cands = [$base]; if ($nb !== $base && ((string)getenv('PP_V1523_SINGLE_SEED') === '0' || (string)getenv('PP_V1523_TIGHTEN') === '0')) $cands[] = $nb; $nCmp = count($cands);
+        $cands = [$base]; if ($nb !== $base && ((string)getenv('PP_V1523_SINGLE_SEED') === '0' || (string)getenv('PP_V1523_TIGHTEN') === '0' || !is_array($GLOBALS['ppSpFuelOrig'] ?? null))) $cands[] = $nb; $nCmp = count($cands);
         if ($old !== $base && !in_array($old, $cands, true)) { $cands[] = $old; $GLOBALS['ppSpFallbackCand'] = $old; }
         foreach ($plan as $u => $p) { $cc = $base; $cc[$u] = $base[$u] + 1; $skipProof[] = ['start_rows' => $cc, 'valid' => false, 's' => 0.0, 'cp' => null, 'failed_checks' => ['DELAY_FAILURE_PROVEN_BY_PLAN'],
             'proof' => sprintf('%s start row %d > latest legal start row %d: tunda gagal %s di row %s', strtoupper($u), $cc[$u], (int)$p['latest_legal_start_row'], (string)($p['failed_constraint_if_delayed'] ?? '-'), (string)($p['first_failed_row_if_delayed'] ?? '-'))]; }
@@ -3421,6 +3419,16 @@ function pp_v13f_pipeline_core(array $input): array {
         $o = $pre[$ci0] ?? pp_sp_cand_run($ci, $wdC); if ($hook !== null) $GLOBALS['ppTlHook'] = $hook; pp_sp_prof(isset($pre[$ci0]) ? 'cand_reuse_parallel' : 'cand_run', $tC, ['cand' => $cand]);
         $tA = microtime(true); $a = null; try { $a = pp_sp_assess($c0, $o); } catch (Throwable $e) { $a = null; } pp_sp_prof('cand_assess', $tA, ['cand' => $cand]);
         $fuelSt = false; [$a, $o, $fuelSt] = pp_v1523_fuel_assess($a, $o); $cRank = $fuelSt ? $GLOBALS['ppSpFuelOrig'] : $c0;
+        /* V15.23: kandidat yang gagal HANYA pada window gas (gas_only) didaratkan pada commitment yang sama (lever gas engine, maks 8 evaluasi)
+         * sebelum dinyatakan gagal — penolakan langsung memaksa fallback start paling awal (terukur: G6/G9 01:00, 124 s). */
+        if (!$fuelSt && is_array($a) && empty($a['valid']) && !empty($a['gas_only']) && (string)getenv('PP_V1523_CAND_GAS_LAND') !== '0') {
+            $tL = microtime(true); $svL = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $svL[$gk] = $gv;
+            $GLOBALS['__pp_fastest_no_gcr'] = true; $LG = null;
+            try { $LG = pp_tl_land_commitment($c0, [], pp_v3_stops(array_values((array)$o['data'])), microtime(true) + 30.0, (int)(getenv('PP_FAST_GAS_LAND_N') ?: 8)); }
+            catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $LG = null; } finally { unset($GLOBALS['__pp_fastest_no_gcr']); pp_tl_clean_globals(); foreach ($svL as $gk => $gv) $GLOBALS[$gk] = $gv; }
+            $aL = is_array($LG) ? ($LG['a'] ?? null) : null;
+            if (is_array($aL) && is_array($aL['output'] ?? null)) { $aL2 = pp_sp_assess($c0, $aL['output']); if (!empty($aL2['valid'])) { $o = $aL['output']; $a = $aL2; } }
+            pp_sp_prof('cand_gas_land', $tL, ['cand' => $cand, 'valid' => is_array($a) && !empty($a['valid'])]); }
         $ok = is_array($a) && !empty($a['valid']);
         $tried[] = ['start_rows' => $cand, 'valid' => $ok, 's' => round(microtime(true) - $tC, 2), 'cp' => $o['info']['Cost Production (USD/MWh)'] ?? null,
                     'failed_checks' => is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL']] + ($fuelSt ? ['assessed_state' => 'FUEL_ACTION'] : []);
@@ -4696,11 +4704,12 @@ function pp_job_run_economic_review(string $id, array $input): array {
             else { $GLOBALS['__pp_v8_fast_wall'] = (float)(getenv('PP_V8_FAST_SAFETY_S') ?: 600.0); $GLOBALS['ppIeWarmV8Cap'] = (int)(getenv('PP_IE_WARM_V8_CAP') ?: ($nAffW <= 6 ? 2 : 3)); $GLOBALS['ppIeWarmInfo']['v8_candidate_cap'] = $GLOBALS['ppIeWarmV8Cap']; }
             $GLOBALS['ppIeWarmInfo']['v8_wall_s'] = round($GLOBALS['__pp_v8_fast_wall'], 3); $GLOBALS['ppIeWarmInfo']['target_s'] = $tgtW; }
         if ($fastJ && ($lvA = pp_v1521_adj_left()) !== null) $GLOBALS['__pp_v8_fast_wall'] = min((float)($GLOBALS['__pp_v8_fast_wall'] ?? 45.0), max(1.0, $lvA));   // V15.21: sisa anggaran adjustment
-        if (empty($GLOBALS['__pp_ie_warm_done'])) { $tSp = microtime(true); unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Guard']); try { $output = pp_v1523_tighten($inputAsli, $output); $GLOBALS['ppV1523Tight'] = $output['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $output['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tSp); }
+        unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Guard']);
         $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v8_priority_review($inputAsli, $output); $output = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPreJ, $output); } finally { pp_sp_prof('v8_priority_review', $tSp); unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall'], $GLOBALS['ppIeWarmV8Cap']); }
         if (function_exists('pp_v1518_family_evidence')) { pp_job_progress($id, 'FAMILY_STOP_ATAU_HOLD', 75.0); $tSp = microtime(true); try { $output = pp_v1518_family_evidence($inputAsli, $output, microtime(true) + (($lvF = pp_v1521_adj_left()) !== null ? max(1.0, min(30.0, $lvF)) : 30.0)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('family_evidence', $tSp); }
         /* V15.15: setiap rencana final job (Fastest dan Maximum Review) wajib C1-C4 FAIL = 0: temuan Unit Priority tanpa alasan diselesaikan
          * atau dibuktikan numerik (pass yang sama). */
+        if (empty($GLOBALS['__pp_ie_warm_done'])) { $tSp = microtime(true); try { $output = pp_v1523_tighten($inputAsli, $output); $GLOBALS['ppV1523Tight'] = $output['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $output['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tSp); }
         pp_job_progress($id, 'PERBAIKAN_UNIT_PRIORITY_C1_C4', 80.0);
         $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v15_fast_priority_fix($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} $output = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPreJ, $output); pp_sp_prof('priority_fix', $tSp);
         $tSp = microtime(true); try { $output = pp_sp_proof_completion($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('proof_completion_c4', $tSp);
@@ -8084,10 +8093,19 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
                 break; }
             $mm['unit_fix_load'] = $fx; if ((string)getenv('PP_V1523_NO_AUTO') === '1') $mm['__tl_no_auto_start'] = true; $mm['time_budget_seconds'] = 60.0; $mm['time_budget_max_seconds'] = 60.0; unset($mm);
             $o = null; $a = null;
-            try { pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_once($in); $a = pp_tl_assess($orig, $o); }
+            try { pp_tl_clean_globals(); pp_budget_start(60.0, true, true); $o = pp_run_simulation_once($in); $a = pp_sp_assess($orig, $o); }   // penilaian pada state bersih (konteks startup tidak terbawa dari core run)
             catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o = null; $a = null; }
             $restore();
             $ok = is_array($a) && !empty($a['valid']) && is_array($o) && count((array)($o['data'] ?? [])) === 48;
+            /* gagal HANYA karena window gas (kuota wajib terpakai / supplier): pendaratan lever gas engine pada commitment yang sama
+             * (jendela redispatch tetap, maks 4 evaluasi), lalu dinilai ulang terhadap input asli */
+            if (!$ok && is_array($a) && !empty($a['gas_only']) && (string)getenv('PP_V1523_GAS_LAND') === '1') {
+                $GLOBALS['__pp_fastest_no_gcr'] = true; $LG = null;
+                try { $LG = pp_tl_land_commitment($in, [], [], microtime(true) + 20.0, (int)(getenv('PP_V1523_GAS_LAND_N') ?: 4)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $LG = null; }
+                finally { unset($GLOBALS['__pp_fastest_no_gcr']); }
+                $restore(); $oG = is_array($LG) ? ($LG['a']['output'] ?? null) : null;
+                if (is_array($oG) && count((array)($oG['data'] ?? [])) === 48) { $aG = pp_sp_assess($orig, $oG); $restore(); if (!empty($aG['valid'])) { $o = $oG; $a = $aG; $ok = true; } }
+            }
             if ($ok) { $Mo = pp_v8_masks((array)$o['data']); foreach ($Mo as $u => $mk) foreach ($mk as $r => $on) if ($on && empty($X[$u][$r])) { $ok = false; break 2; } }
             $att[] = ['window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'hold_interval' => $holdIv, 'valid' => $ok, 'why' => $ok ? [] : pp_v1523_viol_detail($orig, $o, $a)];
             $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[0]['why'], 'attempts' => $att];
@@ -8103,7 +8121,7 @@ function pp_v1523_stage_guard(string $stage, array $input, array $before, array 
     $orig = pp_v1523_orig($input); $K = pp_v1523_classes($orig);
     $mb = pp_v1523_metrics($orig, $before, $K); $ma = pp_v1523_metrics($orig, $after, $K); $c = pp_v1523_cmp($ma, $mb);
     $rec = ['stage' => $stage, 'before' => $mb, 'after' => $ma, 'decision' => $c > 0 ? 'DITOLAK_MEMBURUK_KEMBALI_KE_SEBELUM' : 'DITERIMA'];
-    if ($c > 0) { $pp = 'pp_tl_clean_globals'; $pp(); $aB = pp_tl_assess($orig, $before); $pp(); if (empty($aB['valid'])) { $rec['decision'] = 'DITERIMA_SEBELUM_TIDAK_VALID'; $c = 0; } }
+    if ($c > 0) { $aB = pp_sp_assess($orig, $before); if (empty($aB['valid'])) { $rec['decision'] = 'DITERIMA_SEBELUM_TIDAK_VALID'; $c = 0; } }
     $GLOBALS['ppV1523Guard'][] = $rec;
     if ($c <= 0) { $after['info']['Comparator Invariant Guard'] = (array)($GLOBALS['ppV1523Guard'] ?? []); return $after; }
     $keep = $before; foreach (['V8 Priority Review', 'Stop Family Evidence', 'Fastest Unit Priority Fix'] as $k) if (isset($after['info'][$k])) { $keep['info'][$k] = $after['info'][$k]; $keep['info'][$k]['reverted_by_comparator_invariant'] = $rec; }
@@ -8120,7 +8138,7 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     $cache = []; $nEval = 0; $nHit = 0; $log = [];
-    $restore(); $aW = pp_tl_assess($orig, $out); $restore();
+    $restore(); $aW = pp_sp_assess($orig, $out); $restore();
     if (empty($aW['valid'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'INCUMBENT_TIDAK_VALID', 'failed_checks' => array_keys(array_filter((array)($aW['checks'] ?? []), fn($x) => $x === false))]; return $out; }
     $W = $out; $XW = pp_v8_masks((array)$out['data']); $mW = pp_v1523_metrics($orig, $out, $K); $m0 = $mW;
     $cache[pp_v3_sig(pp_v8_stops($XW))] = ['o' => $out, 'valid' => true, 'met' => $mW, 'why' => []];
@@ -8128,9 +8146,11 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
      * dispatch incumbent (sudah valid), commitment kandidat sebagai jendela stop, engine me-redispatch jendela; dinilai penuh 48 row terhadap
      * input asli. Gagal pada W=3 -> diulang W=8 (redispatch lebih luas). Core run ulang tanpa kunci TIDAK mereproduksi incumbent (terukur:
      * tunda satu row memunculkan defisit Export di row lain) sehingga tidak dipakai sebagai bukti. */
+    $GLOBALS['ppV1523GasFail'] = 0;
     $ev = function (array $X, bool $proof = false) use (&$cache, &$nEval, &$nHit, &$W, &$XW, $cap, $proofCap, $dl, $orig, $K, $restore) {
         $sig = pp_v3_sig(pp_v8_stops($X));
         if (isset($cache[$sig])) { $nHit++; return $cache[$sig]; }
+        if ((int)($GLOBALS['ppV1523GasFail'] ?? 0) >= (int)(getenv('PP_V1523_GAS_BOUND_N') ?: 6)) return null;
         if ((!$proof && $nEval >= $cap) || ($proof && $nEval >= $cap + $proofCap) || microtime(true) > $dl) return null;
         $chg = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) $chg[$r] = true;
         if (!$chg) return $cache[$sig] = $cache[pp_v3_sig(pp_v8_stops($XW))] ?? null;
@@ -8140,7 +8160,12 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $runRows = function (string $u) use ($m, $d3): int { return max(1, (int)(pp_runtime_limits($m)[pp_runtime_class($u, $d3)]['run_rows'] ?? 8)); };
     $try = function (string $id, array $X, string $kind, bool $guardCp = false) use (&$W, &$XW, &$mW, &$log, $ev): bool {
         $R = $ev($X); if ($R === null) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_DIEVALUASI_BATAS']; return false; }
-        if (!$R['valid']) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_VALID', 'reason' => $R['why']]; return false; }
+        if (!$R['valid']) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_VALID', 'reason' => $R['why']];
+            /* window gas wajib-terpakai (take-or-pay) mengikat: bila 6 langkah pertama seluruhnya gagal HANYA karena gas_quota, pelepasan unit
+             * terbukti menurunkan pemakaian gas di bawah window -> pencarian dihentikan (bukti dicatat), tidak membakar waktu */
+            $onlyGas = true; foreach ((array)$R['why'] as $w) if (strpos((string)$w, 'gas_quota') !== 0) { $onlyGas = false; break; }
+            $GLOBALS['ppV1523GasFail'] = $onlyGas ? (int)($GLOBALS['ppV1523GasFail'] ?? 0) + 1 : -999; return false; }
+        $GLOBALS['ppV1523GasFail'] = -999;
         $c = pp_v1523_cmp($R['met'], $mW); $cpOk = !$guardCp || $R['met']['econ_cp'] <= $mW['econ_cp'] * 1.002 + 1e-9;
         if ($c < 0 && $cpOk) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'DITERAPKAN', 'before' => $mW, 'after' => $R['met']]; $W = $R['o']; $XW = $X; $mW = $R['met']; return true; }
         $log[] = ['move' => $id, 'kind' => $kind, 'result' => $cpOk ? 'VALID_TIDAK_LEBIH_BAIK' : 'DITOLAK_CP_LEBIH_BURUK', 'metrics' => $R['met'], 'incumbent' => $mW]; return false;
@@ -8252,6 +8277,7 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $W['info']['Commitment Tightening'] = ['schema' => 'v1523-commitment-tightening-1', 'status' => $applied ? 'APPLIED' : 'NO_IMPROVEMENT', 'before' => $m0, 'after' => $mW,
         'applied' => array_map(fn($x) => $x['move'], $applied), 'moves' => $log, 'proofs' => $proofs, 'evaluations' => $nEval, 'cache_hits' => $nHit,
         'unique_commitments' => count($cache), 'wall_s' => round(microtime(true) - $t0, 3),
+        'stopped' => (int)($GLOBALS['ppV1523GasFail'] ?? 0) >= (int)(getenv('PP_V1523_GAS_BOUND_N') ?: 6) ? 'GAS_WINDOW_BOUND: setiap pelepasan/penundaan yang diuji menurunkan pemakaian gas di bawah window kuota wajib-terpakai (lihat alasan numerik per langkah)' : null,
         'comparator' => 'valid -> startup tak-wajib -> penalti prioritas (row x level) -> CP ekonomi (incl. startup) -> HR; ADVANCE_REPLACE hanya bila CP ekonomi tidak naik > 0,2%'];
     $restore();
     return $W;
