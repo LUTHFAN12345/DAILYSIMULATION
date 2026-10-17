@@ -1,0 +1,6 @@
+rc=0 wall=35.81 cpu=35.30 rss=453MB aff=Cpus_allowed_list:	0 php=7.4.33
+rc=0 wall=36.03 cpu=35.59 rss=453MB aff=Cpus_allowed_list:	0 php=7.4.33
+rc=0 wall=37.45 cpu=37.03 rss=453MB aff=Cpus_allowed_list:	0 php=7.4.33
+rc=0 wall=41.35 cpu=40.80 rss=435MB aff=Cpus_allowed_list:	0 php=7.4.33
+rc=0 wall=41.67 cpu=41.14 rss=435MB aff=Cpus_allowed_list:	0 php=7.4.33
+rc=0 wall=43.51 cpu=43.04 rss=435MB aff=Cpus_allowed_list:	0 php=7.4.33

@@ -3,3 +3,4 @@ __pycache__/
 matrix/evidence/runs/
 matrix/evidence_old/
 matrix/evidence_prev/
+bench/raw/*/*.json

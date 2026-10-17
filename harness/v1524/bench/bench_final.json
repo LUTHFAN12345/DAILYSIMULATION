@@ -1,0 +1,908 @@
+{
+ "topology": {
+  "lscpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           52 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  4\nOn-line CPU(s) list:                     0-3\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) Processor @ 2.10GHz\nCPU family:                              6\nModel:                                   207\nThread(s) per core:                      1\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                2\nBogoMIPS:                                4200.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch cpuid_fault ssbd ibrs ibpb stibp ibrs_enhanced fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 wbnoinvd arat avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid cldemote movdiri movdir64b fsrm md_clear serialize tsxldtrk amx_bf16 avx512_fp16 amx_tile amx_int8 arch_capabilities\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               192 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                8 MiB (4 instances)\nL3 cache:                                260 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-3\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI Vulnerable\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+  "/sys/fs/cgroup/cpu/cpu.cfs_quota_us": "-1",
+  "/sys/fs/cgroup/cpu/cpu.cfs_period_us": "100000",
+  "nproc_all": 4,
+  "php74": "PHP 7.4.33 (cli) (built: Oct 17 2026 13:10:59) ( NTS )",
+  "opcache": "{\"opcache.enable_cli\":\"1\",\"zts\":0,\"pcntl\":true,\"memory_limit\":\"1024M\"}"
+ },
+ "rows": [
+  {
+   "scenario": "A0_actual",
+   "mode": "cold",
+   "label": "normal Fastest",
+   "target_s": 30,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 36.02,
+     "min": 35.8,
+     "max": 37.44
+    },
+    "cpu": {
+     "median": 35.59,
+     "min": 35.3,
+     "max": 37.03
+    },
+    "rss_mb": {
+     "median": 454.0,
+     "min": 453.8,
+     "max": 454.0
+    },
+    "cp": [
+     93.4567
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 71.48,
+     "min": 70.47,
+     "max": 71.73
+    },
+    "cpu": {
+     "median": 57.27,
+     "min": 56.22,
+     "max": 57.39
+    },
+    "rss_mb": {
+     "median": 395.4,
+     "min": 395.4,
+     "max": 395.5
+    },
+    "cp": [
+     105.8901
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A0_actual",
+   "mode": "warm",
+   "label": "normal Fastest",
+   "target_s": 30,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 0.55,
+     "min": 0.51,
+     "max": 0.63
+    },
+    "cpu": {
+     "median": 0.52,
+     "min": 0.48,
+     "max": 0.6
+    },
+    "rss_mb": {
+     "median": 38.9,
+     "min": 38.8,
+     "max": 38.9
+    },
+    "cp": [
+     93.4567
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 5.32,
+     "min": 5.28,
+     "max": 5.65
+    },
+    "cpu": {
+     "median": 5.24,
+     "min": 5.21,
+     "max": 5.55
+    },
+    "rss_mb": {
+     "median": 57.7,
+     "min": 57.6,
+     "max": 57.7
+    },
+    "cp": [
+     105.8901
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A1_gas_cukup",
+   "mode": "cold",
+   "label": "gas-cukup (mandatory window)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 77.25,
+     "min": 76.31,
+     "max": 81.21
+    },
+    "cpu": {
+     "median": 76.33,
+     "min": 75.2,
+     "max": 80.49
+    },
+    "rss_mb": {
+     "median": 555.0,
+     "min": 555.0,
+     "max": 555.4
+    },
+    "cp": [
+     68.4413
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 87.2,
+     "min": 86.63,
+     "max": 95.16
+    },
+    "cpu": {
+     "median": 68.23,
+     "min": 67.63,
+     "max": 75.85
+    },
+    "rss_mb": {
+     "median": 468.1,
+     "min": 468.0,
+     "max": 468.2
+    },
+    "cp": [
+     68.4413
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A1_gas_cukup",
+   "mode": "warm",
+   "label": "gas-cukup (mandatory window)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 2.64,
+     "min": 2.49,
+     "max": 2.74
+    },
+    "cpu": {
+     "median": 2.6,
+     "min": 2.43,
+     "max": 2.69
+    },
+    "rss_mb": {
+     "median": 67.3,
+     "min": 67.3,
+     "max": 67.3
+    },
+    "cp": [
+     68.4413
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 4.11,
+     "min": 4.09,
+     "max": 4.18
+    },
+    "cpu": {
+     "median": 2.55,
+     "min": 2.51,
+     "max": 2.6
+    },
+    "rss_mb": {
+     "median": 66.1,
+     "min": 66.0,
+     "max": 66.1
+    },
+    "cp": [
+     68.4413
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A2_lng",
+   "mode": "cold",
+   "label": "shortage/LNG",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 51.46,
+     "min": 49.46,
+     "max": 53.51
+    },
+    "cpu": {
+     "median": 50.61,
+     "min": 48.93,
+     "max": 52.8
+    },
+    "rss_mb": {
+     "median": 260.9,
+     "min": 260.8,
+     "max": 261.0
+    },
+    "cp": [
+     73.9965
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 115.26,
+     "min": 114.88,
+     "max": 117.85
+    },
+    "cpu": {
+     "median": 96.01,
+     "min": 95.62,
+     "max": 97.82
+    },
+    "rss_mb": {
+     "median": 518.4,
+     "min": 518.4,
+     "max": 518.5
+    },
+    "cp": [
+     73.9965
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A2_lng",
+   "mode": "warm",
+   "label": "shortage/LNG",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 0.57,
+     "min": 0.53,
+     "max": 0.62
+    },
+    "cpu": {
+     "median": 0.52,
+     "min": 0.51,
+     "max": 0.59
+    },
+    "rss_mb": {
+     "median": 38.8,
+     "min": 38.8,
+     "max": 38.8
+    },
+    "cp": [
+     73.9965
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 2.09,
+     "min": 2.04,
+     "max": 2.11
+    },
+    "cpu": {
+     "median": 0.53,
+     "min": 0.49,
+     "max": 0.56
+    },
+    "rss_mb": {
+     "median": 38.7,
+     "min": 38.7,
+     "max": 38.7
+    },
+    "cp": [
+     73.9965
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A7_IE_plus20",
+   "mode": "cold",
+   "label": "terminal/infeasible (IE +20)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 89.86,
+     "min": 85.08,
+     "max": 93.03
+    },
+    "cpu": {
+     "median": 88.74,
+     "min": 84.14,
+     "max": 91.93
+    },
+    "rss_mb": {
+     "median": 466.7,
+     "min": 466.7,
+     "max": 466.8
+    },
+    "cp": [
+     122.0047
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 134.25,
+     "min": 133.89,
+     "max": 137.52
+    },
+    "cpu": {
+     "median": 96.66,
+     "min": 96.38,
+     "max": 99.94
+    },
+    "rss_mb": {
+     "median": 578.9,
+     "min": 578.8,
+     "max": 580.4
+    },
+    "cp": [
+     122.0047
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A7_IE_plus20",
+   "mode": "warm",
+   "label": "terminal/infeasible (IE +20)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 22.49,
+     "min": 21.87,
+     "max": 23.95
+    },
+    "cpu": {
+     "median": 22.14,
+     "min": 21.54,
+     "max": 23.58
+    },
+    "rss_mb": {
+     "median": 115.4,
+     "min": 115.3,
+     "max": 115.4
+    },
+    "cp": [
+     122.0047
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 23.32,
+     "min": 22.88,
+     "max": 24.4
+    },
+    "cpu": {
+     "median": 20.05,
+     "min": 19.66,
+     "max": 21.16
+    },
+    "rss_mb": {
+     "median": 82.8,
+     "min": 82.8,
+     "max": 82.9
+    },
+    "cp": [
+     122.0047
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A8_cfg_G9_ke_G5",
+   "mode": "cold",
+   "label": "difficult/cross-block",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 41.66,
+     "min": 41.34,
+     "max": 43.51
+    },
+    "cpu": {
+     "median": 41.14,
+     "min": 40.8,
+     "max": 43.04
+    },
+    "rss_mb": {
+     "median": 435.4,
+     "min": 435.4,
+     "max": 435.5
+    },
+    "cp": [
+     101.7689
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 100.28,
+     "min": 98.5,
+     "max": 101.29
+    },
+    "cpu": {
+     "median": 75.06,
+     "min": 73.33,
+     "max": 76.13
+    },
+    "rss_mb": {
+     "median": 317.4,
+     "min": 317.4,
+     "max": 317.5
+    },
+    "cp": [
+     106.0179
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "A8_cfg_G9_ke_G5",
+   "mode": "warm",
+   "label": "difficult/cross-block",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 0.52,
+     "min": 0.49,
+     "max": 0.54
+    },
+    "cpu": {
+     "median": 0.5,
+     "min": 0.46,
+     "max": 0.51
+    },
+    "rss_mb": {
+     "median": 38.8,
+     "min": 38.7,
+     "max": 38.9
+    },
+    "cp": [
+     101.7689
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 3.73,
+     "min": 3.66,
+     "max": 3.8
+    },
+    "cpu": {
+     "median": 0.65,
+     "min": 0.58,
+     "max": 0.72
+    },
+    "rss_mb": {
+     "median": 38.7,
+     "min": 38.7,
+     "max": 38.7
+    },
+    "cp": [
+     106.0179
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "B0_input_data",
+   "mode": "cold",
+   "label": "fuel decision required (input_data)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 1.86,
+     "min": 1.79,
+     "max": 2.39
+    },
+    "cpu": {
+     "median": 1.81,
+     "min": 1.75,
+     "max": 2.36
+    },
+    "rss_mb": {
+     "median": 55.7,
+     "min": 55.7,
+     "max": 55.7
+    },
+    "cp": [
+     68.4541
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 1.88,
+     "min": 1.69,
+     "max": 2.21
+    },
+    "cpu": {
+     "median": 1.84,
+     "min": 1.67,
+     "max": 2.17
+    },
+    "rss_mb": {
+     "median": 55.5,
+     "min": 55.3,
+     "max": 55.5
+    },
+    "cp": [
+     68.4541
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "B0_input_data",
+   "mode": "warm",
+   "label": "fuel decision required (input_data)",
+   "target_s": 40,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 2.08,
+     "min": 1.97,
+     "max": 2.16
+    },
+    "cpu": {
+     "median": 2.03,
+     "min": 1.91,
+     "max": 2.12
+    },
+    "rss_mb": {
+     "median": 55.7,
+     "min": 55.7,
+     "max": 55.8
+    },
+    "cp": [
+     68.4541
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 1.81,
+     "min": 1.77,
+     "max": 1.86
+    },
+    "cpu": {
+     "median": 1.78,
+     "min": 1.73,
+     "max": 1.82
+    },
+    "rss_mb": {
+     "median": 55.4,
+     "min": 55.2,
+     "max": 55.4
+    },
+    "cp": [
+     68.4541
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "fix",
+   "mode": "cold",
+   "label": "one-cell Fix Load (feasible, G8 row 8 = 95 MW)",
+   "target_s": 10,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 35.03,
+     "min": 34.97,
+     "max": 35.24
+    },
+    "cpu": {
+     "median": 34.54,
+     "min": 34.53,
+     "max": 34.85
+    },
+    "rss_mb": {
+     "median": 442.1,
+     "min": 442.1,
+     "max": 442.1
+    },
+    "cp": [
+     93.3691
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 1,
+    "wall": {
+     "median": 95.02,
+     "min": 95.02,
+     "max": 95.02
+    },
+    "cpu": {
+     "median": 69.48,
+     "min": 69.48,
+     "max": 69.48
+    },
+    "rss_mb": {
+     "median": 441.5,
+     "min": 441.5,
+     "max": 441.5
+    },
+    "cp": [
+     95.5793
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "fix",
+   "mode": "warm",
+   "label": "one-cell Fix Load (feasible, G8 row 8 = 95 MW)",
+   "target_s": 10,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 0.66,
+     "min": 0.52,
+     "max": 36.96
+    },
+    "cpu": {
+     "median": 0.63,
+     "min": 0.48,
+     "max": 36.54
+    },
+    "rss_mb": {
+     "median": 38.9,
+     "min": 38.9,
+     "max": 448.4
+    },
+    "cp": [
+     93.3691
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 7.88,
+     "min": 2.12,
+     "max": 91.47
+    },
+    "cpu": {
+     "median": 7.78,
+     "min": 0.57,
+     "max": 66.21
+    },
+    "rss_mb": {
+     "median": 65.6,
+     "min": 38.7,
+     "max": 441.5
+    },
+    "cp": [
+     107.4461
+    ],
+    "deterministic": false
+   }
+  },
+  {
+   "scenario": "fixrepair",
+   "mode": "warm",
+   "label": "one-cell Fix Load memaksa commitment repair (G2 row 20 = 25 MW)",
+   "target_s": null,
+   "new": {
+    "runs": 1,
+    "wall": {
+     "median": 23.73,
+     "min": 23.73,
+     "max": 23.73
+    },
+    "cpu": {
+     "median": 23.37,
+     "min": 23.37,
+     "max": 23.37
+    },
+    "rss_mb": {
+     "median": 284.7,
+     "min": 284.7,
+     "max": 284.7
+    },
+    "cp": [
+     93.3625
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 1,
+    "wall": {
+     "median": 77.4,
+     "min": 77.4,
+     "max": 77.4
+    },
+    "cpu": {
+     "median": 61.38,
+     "min": 61.38,
+     "max": 61.38
+    },
+    "rss_mb": {
+     "median": 409.7,
+     "min": 409.7,
+     "max": 409.7
+    },
+    "cp": [
+     106.0083
+    ],
+    "deterministic": true
+   }
+  },
+  {
+   "scenario": "rerun",
+   "mode": "exact",
+   "label": "exact rerun",
+   "target_s": 15,
+   "new": {
+    "runs": 3,
+    "wall": {
+     "median": 0.5,
+     "min": 0.48,
+     "max": 0.55
+    },
+    "cpu": {
+     "median": 0.47,
+     "min": 0.45,
+     "max": 0.52
+    },
+    "rss_mb": {
+     "median": 38.9,
+     "min": 38.8,
+     "max": 38.9
+    },
+    "cp": [
+     93.4567
+    ],
+    "deterministic": true,
+    "affinity": [
+     "Cpus_allowed_list:\t0"
+    ],
+    "php": [
+     "7.4.33"
+    ]
+   },
+   "old": {
+    "runs": 3,
+    "wall": {
+     "median": 5.49,
+     "min": 5.39,
+     "max": 5.77
+    },
+    "cpu": {
+     "median": 5.42,
+     "min": 5.29,
+     "max": 5.62
+    },
+    "rss_mb": {
+     "median": 57.6,
+     "min": 57.6,
+     "max": 57.6
+    },
+    "cp": [
+     105.8901
+    ],
+    "deterministic": true
+   }
+  }
+ ]
+}
