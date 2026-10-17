@@ -461,7 +461,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.20-SUPPLIER-WINDOW-CERT-HONEST-DEADLINE-JOB-ACL-20261013';
+const PP_ENGINE_BUILD_ID = 'V15.23-COMMITMENT-TIGHTENING-FUEL-STATE-20261017';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -3759,6 +3759,9 @@ function pp_v1517_ie_base_key(array $clean): string {
     /* USER FIXED LOAD: Fix Load sel (Ctrl+Click / menu) bukan konteks basis — perubahannya diperlakukan seperti IE: affected rows
      * di-redispatch dari basis final terakhir, lalu simulasi bersih + validasi penuh 48 row. PP_FIX_WARM=0 -> Fix = bagian kunci (cold). */
     if ((string)getenv('PP_FIX_WARM') !== '0') unset($c['data3']['modeling']['unit_fix_load']);
+    /* V15.23 STALE STATE: basis warm terikat sidik jari engine — rencana dari build lama (mis. V15.22 start 01:00) tidak boleh menjadi
+     * commitment basis redispatch inkremental sesudah deploy. PP_V1523_IE_KEY_FP=0 -> kunci lama. */
+    if ((string)getenv('PP_V1523_IE_KEY_FP') !== '0') return hash('sha256', pp_engine_fingerprint() . '|' . json_encode($c));
     return hash('sha256', json_encode($c));
 }
 /* peta Fix Load user per unit x row (kanonik, untuk deteksi perubahan warm) */
