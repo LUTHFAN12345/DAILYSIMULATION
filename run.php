@@ -3197,12 +3197,13 @@ function pp_sp_final_select(string $id, array $inputAsli, array $input, array $o
     return $res;
 }
 function pp_v13f_pipeline(array $input): array {
-    unset($GLOBALS['ppSpBlockFloor'], $GLOBALS['ppSpPool']);
+    unset($GLOBALS['ppSpBlockFloor'], $GLOBALS['ppSpPool'], $GLOBALS['ppV1523ShortageSeed']);
     $tP = microtime(true); $o = pp_v13f_pipeline_core($input); $rsP = (array)($o['info']['Run Status'] ?? []);
     pp_sp_prof('pipeline_core_total', $tP, ['core_runs' => $rsP['core_runs'] ?? null, 'core_simulations' => $rsP['core_simulations'] ?? null,
         'phases' => array_map(fn($p) => ($p['phase'] ?? '?') . ':' . ($p['delta_s'] ?? '?') . 's/+' . ($p['core_delta'] ?? '?'), (array)($rsP['phase_timeline'] ?? []))]);
     /* jalur kandidat startup: konsolidasi dikerjakan di dalam bundle final per kandidat (satu fungsi kanonik), bukan di sini */
-    if ((string)getenv('PP_SP_BLOCK_CONSOL') !== '0' && count((array)($o['data'] ?? [])) === 48 && !($GLOBALS['ppSpPool'] ?? null)) {
+    /* V15.23: shortage terbukti pada state tanpa aksi bahan bakar -> konsolidasi dikerjakan pada rerun bahan bakar (alternatif di sini pasti gagal residual shortage) */
+    if ((string)getenv('PP_SP_BLOCK_CONSOL') !== '0' && count((array)($o['data'] ?? [])) === 48 && !($GLOBALS['ppSpPool'] ?? null) && empty($GLOBALS['ppV1523ShortageSeed'])) {
         $tB = microtime(true);
         try { $o = pp_sp_block_consolidation($input, $o); } catch (Throwable $e) { $o['info']['Block Consolidation Review'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
         finally { pp_sp_prof('block_consolidation_total', $tB); } }
@@ -3436,6 +3437,17 @@ function pp_v13f_pipeline_core(array $input): array {
          * kandidat lain (dulu: pipeline kedua + pemenang ditentukan kecepatan CPU, terukur 145 s / CP 71,4265). */
         if (!$ok && $ci0 >= 1 && $ci0 < $nCmp && in_array('not_truncated', (array)$tried[count($tried) - 1]['failed_checks'], true)) { $tried[count($tried) - 1]['inconclusive'] = 'INCONCLUSIVE_WATCHDOG'; continue; }
         if (!$ok && $tried[count($tried) - 1]['failed_checks'] === ['not_truncated']) break;
+        /* V15.23: state TANPA aksi bahan bakar (recommendation/none) dan kandidat start paling lambat gagal karena KEKURANGAN GAS FISIK
+         * (residual shortage > 0): pergeseran waktu start tidak menghapus kekurangan gas (start lebih awal hanya menambah bahan bakar), jadi
+         * kandidat ini menjadi basis bukti shortage + estimasi bahan bakar. Dulu seluruh kandidat disimulasikan lalu jatuh ke start
+         * paling awal (estimasi distillate membengkak). PP_V1523_SHORTAGE_SEED=0 -> lama. */
+        if (!$ok && !$fuelSt && !$pool && $ci0 === 0 && is_array($a) && isset($a['checks']['residual_shortage_zero']) && $a['checks']['residual_shortage_zero'] === false
+            && !pp_v8_fuel_active((array)($c0['data3']['modeling'] ?? [])) && (string)getenv('PP_V1523_SHORTAGE_SEED') !== '0') {
+            $tried[count($tried) - 1]['shortage_seed'] = 'KEKURANGAN_GAS_TERBUKTI_PADA_START_PALING_LAMBAT'; $GLOBALS['ppV1523ShortageSeed'] = true;
+            foreach ($skipProof as $spx) $tried[] = $spx;
+            $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => $cand, 'tried' => $tried];
+            $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan, $cand, $o, $tried);
+            return $o; }
         if ($ok) { $tR = microtime(true); $rk = pp_sp_rank($cRank, $o, $cand); pp_sp_prof('cand_rank', $tR, ['cand' => $cand]); $tried[count($tried) - 1]['rank'] = $rk; $pool[] = ['cand' => $cand, 'o' => $o, 'rk' => $rk, 'i' => count($tried) - 1];
             if (!$cmpOn || $ci0 >= $nCmp - 1) break; continue; }
         $lastO = $o;
