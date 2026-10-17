@@ -3124,16 +3124,16 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
         $GLOBALS['ppSpBlockConsol'] = $svK; $clean();
         unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Tight2'], $GLOBALS['ppV1523Guard']);
         $GLOBALS['__pp_v8_job'] = $id; $GLOBALS['__pp_v8_fast_wall'] = min((float)(getenv('PP_V8_FAST_SAFETY_S') ?: $em), $em);
-        $oPre = $o; try { $o = pp_v8_priority_review($inputAsli, $o); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall']); }
+        $oPre = $o; $tV = microtime(true); try { $o = pp_v8_priority_review($inputAsli, $o); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall']); pp_sp_prof('bundle_v8_priority_review', $tV); }
         $clean(); $o = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPre, $o);
         foreach ((array)(($o['info']['V8 Priority Review'] ?? [])['final_candidates'] ?? []) as $vc) if (strpos(json_encode($vc), 'BATAS_WAKTU_REVIEW') !== false) { $emHit[] = 'V8'; break; }
         if (!empty(($o['info']['V8 Priority Review'] ?? [])['truncated'])) $emHit[] = 'V8';
-        $clean(); $oPre = $o; try { $o = pp_v1518_family_evidence($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+        $clean(); $oPre = $o; $tV = microtime(true); try { $o = pp_v1518_family_evidence($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_family_evidence', $tV);
         $clean(); $o = pp_v1523_stage_guard('FAMILY_STOP_HOLD', $inputAsli, $oPre, $o);
         $clean(); $tT = microtime(true); try { $o = pp_v1523_tighten($inputAsli, $o); $GLOBALS['ppV1523Tight'] = $o['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tT);
-        $clean(); $oPre = $o; try { $o = pp_v15_fast_priority_fix($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+        $clean(); $oPre = $o; $tV = microtime(true); try { $o = pp_v15_fast_priority_fix($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_priority_fix', $tV);
         $clean(); $o = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPre, $o);
-        $clean(); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+        $clean(); $tV = microtime(true); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_proof_completion', $tV);
         if (is_array($plan) && $cand !== null) $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan['plan'], $cand, $o, $plan['tried']);
         if (is_array($consol)) $o['info']['Block Consolidation Review'] = $consol;
         if (is_array($GLOBALS['ppV1523Tight'] ?? null)) $o['info']['Commitment Tightening'] = $GLOBALS['ppV1523Tight'];
@@ -8167,7 +8167,7 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $t0 = microtime(true); $orig = pp_v1523_orig($input); $m = (array)$orig['data3']['modeling']; $d3 = (array)$orig['data3'];
     if (!empty($m['change_over']['enabled'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'CHANGE_OVER']; return $out; }
     $K = pp_v1523_classes($orig);
-    $cap = !empty($opt['post_v8']) ? (int)(getenv('PP_V1523_EVAL_CAP2') ?: 24) : (int)(getenv('PP_V1523_EVAL_CAP') ?: 44); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 12); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
+    $cap = !empty($opt['post_v8']) ? (int)(getenv('PP_V1523_EVAL_CAP2') ?: 24) : (int)(getenv('PP_V1523_EVAL_CAP') ?: 36); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 12); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     $cache = []; $nEval = 0; $nHit = 0; $log = [];
