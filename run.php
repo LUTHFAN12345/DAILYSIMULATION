@@ -3839,8 +3839,17 @@ function pp_v1517_ie_base_file(string $key): string { $d = pp_job_root() . DIREC
  * terbukti (Gas Shortage Exhaustion Proof: Export sudah diturunkan ke Range Min / lever habis) tidak mungkin menutup shortage tanpa melanggar
  * plafon. Hasilnya bukan "aksi tidak diterapkan" (pratinjau) melainkan TERMINAL dengan bukti numerik + opsi yang dibutuhkan operator. */
 function pp_v1524_fuel_cap_terminal(array $input, array $output, array $fr): ?array {
-    if ((string)getenv('PP_V1524_FUEL_CAP_TERMINAL') === '0' || !empty($fr['pass']) || ($fr['action'] ?? '') !== 'use_distillate' || empty($fr['user_cap_applied'])) return null;
+    if ((string)getenv('PP_V1524_FUEL_CAP_TERMINAL') === '0' || !empty($fr['pass'])) return null;
     $i = (array)($output['info'] ?? []); $du = (array)($i['Distillate User Limit'] ?? []); $ex = (array)($i['Gas Shortage Exhaustion Proof'] ?? []);
+    /* Add LNG dengan jumlah otorisasi operator: residual sesudah LNG (bukti exhaustion: Export sudah di Range Min) = kebutuhan yang tidak tertutup */
+    if (($fr['action'] ?? '') === 'add_lng' && $ex && abs((float)($fr['reported_added'] ?? 0) - (float)($fr['requested'] ?? -1)) <= 0.001) {
+        $res = (float)($ex['residual_bbtud'] ?? ($fr['residual_shortage'] ?? 0)); $lng = (float)($fr['requested'] ?? 0); if ($res <= 0.04) return null;
+        $proof = ['code' => 'LNG_AUTHORIZED_INSUFFICIENT', 'authorized_lng_bbtud' => round($lng, 4), 'required_fuel_bbtud' => round($res + $lng, 4), 'uncovered_bbtud' => round($res, 4), 'export_exhaustion' => $ex,
+            'options' => [['action' => 'add_lng', 'additional_lng_bbtud' => round($lng + $res, 4), 'note' => 'tambahan LNG total yang dibutuhkan (perlu dijalankan ulang untuk validasi)'],
+                          ['action' => 'add_lng+use_distillate', 'additional_lng_bbtud' => round($lng, 4), 'distillate_bbtud' => round($res, 4), 'note' => 'sisa ditutup distillate (perlu dijalankan ulang untuk validasi)']],
+            'rule' => 'residual sesudah LNG yang diotorisasi (Export sudah di Range Min, lever habis) > 0 -> shortage tidak dapat ditutup dengan otorisasi saat ini'];
+        return ['proof' => $proof, 'message' => sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi %.4f BBTUD masih tersisa kebutuhan %.4f BBTUD (Export sudah di Range Min, lever habis). Opsi: tambahan LNG total %.4f BBTUD, atau LNG %.4f BBTUD + distillate %.4f BBTUD.', $lng, $res, $lng + $res, $lng, $res)]; }
+    if (($fr['action'] ?? '') !== 'use_distillate' || empty($fr['user_cap_applied'])) return null;
     $req = (float)($du['required_bbtud'] ?? ($ex['residual_bbtud'] ?? 0)); $capB = (float)($du['bbtud'] ?? 0); $capL = (float)($du['litres'] ?? ($fr['requested_litres'] ?? 0));
     if (!$ex || $req <= 0 || $capB < 0 || $req <= $capB + 0.04) return null;
     $lPerB = $capB > 1e-9 ? $capL / $capB : ((float)($fr['reported_litres'] ?? 0) > 0 && (float)($fr['gas_offset'] ?? 0) > 0 ? (float)$fr['reported_litres'] / (float)$fr['gas_offset'] : null);
@@ -9803,7 +9812,11 @@ function pp_attach_or_reject_acceptance_v0(array $input,array &$output): array {
         $ubR=is_array($gasAudit)?(float)($gasAudit['headroom']['gas_reduction_upper_bound_bbtud']??INF):INF;
         if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&isset($fct['code'])){$output['info']['Fuel Capacity Terminal Proof']['gas_reduction_upper_bound_bbtud']=is_finite($ubR)?round($ubR,4):null;
             $output['info']['Fuel Capacity Terminal Proof']['terminal']=is_finite($ubR)&&(float)$fct['uncovered_bbtud']>$ubR+0.04;}
-        if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
+        if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])&&($fct['code']??'')==='LNG_AUTHORIZED_INSUFFICIENT'){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
+            $msg=sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi %.4f BBTUD masih tersisa kebutuhan %.4f BBTUD > batas atas penurunan gas yang masih dapat dipakai %.4f BBTUD. Opsi: tambahan LNG total %.4f BBTUD, atau LNG %.4f BBTUD + distillate %.4f BBTUD.',
+                (float)$fct['authorized_lng_bbtud'],(float)$fct['uncovered_bbtud'],$ubR,(float)$fct['authorized_lng_bbtud']+(float)$fct['uncovered_bbtud'],(float)$fct['authorized_lng_bbtud'],(float)$fct['uncovered_bbtud']);
+            $output['status']='TERMINAL_INFEASIBLE';}
+        elseif(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
             $msg=sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD > plafon distillate user %s l (%.4f BBTUD); sisa %.4f BBTUD > batas atas penurunan gas yang masih dapat dipakai %.4f BBTUD, sehingga tidak dapat ditutup tanpa melanggar plafon. Opsi: plafon %s l atau tambahan LNG %.4f BBTUD.',
                 (float)$fct['required_fuel_bbtud'],number_format((float)$fct['user_cap_litres'],0,',','.'),(float)$fct['user_cap_bbtud'],(float)$fct['uncovered_bbtud'],$ubR,$fct['litres_required_without_cap']!==null?number_format((float)$fct['litres_required_without_cap'],0,',','.'):'-',(float)$fct['uncovered_bbtud']);
             $output['status']='TERMINAL_INFEASIBLE';}
