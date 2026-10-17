@@ -1,0 +1,70 @@
+{
+ "r0_record_on_server": {
+  "uld": "Stop",
+  "required_mode": {
+   "mode": "based_on_sim"
+  },
+  "stop_mode": {
+   "mode": "hold_to_end"
+  },
+  "in_unit_cannot_stop": true,
+  "in_required_units": true
+ },
+ "s1_ui_controls_after_load": {
+  "uld": "Stop",
+  "required": true,
+  "commitment_mode": "simulation",
+  "stop_status": "continuous"
+ },
+ "s2_ui_state_after_load": {
+  "COMMIT_MODE": "simulation",
+  "STOP_MODE": "continuous",
+  "CANNOT_STOP": false
+ },
+ "s3_payload": {
+  "uld": "Stop",
+  "required_mode": {
+   "mode": "based_on_sim"
+  },
+  "stop_mode": {
+   "mode": "hold_to_end"
+  },
+  "in_unit_cannot_stop": false,
+  "in_required_units": true
+ },
+ "s4_saved_record": {
+  "uld": "Stop",
+  "required_mode": {
+   "mode": "based_on_sim"
+  },
+  "stop_mode": {
+   "mode": "hold_to_end"
+  },
+  "in_unit_cannot_stop": false,
+  "in_required_units": true
+ },
+ "s5_ui_after_reload": {
+  "controls": {
+   "uld": "Stop",
+   "required": true,
+   "commitment_mode": "simulation",
+   "stop_status": "continuous"
+  },
+  "state": {
+   "COMMIT_MODE": "simulation",
+   "STOP_MODE": "continuous",
+   "CANNOT_STOP": false
+  }
+ },
+ "s6_payload_next_run": {
+  "uld": "Stop",
+  "required_mode": {
+   "mode": "based_on_sim"
+  },
+  "stop_mode": {
+   "mode": "hold_to_end"
+  },
+  "in_unit_cannot_stop": false,
+  "in_required_units": true
+ }
+}

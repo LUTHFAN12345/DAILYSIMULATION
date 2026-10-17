@@ -1,0 +1,4939 @@
+{
+ "total": 342,
+ "fail": 76,
+ "rows": [
+  {
+   "unit": "g1",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K1",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K2",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K3",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K4",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@04:00",
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K5",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K6",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K7",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim_must",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K8",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": "based_on_sim",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K9",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": null,
+    "sm": "hold_to_end",
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K10",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "start_at@06:00",
+    "sm": "stop_at@20:00",
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "K11",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": null,
+    "sm": null,
+    "cs": false,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g1",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g1",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g1",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g1",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g2",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g2",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g2",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g2",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g2",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g3",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g3",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g3",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g3",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g3",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g4",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g4",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g4",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g4",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g4",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g5",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g5",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g5",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g5",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g5",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g6",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g6",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g6",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g6",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g6",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g7",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g7",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g7",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g7",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g7",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g8",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g8",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g8",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g8",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g8",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g9",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g9",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g9",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g9",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g9",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g10",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g10",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g10",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "g10",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "g10",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s1",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s1",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s1",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s1",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s1",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s2",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s2",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s2",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s2",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s2",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s3",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s3",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s3",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "s3",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "s3",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge1",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge1",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge1",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge1",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge1",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge2",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge2",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge2",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge2",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge2",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge3",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge3",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge3",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge3",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge3",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge4",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge4",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge4",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "ge4",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "ge4",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b1",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b1",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b1",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b1",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b1",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b2",
+   "combo": "L1",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp simulation)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b2",
+   "combo": "L2",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b2",
+   "combo": "L3",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "L4",
+   "ok": true,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "L5",
+   "ok": true,
+   "payload": {
+    "uld": "Stop",
+    "rm": "based_on_sim",
+    "sm": null,
+    "cs": false,
+    "ru": true
+   },
+   "bad": []
+  },
+  {
+   "unit": "b2",
+   "combo": "L6",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp -)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  },
+  {
+   "unit": "b2",
+   "combo": "L7",
+   "ok": false,
+   "payload": {
+    "uld": "Running",
+    "rm": "continuous",
+    "sm": null,
+    "cs": true,
+    "ru": false
+   },
+   "bad": [
+    "COMMIT=continuous (exp request)",
+    "STOP=- (exp continuous)",
+    "payload became continuous {\"uld\":\"Running\",\"rm\":\"continuous\",\"sm\":null,\"cs\":true,\"ru\":false}",
+    "Last Data forced Running"
+   ]
+  }
+ ],
+ "save_reload": {
+  "before": [
+   [
+    "g9",
+    "simulation",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g4",
+    "-",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g8",
+    "continuous",
+    "-",
+    "",
+    "",
+    "Running"
+   ],
+   [
+    "g5",
+    "request",
+    "request",
+    "04:00",
+    "20:00",
+    "Stop"
+   ]
+  ],
+  "after": [
+   [
+    "g9",
+    "simulation",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g4",
+    "-",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g8",
+    "continuous",
+    "-",
+    "",
+    "",
+    "Running"
+   ],
+   [
+    "g5",
+    "request",
+    "request",
+    "04:00",
+    "20:00",
+    "Stop"
+   ]
+  ],
+  "after2": [
+   [
+    "g9",
+    "simulation",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g4",
+    "-",
+    "continuous",
+    "",
+    "",
+    "Stop"
+   ],
+   [
+    "g8",
+    "continuous",
+    "-",
+    "",
+    "",
+    "Running"
+   ],
+   [
+    "g5",
+    "request",
+    "request",
+    "04:00",
+    "20:00",
+    "Stop"
+   ]
+  ],
+  "save_msg": "Input saved — will persist after reload.",
+  "ok": true
+ },
+ "errs": []
+}

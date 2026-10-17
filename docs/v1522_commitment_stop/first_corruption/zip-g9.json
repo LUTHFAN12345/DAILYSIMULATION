@@ -1,0 +1,64 @@
+{
+ "r0_record_on_server": {
+  "uld": "Stop",
+  "required_mode": {
+   "mode": "based_on_sim"
+  },
+  "stop_mode": {
+   "mode": "hold_to_end"
+  },
+  "in_unit_cannot_stop": true,
+  "in_required_units": true
+ },
+ "s1_ui_controls_after_load": {
+  "uld": "Running",
+  "required": true,
+  "commitment_mode": "continuous",
+  "stop_status": "continuous"
+ },
+ "s2_ui_state_after_load": {
+  "COMMIT_MODE": "continuous",
+  "STOP_MODE": "-",
+  "CANNOT_STOP": true
+ },
+ "s3_payload": {
+  "uld": "Running",
+  "required_mode": {
+   "mode": "continuous"
+  },
+  "stop_mode": null,
+  "in_unit_cannot_stop": true,
+  "in_required_units": false
+ },
+ "s4_saved_record": {
+  "uld": "Running",
+  "required_mode": {
+   "mode": "continuous"
+  },
+  "stop_mode": null,
+  "in_unit_cannot_stop": true,
+  "in_required_units": false
+ },
+ "s5_ui_after_reload": {
+  "controls": {
+   "uld": "Running",
+   "required": true,
+   "commitment_mode": "continuous",
+   "stop_status": "continuous"
+  },
+  "state": {
+   "COMMIT_MODE": "continuous",
+   "STOP_MODE": "-",
+   "CANNOT_STOP": true
+  }
+ },
+ "s6_payload_next_run": {
+  "uld": "Running",
+  "required_mode": {
+   "mode": "continuous"
+  },
+  "stop_mode": null,
+  "in_unit_cannot_stop": true,
+  "in_required_units": false
+ }
+}

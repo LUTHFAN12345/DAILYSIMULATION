@@ -1,0 +1,1870 @@
+[
+ {
+  "case": "A1",
+  "desc": "G9 Stop + Start Based On Simulation + Stop Status Continuous",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 05:30 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 31.64,
+  "cp": 73.1462,
+  "hr": 8324.73,
+  "core": 67,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.1462,
+    "hr": 8324.73
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A2s",
+  "desc": "G9 Stop + Sim + Stop-or-Continuous; malam ringan (stop menguntungkan)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS start bukan 00:30",
+   "PASS G9 05:00-00:00 (stop-or-continuous: lihat family evidence)",
+   "PASS state machine G9 [sim_allowed] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > ELIGIBLE_TO_STOP",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:00-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 71.88,
+  "cp": 74.0977,
+  "hr": 8462.62,
+  "core": 26,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Based On Simulation or Continuous: solver memilih continuous"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 74.0977,
+    "hr": 8462.62
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A2c",
+  "desc": "G9 Stop + Sim + Stop-or-Continuous; malam berat (continuous menguntungkan)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS start bukan 00:30",
+   "PASS G9 06:00-00:00",
+   "PASS state machine G9 [sim_allowed] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > ELIGIBLE_TO_STOP",
+   "PASS G9 Initial Stop tidak berbeban row 1 (06:00-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 26.76,
+  "cp": 73.9168,
+  "hr": 8437.58,
+  "core": 21,
+  "status": "CONVERGED",
+  "g9": "06:00-00:00",
+  "g9_trace": {
+   "selected_start": "06:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Based On Simulation or Continuous: solver memilih continuous"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 12,
+   "selected_start_time": "06:00",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.9168,
+    "hr": 8437.58
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A3",
+  "desc": "G9 Stop + Sim + Stop Based On Simulation (wajib stop)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 wajib stop sebelum 00:00 -> 06:00-20:00",
+   "PASS state machine G9 [sim_must] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > ELIGIBLE_TO_STOP > STOPPED_BY_SIMULATION",
+   "PASS G9 Initial Stop tidak berbeban row 1 (06:00-20:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 172.78,
+  "cp": 73.9957,
+  "hr": 8448.59,
+  "core": 72,
+  "status": "ECONOMIC_REVIEW_SKIPPED_TIME_BUDGET",
+  "g9": "06:00-20:00",
+  "g9_trace": {
+   "selected_start": "06:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "STOP 20:30",
+   "selected_stop_reason": "Stop Based On Simulation (wajib stop): waktu stop dipilih solver"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 12,
+   "selected_start_time": "06:00",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.9957,
+    "hr": 8448.59
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A4",
+  "desc": "G9 Stop + Sim + Hold; sistem feasible tanpa G9 (IE rendah sepanjang hari)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 05:30 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 38.95,
+  "cp": 71.2969,
+  "hr": 8353.92,
+  "core": 46,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:30",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 17,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 181.31,
+   "deliverable_capacity_export_at_first_needed_mw": -151.31,
+   "unit_mw_at_first_needed": 108,
+   "export_margin_at_first_needed_mw": -14.01,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 110.69,
+   "old_rule_latest_start_row": 11,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 71.2969,
+    "hr": 8353.92
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A5",
+  "desc": "G9 Stop + Sim + Hold; profil IE berbeda (G9 dibutuhkan lebih awal)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 01:30 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (01:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 25.22,
+  "cp": 72.8377,
+  "hr": 8276.59,
+  "core": 25,
+  "status": "CONVERGED",
+  "g9": "01:30-00:00",
+  "g9_trace": {
+   "selected_start": "01:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 04:30, first needed 04:30",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 9,
+   "latest_legal_start_time": "04:30",
+   "first_needed_row": 9,
+   "first_failed_row_if_delayed": 9,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 9.31,
+   "deliverable_capacity_export_at_first_needed_mw": 5.69,
+   "unit_mw_at_first_needed": 40,
+   "export_margin_at_first_needed_mw": 27.94,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 38.69,
+   "old_rule_latest_start_row": 3,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 3,
+   "selected_start_time": "01:30",
+   "hold_off_until_row": 3,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 72.8377,
+    "hr": 8276.59
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "B1",
+  "desc": "G9 Stop + Start Based On Request 04:00 + Stop Status Continuous",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 start Request 04:00 (marker 0 MW 04:00, berbeban 04:30) -> 04:30-00:00",
+   "PASS hold sampai 00:00 setelah start",
+   "PASS state machine G9 [req_hold] OFF_INITIAL > START_REQUESTED > STARTED_BY_REQUEST > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (04:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_AT_REQUEST)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 73.9,
+  "cp": 73.7268,
+  "hr": 8387.06,
+  "core": 22,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "04:30-00:00",
+  "g9_trace": {
+   "selected_start": "04:30",
+   "selected_start_reason": "Start Based On Request (04:00)",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "B2",
+  "desc": "G9 Stop + Request 04:00 + Stop Based On Simulation (wajib stop)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 wajib stop sebelum 00:00 -> 04:30-22:00",
+   "PASS G9 start Request 04:00 (marker 0 MW 04:00, berbeban 04:30) -> 04:30-22:00",
+   "PASS state machine G9 [req_must] OFF_INITIAL > START_REQUESTED > STARTED_BY_REQUEST > ELIGIBLE_TO_STOP > STOPPED_BY_SIMULATION",
+   "PASS G9 Initial Stop tidak berbeban row 1 (04:30-22:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_AT_REQUEST)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 344.12,
+  "cp": 74.856,
+  "hr": 8574.34,
+  "core": 86,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "04:30-22:00",
+  "g9_trace": {
+   "selected_start": "04:30",
+   "selected_start_reason": "Start Based On Request (04:00)",
+   "selected_stop": "STOP 22:30",
+   "selected_stop_reason": "Stop Based On Simulation (wajib stop): waktu stop dipilih solver"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "B3",
+  "desc": "G9 Stop + Request 04:00 + Stop-or-Continuous",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 start Request 04:00 (marker 0 MW 04:00, berbeban 04:30) -> 04:30-00:00",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 37.64,
+  "cp": 73.2225,
+  "hr": 8335.37,
+  "core": 22,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "04:30-00:00",
+  "g9_trace": {
+   "selected_start": "04:30",
+   "selected_start_reason": "Start Based On Request (04:00)",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Based On Simulation or Continuous: solver memilih continuous"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "C1",
+  "desc": "G9 Initial Running + Stop Status Continuous (tanpa Commitment)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Initial Running + hold -> 48 row 00:30-00:00",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 6.38,
+  "cp": 72.1756,
+  "hr": 8183.83,
+  "core": 12,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "00:30-00:00",
+  "g9_trace": {
+   "selected_start": "RUNNING_FROM_INITIAL_STATE",
+   "selected_start_reason": "Initial status Running: row 1 melanjutkan operasi",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "C2",
+  "desc": "G9 Initial Running + Stop Based On Simulation (wajib stop)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Initial Running + wajib stop -> 00:30-20:00",
+   "PASS state machine G9 [run_must] RUNNING_INITIAL > ELIGIBLE_TO_STOP > STOPPED_BY_SIMULATION",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (NONE)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 50,
+  "cp": 72.0672,
+  "hr": 8168.14,
+  "core": 86,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "00:30-20:00",
+  "g9_trace": {
+   "selected_start": "RUNNING_FROM_INITIAL_STATE",
+   "selected_start_reason": "Initial status Running: row 1 melanjutkan operasi",
+   "selected_stop": "STOP 20:30",
+   "selected_stop_reason": "Stop Based On Simulation (wajib stop): waktu stop dipilih solver"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "F1",
+  "desc": "Block 3 Required ON, tanpa unit Continuous di blok (G8/G9 tanpa Commitment)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Block 3: >=1 GTG berbeban 48 row (G8 00:30-00:00 | G9 01:00-00:00)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 20.68,
+  "cp": 72.4847,
+  "hr": 8349.49,
+  "core": 14,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "01:00-00:00",
+  "g9_trace": {
+   "selected_start": "01:00",
+   "selected_start_reason": "Tanpa Commitment: start dipilih solver (ekonomi/constraint)",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "ekonomi/constraint solver"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "F2",
+  "desc": "Block 1 Required OFF + token legacy \"required\" di block_priority; G6 tanpa Commitment",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Block 1 OFF: G6 tidak dipaksa 48 row oleh token legacy -> G6 OFF",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 153.12,
+  "cp": 80.4837,
+  "hr": 9424.26,
+  "core": 35,
+  "status": "CONVERGED",
+  "g9": "01:00-00:00",
+  "g9_trace": {
+   "selected_start": "01:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 07:30",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 15,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 3.26,
+   "deliverable_capacity_export_at_first_needed_mw": 11.74,
+   "unit_mw_at_first_needed": 60,
+   "export_margin_at_first_needed_mw": 53.99,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 63.74,
+   "old_rule_latest_start_row": 9,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 2,
+   "selected_start_time": "01:00",
+   "hold_off_until_row": 2,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 80.4837,
+    "hr": 9424.26
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "F3",
+  "desc": "Block 3 Required ON + seluruh GTG blok Stop All Day (konflik input)",
+  "result": "PASS",
+  "checks": [
+   "PASS konflik input ditolak (hard=FAIL, result=rejected)"
+  ],
+  "wall_s": 1.75,
+  "cp": 81.0106,
+  "hr": 8785.02,
+  "core": null,
+  "status": "CERTIFIED_INFEASIBLE",
+  "g9": "OFF",
+  "g9_trace": {
+   "selected_start": null,
+   "selected_start_reason": null,
+   "selected_stop": null,
+   "selected_stop_reason": null
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "A6",
+  "desc": "G4 Stop + Commitment \"-\" + Stop Status Continuous (tidak wajib start; bila start, hold)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS state machine G4 [hold_only] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G4 Initial Stop tidak berbeban row 1 (07:30-00:00)",
+   "PASS G4 tidak menjadi CONTINUOUS_FULL_HORIZON (NONE)",
+   "PASS G4 tidak dipaksa start dini; bila start -> hold sampai 00:00 (07:30-00:00)",
+   "PASS G4 start bukan slot legal paling awal karena cannot_stop (07:30-00:00) reason=Tanpa Commitment: start dipilih solver (ekonomi/constraint)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 36.96,
+  "cp": 73.2179,
+  "hr": 8334.95,
+  "core": 57,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.2179,
+    "hr": 8334.95
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A6x",
+  "desc": "kontrol: G4 Stop + Request 07:30 + hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 54.36,
+  "cp": 73.2624,
+  "hr": 8323.98,
+  "core": 31,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.2624,
+    "hr": 8323.98
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "A6s",
+  "desc": "kontrol: G4 Stop + Sim + hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 40.45,
+  "cp": 73.4767,
+  "hr": 8348.75,
+  "core": 58,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.4767,
+    "hr": 8348.75
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E1",
+  "desc": "Matriks: G3 (GTG Block 1) Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS state machine G3 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G3 Initial Stop tidak berbeban row 1 (17:00-00:00)",
+   "PASS G3 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS G3 Stop awal, start terpilih, hold sampai 00:00 (17:00-00:00)",
+   "PASS G3 start 17:00 bukan fallback slot legal paling awal; reason=Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 17:30",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 30.03,
+  "cp": 73.0934,
+  "hr": 8316.98,
+  "core": 19,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.0934,
+    "hr": 8316.98
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E2",
+  "desc": "Matriks: G7 (standby SC) Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS state machine G7 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G7 Initial Stop tidak berbeban row 1 (19:30-00:00)",
+   "PASS G7 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS G7 Stop awal, start terpilih, hold sampai 00:00 (19:30-00:00)",
+   "PASS G7 start 19:30 bukan fallback slot legal paling awal; reason=Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 20:00",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 24.14,
+  "cp": 74.4726,
+  "hr": 8519.3,
+  "core": 31,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 74.4726,
+    "hr": 8519.3
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "F5",
+  "desc": "Block 3 Required ON + G8 tanpa Commitment (Stop) + G9 Sim + Stop Status Continuous",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 05:30 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS Block 3: >=1 GTG berbeban 48 row (G8 00:30-00:00 | G9 05:30-00:00)",
+   "PASS G9 hold sampai 00:00 setelah start (05:30-00:00) reason=Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 23.77,
+  "cp": 72.4164,
+  "hr": 8342.66,
+  "core": 25,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 72.4164,
+    "hr": 8342.66
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E3",
+  "desc": "Matriks: G1 (GTG Block 2) Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G1 bila start -> hold sampai 00:00 (07:30-00:00)",
+   "PASS G1 tidak dipaksa 00:30 tanpa alasan (07:30-00:00) reason=Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 08:00, first needed 08:30",
+   "PASS state machine G1 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G1 Initial Stop tidak berbeban row 1 (07:30-00:00)",
+   "PASS G1 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 31.11,
+  "cp": 73.2503,
+  "hr": 8322.22,
+  "core": 34,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.2503,
+    "hr": 8322.22
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E4",
+  "desc": "Matriks: G5 (GTG Block 2) Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G5 bila start -> hold sampai 00:00 (07:30-00:00)",
+   "PASS G5 tidak dipaksa 00:30 tanpa alasan (07:30-00:00) reason=Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 07:30, first needed 08:30",
+   "PASS state machine G5 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G5 Initial Stop tidak berbeban row 1 (07:30-00:00)",
+   "PASS G5 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 29.03,
+  "cp": 73.1309,
+  "hr": 8322.63,
+  "core": 22,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.1309,
+    "hr": 8322.63
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E5",
+  "desc": "Matriks: GE1 Stop + Sim + Hold tanpa sumber gas MM2100 legal (konflik input -> wajib ditolak)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Required GE1 tanpa gas legal ditolak (result=rejected, viol=[['required_units', 'GE1 required but never runs']])"
+  ],
+  "wall_s": 71.72,
+  "cp": 73.1555,
+  "hr": 8306.47,
+  "core": 20,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "01:00-00:00",
+  "g9_trace": {
+   "selected_start": "01:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 2,
+   "selected_start_time": "01:00",
+   "hold_off_until_row": null,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.1555,
+    "hr": 8306.47
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E6",
+  "desc": "Matriks: G3 Stop + Commitment \"-\" + Stop Status Continuous (hold-only, GTG Block 1)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G3 bila start -> hold sampai 00:00 (08:30-00:00)",
+   "PASS G3 tidak dipaksa 00:30 tanpa alasan (08:30-00:00) reason=Tanpa Commitment: start dipilih solver (ekonomi/constraint)",
+   "PASS state machine G3 [hold_only] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G3 Initial Stop tidak berbeban row 1 (08:30-00:00)",
+   "PASS G3 tidak menjadi CONTINUOUS_FULL_HORIZON (NONE)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 60.58,
+  "cp": 73.5274,
+  "hr": 8379.8,
+  "core": 34,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.5274,
+    "hr": 8379.8
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E7",
+  "desc": "Matriks: G3 Stop + Sim + Stop-or-Continuous (Stop Allowed)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS state machine G3 [sim_allowed] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > ELIGIBLE_TO_STOP > STOPPED_BY_SIMULATION",
+   "PASS G3 Initial Stop tidak berbeban row 1 (17:30-23:00)",
+   "PASS G3 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 33.58,
+  "cp": 73.2311,
+  "hr": 8337.14,
+  "core": 23,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.2311,
+    "hr": 8337.14
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E8",
+  "desc": "Matriks: G8 Initial Running + Stop Based On Simulation (wajib stop)",
+  "result": "FAIL",
+  "checks": [
+   "FAIL trace invariant FAIL ['G8: I5_MANDATORY_STOP_NOT_STOPPED']",
+   "FAIL state machine G8 [run_must] RUNNING_INITIAL > ELIGIBLE_TO_STOP",
+   "PASS G8 tidak menjadi CONTINUOUS_FULL_HORIZON (NONE)",
+   "FAIL G8 Initial Running + wajib stop -> 00:30-00:00",
+   "FAIL hard validator FAIL"
+  ],
+  "wall_s": 372.96,
+  "cp": 73.3683,
+  "hr": 8348.45,
+  "core": 43,
+  "status": "FASTEST_FIRST_VALID",
+  "g9": "01:00-00:00",
+  "g9_trace": {
+   "selected_start": "01:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 2,
+   "selected_start_time": "01:00",
+   "hold_off_until_row": null,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.3683,
+    "hr": 8348.45
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "E9",
+  "desc": "Matriks: G8 Stop + Sim + Hold (konfigurasi G9 dipindah ke G8; G9 tanpa Commitment)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G8 bila start -> hold sampai 00:00 (01:00-00:00)",
+   "PASS G8 tidak dipaksa 00:30 tanpa alasan (01:00-00:00) reason=Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "PASS state machine G8 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G8 Initial Stop tidak berbeban row 1 (01:00-00:00)",
+   "PASS G8 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 98.53,
+  "cp": 73.1555,
+  "hr": 8306.47,
+  "core": 48,
+  "status": "CONVERGED",
+  "g9": "00:30-00:00",
+  "g9_trace": {
+   "selected_start": "RUNNING_FROM_INITIAL_STATE",
+   "selected_start_reason": "Commitment Unit Continuous Running: berbeban 00:30-00:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Unit Continuous Running"
+  },
+  "startup_proof": null,
+  "family": null
+ },
+ {
+  "case": "E10",
+  "desc": "Matriks: G5 Stop + Request 06:00 + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G5 bila start -> hold sampai 00:00 (06:30-00:00)",
+   "PASS G5 tidak dipaksa 00:30 tanpa alasan (06:30-00:00) reason=Start Based On Request (06:00)",
+   "PASS state machine G5 [req_hold] OFF_INITIAL > START_REQUESTED > STARTED_BY_REQUEST > LOCKED_RUNNING_AFTER_START",
+   "PASS G5 Initial Stop tidak berbeban row 1 (06:30-00:00)",
+   "PASS G5 tidak menjadi CONTINUOUS_FULL_HORIZON (START_AT_REQUEST)",
+   "PASS G5 tidak berbeban sebelum Request 06:00 (06:30-00:00)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 33.37,
+  "cp": 73.1314,
+  "hr": 8322.39,
+  "core": 30,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.1314,
+    "hr": 8322.39
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "P1",
+  "desc": "Unit Priority ditukar G9 > G8 (Block 3), G9 Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 05:30 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:30-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 31.06,
+  "cp": 73.1462,
+  "hr": 8324.73,
+  "core": 67,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.1462,
+    "hr": 8324.73
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "P2",
+  "desc": "Unit Priority ditukar G1 > G2 (Block 2), G1 Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G1 bila start -> hold sampai 00:00 (07:30-00:00)",
+   "PASS G1 tidak dipaksa 00:30 tanpa alasan (07:30-00:00) reason=Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 07:30, first needed 08:30",
+   "PASS state machine G1 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G1 Initial Stop tidak berbeban row 1 (07:30-00:00)",
+   "PASS G1 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 44.11,
+  "cp": 73.0618,
+  "hr": 8312.54,
+  "core": 92,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.0618,
+    "hr": 8312.54
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "F7",
+  "desc": "Block 2 Required ON + G1 Stop + Sim + Hold (G2 Continuous sudah memenuhi blok)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G1 bila start -> hold sampai 00:00 (07:30-00:00)",
+   "PASS G1 tidak dipaksa 00:30 tanpa alasan (07:30-00:00) reason=Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 08:00, first needed 08:30",
+   "PASS state machine G1 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G1 Initial Stop tidak berbeban row 1 (07:30-00:00)",
+   "PASS G1 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS Block 2 Required tidak memaksa G1 48 row (07:30-00:00)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 31.64,
+  "cp": 73.2503,
+  "hr": 8322.22,
+  "core": 34,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 73.2503,
+    "hr": 8322.22
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "D1",
+  "desc": "Gas shortage -> Use Distillate, G9 Stop + Sim + Hold",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS G9 Stop di awal, start terpilih 05:00 (bukan 00:30)",
+   "PASS G9 tidak stop setelah start (hold sampai 00:00)",
+   "PASS state machine G9 [sim_hold] OFF_INITIAL > ELIGIBLE_TO_START > STARTED_BY_SIMULATION > LOCKED_RUNNING_AFTER_START",
+   "PASS G9 Initial Stop tidak berbeban row 1 (05:00-00:00)",
+   "PASS G9 tidak menjadi CONTINUOUS_FULL_HORIZON (START_BASED_ON_SIMULATION)",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 34.18,
+  "cp": 93.6813,
+  "hr": 9235.42,
+  "core": 38,
+  "status": "CONVERGED",
+  "g9": "05:00-00:00",
+  "g9_trace": {
+   "selected_start": "05:00",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 EARLIER_START_ECONOMIC_PROOF, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 10,
+   "selected_start_time": "05:00",
+   "hold_off_until_row": 10,
+   "proof_status": "EARLIER_START_ECONOMIC_PROOF",
+   "cp_hr_full_horizon": {
+    "cp": 93.6813,
+    "hr": 9235.42
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "F4",
+  "desc": "G4 Commitment = Unit Continuous Running (Block Required OFF)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS state machine G4 [cont] REQUIRED_FULL_HORIZON",
+   "PASS G4 Continuous 48 row -> 00:30-00:00",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 33.78,
+  "cp": 73.3894,
+  "hr": 8360.35,
+  "core": 63,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:30",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 17,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 172.17,
+   "deliverable_capacity_export_at_first_needed_mw": -142.17,
+   "unit_mw_at_first_needed": 108,
+   "export_margin_at_first_needed_mw": -4.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G4",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 119.83,
+   "old_rule_latest_start_row": 11,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.3894,
+    "hr": 8360.35
+   }
+  },
+  "family": null
+ },
+ {
+  "case": "F6",
+  "desc": "Block 3 Required ON + G8 Unit Continuous Running (G9 Sim+Hold)",
+  "result": "PASS",
+  "checks": [
+   "PASS trace invariant PASS []",
+   "PASS Block 3: >=1 GTG berbeban 48 row (G8 00:30-00:00 | G9 05:30-00:00)",
+   "PASS G8 Continuous memenuhi blok -> G8 00:30-00:00",
+   "PASS hard validator PASS"
+  ],
+  "wall_s": 30.29,
+  "cp": 73.1462,
+  "hr": 8324.73,
+  "core": 67,
+  "status": "CONVERGED",
+  "g9": "05:30-00:00",
+  "g9_trace": {
+   "selected_start": "05:30",
+   "selected_start_reason": "Start Based On Simulation: dipilih solver \u2014 LATEST_LEGAL_START_PROVEN, latest legal start 05:30, first needed 08:00",
+   "selected_stop": "CONTINUOUS_TO_HORIZON_END",
+   "selected_stop_reason": "Stop Status Continuous Running: hold sampai 00:00 setelah start"
+  },
+  "startup_proof": {
+   "startup_unit": "G9",
+   "latest_legal_start_row": 11,
+   "latest_legal_start_time": "05:30",
+   "first_needed_row": 16,
+   "first_failed_row_if_delayed": 17,
+   "failed_constraint_if_delayed": "EXPORT_RANGE_MIN",
+   "deficit_at_first_needed_mw": 36.31,
+   "deliverable_capacity_export_at_first_needed_mw": -21.31,
+   "unit_mw_at_first_needed": 70,
+   "export_margin_at_first_needed_mw": 78.86,
+   "higher_priority_units_used_first": [
+    "G2",
+    "G6",
+    "G8",
+    "B2"
+   ],
+   "startup_sequence_rows": 6,
+   "startup_sequence_mw": [
+    40,
+    40,
+    50,
+    60,
+    60,
+    70
+   ],
+   "running_fleet_headroom_before_start_mw": 70.69,
+   "old_rule_latest_start_row": 10,
+   "constraint_that_requires_start": "EXPORT_RANGE_MIN (running fleet + unit prioritas lebih tinggi pada effective max tidak cukup)",
+   "selected_start_row": 11,
+   "selected_start_time": "05:30",
+   "hold_off_until_row": 11,
+   "proof_status": "LATEST_LEGAL_START_PROVEN",
+   "cp_hr_full_horizon": {
+    "cp": 73.1462,
+    "hr": 8324.73
+   }
+  },
+  "family": null
+ }
+]
