@@ -1,0 +1,9 @@
+# Tolak akses langsung ke folder config (berisi kredensial). Berlaku bila AllowOverride mengizinkan .htaccess;
+# bila tidak, file config tetap aman karena menjawab 404 tanpa isi saat dibuka langsung.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
