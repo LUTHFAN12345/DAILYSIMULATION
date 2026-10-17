@@ -1,0 +1,211 @@
+{
+ "id": "T043",
+ "group": "B",
+ "title": "Seluruh feeder Block 1 Stop -> input ditolak / Block 1 tidak dapat dipenuhi",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "INPUT_REJECTED:{\"code\": \"FINAL_EXPORT_RANGE_FAILED\", \"message\": \"PLN Export is outside the configured range. row 21: Export 16.49 < RangeMin 30 Recommended action: Keep the so",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: INPUT_REJECTED:{\"code\": \"FINAL_EXPORT_RANGE_FAILED\", \"message\": \"PLN Export is outside the configured range. row 21: Export 16.49 < RangeMin 30 Recommended action: Keep the so; status None; msg PLN Export is outside the configured range. row 21: Export 16.49 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
+ ],
+ "cp": 93.9685,
+ "econ_cp": null,
+ "hr": 8452.62,
+ "gas_bbtud": 65.4553,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.7725,
+ "daily_export_mwh": 642.15,
+ "distillate_l": 215730,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:00",
+  "G1-18:30",
+  "G5+07:30",
+  "G9+01:00"
+ ],
+ "rows": 48,
+ "payload_hash": "095c96ff75ba73eca2950d36",
+ "job_input_hash": "0aa2f7af30bdfabf56bc33e8b51d33d0cd382196efa73770cc9c16bd1afbbc1c",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 45.92,
+ "cpu_s": 45.480000000000004,
+ "max_rss_kb": 218008,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.951
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.086
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.601
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.078
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.205
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.073
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.312
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.105
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.978
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.087
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 29.4
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.024
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.441
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.346
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.228
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.34
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.324
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 5.41
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.026
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 1.95
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.006
+  },
+  {
+   "stage": "priority_fix",
+   "s": 8.647
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.037
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/095c96ff75ba73eca2950d36.json"
+}

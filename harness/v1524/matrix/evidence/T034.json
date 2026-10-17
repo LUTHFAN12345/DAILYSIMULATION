@@ -1,0 +1,230 @@
+{
+ "id": "T034",
+ "group": "B",
+ "title": "Block 1 Required OFF (G6 bebas, S1 bebas)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "INPUT_REJECTED:{\"code\": \"COST_PRODUCTION_PROOF_FAILED\", \"message\": \"Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all el",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: INPUT_REJECTED:{\"code\": \"COST_PRODUCTION_PROOF_FAILED\", \"message\": \"Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all el; status None; msg Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all eligible candidates actually evaluated."
+ ],
+ "cp": 98.1659,
+ "econ_cp": 98.6824,
+ "hr": 8525.84,
+ "gas_bbtud": 65.4597,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.0294,
+ "daily_export_mwh": 715.18,
+ "distillate_l": 250616,
+ "hard_validation": "PASS",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:30",
+   "first_needed": "14:30",
+   "deficit_mw": 12.93,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G3",
+   "start": "08:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G4",
+   "start": "03:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G5",
+   "start": "08:30",
+   "first_needed": "14:30",
+   "deficit_mw": 12.93,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:30",
+   "first_needed": "14:30",
+   "deficit_mw": 12.93,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G9",
+   "start": "04:00",
+   "first_needed": "07:30",
+   "deficit_mw": 36.47,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  }
+ ],
+ "events": [
+  "G1+08:30",
+  "G1-18:30",
+  "G3+08:30",
+  "G3-14:30",
+  "G4+03:30",
+  "G4-09:30",
+  "G5+08:30",
+  "G6+10:30",
+  "G6-16:30",
+  "G9+04:00",
+  "S1+07:00",
+  "S1-16:30"
+ ],
+ "rows": 48,
+ "payload_hash": "f237782b0126c55c0aad0c1d",
+ "job_input_hash": "4e97ca8987900f3d4604165e828625dada8247e2538d6b0872b7fcb243e2886a",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 65.92,
+ "cpu_s": 50.18,
+ "max_rss_kb": 451300,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.65
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.177
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.592
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.087
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.802
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.143
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.137
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 20.613
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.065
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.29
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.305
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 10.187
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 28.151
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.456
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.377
+  },
+  {
+   "stage": "event_proof",
+   "s": 1.515
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.039
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.089
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 44.792
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.037
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.006
+  },
+  {
+   "stage": "gate",
+   "s": 0.083
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.001
+  }
+ ],
+ "tightening_evals": 92,
+ "evidence": "evidence/runs/f237782b0126c55c0aad0c1d.json"
+}

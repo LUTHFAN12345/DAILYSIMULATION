@@ -1,0 +1,76 @@
+T002 A PASS 93.599 G3+05:30 G3-17:00 G5+07:30 G5-19:30 G6+10:00 G9+05:00 S1+09:00 | 
+T003 A PASS 93.599 G3+05:30 G3-17:00 G5+07:30 G5-19:30 G6+10:00 G9+05:00 S1+09:00 | 
+T001 A PASS 98.8143 G1+10:30 G1-16:30 G4+04:00 G4-12:00 G5+08:00 G6+08:30 G9+03:30 S1+07:30 | 
+T005 A PASS 95.1507 G1+08:00 G1-14:00 G4+11:30 G4-17:30 G5+04:30 G5-19:30 G6+08:30 G9+05:00 S1+12:00 | 
+T004 A PASS 94.9591 G3+05:00 G3-16:30 G5+02:30 G5-19:30 G6+10:00 G9+05:00 S1+08:30 | 
+T007 A PASS 94.7619 G3+05:00 G3-17:30 G4+08:00 G4-16:30 G5+16:30 G5-22:30 G6+10:00 G9+05:00 S1+08:30 | 
+T008 A PASS 97.026 G1+04:00 G1-12:00 G4+11:00 G4-17:00 G5+08:30 G6+07:30 G9+05:00 S1+11:00 | 
+T006 A PASS 96.0951 G1+07:30 G1-13:30 G4+11:30 G4-17:30 G5+08:30 G5-19:30 G6+05:00 G9+04:30 S1+08:30 | 
+T010 A PASS 96.0951 G1+07:30 G1-13:30 G4+11:30 G4-17:30 G5+08:30 G5-19:30 G6+05:00 G9+04:30 S1+08:30 | 
+T011 A PASS 98.3858 G1+10:00 G1-16:30 G6+05:30 G9+04:30 S1+09:00 | 
+T013 A PASS 99.4696 G1+10:00 G1-18:30 G5-16:30 G6+05:00 G9+04:00 S1+08:30 | 
+T012 A PASS 98.3858 G1+10:00 G1-16:30 G6+05:30 G9+04:30 S1+09:00 | 
+T015 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T009 A PASS 96.0951 G1+07:30 G1-13:30 G4+11:30 G4-17:30 G5+08:30 G5-19:30 G6+05:00 G9+04:30 S1+08:30 | 
+T016 A PASS 101.4998 G1+08:00 G1-16:30 G5+07:30 G6+07:30 G9+02:30 S1+11:00 | 
+T017 A PASS 98.4434 G1+10:00 G1-16:00 G3+11:30 G3-17:30 G5+07:30 G6+05:30 G9+04:30 S1+09:00 | 
+T019 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T020 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T014 A PASS 98.8802 G1+10:00 G1-16:30 G5-18:30 G6+05:30 G9+04:30 S1+09:00 | 
+T022 A PASS 94.7619 G3+05:00 G3-17:30 G4+08:00 G4-16:30 G5+16:30 G5-22:30 G6+10:00 G9+05:00 S1+08:30 | 
+T018 A PASS 100.699 G1+07:30 G4+05:30 G4-16:30 G6+09:30 G9+04:30 S1+09:00 | 
+T024 A PASS 96.0951 G1+07:30 G1-13:30 G4+11:30 G4-17:30 G5+08:30 G5-19:30 G6+05:00 G9+04:30 S1+08:30 | 
+T025 A PASS 98.8143 G1+10:30 G1-16:30 G4+04:00 G4-12:00 G5+08:00 G6+08:30 G9+03:30 S1+07:30 | 
+T026 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T023 A PASS 96.0473 G1+08:30 G1-16:30 G4+07:30 G4-16:00 G5+07:30 G5-12:30 G5+14:30 G5-20:30 G6+13:00 G9+04:00  | 
+T028 A FAIL 117.4868 G1+01:00 G1-07:00 G3+01:00 G5+07:30 G5-19:30 G6+01:00 G8+01:00 G9+01:00 S1+04:30 S3+06:30 | NG row di luar band export: [1, 2, 3, 13]
+T029 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T030 A PASS 98.8143 G1+10:30 G1-16:30 G4+04:00 G4-12:00 G5+08:00 G6+08:30 G9+03:30 S1+07:30 | 
+T031 A PASS 96.2204 G1+07:30 G5+10:00 G5-16:30 G6+05:30 G9+04:00 S1+09:00 | 
+T032 A PASS 98.3696 G1+08:30 G1-16:30 G5+07:30 G5-18:30 G6+07:00 G9+03:30 S1+10:30 S2+04:00 | 
+T027 A PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T033 B PASS 94.7559 G1+10:00 G1-16:30 G5+08:00 G5-18:30 G9+05:00 | 
+T035 B PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T021 A PASS 68.4413 G1+08:00 G1-17:30 G3+07:30 G3-13:30 G4+12:00 G5+07:30 G5-19:00 G6+11:30 G9+04:30 S1+11:00 | 
+T037 B PASS 94.7559 G1+10:00 G1-16:30 G5+08:00 G5-18:30 G9+05:00 | 
+T038 B PASS 94.7559 G1+10:00 G1-16:30 G5+08:00 G5-18:30 G9+05:00 | 
+T034 B EXPECTED_REJECTION 98.1659 G1+08:30 G1-18:30 G3+08:30 G3-14:30 G4+03:30 G4-09:30 G5+08:30 G6+10:30 G6-16:30 G9+04:00  | 
+T041 B PASS 94.7559 G1+10:00 G1-16:30 G5+08:00 G5-18:30 G9+05:00 | 
+T036 B PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T042 B PASS 94.8505 G1+10:00 G1-16:30 G5+08:00 G5-18:30 G9+05:00 | 
+T044 B PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T043 B EXPECTED_REJECTION 93.9685 G1+08:00 G1-18:30 G5+07:30 G9+01:00 | 
+T039 B PASS 93.4567 G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 | 
+T046 B PASS 72.1139 G5+08:00 G5-16:30 G6+06:30 G9+05:30 S1+10:00 | 
+T045 B FAIL 102.0939 G1+10:00 G1-16:30 G5+07:30 G5-18:30 G6+05:30 G9+01:00 S1+09:00 | NG event proof TIDAK_TERBUKTI not_proven=['G9 START 01:00']
+T047 B FAIL 101.3104 G1+10:00 G1-16:30 G5+07:30 G5-18:30 G6+05:30 G9+02:00 S1+09:00 | NG event proof TIDAK_TERBUKTI not_proven=['G9 START 02:00']
+Traceback (most recent call last):
+  File "/home/user/DAILYSIMULATION/harness/v1524/matrix/mx.py", line 199, in <module>
+    for g, rs in groups.items():
+                             ^^^
+  File "/home/user/DAILYSIMULATION/harness/v1524/matrix/mx.py", line 179, in run_tests
+    todo = [t for t in TESTS if (sel == ['all'] or t['group'] in sel or t['id'] in sel) and t['kind'] == 'engine']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 625, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 318, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/user/DAILYSIMULATION/harness/v1524/matrix/mx.py", line 171, in work
+    'php': b.get('php'), 'affinity': b.get('affinity'), 'wall_s': b.get('wall_s'), 'cpu_s': b.get('cpu_s'), 'max_rss_kb': b.get('max_rss_kb'),
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/DAILYSIMULATION/harness/v1524/matrix/mx.py", line 123, in run_engine
+    return None
+    ^^^^^^^^^^
+  File "/home/user/DAILYSIMULATION/harness/v1524/matrix/mx.py", line 22, in canon
+    for k in list(x.keys()):
+                  ^^^^^^
+AttributeError: 'NoneType' object has no attribute 'keys'

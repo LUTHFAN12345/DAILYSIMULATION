@@ -1,0 +1,236 @@
+{
+ "id": "T012",
+ "group": "A",
+ "title": "Initial Running + Continuous Running (hold) G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 online 48/48"
+ ],
+ "cp": 98.3858,
+ "econ_cp": 98.7735,
+ "hr": 8537.44,
+ "gas_bbtud": 65.4448,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.0514,
+ "daily_export_mwh": 705.85,
+ "distillate_l": 251226,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "10:00",
+   "first_needed": "10:30",
+   "deficit_mw": 7.49,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 7.07,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "07:30",
+   "deficit_mw": 3.78,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+10:00",
+  "G1-16:30",
+  "G6+05:30",
+  "G9+04:30",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "c49af63137503bfe65874b56",
+ "job_input_hash": "67a92bb600b9d5e6948fee5b462add6789a5cc9978fec16fd2c490b6dadfbc63",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 206.47,
+ "cpu_s": 67.95,
+ "max_rss_kb": 400320,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 16.872
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.175
+  },
+  {
+   "stage": "cand_run",
+   "s": 15.535
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.129
+  },
+  {
+   "stage": "cand_run",
+   "s": 17.986
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.155
+  },
+  {
+   "stage": "cand_run",
+   "s": 52.986
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.038
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.379
+  },
+  {
+   "stage": "cand_run",
+   "s": 18.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.038
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.445
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 142.125
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.317
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.299
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.257
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 10.908
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.139
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.073
+  },
+  {
+   "stage": "consol_run",
+   "s": 7.517
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 6.719
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 18.99
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 1.521
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 2.159
+  },
+  {
+   "stage": "event_proof",
+   "s": 9.023
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.02
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.182
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.041
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 52.157
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.054
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.016
+  }
+ ],
+ "tightening_evals": 27,
+ "evidence": "evidence/runs/c49af63137503bfe65874b56.json"
+}
