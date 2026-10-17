@@ -8108,7 +8108,7 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
             }
             if ($ok) { $Mo = pp_v8_masks((array)$o['data']); foreach ($Mo as $u => $mk) foreach ($mk as $r => $on) if ($on && empty($X[$u][$r])) { $ok = false; break 2; } }
             $att[] = ['window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'hold_interval' => $holdIv, 'valid' => $ok, 'why' => $ok ? [] : pp_v1523_viol_detail($orig, $o, $a)];
-            $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[0]['why'], 'attempts' => $att];
+            $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[count($att) - 1]['why'], 'attempts' => $att];
             if ($ok) break; }
     return $res;
 }
@@ -8127,6 +8127,26 @@ function pp_v1523_stage_guard(string $stage, array $input, array $before, array 
     $keep = $before; foreach (['V8 Priority Review', 'Stop Family Evidence', 'Fastest Unit Priority Fix'] as $k) if (isset($after['info'][$k])) { $keep['info'][$k] = $after['info'][$k]; $keep['info'][$k]['reverted_by_comparator_invariant'] = $rec; }
     $keep['info']['Comparator Invariant Guard'] = (array)($GLOBALS['ppV1523Guard'] ?? []);
     return $keep;
+}
+/* Konteks numerik event start (laporan bukti): row sebelum start, beban + batas legal unit running, headroom unit prioritas lebih tinggi
+ * (legal = min(effective max, beban + ramp)), export & batasnya, gas/distillate, STG blok, startup lead-in, dan defisit pada uji tunda. */
+function pp_v1523_start_context(array $orig, array $W, string $u, int $a, array $K, ?array $R): array {
+    $d3 = (array)$orig['data3']; $m = (array)$d3['modeling']; $rows = array_values((array)$W['data']); $rb = max(1, $a - 1); $row = (array)($rows[$rb - 1] ?? []);
+    $run = []; $hr = 0.0; $lvU = (int)($K['level'][$u] ?? 9);
+    foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $x) { $col = pp_sup_col($x); $v = (float)($row[$col] ?? 0); if ($v <= 0.01) continue;
+        $mn = pp_effective_min_load($d3, $m, $x, $rb); $mx = pp_effective_max_load($d3, $m, $x, $rb); $rl = pp_unit_ramp_limit($x);
+        $legal = $rl !== null ? min($mx, $v + $rl) : $mx; $h = max(0.0, $legal - $v);
+        $run[strtoupper($x)] = ['mw' => round($v, 2), 'min' => round($mn, 2), 'max' => round($mx, 2), 'ramp_mw_per_row' => $rl, 'legal_headroom_mw' => round($h, 2), 'priority_level' => isset($K['level'][$x]) ? $K['level'][$x] + 1 : null];
+        if (isset($K['level'][$x]) && $K['level'][$x] < $lvU) $hr += $h; }
+    $stg = pp_gtg_to_stg($d3, $u); $md = $stg ? strtolower((string)($m['stg_startup_mode'][$stg . '_startup'] ?? 'warm')) : '';
+    $def = []; if (is_array($R) && is_array($R['o'] ?? null) && empty($R['valid'])) foreach (array_values((array)$R['o']['data']) as $k => $rw) {
+        $lo = (float)($rw['pln_lo'] ?? 0); $ex = (float)($rw['Export_PLN'] ?? 0); if ($ex < $lo - 1e-6) $def[] = ['row' => $k + 1, 'time' => pp_v1518_row_time($k + 1), 'export_mw' => round($ex, 2), 'export_min_mw' => $lo, 'deficit_mw' => round($lo - $ex, 2)]; }
+    return ['row_before' => $rb, 'time_before' => pp_v1518_row_time($rb), 'running_units' => $run, 'higher_priority_legal_headroom_mw' => round($hr, 2),
+        'ie_mw' => $row['IE'] ?? null, 'export_mw' => $row['Export_PLN'] ?? null, 'export_min_mw' => $row['pln_lo'] ?? null, 'export_max_mw' => $row['pln_hi'] ?? null,
+        'gas_row_bbtud' => $row['Total_Gas'] ?? null, 'distillate_row_l' => $row['Dist_Total'] ?? null,
+        'stg' => $stg ? ['unit' => strtoupper($stg), 'mw_row_before' => $row[strtoupper($stg)] ?? null, 'startup_mode' => $md] : null,
+        'startup_leadin_mw' => pp_start_sequence($d3, $m, $u, array_map(fn($rw) => array_change_key_case((array)$rw, CASE_LOWER), $rows), $a - 1),
+        'delay_test_deficits' => array_slice($def, 0, 8)];
 }
 function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     if (($dump = (string)getenv('PP_V1523_DUMP')) !== '') @file_put_contents($dump, json_encode(['input' => $input, 'out' => $out]));   // harness
@@ -8265,7 +8285,8 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
                 $proofs[] = ['unit' => $U, 'event' => 'START', 'row' => $a, 'time' => pp_v1518_row_time($a), 'requested' => isset($K['free'][$u]) ? 'AUTO_START' : 'REQUIRED_START_BASED_ON_SIMULATION',
                     'priority_level' => ($K['level'][$u] ?? null) !== null ? $K['level'][$u] + 1 : null, 'test' => 'START_SATU_ROW_LEBIH_LAMBAT (row ' . ($a + 1) . ')',
                     'result' => $R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID'),
-                    'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why']), 'attempts' => $R['attempts'] ?? null]; }
+                    'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why']), 'attempts' => $R['attempts'] ?? null,
+                    'context' => pp_v1523_start_context($orig, $W, $u, $a, $K, $R)]; }
             if ($b < 48 && isset($K['free'][$u])) { $X = $XW; $X[$u][$b] = false; $R = $ev($X, true);
                 $proofs[] = ['unit' => $U, 'event' => 'STOP', 'row' => $b + 1, 'time' => pp_v1518_row_time($b + 1), 'test' => 'STOP_SATU_ROW_LEBIH_AWAL (off row ' . $b . ')',
                     'min_runtime_rows' => $runRows($u), 'rows_on' => $b - $a + 1,
