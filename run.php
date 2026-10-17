@@ -3442,7 +3442,7 @@ function pp_v13f_pipeline_core(array $input): array {
          * kandidat ini menjadi basis bukti shortage + estimasi bahan bakar. Dulu seluruh kandidat disimulasikan lalu jatuh ke start
          * paling awal (estimasi distillate membengkak). PP_V1523_SHORTAGE_SEED=0 -> lama. */
         if (!$ok && !$fuelSt && !$pool && $ci0 === 0 && is_array($a) && isset($a['checks']['residual_shortage_zero']) && $a['checks']['residual_shortage_zero'] === false
-            && !pp_v8_fuel_active((array)($c0['data3']['modeling'] ?? [])) && (string)getenv('PP_V1523_SHORTAGE_SEED') !== '0') {
+            && !pp_v8_fuel_active((array)($c0['data3']['modeling'] ?? [])) && !is_array($GLOBALS['ppSpFuelOrig'] ?? null) && (string)getenv('PP_V1523_SHORTAGE_SEED') !== '0') {
             $tried[count($tried) - 1]['shortage_seed'] = 'KEKURANGAN_GAS_TERBUKTI_PADA_START_PALING_LAMBAT'; $GLOBALS['ppV1523ShortageSeed'] = true;
             foreach ($skipProof as $spx) $tried[] = $spx;
             $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => $cand, 'tried' => $tried];
@@ -8089,19 +8089,23 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
     foreach ($X as $u => $mk) { $diff = false; foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) { $diff = true; break; } if (!$diff) continue;
         $stg = pp_gtg_to_stg($d3, $u); $md = $stg ? strtolower((string)($mo['stg_startup_mode'][$stg . '_startup'] ?? ($mo['stg_startup_mode'][$stg] ?? 'warm'))) : '';
         $ext = max($ext, count(pp_startup_caps($stg ?: 'x', $md)) + ($stg && function_exists('pp_stg_release_rows') ? (int)pp_stg_release_rows($stg, $md) : 0) + 1); }
-        $plan = []; foreach ($wds ?? array_map('intval', explode(',', (string)(getenv('PP_V1523_WINDOWS') ?: '3'))) as $w0) { $plan[] = [$w0, false]; if ($compound && (string)getenv('PP_V1523_HOLD_IV') !== '0') $plan[] = [$w0, true]; }
-    foreach ($plan as [$wd, $holdIv]) {
+        $plan = []; foreach ($wds ?? array_map('intval', explode(',', (string)(getenv('PP_V1523_WINDOWS') ?: '3'))) as $w0) { $plan[] = [$w0, false, true]; if ($compound && (string)getenv('PP_V1523_HOLD_IV') !== '0') $plan[] = [$w0, true, true]; }
+    /* jendela pendek (tanpa perluasan sequence STG) sebagai percobaan terakhir: redispatch core di jendela panjang dapat melanggar batas
+     * kecil (mis. ramp Export 35,1 > 35) yang tidak terkait dengan perubahan commitment */
+    if ($ext > 3 && (string)getenv('PP_V1523_SHORT_WINDOW') !== '0') $plan[] = [3, false, false];
+    $ext0 = $ext;
+    foreach ($plan as [$wd, $holdIv, $useExt]) { $ext = $useExt ? $ext0 : 0;
         if ($holdIv) { $anyS = false; foreach ($X as $u => $mk) foreach (pp_v8_intervals((array)$mk) as [$ia, $ib]) if ($ia > 1 && $ia >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $ia <= $r1 + max($wd, $ext)) $anyS = true; if (!$anyS) break; }   // tanpa startup di jendela: percobaan kedua identik
             $in = json_decode(json_encode($orig), true); $mm = &$in['data3']['modeling'];
             $mm['unit_stop_time'] = array_merge((array)($mm['unit_stop_time'] ?? []), pp_v8_stops($X)); $fx = (array)($mm['unit_fix_load'] ?? []);
             foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u); $rules = (array)($fx[$u] ?? []);
                 for ($r = 1; $r <= 48; $r++) { if (($r >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $r <= $r1 + max($wd, $ext)) || pp_get_fixed_load($mm, $u, $r) >= 0 || empty($X[$u][$r])) continue;
-                    $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+                    $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => $v]; }
                 if ($rules) $fx[$u] = $rules; }
             /* Babelan (batubara, ramp 10 MW/row) ikut dikunci di luar jendela: tanpa ini core menggeser lintasan BB di row yang tidak terkait */
             foreach (['b1' => 'BB1', 'b2' => 'BB2'] as $u => $U) { $rules = (array)($fx[$u] ?? []);
                 for ($r = 1; $r <= 48; $r++) { if (($r >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $r <= $r1 + max($wd, $ext)) || pp_get_fixed_load($mm, $u, $r) >= 0) continue;
-                    $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+                    $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => $v]; }
                 if ($rules) $fx[$u] = $rules; }
             /* startup yang berada di dalam jendela DIPAKSA (Start Based on Request pada row start kandidat); core tidak menyalakan unit
              * tak-diminta dengan sendirinya, sehingga tanpa ini penundaan start terbaca sebagai decommit */
@@ -8246,7 +8250,10 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
                 if ($a > 1 || !preg_match('/run/i', (string)($m['unit_last_data_status'][$U] ?? ''))) {
                     $hiS = $b === 48 ? 47 : $b - $mr + 1; $loS = $a + 1;
                     $X1 = $XW; $X1[$u][$a] = false; $R1 = $hiS >= $loS ? $ev($X1) : null;
-                    if ($R1 !== null && $R1['valid'] && pp_v1523_cmp($R1['met'], $mW) < 0 && $hiS >= $loS) { $X = $XW; for ($r = $a; $r < $hiS; $r++) $X[$u][$r] = false;
+                    /* uji satu row gagal HANYA di luar jendela uji (artefak redispatch) -> tidak dianggap bukti; penundaan maksimum tetap diuji */
+                    $artifact = false; if ($R1 !== null && !$R1['valid'] && is_array($R1['window'] ?? null)) { $artifact = true;
+                        foreach ((array)$R1['why'] as $w) if (!preg_match('/row (\d+)/', (string)$w, $mm) || ((int)$mm[1] >= $R1['window'][0] && (int)$mm[1] <= $R1['window'][1])) { $artifact = false; break; } }
+                    if ($R1 !== null && ($artifact || ($R1['valid'] && pp_v1523_cmp($R1['met'], $mW) < 0)) && $hiS >= $loS) { $X = $XW; for ($r = $a; $r < $hiS; $r++) $X[$u][$r] = false;
                         if ($try(sprintf('DELAY_START:%s:%d-%d:@%d', $U, $a, $b, $hiS), $X, 'DELAY_START')) $chg = true;
                         else { $lo = $loS; $hi = $hiS - 1;
                             while ($lo <= $hi) { $mid = intdiv($lo + $hi + 1, 2); $X = $XW; for ($r = $a; $r < $mid; $r++) $X[$u][$r] = false;
