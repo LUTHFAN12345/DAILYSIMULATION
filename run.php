@@ -3419,7 +3419,13 @@ function pp_v13f_pipeline_core(array $input): array {
         $wdC = $wdOf($ci0, $leftA);
         $o = $pre[$ci0] ?? pp_sp_cand_run($ci, $wdC); if ($hook !== null) $GLOBALS['ppTlHook'] = $hook; pp_sp_prof(isset($pre[$ci0]) ? 'cand_reuse_parallel' : 'cand_run', $tC, ['cand' => $cand]);
         $tA = microtime(true); $a = null; try { $a = pp_sp_assess($c0, $o); } catch (Throwable $e) { $a = null; } pp_sp_prof('cand_assess', $tA, ['cand' => $cand]);
-        $fuelSt = false; [$a, $o, $fuelSt] = pp_v1523_fuel_assess($a, $o); $cRank = $fuelSt ? $GLOBALS['ppSpFuelOrig'] : $c0;
+        $fuelSt = false; unset($GLOBALS['ppV1523FuelGasOnly']); [$a, $o, $fuelSt] = pp_v1523_fuel_assess($a, $o); $cRank = $fuelSt ? $GLOBALS['ppSpFuelOrig'] : $c0;
+        /* V15.23: kandidat start paling lambat gagal di state bahan bakar HANYA karena window gas (bahan bakar tambahan membuat gas cukup;
+         * dispatch basis kekurangan gas tidak mewakili) -> basis dihentikan, rerun memakai pipeline langsung di state bahan bakar
+         * (kandidat lain dari basis pasti sama tidak mewakili; terukur 41 s terbuang pada LNG +12). */
+        if (!$fuelSt && $ci0 === 0 && !empty($GLOBALS['ppV1523FuelGasOnly']) && is_array($GLOBALS['ppSpFuelOrig'] ?? null) && (string)getenv('PP_V1523_FUEL_GASONLY_ABORT') !== '0') {
+            $tried[] = ['start_rows' => $cand, 'valid' => false, 's' => round(microtime(true) - $tC, 2), 'cp' => $o['info']['Cost Production (USD/MWh)'] ?? null, 'failed_checks' => ['FUEL_STATE_GAS_WINDOW_ONLY'], 'note' => 'BASIS_SHORTAGE_TIDAK_MEWAKILI_STATE_BAHAN_BAKAR'];
+            $GLOBALS['ppV1518StartupPlan'] = ['plan' => $plan, 'cand' => null, 'tried' => $tried]; $GLOBALS['ppV1523ShortageSeed'] = true; return $o; }
         /* V15.23: kandidat yang gagal HANYA pada window gas (gas_only) didaratkan pada commitment yang sama (lever gas engine, maks 8 evaluasi)
          * sebelum dinyatakan gagal — penolakan langsung memaksa fallback start paling awal (terukur: G6/G9 01:00, 124 s). */
         if (!$fuelSt && is_array($a) && empty($a['valid']) && !empty($a['gas_only']) && (string)getenv('PP_V1523_CAND_GAS_LAND') !== '0') {
@@ -3551,7 +3557,7 @@ function pp_v1523_fuel_assess(?array $a, array $o): array {
     try { $fz = pp_v3_frozen_eval($fo, (array)$o['data'], microtime(true) + 60.0); } catch (Throwable $e) { $fz = null; }
     finally { pp_tl_clean_globals(); foreach ($sv as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); }
     pp_sp_prof('cand_fuel_assess', $t);
-    if (!is_array($fz) || empty($fz['valid']) || !is_array($fz['output'] ?? null)) return [$a, $o, false];
+    if (!is_array($fz) || empty($fz['valid']) || !is_array($fz['output'] ?? null)) { $GLOBALS['ppV1523FuelGasOnly'] = is_array($fz) && !empty($fz['gas_only']); return [$a, $o, false]; }
     $out = $fz['output']; $out['info']['Run Status'] = (array)($o['info']['Run Status'] ?? []);
     $out['info']['V15.23 Fuel State Assessment'] = ['basis_cp' => $o['info']['Cost Production (USD/MWh)'] ?? null, 'fuel_cp' => $out['info']['Cost Production (USD/MWh)'] ?? null,
         'basis_failed_checks' => is_array($a) ? array_keys(array_filter((array)($a['checks'] ?? []), fn($x) => $x === false)) : null];
