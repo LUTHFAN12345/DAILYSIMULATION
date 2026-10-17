@@ -1,0 +1,10 @@
+new cold 1 rc=0 wall=28.75
+new cold 2 rc=0 wall=31.34
+new cold 3 rc=0 wall=29.83
+new warm rc=0 wall=0.42
+new cache-off rc=0 wall=30.54
+new prelim rc=0 wall=5.71
+new rerun-after-prelim rc=0 wall=29.51
+old prelim rc=0 wall=78.07
+old rerun-after-prelim rc=0 wall=7.94
+ALLDONE

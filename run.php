@@ -8140,7 +8140,10 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
             if ($ok) { $Mo = pp_v8_masks((array)$o['data']); foreach ($Mo as $u => $mk) foreach ($mk as $r => $on) if ($on && empty($X[$u][$r])) { $ok = false; break 2; } }
             $att[] = ['window' => [max(1, $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1))), min(48, $r1 + max($wd, $ext))], 'hold_interval' => $holdIv, 'valid' => $ok, 'why' => $ok ? [] : pp_v1523_viol_detail($orig, $o, $a)];
             $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1))), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[count($att) - 1]['why'], 'attempts' => $att];
+            if (!$ok && !isset($first)) $first = $res;
             if ($ok) break; }
+    /* semua percobaan gagal: alasan + output dari percobaan pertama (jendela penuh sequence/STG) — percobaan cadangan dapat gagal karena artefak penguncian */
+    if (is_array($res) && empty($res['valid']) && isset($first)) { $first['attempts'] = $att; $res = $first; }
     return $res;
 }
 /* V15.23 INVARIANT KOMPARATOR (F) untuk tahap review sesudah tightening (V8 / family / Unit Priority Fix): hasil tahap diterapkan hanya bila
@@ -8185,7 +8188,7 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $t0 = microtime(true); $orig = pp_v1523_orig($input); $m = (array)$orig['data3']['modeling']; $d3 = (array)$orig['data3'];
     if (!empty($m['change_over']['enabled'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'CHANGE_OVER']; return $out; }
     $K = pp_v1523_classes($orig);
-    $cap = !empty($opt['post_v8']) ? (int)(getenv('PP_V1523_EVAL_CAP2') ?: 24) : (int)(getenv('PP_V1523_EVAL_CAP') ?: 36); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 12); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
+    $cap = !empty($opt['post_v8']) ? (int)(getenv('PP_V1523_EVAL_CAP2') ?: 24) : (int)(getenv('PP_V1523_EVAL_CAP') ?: 36); $proofCap = (int)(getenv('PP_V1523_PROOF_CAP') ?: 16); $dl = $t0 + (float)(getenv('PP_V1523_WALL_S') ?: 60.0);
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     $cache = []; $nEval = 0; $nHit = 0; $log = [];
@@ -8326,6 +8329,15 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
                     'result' => $R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID'),
                     'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why']), 'attempts' => $R['attempts'] ?? null,
                     'context' => pp_v1523_start_context($orig, $W, $u, $a, $K, $R)]; }
+            /* invariant E: unit tak-diminta berprioritas lebih rendah running -> uji penggantian oleh peer tak-diminta berprioritas tertinggi yang Stop */
+            if (isset($K['free'][$u])) { $peers = array_keys($K['free']); usort($peers, fn($x, $y) => ($K['rank'][$x] ?? 99) <=> ($K['rank'][$y] ?? 99));
+                foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $busy = false;
+                    for ($r = max(1, $a - 4); $r <= min(48, $b + 4); $r++) if (!empty($XW[$p][$r])) { $busy = true; break; } if ($busy) continue;
+                    $X = $XW; for ($r = $a; $r <= $b; $r++) { $X[$u][$r] = false; $X[$p][$r] = true; } $R = $ev($X, true, true);
+                    $proofs[] = ['unit' => $U, 'event' => 'PRIORITY_REPLACEMENT', 'row' => $a, 'time' => pp_v1518_row_time($a), 'test' => sprintf('SWAP %s->%s row %d-%d', $U, strtoupper($p), $a, $b),
+                        'result' => $R === null ? 'TIDAK_DIEVALUASI_BATAS' : ($R['valid'] ? (pp_v1523_cmp($R['met'], $mW) < 0 ? 'VALID_LEBIH_BAIK' : 'VALID_TIDAK_LEBIH_BAIK') : 'TIDAK_VALID'),
+                        'reason' => $R === null ? null : ($R['valid'] ? ['metrics' => $R['met'], 'incumbent' => $mW] : $R['why'])];
+                    break; } }
             if ($b < 48 && isset($K['free'][$u])) { $X = $XW; $X[$u][$b] = false; $R = $ev($X, true);
                 $proofs[] = ['unit' => $U, 'event' => 'STOP', 'row' => $b + 1, 'time' => pp_v1518_row_time($b + 1), 'test' => 'STOP_SATU_ROW_LEBIH_AWAL (off row ' . $b . ')',
                     'min_runtime_rows' => $runRows($u), 'rows_on' => $b - $a + 1,
