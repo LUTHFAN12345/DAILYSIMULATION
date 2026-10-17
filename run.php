@@ -8206,17 +8206,17 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
         $chg = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) $chg[$r] = true;
         if (!$chg) return $cache[$sig] = $cache[pp_v3_sig(pp_v8_stops($XW))] ?? null;
         $nEval++; $res = pp_v1523_local_eval($orig, $W, $XW, $X, $K, $restore, $chg, null, $compound); $nEval += max(0, count((array)($res['attempts'] ?? [])) - 1);
+        /* window gas wajib-terpakai (take-or-pay) mengikat: bila 6 evaluasi pertama seluruhnya gagal HANYA karena gas_quota, pelepasan/penundaan
+         * unit terbukti menurunkan pemakaian gas di bawah window -> pencarian dihentikan (alasan numerik tetap tercatat) */
+        if ((int)($GLOBALS['ppV1523GasFail'] ?? 0) >= 0) { if (!empty($res['valid'])) $GLOBALS['ppV1523GasFail'] = -999;
+            else { $onlyGas = (bool)($res['why'] ?? []); foreach ((array)($res['why'] ?? []) as $w) if (strpos((string)$w, 'gas_quota') !== 0) { $onlyGas = false; break; }
+                $GLOBALS['ppV1523GasFail'] = $onlyGas ? (int)($GLOBALS['ppV1523GasFail'] ?? 0) + 1 : -999; } }
         return $cache[$sig] = $res;
     };
     $runRows = function (string $u) use ($m, $d3): int { return max(1, (int)(pp_runtime_limits($m)[pp_runtime_class($u, $d3)]['run_rows'] ?? 8)); };
     $try = function (string $id, array $X, string $kind, bool $guardCp = false) use (&$W, &$XW, &$mW, &$log, $ev, &$nEval): bool {
         $R = $ev($X, false, in_array($kind, ['ADVANCE_REPLACE_PEER', 'DELAY_REQUIRED_BACKFILL', 'SWAP', 'ADVANCE_REPLACE'], true)); if ($R === null) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_DIEVALUASI_BATAS']; return false; }
-        if (!$R['valid']) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_VALID', 'reason' => $R['why']];
-            /* window gas wajib-terpakai (take-or-pay) mengikat: bila 6 langkah pertama seluruhnya gagal HANYA karena gas_quota, pelepasan unit
-             * terbukti menurunkan pemakaian gas di bawah window -> pencarian dihentikan (bukti dicatat), tidak membakar waktu */
-            $onlyGas = true; foreach ((array)$R['why'] as $w) if (strpos((string)$w, 'gas_quota') !== 0) { $onlyGas = false; break; }
-            $GLOBALS['ppV1523GasFail'] = $onlyGas ? (int)($GLOBALS['ppV1523GasFail'] ?? 0) + 1 : -999; return false; }
-        $GLOBALS['ppV1523GasFail'] = -999;
+        if (!$R['valid']) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'TIDAK_VALID', 'reason' => $R['why']]; return false; }
         $c = pp_v1523_cmp($R['met'], $mW); $cpOk = !$guardCp || $R['met']['econ_cp'] <= $mW['econ_cp'] * 1.002 + 1e-9;
         if ($c < 0 && $cpOk) { $log[] = ['move' => $id, 'kind' => $kind, 'result' => 'DITERAPKAN', 'at_eval' => $nEval, 'before' => $mW, 'after' => $R['met']]; $W = $R['o']; $XW = $X; $mW = $R['met']; return true; }
         $log[] = ['move' => $id, 'kind' => $kind, 'result' => $cpOk ? 'VALID_TIDAK_LEBIH_BAIK' : 'DITOLAK_CP_LEBIH_BURUK', 'metrics' => $R['met'], 'incumbent' => $mW]; return false;
