@@ -9027,7 +9027,7 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
     if (!in_array($act, ['add_lng', 'use_distillate', 'mixed_lng_distillate'], true) || !empty($m['change_over']['enabled'])) return null;
     $t0 = microtime(true); $ceil = (float)($GLOBALS['__pp_async_worker_ceiling'] ?? 1800.0);
     $base = null; $baseKey = null;
-    foreach (['recommendation', 'none'] as $a0) {
+    foreach ((pp_v13f_is_fast($input) && (string)getenv('PP_V1523_FUEL_ASSESS') !== '0') ? [] : ['recommendation', 'none'] as $a0) {   // V15.23: Fastest tidak memakai memo basis state shortage (lihat basis Fastest di bawah)
         $c = $input; $mm = &$c['data3']['modeling']; $mm['gas_shortage_action'] = $a0; $mm['additional_lng'] = 0;
         foreach (['distillate_user_limit_litres', '__fuel_decision_mode', '__probe_tested', '__probe_state'] as $k) unset($mm[$k]); unset($mm);
         try { $key = pp_sim_state_key(pp_econ_job_sim_input(pp_normalize_copy($c), $ceil)); } catch (Throwable $e) { continue; }
@@ -9048,7 +9048,12 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
     if ($base === null && ($fastV7 || (string)getenv('PP_V15_MAX_FAMILY_BASIS') !== '1')) {
         /* V15.15 Fastest: basis Fastest (pipeline yang sama, disimpan saat shortage terbukti); tanpa itu dihitung sekali. */
         try { $kF = pp_v13f_basis_key($input); $rF = pp_tl_read(pp_v13f_basis_file($kF));
-            if (is_array($rF) && ($rF['key'] ?? '') === $kF && count((array)($rF['output']['data'] ?? [])) === 48) { $base = $rF['output']; $baseKey = 'fast:' . $kF; }
+            /* V15.23: basis hanya dipakai ulang bila dibuat oleh rerun dengan AKSI BAHAN BAKAR yang sama (kandidat start dinilai pada state
+             * bahan bakar itu) — basis run pendahuluan (recommendation) dibuat dari kandidat yang dinilai di state shortage (fallback start
+             * paling awal) dan tidak sah sebagai benih. Pool kandidat start + rencana startup dipulihkan sehingga cold = warm. */
+            $fuelOkF = (string)getenv('PP_V1523_FUEL_ASSESS') === '0' || (string)($rF['fuel_action'] ?? '') === $act;
+            if (is_array($rF) && $fuelOkF && ($rF['key'] ?? '') === $kF && count((array)($rF['output']['data'] ?? [])) === 48) { $base = $rF['output']; $baseKey = 'fast:' . $kF;
+                if (is_array($rF['sp'] ?? null)) { foreach (['pool' => 'ppSpPool', 'meta' => 'ppSpPoolMeta', 'plan' => 'ppV1518StartupPlan'] as $sk => $gk) if (isset($rF['sp'][$sk])) $GLOBALS[$gk] = $rF['sp'][$sk]; } }
             else { $c = $input; $mm = &$c['data3']['modeling']; $mm['gas_shortage_action'] = 'recommendation'; $mm['additional_lng'] = 0;
                 foreach (['distillate_user_limit_litres', '__fuel_decision_mode', '__probe_tested', '__probe_state'] as $k) unset($mm[$k]); unset($mm);
                 $savedB = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $savedB[$gk] = $gv;
@@ -9069,7 +9074,8 @@ function pp_v7_fuel_rerun_from_basis(string $jobId, array $input): ?array {
                     $GLOBALS['ppSpFuelOrig'] = $fo; $GLOBALS['ppSpFuelInput'] = $input; }
                 try { $base = pp_v13f_pipeline($c); } finally { unset($GLOBALS['ppSpFuelOrig']); } unset($GLOBALS['ppTlHook']); if ($hookB !== null) $GLOBALS['ppTlHook'] = $hookB;
                 pp_tl_clean_globals(); foreach ($savedB as $gk => $gv) $GLOBALS[$gk] = $gv;
-                if (count((array)($base['data'] ?? [])) !== 48) $base = null; else { $baseKey = 'fast:' . $kF; pp_tl_write(pp_v13f_basis_file($kF), ['key' => $kF, 'at' => microtime(true), 'output' => $base]); } } }
+                if (count((array)($base['data'] ?? [])) !== 48) $base = null; else { $baseKey = 'fast:' . $kF; pp_tl_write(pp_v13f_basis_file($kF), ['key' => $kF, 'at' => microtime(true), 'output' => $base, 'fuel_action' => $act,
+                    'sp' => ['pool' => $GLOBALS['ppSpPool'] ?? null, 'meta' => $GLOBALS['ppSpPoolMeta'] ?? null, 'plan' => $GLOBALS['ppV1518StartupPlan'] ?? null]]); } } }
         catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $base = null; }
     }
     if ($base === null && !$fastV7 && (pp_memo_off() || pp_v9_canon())) {
