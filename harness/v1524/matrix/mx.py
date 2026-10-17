@@ -145,8 +145,8 @@ def run_engine(inp, cpu, envx=None):
 
 # ---------- test registry ----------
 TESTS = []
-def T(group, title, base, mut, expect='PASS', checks=(), kind='engine', note='', env=None):
-    TESTS.append({'group': group, 'title': title, 'base': base, 'mut': mut, 'expect': expect, 'checks': list(checks), 'kind': kind, 'note': note, 'env': env or {}})
+def T(group, title, base, mut, expect='PASS', checks=(), kind='engine', note='', env=None, precheck=None):
+    TESTS.append({'group': group, 'title': title, 'base': base, 'mut': mut, 'expect': expect, 'checks': list(checks), 'kind': kind, 'note': note, 'env': env or {}, 'precheck': precheck})
 
 def evaluate(t, res, inp, h, cached, wall):
     rr = R(res, inp); notes = []; ok = True
@@ -157,7 +157,14 @@ def evaluate(t, res, inp, h, cached, wall):
         except Exception as e: good, msg = False, 'CHECK_ERROR ' + repr(e)
         notes.append(('OK ' if good else 'NG ') + msg); ok = ok and good
     if not pub: notes.append(('OK ' if tp else 'NG ') + f'tidak dipublikasikan; terminal proof: {tp}; status {rr.status()}; msg {str(rr.o.get("message") or "")[:160]}')
-    if t['expect'] == 'PASS': status = 'PASS' if (pub and ok) else 'FAIL'
+    if t['expect'] == 'PRECHECK_REJECT':   # penolakan oleh precheck Fix Load server (dipanggil UI sebelum Run); run engine dicatat sebagai bukti tambahan
+        u, row, val = t['precheck']; inpF = os.path.join(RUNS, h + '.in.json')
+        pr = subprocess.run([PHP, os.path.join(ROOT, 'fixpre.php'), APP, inpF, u, str(row), str(val)], capture_output=True, text=True)
+        try: pj = json.loads(pr.stdout)
+        except Exception: pj = {'ok': None, 'raw': pr.stdout[-300:] + pr.stderr[-300:]}
+        rej = pj.get('ok') is False and bool(pj.get('reasons')); notes.append(('OK ' if rej else 'NG ') + 'fix_precheck: ' + json.dumps(pj)[:300])
+        status = 'EXPECTED_REJECTION' if rej else 'FAIL'
+    elif t['expect'] == 'PASS': status = 'PASS' if (pub and ok) else 'FAIL'
     elif t['expect'] == 'REJECT': status = 'EXPECTED_REJECTION' if (not pub and tp and ok) else 'FAIL'
     else: status = 'PASS' if (pub and ok) else ('EXPECTED_REJECTION' if (not pub and tp and ok) else 'FAIL')
     pf = rr.proof(); b = res.get('__bench') or {}

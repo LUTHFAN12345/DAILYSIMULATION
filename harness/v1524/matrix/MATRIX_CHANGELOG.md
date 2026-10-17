@@ -34,3 +34,12 @@ Format: setiap perubahan/penggantian/penambahan skenario terhadap katalog minimu
   gas yang masih dapat dipakai) + opsi (plafon liter yang dibutuhkan / LNG tambahan); sebelumnya pratinjau non-terminal.
 - T034/T045/T047: Unit Priority Fix sesudah Tightening membuat tunda-start menjadi valid & lebih baik -> penutupan bukti event pada dispatch FINAL.
 - T055/T076/T079/T081/T091/T107: oracle diperbaiki (baris pembanding salah / hash job dari __bench / window gas = Total Gas Used vs [kuota-0,04, kuota]).
+- T154/T164 (trip G9 besar): tidak ada commitment valid ditemukan (row 17 Export 19,32 < 30; G1 start 08:00 masih dalam sequence, G7/G10 tidak di-start).
+  IDENTIK pada V15.22 (hash dispatch 4f6536ff19d8). Percobaan repair generik (majukan start unit sebelum defisit / start unit tersedia) dievaluasi
+  dengan redispatch jendela lokal: seluruh kandidat tidak valid (defisit memburuk), +30 s -> dibatalkan. Dicatat sebagai keterbatasan.
+- H7/H8/H9/H11 (Fix di atas MAX / di bawah MIN / unit Trip / sesudah Stop Request): oracle = precheck Fix Load server (pp_sp_fix_precheck, jalur
+  Ctrl+Click/Fix Load UI sebelum Run) wajib menolak dengan reason code; run engine dicatat sebagai bukti tambahan.
+- G11/G12 (Change Over): fixture disamakan dengan payload UI (buildChangeOverObj: GTG priority-1 + STG per block, Block 2 Required sebagai anchor).
+- F1–F18, H13/H14: nilai Actual Gas realistis (±10% dari estimasi per row); fixture lama (1,2/row = 18x estimasi) tidak realistis.
+- Oracle penolakan diperketat: pesan "lever legal habis" hanya dianggap bukti terminal bila aksi bahan bakar belum dipilih (keputusan operator);
+  bila aksi sudah dipilih, engine wajib memberi status TERMINAL eksplisit.

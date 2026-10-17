@@ -353,10 +353,10 @@ def define(G):
     T('G', 'Unit unavailable sebagian horizon (G3 06:00-12:00)', A0, lambda i: trip(i, 'g3', 13, 24), 'EITHER', std + [off_rows('g3', 13, 24)])
     T('G', 'Recovery availability (G5 unavailable 00:00-10:00 lalu tersedia)', A0, lambda i: trip(i, 'g5', 1, 20), 'EITHER', std + [off_rows('g5', 1, 20)])
     def co(legal):
-        def m(i):
-            block_req(i, 'Block 2', True); set_unit(i, 'g6', 'Stop')
-            M(i)['change_over'] = {'enabled': True, 'blocks': {'1': {'block': '1', 'last_status': 'Stop', 'gtg': ['g6', 'g4', 'g3'], 'stg': 's1', 'start_other': '08:00' if legal else '00:30'},
-                                                                 '2': {'block': '2', 'last_status': 'Running', 'gtg': ['g2', 'g5', 'g1'], 'stg': 's2', 'stop_other': '12:00' if legal else '01:00'}}}
+        def m(i):   # payload Change Over persis seperti UI (buildChangeOverObj): satu GTG priority-1 + STG per block; Block 2 Required = anchor
+            block_req(i, 'Block 2', True); set_unit(i, 'g6', 'Stop'); set_unit(i, 's1', 'Stop'); set_unit(i, 'g2', 'Running'); set_unit(i, 's2', 'Running')
+            M(i)['change_over'] = {'enabled': True, 'blocks': {'1': {'block': '1', 'last_status': 'Stop', 'gtg': 'g6', 'stg': 's1', 'start_other': '08:00' if legal else '00:30'},
+                                                                 '2': {'block': '2', 'last_status': 'Running', 'gtg': 'g2', 'stg': 's2', 'stop_other': '12:00' if legal else '01:00'}}}
             return i
         return m
     T('G', 'Change Over legal (Block 1 start 08:00, Block 2 stop 12:00)', A0, co(True), 'EITHER', [rows48()])
@@ -376,11 +376,11 @@ def define(G):
     T('H', 'Ctrl+Click Full Screen -> Fix rentang (G8 90 MW row 10-14) [payload]', A0, fx('g8', 10, 14, 90), 'EITHER', std + [fix_load('g8', 10, 14, 90)])
     T('H', 'Edit Fix Load (G2 25 -> 27 MW row 20)', A0, fx('g2', 20, 20, 27), 'EITHER', std + [fix_load('g2', 20, 20, 27)])
     T('H', 'Remove Fix Load (kembali ke A0)', A0, lambda i: M(i).__setitem__('unit_fix_load', []) or i, 'PASS', std + [same_commit_as(A0)])
-    T('H', 'Fix di atas MAX ditolak (G2 40 MW)', A0, fx('g2', 20, 20, 40), 'REJECT', [])
-    T('H', 'Fix di bawah MIN ditolak (G2 5 MW)', A0, fx('g2', 20, 20, 5), 'REJECT', [])
-    T('H', 'Fix pada unit Trip/Unavailable ditolak (G5 trip + fix)', A0, chain(lambda i: trip(i, 'g5'), fx('g5', 20, 20, 25)), 'REJECT', [])
+    T('H', 'Fix di atas MAX ditolak (G2 40 MW)', A0, fx('g2', 20, 20, 40), 'PRECHECK_REJECT', [], precheck=('g2', 20, 40))
+    T('H', 'Fix di bawah MIN ditolak (G2 5 MW)', A0, fx('g2', 20, 20, 5), 'PRECHECK_REJECT', [], precheck=('g2', 20, 5))
+    T('H', 'Fix pada unit Trip/Unavailable ditolak (G5 trip + fix)', A0, chain(lambda i: trip(i, 'g5'), fx('g5', 20, 20, 25)), 'PRECHECK_REJECT', [], precheck=('g5', 20, 25))
     T('H', 'Fix pada startup transition (G9 row 11 = 45 MW)', A0, fx('g9', 11, 11, 45), 'EITHER', [rows48()])
-    T('H', 'Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30)', A0, chain(lambda i: set_unit(i, 'g5', 'Running', None, 'request', stop_at='12:00'), fx('g5', 30, 30, 25)), 'REJECT', [])
+    T('H', 'Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30)', A0, chain(lambda i: set_unit(i, 'g5', 'Running', None, 'request', stop_at='12:00'), fx('g5', 30, 30, 25)), 'PRECHECK_REJECT', [], precheck=('g5', 30, 25))
     T('H', 'Infeasible Fix dengan terminal proof (G8 105 seluruh hari + G2 31)', A0, chain(fx('g8', 1, 48, 105), fx('g2', 1, 48, 31)), 'EITHER', [rows48()])
     T('H', 'Fix + Actual Gas lebih tinggi', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 0.075)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
     T('H', 'Fix + Actual Gas lebih rendah', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 0.055)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
