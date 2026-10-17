@@ -194,3 +194,18 @@ UI-S1 (G1/G3/G4/G5: Initial Status Stop + Commitment Mode Simulation -> tidak da
 - Benchmark: `harness/v1524/bench/bench_final.md|json` (+ skrip `bench.sh`, `post.sh`, `benchrep.py`); raw JSON per run tidak dimasukkan (59 MB; dapat dibangkitkan ulang dengan `bench.sh`).
 - Helper failure: `harness/v1524/evidence/helper_fault_final/`; UI: `harness/v1524/evidence/ui_smoke/`.
 - Harness: `harness/v1524/runjob2.php` (runner job + pengukuran wall/CPU/RSS/affinity), `hf/`, `ui/`, `pack/pack.sh`.
+
+## 10. Paket final, clean install, dan smoke dari ZIP
+Dibangun oleh `harness/v1524/pack/pack.sh` dari commit branch `claude/keen-galileo-sjjhsk`.
+
+| ZIP | isi | SHA-256 |
+|---|---|---|
+| `XAMPP_FINAL_VALIDATED_PATCH.zip` | run.php, worker02.php, CHECKPOINT.md, DEPLOYMENT_MANIFEST.md, SHA256SUMS.txt | `179a2dcdd62a54443710613a2f005be070aa9bba4348b17be74b6ca88e80b768` |
+| `XAMPP_FINAL_VALIDATED_FULL_DEPLOYMENT.zip` | runtime lengkap (tanpa config/db.php, secret, jobs, saved, input/output data, profiler, fixture, harness) | `cc8135fc4ab197b381d534ae2078547a2e3fd83ea27c89c1e9e851fbf66f8aef` |
+| `XAMPP_FINAL_VALIDATED_DOCUMENTATION.zip` | REPORT.md, CHECKPOINT.md, harness + evidence | (dicatat di jawaban akhir; ZIP ini memuat laporan ini sendiri) |
+
+Verifikasi (seluruhnya pada hasil ekstrak FULL ZIP di folder kosong):
+- `sha256sum -c SHA256SUMS.txt` OK; lint PHP 7.4.33 seluruh `*.php` OK; secret scan OK; tidak ada berkas terlarang.
+- Smoke A0 (PHP 7.4.33, `taskset -c 0`): 38,79 s wall / 38,42 s CPU / 455 MB; 48 row, CP 93,4567, `FASTEST_FINAL`, publish, Event Proof TERBUKTI, hash dispatch `864d39afb316` **identik** dengan matrix T184; build `V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017`.
+- MySQL: database kosong baru + `database/schema.sql` dari ZIP + `config/db.php` dibuat dari `db.example.php` (tidak termasuk paket) -> `rs_status` ok (schema `pp-report-mysql-1`); grup I01–I12 + H15/H16 dijalankan ulang pada instalasi bersih: **14/14 PASS**.
+- Bukti: `harness/v1524/evidence/zip_clean_install/zip_smoke_A0.json`, `zip_clean_groupI.json`.
