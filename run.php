@@ -3180,22 +3180,7 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
          * stop-lebih-awal / swap yang tadinya tidak valid menjadi valid. Uji bukti dijalankan pada dispatch FINAL; bila ada langkah VALID dan LEBIH
          * BAIK (comparator V15.24), langkah terbaik (deterministik: comparator + nama uji) diterapkan lewat stage guard, pelengkap bukti C4 diulang,
          * lalu bukti dihitung ulang — maks. PP_V1524_CLOSURE_MAX (3) iterasi. Seluruh langkah dicatat di 'closure'. */
-        $clean(); $tV = microtime(true); $closure = [];
-        try { $ep = pp_v1524_event_proof($inputAsli, $o);
-            for ($it = 0; $it < (int)(getenv('PP_V1524_CLOSURE_MAX') ?: 3) && (string)getenv('PP_V1524_CLOSURE') !== '0' && is_array($ep['_improve'] ?? null); $it++) {
-                $imp = $ep['_improve']; $o2 = $imp['o']; foreach ((array)($o['info'] ?? []) as $k0 => $v0) if (!array_key_exists($k0, (array)($o2['info'] ?? []))) $o2['info'][$k0] = $v0;
-                foreach (['V8 Priority Review', 'Stop Family Evidence', 'Fastest Unit Priority Fix', 'Commitment Tightening', 'Comparator Invariant Guard', 'Block Consolidation Review', 'V15.23 Fuel State Assessment', 'Candidate Registry', 'Run Status'] as $k0) if (isset($o['info'][$k0])) $o2['info'][$k0] = $o['info'][$k0];
-                if (function_exists('pp_v3_relabel')) pp_v3_relabel($o2, $inputAsli);
-                /* dispatch hasil langkah penutupan melewati Unit Priority Fix + pelengkap bukti C4 yang sama dengan dispatch final sebelum dibandingkan */
-                $clean(); $o3 = $o2; try { $o3 = pp_v15_fast_priority_fix($inputAsli, $o2, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
-                $clean(); $o2 = pp_v1523_stage_guard('UNIT_PRIORITY_FIX_CLOSURE', $inputAsli, $o2, $o3);
-                $clean(); try { $o2 = pp_sp_proof_completion($inputAsli, $o2, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
-                $clean(); $g2 = pp_v1523_stage_guard('EVENT_PROOF_CLOSURE', $inputAsli, $o, $o2);
-                if (json_encode($g2['data'] ?? null) === json_encode($o['data'] ?? null)) { $closure[] = ['test' => $imp['test'], 'decision' => 'DITOLAK_STAGE_GUARD']; break; }
-                $closure[] = ['iteration' => $it + 1, 'test' => $imp['test'], 'decision' => 'DITERAPKAN', 'before' => $ep['final_metrics'] ?? null, 'after' => $imp['met']];
-                $o = $g2; $clean(); $ep = pp_v1524_event_proof($inputAsli, $o); }
-            unset($ep['_improve']); if ($closure) $ep['closure'] = $closure; $o['info']['Commitment Event Proof'] = $ep;
-        } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Event Proof'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } $clean(); pp_sp_prof('event_proof', $tV, ['closure' => count($closure)]);
+        $clean(); $o = pp_v1524_event_closure($inputAsli, $o, $em); $clean();
         if (is_array($plan) && $cand !== null) $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan['plan'], $cand, $o, $plan['tried']);
         if (is_array($consol)) $o['info']['Block Consolidation Review'] = $consol;
         if (is_array($GLOBALS['ppV1523Tight'] ?? null)) $o['info']['Commitment Tightening'] = $GLOBALS['ppV1523Tight'];
@@ -3850,15 +3835,42 @@ function pp_v1522_struct_hash(array $clean): string {
 function pp_v1517_ie_base_file(string $key): string { $d = pp_job_root() . DIRECTORY_SEPARATOR . '_iebase'; if (!is_dir($d)) @mkdir($d, 0777, true);
     $sc = (string)getenv('PP_IE_BASE_PER_USER') === '0' ? '' : (substr(sha1((string)($GLOBALS['ppJobOwnerUid'] ?? '')), 0, 10) . '_');
     return $d . DIRECTORY_SEPARATOR . $sc . substr($key, 0, 40) . '.json'; }
+/* V15.24 TERMINAL KAPASITAS BAHAN BAKAR: aksi Use Distillate dengan plafon user yang secara energi LEBIH KECIL dari kebutuhan bahan bakar
+ * terbukti (Gas Shortage Exhaustion Proof: Export sudah diturunkan ke Range Min / lever habis) tidak mungkin menutup shortage tanpa melanggar
+ * plafon. Hasilnya bukan "aksi tidak diterapkan" (pratinjau) melainkan TERMINAL dengan bukti numerik + opsi yang dibutuhkan operator. */
+function pp_v1524_fuel_cap_terminal(array $input, array $output, array $fr): ?array {
+    if ((string)getenv('PP_V1524_FUEL_CAP_TERMINAL') === '0' || !empty($fr['pass']) || ($fr['action'] ?? '') !== 'use_distillate' || empty($fr['user_cap_applied'])) return null;
+    $i = (array)($output['info'] ?? []); $du = (array)($i['Distillate User Limit'] ?? []); $ex = (array)($i['Gas Shortage Exhaustion Proof'] ?? []);
+    $req = (float)($du['required_bbtud'] ?? ($ex['residual_bbtud'] ?? 0)); $capB = (float)($du['bbtud'] ?? 0); $capL = (float)($du['litres'] ?? ($fr['requested_litres'] ?? 0));
+    if (!$ex || $req <= 0 || $capB < 0 || $req <= $capB + 0.04) return null;
+    $lPerB = $capB > 1e-9 ? $capL / $capB : ((float)($fr['reported_litres'] ?? 0) > 0 && (float)($fr['gas_offset'] ?? 0) > 0 ? (float)$fr['reported_litres'] / (float)$fr['gas_offset'] : null);
+    $need = $lPerB !== null ? round($req * $lPerB) : null;
+    $proof = ['code' => 'DISTILLATE_CAP_INSUFFICIENT', 'required_fuel_bbtud' => round($req, 4), 'user_cap_litres' => $capL, 'user_cap_bbtud' => round($capB, 4),
+        'uncovered_bbtud' => round($req - $capB, 4), 'litres_required_without_cap' => $need, 'export_exhaustion' => $ex,
+        'options' => [['action' => 'use_distillate', 'distillate_user_limit_litres' => $need, 'note' => 'naikkan plafon distillate (perlu dijalankan ulang untuk validasi)'],
+                      ['action' => 'use_distillate+add_lng', 'additional_lng_bbtud' => round($req - $capB, 4), 'distillate_user_limit_litres' => $capL, 'note' => 'tambahan LNG untuk sisa kebutuhan (perlu dijalankan ulang untuk validasi)']],
+        'rule' => 'kebutuhan bahan bakar sesudah Export diturunkan ke Range Min (lever habis) > energi plafon distillate user -> shortage tidak dapat ditutup tanpa melanggar plafon'];
+    $msg = sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD (Export sudah di Range Min, lever habis) > plafon distillate user %s l = %.4f BBTUD; sisa %.4f BBTUD tidak dapat ditutup. Opsi: plafon distillate %s l, atau tambahan LNG %.4f BBTUD dengan plafon tetap.',
+        $req, number_format($capL, 0, ',', '.'), $capB, $req - $capB, $need !== null ? number_format($need, 0, ',', '.') : '-', $req - $capB);
+    return ['proof' => $proof, 'message' => $msg];
+}
+/* V15.24 BASIS EKSAK per (konteks, profil IE efektif, Actual Gas, Fix Load): rerun dengan profil yang PERNAH dihitung penuh (mis. adjustment
+ * dikembalikan / adjustment nol) memakai basis miliknya sendiri -> hasil identik dengan run dingin, tidak bergantung riwayat run lain. */
+function pp_v1524_ie_exact_file(string $baseFile, array $eff, array $act, array $fx): string {
+    return substr($baseFile, 0, -5) . '.x' . substr(md5(json_encode([$eff, $act, $fx])), 0, 12) . '.json'; }
 function pp_v1517_ie_store(array $inputAsli, array $output): void {
     if ((string)getenv('PP_IE_WARM') === '0' || count((array)($output['data'] ?? [])) !== 48) return;
     try { $c = pp_v13f_clean($inputAsli); $k = pp_v1517_ie_base_key($c); $s = pp_ie_series($c);
         $mA = (array)($c['data3']['modeling'] ?? []); $act = ['p' => array_values((array)($mA['actual_pgn_total'] ?? [])), 'j' => array_values((array)($mA['actual_energy_jababeka'] ?? [])), 'm' => array_values((array)($mA['actual_energy_mm2100'] ?? []))];
         $fxS = pp_v1517_fix_map($c);
+        if ((string)getenv('PP_V1524_IE_EXACT') !== '0') { $xf = pp_v1524_ie_exact_file(pp_v1517_ie_base_file($k), $s['eff'], $act, $fxS);
+            $GLOBALS['ppV1524IeExactPending'] = $xf; $old = glob(substr(pp_v1517_ie_base_file($k), 0, -5) . '.x*.json') ?: [];
+            if (count($old) > 32) { usort($old, fn($a, $b) => filemtime($a) <=> filemtime($b)); foreach (array_slice($old, 0, count($old) - 32) as $o0) @unlink($o0); } }
         pp_tl_write(pp_v1517_ie_base_file($k), ['key' => $k, 'at' => microtime(true), 'ie_eff' => $s['eff'], 'ie_hash' => md5(json_encode($s['eff'])), 'act' => $act, 'act_hash' => md5(json_encode($act)), 'fix' => $fxS, 'fix_hash' => md5(json_encode($fxS)),
             'data' => array_values((array)$output['data']), 'supplier_target' => pp_tl_supplier_target($output),
             'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null,
-            'fuel' => pp_v1518_fuel_decision($inputAsli), 'cold_s' => pp_v1521_cold_s($k), 'struct_hash' => pp_v1522_struct_hash($c)]); } catch (Throwable $e) {}
+            'fuel' => pp_v1518_fuel_decision($inputAsli), 'cold_s' => pp_v1521_cold_s($k), 'struct_hash' => pp_v1522_struct_hash($c)]);
+        if (isset($GLOBALS['ppV1524IeExactPending'])) { @copy(pp_v1517_ie_base_file($k), $GLOBALS['ppV1524IeExactPending']); unset($GLOBALS['ppV1524IeExactPending']); } } catch (Throwable $e) {}
 }
 /* V15.18 KLASIFIKASI RERUN IE ADJUSTMENT (dari STRUKTUR solusi, bukan waktu):
  *   A = redispatch jendela lokal: commitment, keputusan bahan bakar dan gas-window basis tetap feasible (tahap A valid);
@@ -3899,6 +3911,9 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     if ((string)getenv('PP_IE_WARM') === '0') { $GLOBALS['__pp_ie_warm_rep'] = $rep + ['cache' => 'OFF']; return null; }
     $c = pp_v13f_clean($inputAsli); $k = pp_v1517_ie_base_key($c); $f = pp_v1517_ie_base_file($k);
     $s = pp_ie_series($c); $h = md5(json_encode($s['eff']));
+    if ((string)getenv('PP_V1524_IE_EXACT') !== '0') { $mX = (array)($c['data3']['modeling'] ?? []);
+        $actX = ['p' => array_values((array)($mX['actual_pgn_total'] ?? [])), 'j' => array_values((array)($mX['actual_energy_jababeka'] ?? [])), 'm' => array_values((array)($mX['actual_energy_mm2100'] ?? []))];
+        $fX = pp_v1524_ie_exact_file($f, $s['eff'], $actX, pp_v1517_fix_map($c)); if (is_file($fX)) { $f = $fX; $rep['basis_exact'] = true; } }
     $B = is_file($f) ? json_decode((string)@file_get_contents($f), true) : null;
     if (!is_array($B) || count((array)($B['data'] ?? [])) !== 48) { $GLOBALS['__pp_ie_warm_rep'] = $GLOBALS['ppIeWarmInfo'] = $rep + ['cache' => 'MISS', 'alasan_invalidasi' => 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA']; return null; }
     $GLOBALS['ppIeBasisColdS'] = isset($B['cold_s']) && is_numeric($B['cold_s']) ? (float)$B['cold_s'] : null;   // V15.21: durasi commitment repair penuh terakhir (estimasi)
@@ -4807,6 +4822,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
         pp_job_progress($id, 'PERBAIKAN_UNIT_PRIORITY_C1_C4', 80.0);
         $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v15_fast_priority_fix($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} $output = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPreJ, $output); pp_sp_prof('priority_fix', $tSp);
         $tSp = microtime(true); try { $output = pp_sp_proof_completion($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('proof_completion_c4', $tSp);
+        $output = pp_v1524_event_closure($inputAsli, $output, 30.0);   // V15.24: bukti event + penutupan pada dispatch final (juga jalur warm / Maximum Review)
         } }
     if (pp_v10_fast()) { try { $output['info']['V10 Screening Summary'] = pp_v10_screening_summary($output, is_array($v7R) ? 'DELTA' : ((is_array($incR) && is_array($incR['output'] ?? null)) ? 'INCREMENTAL' : 'EXACT')); } catch (Throwable $e) {} }
     /* V11: penghitung kandidat satu sumber (folder state x job, ditulis pemilik & pembantu) + invarian. */
@@ -4836,6 +4852,15 @@ function pp_job_run_economic_review(string $id, array $input): array {
             $output['publish_allowed'] = false;
             $output['message'] = 'Aksi bahan bakar yang dipilih tidak terbukti diterapkan atau tidak menutup residual shortage. '
                                . 'Rencana di bawah adalah pratinjau dan TIDAK boleh dipublikasikan.';
+            if (is_array($tc = pp_v1524_fuel_cap_terminal($input, $output, $frJ))) {
+                $output['info']['Fuel Capacity Terminal Proof'] = $tc['proof'];
+                /* status terminal ditetapkan bila audit gas (batas atas penurunan yang masih dapat dipakai) tidak dapat menutup sisa kebutuhan */
+                $gaJ = null; try { $gaJ = pp_gas_feasibility_audit($input, $output); } catch (Throwable $e) {}
+                $ubJ = is_array($gaJ) ? (float)($gaJ['headroom']['gas_reduction_upper_bound_bbtud'] ?? INF) : INF;
+                $output['info']['Fuel Capacity Terminal Proof']['gas_reduction_upper_bound_bbtud'] = is_finite($ubJ) ? round($ubJ, 4) : null;
+                $output['info']['Fuel Capacity Terminal Proof']['terminal'] = is_finite($ubJ) && (float)$tc['proof']['uncovered_bbtud'] > $ubJ + 0.04;
+                if ($output['info']['Fuel Capacity Terminal Proof']['terminal']) { $output['status'] = 'TERMINAL_INFEASIBLE'; $output['error_code'] = 'TERMINAL_INFEASIBLE_FUEL_CAP'; $output['message'] = $tc['message'];
+                    $output['release_gate']['blocking_reasons'] = array_values(array_unique(array_merge((array)($output['release_gate']['blocking_reasons'] ?? []), ['TERMINAL_INFEASIBLE_FUEL_CAP']))); } }
         }
     } catch (Throwable $eFr) {
         $output['info']['Fuel Action Reconciliation'] = ['required' => true, 'pass' => false,
@@ -8286,6 +8311,30 @@ function pp_v1523_start_context(array $orig, array $W, string $u, int $a, array 
         'startup_leadin_mw' => pp_start_sequence($d3, $m, $u, array_map(fn($rw) => array_change_key_case((array)$rw, CASE_LOWER), $rows), $a - 1),
         'delay_test_deficits' => array_slice($def, 0, 8)];
 }
+/* V15.24 BUKTI EVENT + PENUTUPAN PADA DISPATCH FINAL (dipakai jalur bundle Fastest DAN jalur job lain: IE/Fix warm, Maximum Review). Unit Priority
+ * Fix / pelengkap bukti sesudah Tightening — atau basis warm yang dipertahankan — dapat menyisakan tunda-start / stop-lebih-awal / swap yang
+ * VALID dan LEBIH BAIK. Langkah terbaik (comparator + nama uji, deterministik) diterapkan, melewati Unit Priority Fix + pelengkap bukti C4 yang
+ * sama, lalu stage guard; bukti dihitung ulang (maks. PP_V1524_CLOSURE_MAX = 3 iterasi). Seluruh langkah dicatat di 'closure'. */
+function pp_v1524_event_closure(array $inputAsli, array $o, float $em = 600.0): array {
+    $clean = function () { pp_tl_clean_globals(); if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
+    $tV = microtime(true); $closure = [];
+    try { $ep = pp_v1524_event_proof($inputAsli, $o);
+        for ($it = 0; $it < (int)(getenv('PP_V1524_CLOSURE_MAX') ?: 3) && (string)getenv('PP_V1524_CLOSURE') !== '0' && is_array($ep['_improve'] ?? null); $it++) {
+            $imp = $ep['_improve']; $o2 = $imp['o']; foreach ((array)($o['info'] ?? []) as $k0 => $v0) if (!array_key_exists($k0, (array)($o2['info'] ?? []))) $o2['info'][$k0] = $v0;
+            foreach (['V8 Priority Review', 'Stop Family Evidence', 'Fastest Unit Priority Fix', 'Commitment Tightening', 'Comparator Invariant Guard', 'Block Consolidation Review', 'V15.23 Fuel State Assessment', 'Candidate Registry', 'Run Status', 'IE Incremental Redispatch'] as $k0) if (isset($o['info'][$k0])) $o2['info'][$k0] = $o['info'][$k0];
+            if (function_exists('pp_v3_relabel')) pp_v3_relabel($o2, $inputAsli);
+            $clean(); $o3 = $o2; try { $o3 = pp_v15_fast_priority_fix($inputAsli, $o2, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+            $clean(); $o2 = pp_v1523_stage_guard('UNIT_PRIORITY_FIX_CLOSURE', $inputAsli, $o2, $o3);
+            $clean(); try { $o2 = pp_sp_proof_completion($inputAsli, $o2, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+            $clean(); $g2 = pp_v1523_stage_guard('EVENT_PROOF_CLOSURE', $inputAsli, $o, $o2);
+            if (json_encode($g2['data'] ?? null) === json_encode($o['data'] ?? null)) { $closure[] = ['test' => $imp['test'], 'decision' => 'DITOLAK_STAGE_GUARD']; break; }
+            $closure[] = ['iteration' => $it + 1, 'test' => $imp['test'], 'decision' => 'DITERAPKAN', 'before' => $ep['final_metrics'] ?? null, 'after' => $imp['met']];
+            $o = $g2; $clean(); $ep = pp_v1524_event_proof($inputAsli, $o); }
+        unset($ep['_improve']); if ($closure) $ep['closure'] = $closure; $o['info']['Commitment Event Proof'] = $ep;
+    } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Event Proof'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
+    $clean(); if (function_exists('pp_sp_prof')) pp_sp_prof('event_proof', $tV, ['closure' => count($closure)]);
+    return $o;
+}
 /* V15.24 BUKTI EVENT COMMITMENT pada dispatch FINAL (sesudah seluruh tahap: konsolidasi, V8, family, tightening, Unit Priority Fix, pelengkap
  * bukti). Untuk setiap event START dan setiap interval beban minimum unit yang commitment-nya diputuskan engine (Auto/Required Simulation):
  * first-needed row + defisit MW (analitik: Export tanpa unit + legal headroom unit online lain, kopling STG tidak dihitung = estimasi
@@ -9748,6 +9797,16 @@ function pp_attach_or_reject_acceptance_v0(array $input,array &$output): array {
               'incumbent_available_for_review'=>true,'rows'=>count((array)($output['data']??[])),
               'recommended_action'=>'Tinjau hasil ini sebagai pratinjau, lalu jalankan ulang simulasi sampai converged=true sebelum mempublikasikan.'];}
         else{$code='COST_PRODUCTION_PROOF_FAILED';$msg='Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all eligible candidates actually evaluated.';$details=['acceptance_review'=>$review,'recommended_action'=>'Re-evaluate all eligible candidates with the same clean-validation stage and select the lowest Cost Production identity.'];}
+        /* V15.24: bukti terminal kapasitas bahan bakar (plafon user < kebutuhan terbukti) menjadi alasan penolakan utama */
+        /* syarat terminal: sisa kebutuhan di atas plafon (uncovered) > batas atas penurunan gas yang masih dapat dipakai (audit) — bila lever
+         * dispatch yang tersisa pun tidak dapat menutup selisihnya, tidak ada rencana sah di bawah plafon */
+        $ubR=is_array($gasAudit)?(float)($gasAudit['headroom']['gas_reduction_upper_bound_bbtud']??INF):INF;
+        if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&isset($fct['code'])){$output['info']['Fuel Capacity Terminal Proof']['gas_reduction_upper_bound_bbtud']=is_finite($ubR)?round($ubR,4):null;
+            $output['info']['Fuel Capacity Terminal Proof']['terminal']=is_finite($ubR)&&(float)$fct['uncovered_bbtud']>$ubR+0.04;}
+        if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
+            $msg=sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD > plafon distillate user %s l (%.4f BBTUD); sisa %.4f BBTUD > batas atas penurunan gas yang masih dapat dipakai %.4f BBTUD, sehingga tidak dapat ditutup tanpa melanggar plafon. Opsi: plafon %s l atau tambahan LNG %.4f BBTUD.',
+                (float)$fct['required_fuel_bbtud'],number_format((float)$fct['user_cap_litres'],0,',','.'),(float)$fct['user_cap_bbtud'],(float)$fct['uncovered_bbtud'],$ubR,$fct['litres_required_without_cap']!==null?number_format((float)$fct['litres_required_without_cap'],0,',','.'):'-',(float)$fct['uncovered_bbtud']);
+            $output['status']='TERMINAL_INFEASIBLE';}
         $output['ok']=false;$output['result']='rejected';$output['error_code']=$code;
         $output['message']=$msg;$output['error_message']=$msg;
         $output['error']=['code'=>$code,'message'=>$msg,'details'=>$details];$output['http_status_recommended']=422;

@@ -1,0 +1,158 @@
+{
+ "id": "T103",
+ "group": "D",
+ "title": "Kapasitas LNG tidak cukup (add_lng 1 BBTUD, shortage aktual)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "GAS_LEVER_EXHAUSTION_PROOF",
+ "engine_status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: GAS_LEVER_EXHAUSTION_PROOF; status FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=76.6519 di luar window [66.4200,66.4600] (deviasi 10.1919 B"
+ ],
+ "cp": 63.851,
+ "econ_cp": null,
+ "hr": 8606.63,
+ "gas_bbtud": 76.6519,
+ "gas_quota_bbtud": 66.46,
+ "gas_deviation_bbtud": -10.1919,
+ "daily_export_mwh": 870.43,
+ "distillate_l": 282883,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "72bb8c8b58b9496ba766d33e",
+ "job_input_hash": "81b400c8d1ec74a18f509b3eca3c29e58b7a89ba389152fb3eff13c5ae6c9eca",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 74.56,
+ "cpu_s": 36.85,
+ "max_rss_kb": 167904,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.342
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.021
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.023
+  },
+  {
+   "stage": "cand_run",
+   "s": 11.542
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 19.396
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.775
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.822
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 67.454
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.011
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.01
+  },
+  {
+   "stage": "priority_fix",
+   "s": 5.331
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.72
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.015
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.097
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.041
+  },
+  {
+   "stage": "gate",
+   "s": 0.184
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/72bb8c8b58b9496ba766d33e.json"
+}

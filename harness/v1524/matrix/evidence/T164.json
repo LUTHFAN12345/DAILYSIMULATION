@@ -1,0 +1,213 @@
+{
+ "id": "T164",
+ "group": "G",
+ "title": "Gas/Export/Bus Flow setelah trip (G9 trip + busflow_min 20)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": null,
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 17: Export 19.32 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
+ ],
+ "cp": 93.9603,
+ "econ_cp": null,
+ "hr": 8706.16,
+ "gas_bbtud": 65.4495,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.0541,
+ "daily_export_mwh": 305.19,
+ "distillate_l": 195791,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:00",
+  "G3+04:30",
+  "G4+06:30",
+  "G5+06:00",
+  "G6+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "33d8d2f1a8b821a4be611a69",
+ "job_input_hash": "04187aac89a0998a00fcf6cd0bdd12eaa33fe70b90437961ece1b7bf7280a755",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 100.61,
+ "cpu_s": 86.21,
+ "max_rss_kb": 359164,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.857
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.161
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.711
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.15
+  },
+  {
+   "stage": "cand_run",
+   "s": 15.098
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.124
+  },
+  {
+   "stage": "cand_run",
+   "s": 17.818
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.121
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.61
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.115
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 63.444
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.087
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.189
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.791
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.251
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.314
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.539
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.399
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 6.861
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.109
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 1.488
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.007
+  },
+  {
+   "stage": "priority_fix",
+   "s": 27.312
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.342
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.017
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/33d8d2f1a8b821a4be611a69.json"
+}

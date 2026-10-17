@@ -1,0 +1,98 @@
+{
+ "id": "T074",
+ "group": "C",
+ "title": "Larangan Distillate -> Gas -> Distillate tanpa proof (IE +10)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK pola Distillate->Gas->Distillate: []"
+ ],
+ "cp": 101.0832,
+ "econ_cp": null,
+ "hr": 8500.2,
+ "gas_bbtud": 65.4594,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -10.1531,
+ "daily_export_mwh": 633.71,
+ "distillate_l": 281805,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:00",
+  "G1-14:00",
+  "G4+10:30",
+  "G4-17:00",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+07:30",
+  "G9+03:30",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "2c5a42e82e93a40606596753",
+ "job_input_hash": "8fb59b7ed2a85e80b0c8854697380576a5054062c7b2a4cc325ee33b4efa109f",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 5.09,
+ "cpu_s": 2.41,
+ "max_rss_kb": 53952,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.221
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 0.579
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.804
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.015
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.09
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.05
+  },
+  {
+   "stage": "gate",
+   "s": 0.195
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.007
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/2c5a42e82e93a40606596753.json"
+}

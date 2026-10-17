@@ -1,0 +1,96 @@
+{
+ "id": "T173",
+ "group": "H",
+ "title": "Fix pada unit Trip/Unavailable ditolak (G5 trip + fix)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": null,
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status None; msg Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all eligible candidates actually evaluated."
+ ],
+ "cp": 95.2727,
+ "econ_cp": null,
+ "hr": 8484.68,
+ "gas_bbtud": 65.4597,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.1381,
+ "daily_export_mwh": 652.54,
+ "distillate_l": 225877,
+ "hard_validation": "PASS",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+04:30",
+  "G1-18:30",
+  "G4+05:00",
+  "G4-17:30",
+  "G5+10:00",
+  "G5-10:30",
+  "G6+10:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "8075e6955b421167f0d80a30",
+ "job_input_hash": "32c9c076084467354118879045088a143db215351cead2f1ea4ed3c1c77c5e47",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 2.4,
+ "cpu_s": 2.34,
+ "max_rss_kb": 43584,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.088
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 0.836
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.092
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.011
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.006
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.063
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.022
+  },
+  {
+   "stage": "gate",
+   "s": 0.122
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/8075e6955b421167f0d80a30.json"
+}

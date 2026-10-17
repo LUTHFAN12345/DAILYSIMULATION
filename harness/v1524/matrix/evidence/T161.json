@@ -1,0 +1,103 @@
+{
+ "id": "T161",
+ "group": "G",
+ "title": "Change Over legal (Block 1 start 08:00, Block 2 stop 12:00)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": "USER_ACTION_REQUIRED",
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status USER_ACTION_REQUIRED; msg Change Over yang diminta tidak dapat dieksekusi: unit_present = 0 / unit tidak ada pada model. Baris yang ditampilkan adalah kandidat yang ditolak, bukan rencan"
+ ],
+ "cp": 101.3279,
+ "econ_cp": null,
+ "hr": 8610.7,
+ "gas_bbtud": 65.4562,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.8754,
+ "daily_export_mwh": 722.59,
+ "distillate_l": 274097,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+06:00",
+  "G1-12:00",
+  "G2-12:00",
+  "G3+07:00",
+  "G3-19:30",
+  "G4+11:30",
+  "G5+06:00",
+  "G5-12:00",
+  "G6+10:00",
+  "G9+01:00",
+  "S1+10:30",
+  "S2-12:00"
+ ],
+ "rows": 48,
+ "payload_hash": "72a0263e97d800cd01d0dbe0",
+ "job_input_hash": "59425410e19603928ff2b34f30afad0e777fe32f54a0fde08489ec4051c8a301",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 13.98,
+ "cpu_s": 13.7,
+ "max_rss_kb": 100808,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.001
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 10.022
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.886
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.012
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.006
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.065
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.035
+  },
+  {
+   "stage": "gate",
+   "s": 0.151
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/72a0263e97d800cd01d0dbe0.json"
+}

@@ -1,0 +1,79 @@
+{
+ "id": "T152",
+ "group": "G",
+ "title": "Trip Babelan unit 2",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G8 105 MW, S2 16.03 MW, S3 57.68 MW) pada beban maksimum -> Export mak",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G8 105 MW, S2 16.03 MW, S3 57.68 MW) pada beban maksimum -> Export mak; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G8 105 MW, S2 16.03 MW, S3 57."
+ ],
+ "cp": 184.315,
+ "econ_cp": null,
+ "hr": 8953.6,
+ "gas_bbtud": 68.5035,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -38.5479,
+ "daily_export_mwh": 714.62,
+ "distillate_l": 1069920,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:30",
+  "G3+05:00",
+  "G4+07:00",
+  "G5+06:30",
+  "G6+01:00",
+  "G7+14:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "2474ecb1947e12989487c6c0",
+ "job_input_hash": "d16f50c9eaa5935806b75d817def6ce6c4389b255fa3e7926bd748ff492d0860",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 2.53,
+ "cpu_s": 1.23,
+ "max_rss_kb": 40340,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.016
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.495
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.203
+  },
+  {
+   "stage": "gate",
+   "s": 0.959
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.006
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/2474ecb1947e12989487c6c0.json"
+}

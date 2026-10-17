@@ -1,0 +1,236 @@
+{
+ "id": "T014",
+ "group": "A",
+ "title": "Initial Running + Stop-or-Continuous G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 98.8802,
+ "econ_cp": 99.2664,
+ "hr": 8513.71,
+ "gas_bbtud": 65.4226,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.2628,
+ "daily_export_mwh": 750.23,
+ "distillate_l": 257093,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "10:00",
+   "first_needed": "10:00",
+   "deficit_mw": 0.52,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 4.86,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "07:30",
+   "deficit_mw": 26.17,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+10:00",
+  "G1-16:30",
+  "G5-18:30",
+  "G6+05:30",
+  "G9+04:30",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "d38adfc048520a8301890280",
+ "job_input_hash": "c0555321401d3ab5cbcc42b3d10b379751a3c9cc78fb5f1f4a8dce538d5d64c7",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 150.95,
+ "cpu_s": 114.96000000000001,
+ "max_rss_kb": 754188,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.351
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.089
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.711
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.125
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.657
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.107
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.503
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.096
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.491
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.141
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 42.195
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.727
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.76
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.084
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 5.585
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.61
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.062
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.49
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 4.939
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.007
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 18.068
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 12.027
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.819
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.022
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.092
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.022
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 7.78
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.011
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 34.767
+  }
+ ],
+ "tightening_evals": 88,
+ "evidence": "evidence/runs/d38adfc048520a8301890280.json"
+}

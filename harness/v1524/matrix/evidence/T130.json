@@ -1,0 +1,214 @@
+{
+ "id": "T130",
+ "group": "E",
+ "title": "Dev Dispatch positif dan negatif (rule -10..+10 row 10-30)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": null,
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 10: Export 118.94 > RangeMax 100 Recommended action: Keep the source block running longer or increase legal outp"
+ ],
+ "cp": 105.9801,
+ "econ_cp": null,
+ "hr": 8633.04,
+ "gas_bbtud": 65.4438,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.4683,
+ "daily_export_mwh": 885.4,
+ "distillate_l": 318309,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "c04ae46e58796404be36451a",
+ "job_input_hash": "0226cc98fa7e347112101c1b34881014002848183c6e7f17c960a6eb56ca3fca",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 30.72,
+ "cpu_s": 30.21,
+ "max_rss_kb": 183324,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.522
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.134
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.809
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.065
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.964
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.113
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.448
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.08
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.5
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.072
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 20.071
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.529
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.659
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.494
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.36
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.345
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 8.097
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.009
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.006
+  },
+  {
+   "stage": "priority_fix",
+   "s": 1.57
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.395
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.005
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/c04ae46e58796404be36451a.json"
+}

@@ -1,0 +1,110 @@
+{
+ "id": "T106",
+ "group": "D",
+ "title": "Stale fuel-decision cache tidak dipakai (action none setelah distillate)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS",
+ "engine_status": "USER_FUEL_DECISION_REQUIRED",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS; status USER_FUEL_DECISION_REQUIRED; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=74.3813 di luar window [65.4200,65.4600] (deviasi 8.9213 BB"
+ ],
+ "cp": 64.4757,
+ "econ_cp": null,
+ "hr": 8661.43,
+ "gas_bbtud": 74.3813,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.9213,
+ "daily_export_mwh": 565.92,
+ "distillate_l": 247615,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+04:30",
+  "G1-15:00",
+  "G3+04:30",
+  "G3-10:30",
+  "G4+07:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+10:00",
+  "G9+05:00",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "4ca2bdc7bd8d463611a0f9a8",
+ "job_input_hash": "2a572f1aef4ed7a47341ea6c0c93071e6a430600648138ec8dc2fe5691d75d18",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 7.86,
+ "cpu_s": 3.85,
+ "max_rss_kb": 58112,
+ "phase_timing": [
+  {
+   "stage": "ie_warm_attempt",
+   "s": 0.001
+  },
+  {
+   "stage": "supplier_cert_guard",
+   "s": 0.529
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.212
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 6.229
+  },
+  {
+   "stage": "fast_pipeline",
+   "s": 6.229
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.016
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.142
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.077
+  },
+  {
+   "stage": "gate",
+   "s": 0.36
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/4ca2bdc7bd8d463611a0f9a8.json"
+}

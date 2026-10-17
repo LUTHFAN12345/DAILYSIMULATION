@@ -89,7 +89,7 @@ def define(G):
             return ok, f'start dalam blok {started_} (urutan prioritas {block_units})'
         return c
     def gas_in_window():
-        def c(r): dv = r.i.get('Gas Quota Deviation (BBTUD)'); return dv is None or abs(float(dv)) <= 0.05, f'deviasi gas {dv}'
+        def c(r): u = r.i.get('Effective Total Gas (BBTUD)') if (r.i.get('Actual Hours Provided') or 0) else r.i.get('Total Gas Used (BBTUD)'); q = r.i.get('Total Gas Quota (BBTUD)'); return u is not None and q is not None and float(q) - 0.04 - 1e-6 <= float(u) <= float(q) + 1e-6, f'gas {u} dalam window [{q}-0,04, {q}]'
         return c
     def daily_export_ge(v):
         def c(r): x = r.i.get('Daily PLN Exp (MWh)'); return x is not None and float(x) >= v - 0.5, f'daily export {x} >= {v}'
@@ -211,7 +211,15 @@ def define(G):
         return m
     for od in (['g2', 'g5', 'g1'], ['g1', 'g2', 'g5'], ['g5', 'g1', 'g2']):
         T('B', f'Unit Priority Block 2 susunan {"/".join(x.upper() for x in od)}', A0, uprio(od), 'PASS', std + [block_prefix([u for u in od if u != 'g2']), proof_ok()])
-    T('B', 'Priority tertinggi dimaksimalkan sampai legal maximum (bukti headroom lebih tinggi)', A0, None, 'PASS', std + [lambda r: (all((e.get('higher_priority_legal_headroom_mw') or 0) < ((e.get('deficit_at_first_needed') or {}).get('deficit_mw') or 0) + (e.get('deficit_at_first_needed') or {}).get('unit_mw', 0) + 1e-6 or e['reason_code'].startswith('REQUIRED') for e in r.proof().get('events', []) if e['event'] == 'START' and e.get('deficit_at_first_needed')), 'headroom prioritas lebih tinggi < kebutuhan pada first-needed')])
+    def need_proven(r):
+        bad = []
+        for e in r.proof().get('events', []):
+            if e['event'] != 'START' or not e['reason_code'].startswith('DIPERLUKAN'): continue
+            d = (e.get('deficit_at_first_needed') or {}).get('deficit_mw') or 0
+            dc = ((e.get('no_delay_test') or {}).get('interval_tests') or {}).get('decommit_test') or {}
+            if not (d > 0 or dc.get('result') == 'TIDAK_VALID'): bad.append(e['unit'])
+        return not bad, f'start otomatis tanpa defisit first-needed (sesudah legal headroom seluruh unit online lain, termasuk prioritas lebih tinggi): {bad}'
+    T('B', 'Priority tertinggi dimaksimalkan sampai legal maximum (defisit first-needed sesudah headroom unit online)', A0, None, 'PASS', std + [need_proven, proof_ok()])
     T('B', 'Priority rendah dihentikan ketika tidak lagi diperlukan (uji stop 1 row lebih awal)', A0, None, 'PASS', std + [lambda r: (all(e['no_early_stop_test']['result'] in ('TIDAK_VALID', 'VALID_TIDAK_LEBIH_BAIK', 'TIDAK_LEGAL_RUNTIME_MINIMUM') for e in r.proof().get('events', []) if e['event'] == 'STOP'), 'stop paling awal legal')])
     T('B', 'Priority rendah tidak start selama higher-priority legal headroom cukup (IE -40)', 'A6_IE_minus40', None, 'PASS', std + [proof_ok()])
     T('B', 'Same-block candidate diuji sebelum cross-block', A0, None, 'PASS', std + [lambda r: (all(any(c.get('swap_result') for c in e['candidates']['same_block']) or not [c for c in e['candidates']['same_block'] if c['status'] == 'TERSEDIA'] for e in r.proof().get('events', []) if e['event'] == 'START'), 'same-block diuji')])
@@ -236,7 +244,7 @@ def define(G):
     T('C', 'Continuous Distillate block (tanpa D->G->D)', A0, None, 'PASS', std + [no_dist_gas_dist()])
     T('C', 'Larangan Distillate -> Gas -> Distillate tanpa proof (IE +10)', A0, lambda i: ie_scale(i, 10), 'EITHER', std + [no_dist_gas_dist()])
     T('C', 'Unit distillate prioritas pertama trip (G6 trip, G6 bebas)', A0, chain(free('g6'), lambda i: trip(i, 'g6')), 'EITHER', std + [off_all('g6'), no_dist_gas_dist()])
-    T('C', 'Distillate priority berubah antar-Run tanpa stale job (hash baru)', A0, (lambda i: M(i).__setitem__('unit_priority_dist', [['g3', 'g6', 'g4']] + M(i)['unit_priority_dist'][1:]) or i), 'EITHER', std + [lambda r: (r.r.get('job_input_hash') != (base_res(A0).r.get('job_input_hash') if base_res(A0) else None), 'job/hash baru')])
+    T('C', 'Distillate priority berubah antar-Run tanpa stale job (hash baru)', A0, (lambda i: M(i).__setitem__('unit_priority_dist', [['g3', 'g6', 'g4']] + M(i)['unit_priority_dist'][1:]) or i), 'EITHER', std + [lambda r: ((r.r.get('__bench') or {}).get('job_input_hash') != ((base_res(A0).r.get('__bench') or {}).get('job_input_hash') if base_res(A0) else None), 'job/hash baru')])
     T('C', 'LNG lebih ekonomis dibanding Distillate (action recommendation)', A0, lambda i: fuel(i, 'recommendation'), 'EITHER', [rows48()])
     T('C', 'Kombinasi LNG + Distillate diperlukan (IE +20, action recommendation)', A0, chain(lambda i: ie_scale(i, 20), lambda i: fuel(i, 'recommendation')), 'EITHER', [rows48()])
 
@@ -272,7 +280,7 @@ def define(G):
     T('D', 'Kapasitas Distillate tidak cukup (limit 20000 l)', A0, lambda i: fuel(i, 'use_distillate', dist=20000), 'EITHER', [rows48()])
     T('D', 'Terminal fuel infeasible (IE +20, distillate limit aktual) [A7]', 'A7_IE_plus20', None, 'EITHER', [rows48()])
     T('D', 'Stale fuel-decision cache tidak dipakai (action none setelah distillate)', A0, lambda i: fuel(i, 'none'), 'EITHER', [lambda r: (r.i.get('Gas Shortage Action') in ('none', None) or r.status() == 'USER_FUEL_DECISION_REQUIRED', f"action {r.i.get('Gas Shortage Action')} status {r.status()}")])
-    T('D', 'Perubahan supplier membentuk hash/job baru (PGN +0.5)', A0, gq('pgn_pipe', 0.5), 'EITHER', [lambda r: (r.r.get('job_input_hash') != (base_res(A0).r.get('job_input_hash') if base_res(A0) else None), 'hash baru')])
+    T('D', 'Perubahan supplier membentuk hash/job baru (PGN +0.5)', A0, gq('pgn_pipe', 0.5), 'EITHER', [lambda r: ((r.r.get('__bench') or {}).get('job_input_hash') != ((base_res(A0).r.get('__bench') or {}).get('job_input_hash') if base_res(A0) else None), 'hash baru')])
     T('D', 'Fuel decision tidak mengubah input user diam-diam (quota output = input)', A0, None, 'PASS', [lambda r: (abs(float(r.i.get('PGN Pipe Quota (BBTUD)') or 0) - 24.5) < 1e-6, f"PGN quota output {r.i.get('PGN Pipe Quota (BBTUD)')}")])
 
     # ================= GROUP E (24) =================
@@ -314,15 +322,15 @@ def define(G):
             for k in rows: a[k - 1] = val
             M(i)[key] = a; return i
         return m
-    T('F', 'Actual PGN lebih tinggi dari simulasi (row 1-8)', A0, actual('actual_pgn_total', range(1, 9), 1.2), 'EITHER', std)
-    T('F', 'Actual PGN lebih rendah (row 1-8)', A0, actual('actual_pgn_total', range(1, 9), 0.6), 'EITHER', std)
-    T('F', 'Actual Fixed Flow Jababeka lebih tinggi (row 1-8)', A0, actual('actual_energy_jababeka', range(1, 9), 1.6), 'EITHER', std)
-    T('F', 'Actual Fixed Flow Jababeka lebih rendah', A0, actual('actual_energy_jababeka', range(1, 9), 1.0), 'EITHER', std)
-    T('F', 'Actual MM2100 lebih tinggi', A0, actual('actual_energy_mm2100', range(1, 9), 0.2), 'EITHER', std)
+    T('F', 'Actual PGN lebih tinggi dari simulasi (row 1-8)', A0, actual('actual_pgn_total', range(1, 9), 0.075), 'EITHER', std)
+    T('F', 'Actual PGN lebih rendah (row 1-8)', A0, actual('actual_pgn_total', range(1, 9), 0.055), 'EITHER', std)
+    T('F', 'Actual Fixed Flow Jababeka lebih tinggi (row 1-8)', A0, actual('actual_energy_jababeka', range(1, 9), 0.72), 'EITHER', std)
+    T('F', 'Actual Fixed Flow Jababeka lebih rendah', A0, actual('actual_energy_jababeka', range(1, 9), 0.60), 'EITHER', std)
+    T('F', 'Actual MM2100 lebih tinggi', A0, actual('actual_energy_mm2100', range(1, 9), 0.02), 'EITHER', std)
     T('F', 'Actual MM2100 lebih rendah', A0, actual('actual_energy_mm2100', range(1, 9), 0.0), 'EITHER', std)
-    T('F', 'Kombinasi ketiga Actual Gas', A0, chain(actual('actual_pgn_total', range(1, 9), 1.0), actual('actual_energy_jababeka', range(1, 9), 1.3), actual('actual_energy_mm2100', range(1, 9), 0.1)), 'EITHER', std)
-    T('F', 'Historical actual immutable (actual row 1-8 tercermin di output)', A0, actual('actual_pgn_total', range(1, 9), 1.1), 'EITHER', [lambda r: (all(abs(float(w.get('Act_PGN') or 0) - 1.1) < 1e-6 or w.get('Act_PGN') in (None, '') for w in r.d[:8]), f"Act_PGN rows1-8 {[w.get('Act_PGN') for w in r.d[:8]]}")])
-    T('F', 'Current/future planning rows adjustable (row 9+ tanpa actual)', A0, actual('actual_pgn_total', range(1, 9), 1.1), 'EITHER', std, note='payload = F008')
+    T('F', 'Kombinasi ketiga Actual Gas', A0, chain(actual('actual_pgn_total', range(1, 9), 0.07), actual('actual_energy_jababeka', range(1, 9), 0.70), actual('actual_energy_mm2100', range(1, 9), 0.01)), 'EITHER', std)
+    T('F', 'Historical actual immutable (actual row 1-8 tercermin di output)', A0, actual('actual_pgn_total', range(1, 9), 0.07), 'EITHER', [lambda r: (all(abs(float(r.d[k].get('Act_PGN') or 0) - 0.14) < 1e-6 for k in (0, 2, 4, 6)), f"Act_PGN jam 1-4 (jumlah 2 row) {[r.d[k].get('Act_PGN') for k in (0, 2, 4, 6)]} = 0,14")])
+    T('F', 'Current/future planning rows adjustable (row 9+ tanpa actual)', A0, actual('actual_pgn_total', range(1, 9), 0.07), 'EITHER', std, note='payload = F008')
     T('F', 'Min PGN Flow satu row (manual fixed flow J row 20)', A0, lambda i: M(i).__setitem__('manual_fixed_flows', [{'area': 'J', 'row': 20, 'value_mmscfd': 3}]) or i, 'EITHER', std)
     T('F', 'Min PGN Flow empat row (row 20-23)', A0, lambda i: M(i).__setitem__('manual_fixed_flows', [{'area': 'J', 'row': k, 'value_mmscfd': 3} for k in range(20, 24)]) or i, 'EITHER', std)
     T('F', 'Fixed Flow dikurangi minimum pada source rows (min_pgn_flow 5)', A0, lambda i: M(i).__setitem__('min_pgn_flow', 5) or i, 'EITHER', std + [has_info('Fixed Flow JBBK Redistribution')])
@@ -331,7 +339,7 @@ def define(G):
     T('F', 'Recipient capacity tidak cukup (min_pgn_flow 12)', A0, lambda i: M(i).__setitem__('min_pgn_flow', 12) or i, 'EITHER', [rows48()])
     T('F', 'Total Fixed Flow harian before = after (redistribusi)', A0, lambda i: M(i).__setitem__('min_pgn_flow', 5) or i, 'EITHER', [lambda r: (lambda x: (x is None or abs(float(x.get('total_before', 0) or 0) - float(x.get('total_after', 0) or 0)) < 1e-3 if isinstance(x, dict) else True, f'redistribusi {json.dumps(x)[:160]}'))(r.i.get('Fixed Flow JBBK Redistribution'))], note='payload = F012')
     T('F', 'Residual reconciliation pembulatan (min_pgn_flow 3.33)', A0, lambda i: M(i).__setitem__('min_pgn_flow', 3.33) or i, 'EITHER', std)
-    T('F', 'Save Actual Gas draft/final dan Monitoring reload exact [engine payload]', A0, chain(actual('actual_pgn_total', range(1, 9), 1.0), lambda i: M(i).__setitem__('monitoring_daily_plan', {'enabled': True}) or i), 'EITHER', [rows48()], note='persist UI di grup I')
+    T('F', 'Save Actual Gas draft/final dan Monitoring reload exact [engine payload]', A0, chain(actual('actual_pgn_total', range(1, 9), 0.07), lambda i: M(i).__setitem__('monitoring_daily_plan', {'enabled': True}) or i), 'EITHER', [rows48()], note='persist UI di grup I')
 
     # ================= GROUP G (14) trip / availability / change over =================
     T('G', 'Trip Babelan unit 1 (B1 sudah Stop di fixture)', A0, None, 'PASS', std + [off_all('bb1')], note='payload = A0')
@@ -374,8 +382,8 @@ def define(G):
     T('H', 'Fix pada startup transition (G9 row 11 = 45 MW)', A0, fx('g9', 11, 11, 45), 'EITHER', [rows48()])
     T('H', 'Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30)', A0, chain(lambda i: set_unit(i, 'g5', 'Running', None, 'request', stop_at='12:00'), fx('g5', 30, 30, 25)), 'REJECT', [])
     T('H', 'Infeasible Fix dengan terminal proof (G8 105 seluruh hari + G2 31)', A0, chain(fx('g8', 1, 48, 105), fx('g2', 1, 48, 31)), 'EITHER', [rows48()])
-    T('H', 'Fix + Actual Gas lebih tinggi', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 1.2)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
-    T('H', 'Fix + Actual Gas lebih rendah', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 0.6)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
+    T('H', 'Fix + Actual Gas lebih tinggi', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 0.075)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
+    T('H', 'Fix + Actual Gas lebih rendah', A0, chain(fx('g2', 20, 20, 25), actual('actual_pgn_total', range(1, 9), 0.055)), 'EITHER', std + [fix_load('g2', 20, 20, 25)])
 
     # ================= GROUP J (engine part) =================
     T('J', 'Dua kandidat fully valid dengan CP berbeda (A3 vs base): pemenang CP lebih rendah', 'A3_cfg_G6_ke_G4', None, 'PASS', std + [proof_ok()])

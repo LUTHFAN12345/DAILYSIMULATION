@@ -1,0 +1,96 @@
+{
+ "id": "T169",
+ "group": "H",
+ "title": "Edit Fix Load (G2 25 -> 27 MW row 20)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g2 fix 27 MW rows 20-20; bad=[]"
+ ],
+ "cp": 94.9237,
+ "econ_cp": null,
+ "hr": 8461.98,
+ "gas_bbtud": 65.4284,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.0411,
+ "daily_export_mwh": 664.09,
+ "distillate_l": 223185,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+10:00",
+  "G1-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "5872ff58c36eabcdd13a621f",
+ "job_input_hash": "dea2fe30d0583c6da40654d6881437b00b088c11f112d4c89dbe04f706d5af03",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 5.39,
+ "cpu_s": 5.29,
+ "max_rss_kb": 60244,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.084
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 3.222
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.051
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.034
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.015
+  },
+  {
+   "stage": "gate",
+   "s": 0.069
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/5872ff58c36eabcdd13a621f.json"
+}

@@ -1,0 +1,99 @@
+{
+ "id": "T162",
+ "group": "G",
+ "title": "Change Over tidak legal (Block 2 stop 01:00 sebelum Block 1 siap)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": "USER_ACTION_REQUIRED",
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status USER_ACTION_REQUIRED; msg Change Over yang diminta tidak dapat dieksekusi: unit_present = 0 / unit tidak ada pada model. Baris yang ditampilkan adalah kandidat yang ditolak, bukan rencan"
+ ],
+ "cp": 89.896,
+ "econ_cp": null,
+ "hr": 8457.89,
+ "gas_bbtud": 65.4418,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -6.3488,
+ "daily_export_mwh": 468.4,
+ "distillate_l": 176213,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G2-01:00",
+  "G3+05:00",
+  "G3-19:30",
+  "G4+09:30",
+  "G6+08:00",
+  "G9+01:00",
+  "S1+08:30",
+  "S2-01:00"
+ ],
+ "rows": 48,
+ "payload_hash": "7a333e55418fe0cacd238b01",
+ "job_input_hash": "b23149ea29b2d72ba7063a64a76b9a0bc0ef01e715b19abfb04604a846324560",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 6.4,
+ "cpu_s": 6.22,
+ "max_rss_kb": 69848,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.001
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 5.204
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.066
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.013
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.03
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.01
+  },
+  {
+   "stage": "gate",
+   "s": 0.077
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/7a333e55418fe0cacd238b01.json"
+}

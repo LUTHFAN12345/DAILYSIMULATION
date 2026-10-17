@@ -1,0 +1,96 @@
+{
+ "id": "T111",
+ "group": "E",
+ "title": "IE Adjustment nol",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "NG events ['G1+10:00', 'G1-16:30', 'G5+07:30', 'G5-18:30', 'G6+05:00', 'G9+05:00', 'S1+08:30'] vs base ['G3+05:30', 'G3-17:00', 'G5+07:30', 'G5-18:30', 'G6+10:00', 'G9+05:00', 'S1+09:00']"
+ ],
+ "cp": 95.0865,
+ "econ_cp": null,
+ "hr": 8460.41,
+ "gas_bbtud": 65.455,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.1381,
+ "daily_export_mwh": 677.18,
+ "distillate_l": 225879,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+10:00",
+  "G1-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "e9ac037d5dee8be5a865f57d",
+ "job_input_hash": "6e31e85438a4e93083ed246af0df4dbaf902eb6b171eb38a5ba0ad6316a87120",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 8.33,
+ "cpu_s": 4.1,
+ "max_rss_kb": 59000,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.171
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 4.122
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.098
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.021
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.064
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.031
+  },
+  {
+   "stage": "gate",
+   "s": 0.127
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.006
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/e9ac037d5dee8be5a865f57d.json"
+}

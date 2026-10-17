@@ -1,0 +1,211 @@
+{
+ "id": "T043",
+ "group": "B",
+ "title": "Seluruh feeder Block 1 Stop -> input ditolak / Block 1 tidak dapat dipenuhi",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "INPUT_CONTRADICTION:BLOCK_REQUIRED_CONTRADICTORY_INPUT",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: INPUT_CONTRADICTION:BLOCK_REQUIRED_CONTRADICTORY_INPUT; status None; msg PLN Export is outside the configured range. row 21: Export 16.49 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
+ ],
+ "cp": 93.9685,
+ "econ_cp": null,
+ "hr": 8452.62,
+ "gas_bbtud": 65.4553,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.7725,
+ "daily_export_mwh": 642.15,
+ "distillate_l": 215730,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:00",
+  "G1-18:30",
+  "G5+07:30",
+  "G9+01:00"
+ ],
+ "rows": 48,
+ "payload_hash": "095c96ff75ba73eca2950d36",
+ "job_input_hash": "24e40ea9d5a1f2bb3edc4c61bccef1ee2efec7722d2418f28cd76124e36ffa74",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 81.63,
+ "cpu_s": 47.65,
+ "max_rss_kb": 218436,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.219
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.168
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.242
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.168
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.247
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.152
+  },
+  {
+   "stage": "cand_run",
+   "s": 20.788
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.151
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.364
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.174
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 62.125
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.064
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.722
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.717
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.749
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.459
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.357
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.419
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 7.769
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.023
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 1.88
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.016
+  },
+  {
+   "stage": "priority_fix",
+   "s": 8.931
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.033
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/095c96ff75ba73eca2950d36.json"
+}

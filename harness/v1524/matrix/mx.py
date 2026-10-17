@@ -118,7 +118,7 @@ class R:
         tc = self.i.get('Fastest Terminal Certificate')
         if isinstance(tc, dict) and (tc.get('code') or tc.get('status')): return 'TERMINAL_CERTIFICATE:' + str(tc.get('code') or tc.get('status'))
         if self.i.get('Reserve Infeasibility Certificate'): return 'RESERVE_INFEASIBILITY_CERTIFICATE'
-        if 'lever legal habis' in msg: return 'GAS_LEVER_EXHAUSTION_PROOF'
+        if 'lever legal habis' in msg and str(self.i.get('Gas Shortage Action') or 'none') in ('none', 'recommendation', 'flag_shortage_only'): return 'GAS_LEVER_EXHAUSTION_PROOF_DECISION_REQUIRED'
         e = self.r.get('error') or self.o.get('error')
         if isinstance(e, dict) and re.search('^(INPUT_|INVALID_|VALIDATION_|FIX_LOAD_|BAD_)|REJECT', str(e.get('code') or '')): return 'INPUT_REJECTED:' + json.dumps(e)[:160]
         if st.startswith('INPUT_') or 'REJECT' in st: return 'INPUT_REJECTED:' + st

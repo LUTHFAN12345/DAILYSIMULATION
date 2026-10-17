@@ -23,3 +23,14 @@ Format: setiap perubahan/penggantian/penambahan skenario terhadap katalog minimu
   CP 101,077 / inversi 55 row vs tanpa kandidat CP 98,8143 / inversi 43 row (comparator final: tanpa kandidat LEBIH BAIK pada semua kunci).
   Penyebab: G5 Hold to End — start lebih awal memaksa G5 ON sampai 00:00; pencarian greedy dengan kandidat baru berakhir di optimum lokal lebih buruk.
   Keputusan: kandidat tidak dipasang (perubahan dibatalkan); perilaku T001 terbukti oleh comparator dan Event Proof TERBUKTI.
+- Daily Export target REQUIRED (T124/T127/T128/T129, juga T130 dispatch-dev): lift target harian (`pp_compute_pln_targets`) dibagi sebanding headroom
+  RangeMax menjadi lantai per row (`pln_lo`) termasuk row 1 yang secara fisik hanya dapat dilayani unit Last Data Running (row 1 Export 15,4 < 59–155).
+  Identik pada V15.22 (diverifikasi: T127 di app V15.22 -> row 1 Export 15,4 < RangeMin 59,07). Percobaan redistribusi lift berbasis export tercapai
+  sesudah dispatch pertama DIBATALKAN: pada tahap itu commitment belum diputuskan sehingga lantai turun ke 550 MWh (< target 1500) — target harian
+  justru tidak ditegakkan. Perbaikan yang benar memerlukan target harian ikut menggerakkan commitment (startup) — dicatat sebagai keterbatasan.
+- T111 (IE Adjustment nol): basis warm IE satu per konteks ditimpa run terakhir -> hasil bergantung riwayat (CP 95,0865 vs 93,4567).
+  Diperbaiki: basis eksak per (konteks, profil IE efektif, Actual Gas, Fix Load) + bukti event/penutupan juga pada jalur warm.
+- T105/T117 (distillate plafon user < kebutuhan): kini TERMINAL_INFEASIBLE_FUEL_CAP dengan bukti numerik (kebutuhan, plafon, sisa > batas atas penurunan
+  gas yang masih dapat dipakai) + opsi (plafon liter yang dibutuhkan / LNG tambahan); sebelumnya pratinjau non-terminal.
+- T034/T045/T047: Unit Priority Fix sesudah Tightening membuat tunda-start menjadi valid & lebih baik -> penutupan bukti event pada dispatch FINAL.
+- T055/T076/T079/T081/T091/T107: oracle diperbaiki (baris pembanding salah / hash job dari __bench / window gas = Total Gas Used vs [kuota-0,04, kuota]).

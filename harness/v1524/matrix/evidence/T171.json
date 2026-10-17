@@ -1,0 +1,214 @@
+{
+ "id": "T171",
+ "group": "H",
+ "title": "Fix di atas MAX ditolak (G2 40 MW)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran te"
+ ],
+ "cp": 105.7868,
+ "econ_cp": null,
+ "hr": 8628.98,
+ "gas_bbtud": 65.4586,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.4316,
+ "daily_export_mwh": 885.34,
+ "distillate_l": 317291,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "2c5b1b49c20bb793dd4270a0",
+ "job_input_hash": "7e70b6207b0e576605e23d2a4541c646d10bf852c5ebb36fe6f3f202d5b17a04",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 138.88,
+ "cpu_s": 54.92,
+ "max_rss_kb": 264308,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.308
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.154
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.56
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.184
+  },
+  {
+   "stage": "cand_run",
+   "s": 20.036
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.467
+  },
+  {
+   "stage": "cand_run",
+   "s": 17.881
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.034
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.337
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.521
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.233
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 81.809
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.999
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.024
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.034
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.081
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.025
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.207
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.023
+  },
+  {
+   "stage": "cand_run",
+   "s": 17.549
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.856
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 24.622
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.025
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.019
+  },
+  {
+   "stage": "priority_fix",
+   "s": 28.694
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 1.288
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.027
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.012
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/2c5b1b49c20bb793dd4270a0.json"
+}

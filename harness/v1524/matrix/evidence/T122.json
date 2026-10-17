@@ -1,0 +1,214 @@
+{
+ "id": "T122",
+ "group": "E",
+ "title": "SR Effective Minimum tinggi (40 MW)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "RESERVE_INFEASIBILITY_CERTIFICATE",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: RESERVE_INFEASIBILITY_CERTIFICATE; status None; msg Spinning Reserve is below the configured requirement. row 1: Spinning Reserve 25.23 MW < requirement 40.00 MW (headroom unit online tidak cukup) Recommended act"
+ ],
+ "cp": 106.7854,
+ "econ_cp": null,
+ "hr": 8656.71,
+ "gas_bbtud": 65.4413,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.6796,
+ "daily_export_mwh": 885.45,
+ "distillate_l": 324174,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-16:30",
+  "G5+07:30",
+  "G5-23:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "f443767082204492e44e14a4",
+ "job_input_hash": "9bff15c7a4b980a7b9bb076ab5fb446dae7cc331fafc2829b2be66d96ec1b553",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 66.97,
+ "cpu_s": 63.84,
+ "max_rss_kb": 291628,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.597
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.152
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.682
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.113
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.412
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.151
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.572
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.144
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.624
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.096
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 30.471
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.411
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.343
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.621
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 11.261
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.348
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.339
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 20.68
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 1.086
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.015
+  },
+  {
+   "stage": "priority_fix",
+   "s": 13.844
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.212
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.022
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.009
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/f443767082204492e44e14a4.json"
+}

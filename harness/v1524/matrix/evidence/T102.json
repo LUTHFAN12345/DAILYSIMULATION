@@ -1,0 +1,108 @@
+{
+ "id": "T102",
+ "group": "D",
+ "title": "Gas Shortage dengan LNG + Distillate (IE +20, recommendation)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "payload = C016",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS",
+ "engine_status": "USER_FUEL_DECISION_REQUIRED",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS; status USER_FUEL_DECISION_REQUIRED; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=78.7107 di luar window [65.4200,65.4600] (deviasi 13.2507 B"
+ ],
+ "cp": 61.9251,
+ "econ_cp": null,
+ "hr": 8687.74,
+ "gas_bbtud": 78.7107,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -13.2507,
+ "daily_export_mwh": 558.19,
+ "distillate_l": 367779,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+03:30",
+  "G1-15:00",
+  "G3+12:00",
+  "G4+10:30",
+  "G4-18:30",
+  "G5+07:30",
+  "G6+07:30",
+  "G9+04:30",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "d6cc918e51e6c6f8fdb22df4",
+ "job_input_hash": "d6dd6e26ade6a8f74e742cb18311a6a69948101542c6c090e5454be9c376a42e",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 5.02,
+ "cpu_s": 4.890000000000001,
+ "max_rss_kb": 67132,
+ "phase_timing": [
+  {
+   "stage": "ie_warm_attempt",
+   "s": 0
+  },
+  {
+   "stage": "supplier_cert_guard",
+   "s": 0.271
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.258
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.005
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 4.266
+  },
+  {
+   "stage": "fast_pipeline",
+   "s": 4.266
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.006
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.08
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.037
+  },
+  {
+   "stage": "gate",
+   "s": 0.163
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.001
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/d6cc918e51e6c6f8fdb22df4.json"
+}

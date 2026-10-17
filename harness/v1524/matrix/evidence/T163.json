@@ -1,0 +1,215 @@
+{
+ "id": "T163",
+ "group": "G",
+ "title": "Ramp dan reserve setelah trip (G8 trip 12:00, SR 10)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "RESERVE_INFEASIBILITY_CERTIFICATE",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: RESERVE_INFEASIBILITY_CERTIFICATE; status None; msg PLN Export is outside the configured range. row 25: Export -3.38 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
+ ],
+ "cp": 105.5791,
+ "econ_cp": null,
+ "hr": 8794,
+ "gas_bbtud": 65.426,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -10.7665,
+ "daily_export_mwh": 642.51,
+ "distillate_l": 298830,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+12:30",
+  "G3+09:00",
+  "G4+12:30",
+  "G5+07:30",
+  "G6+01:00",
+  "G8-12:30",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "0dcb3aef477cef7adead0ffd",
+ "job_input_hash": "3cff64c0ed8795a1b7e627b54ec0242383a9aa7547e9366f381208fb8a35f9c4",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 109.16,
+ "cpu_s": 81.39,
+ "max_rss_kb": 303192,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.683
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.031
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.437
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.235
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.38
+  },
+  {
+   "stage": "cand_run",
+   "s": 19.661
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.398
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.788
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.355
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.074
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.017
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.174
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 65.409
+  },
+  {
+   "stage": "consol_run",
+   "s": 12.175
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 12.36
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.844
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.036
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.926
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.788
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.548
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.534
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 5.4
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.405
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0.515
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 3.205
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.012
+  },
+  {
+   "stage": "priority_fix",
+   "s": 21.044
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.158
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/0dcb3aef477cef7adead0ffd.json"
+}

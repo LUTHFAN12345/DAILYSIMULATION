@@ -1,0 +1,228 @@
+{
+ "id": "T034",
+ "group": "B",
+ "title": "Block 1 Required OFF (G6 bebas, S1 bebas)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK event proof TERBUKTI not_proven=[]"
+ ],
+ "cp": 98.1659,
+ "econ_cp": 98.6824,
+ "hr": 8525.84,
+ "gas_bbtud": 65.4597,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.0294,
+ "daily_export_mwh": 715.18,
+ "distillate_l": 250616,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:30",
+   "first_needed": "14:30",
+   "deficit_mw": 28.73,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G3",
+   "start": "08:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G4",
+   "start": "03:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G5",
+   "start": "08:30",
+   "first_needed": "14:30",
+   "deficit_mw": 28.73,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:30",
+   "first_needed": "14:30",
+   "deficit_mw": 27.09,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G9",
+   "start": "04:00",
+   "first_needed": "07:00",
+   "deficit_mw": 16.47,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  }
+ ],
+ "events": [
+  "G1+08:30",
+  "G1-18:30",
+  "G3+08:30",
+  "G3-14:30",
+  "G4+03:30",
+  "G4-09:30",
+  "G5+08:30",
+  "G6+10:30",
+  "G6-16:30",
+  "G9+04:00",
+  "S1+07:00",
+  "S1-16:30"
+ ],
+ "rows": 48,
+ "payload_hash": "f237782b0126c55c0aad0c1d",
+ "job_input_hash": "857411d800abee2d973f39f991aa3e30135eace0431bfa2ff0fa8a5a1edd48c8",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 80.22,
+ "cpu_s": 51.230000000000004,
+ "max_rss_kb": 466120,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.296
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.102
+  },
+  {
+   "stage": "cand_run",
+   "s": 14.75
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.251
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.714
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.021
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.187
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.168
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 28.506
+  },
+  {
+   "stage": "consol_run",
+   "s": 6.73
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.703
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.649
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 10.094
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 24.858
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 1.086
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.91
+  },
+  {
+   "stage": "event_proof",
+   "s": 5.445
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.072
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.01
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 51.06
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.021
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.074
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.01
+  },
+  {
+   "stage": "gate",
+   "s": 0.165
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 92,
+ "evidence": "evidence/runs/f237782b0126c55c0aad0c1d.json"
+}

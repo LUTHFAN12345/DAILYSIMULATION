@@ -8908,7 +8908,9 @@ function pp_run_simulation_once_raw(array $input): array {
      *   Effective Total = Total est + (blend - est) tiap sumber; blend PGN memakai profil per-slot
      *   Est_PGN (formula yang sama dgn $pgnTotal), blend J/M memakai pp_blend (fixed-flow flat).
      *   Tanpa actual, seluruh delta = 0 -> identik dgn Total Gas Used (backward compatible). */
-    $effTotalGas = $gas_BBTUD
+    /* V15.24: basis NETO yang sama dengan 'Total Gas Used' (gas yang digantikan distillate dikurangkan) — sebelumnya Effective Total Gas
+     * memakai gas KOTOR sehingga setiap Actual Gas pada skenario distillate dinilai melampaui window sebesar offset distillate. */
+    $effTotalGas = $gas_BBTUD - (pp_action_uses_distillate($action) ? (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0) : 0.0)
         + (($actHoursPGN > 0) ? ($pgnTotal + $penaltyFuture - ($estPGN_perrow + $startupGasPenalty)) : 0.0)
         + ($actEnergyJ - $estEnergyJ)
         + ($actEnergyM - $estEnergyM);

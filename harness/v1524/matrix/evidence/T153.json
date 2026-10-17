@@ -1,0 +1,79 @@
+{
+ "id": "T153",
+ "group": "G",
+ "title": "Trip G8",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b"
+ ],
+ "cp": 97.9319,
+ "econ_cp": null,
+ "hr": 9118.35,
+ "gas_bbtud": 65.4557,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.2773,
+ "daily_export_mwh": -55.46,
+ "distillate_l": 201985,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+01:00",
+  "G3+04:30",
+  "G4+01:00",
+  "G5+06:00",
+  "G6+01:00",
+  "G9+01:30",
+  "S1+04:30",
+  "S3+07:00"
+ ],
+ "rows": 48,
+ "payload_hash": "a20ce69adf24e93da7a06aee",
+ "job_input_hash": "0e149c7eb7aec863bf5d5d4a7987ea0f6a3d08f0022b0ecd85adb41441fa3b37",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 2.14,
+ "cpu_s": 1.03,
+ "max_rss_kb": 40196,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.02
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.319
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.079
+  },
+  {
+   "stage": "gate",
+   "s": 0.587
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.006
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/a20ce69adf24e93da7a06aee.json"
+}

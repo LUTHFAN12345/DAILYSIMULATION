@@ -1,0 +1,214 @@
+{
+ "id": "T086",
+ "group": "D",
+ "title": "LNG quota turun (-4)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "GAS_LEVER_EXHAUSTION_PROOF",
+ "engine_status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: GAS_LEVER_EXHAUSTION_PROOF; status FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=65.0189 di luar window [61.4200,61.4600] (deviasi 3.5589 BB"
+ ],
+ "cp": 103.1692,
+ "econ_cp": null,
+ "hr": 8633.04,
+ "gas_bbtud": 65.0189,
+ "gas_quota_bbtud": 61.46,
+ "gas_deviation_bbtud": -15.4683,
+ "daily_export_mwh": 885.4,
+ "distillate_l": 429331,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "845f5fccf8c10d2b698655ed",
+ "job_input_hash": "f1ba354d66b5ee4d373c2365246a71a059c5fb5ddef865c981df2e3e2314ed2c",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 73.36,
+ "cpu_s": 60.59,
+ "max_rss_kb": 318724,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.523
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.156
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.266
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.097
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.797
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.239
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.917
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.005
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.083
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.51
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.076
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 31.306
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.157
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.624
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.724
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.108
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.943
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.561
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 22.01
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.02
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.005
+  },
+  {
+   "stage": "priority_fix",
+   "s": 18.515
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.777
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.017
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/845f5fccf8c10d2b698655ed.json"
+}

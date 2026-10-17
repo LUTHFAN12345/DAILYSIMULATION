@@ -1,0 +1,100 @@
+{
+ "id": "T207",
+ "group": "J",
+ "title": "Fastest dan satu Maximum Review smoke dibandingkan transparan (A0)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "Maximum Review smoke",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK Maximum Review CP 94.4597 vs Fastest CP 93.4567; events MR ['G1+08:30', 'G1-16:30', 'G5+07:30', 'G5-18:30', 'G6+07:30', 'G9+04:30', 'S1+11:00'] vs F ['G3+05:30', 'G3-17:00', 'G5+07:30', 'G5-18:30', 'G6+10:00', 'G9+05:00', 'S1+09:00']"
+ ],
+ "cp": 94.4597,
+ "econ_cp": null,
+ "hr": 8479.29,
+ "gas_bbtud": 65.4548,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.8615,
+ "daily_export_mwh": 622.85,
+ "distillate_l": 218202,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:30",
+  "G1-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+07:30",
+  "G9+04:30",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "49c02edc54b266284c0ca345_mr",
+ "job_input_hash": "24df21ff80ec4a4c19311295bb3133703499dee0b75e5c1ea3ba730734d63383",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 66.02,
+ "cpu_s": 65.39,
+ "max_rss_kb": 318588,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 33.811
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 10.006
+  },
+  {
+   "stage": "priority_fix",
+   "s": 1.057
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.04
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.029
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.014
+  },
+  {
+   "stage": "gate",
+   "s": 0.063
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 70,
+ "evidence": "evidence/runs/49c02edc54b266284c0ca345_mr.json"
+}

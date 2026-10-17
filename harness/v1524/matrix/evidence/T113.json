@@ -1,0 +1,95 @@
+{
+ "id": "T113",
+ "group": "E",
+ "title": "IE Adjustment beberapa window",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 95.1153,
+ "econ_cp": null,
+ "hr": 8466.1,
+ "gas_bbtud": 65.4575,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.1346,
+ "daily_export_mwh": 675.93,
+ "distillate_l": 225782,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+10:00",
+  "G1-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "79cd663d8b46dcbc000c2113",
+ "job_input_hash": "f43de1897ddb9b11d7d717d187ebba9a0b7610b3edc8d83377c32407cc965510",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 3.02,
+ "cpu_s": 2.9499999999999997,
+ "max_rss_kb": 50952,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.067
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 1.49
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.059
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.031
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.015
+  },
+  {
+   "stage": "gate",
+   "s": 0.067
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "evidence/runs/79cd663d8b46dcbc000c2113.json"
+}
