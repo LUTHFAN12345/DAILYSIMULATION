@@ -44,13 +44,13 @@
  ],
  "rows": 48,
  "payload_hash": "4ca2bdc7bd8d463611a0f9a8",
- "job_input_hash": "2a572f1aef4ed7a47341ea6c0c93071e6a430600648138ec8dc2fe5691d75d18",
- "run_cached": false,
+ "job_input_hash": "ebe4e8dc313622ef88f2c9f45aeb81d3e36af588267ae4b1a45c0d589b318da5",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 7.86,
- "cpu_s": 3.85,
- "max_rss_kb": 58112,
+ "wall_s": 8.05,
+ "cpu_s": 3.97,
+ "max_rss_kb": 58096,
  "phase_timing": [
   {
    "stage": "ie_warm_attempt",
@@ -58,15 +58,15 @@
   },
   {
    "stage": "supplier_cert_guard",
-   "s": 0.529
+   "s": 0.745
   },
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.002
+   "s": 0.001
   },
   {
    "stage": "cand_run",
-   "s": 6.212
+   "s": 6.112
   },
   {
    "stage": "cand_assess",
@@ -74,15 +74,15 @@
   },
   {
    "stage": "pipeline_core_total",
-   "s": 6.229
+   "s": 6.127
   },
   {
    "stage": "fast_pipeline",
-   "s": 6.229
+   "s": 6.127
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.016
+   "s": 0.012
   },
   {
    "stage": "gate_acceptance_review",
@@ -90,15 +90,15 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.142
+   "s": 0.143
   },
   {
    "stage": "gate_merit",
-   "s": 0.077
+   "s": 0.09
   },
   {
    "stage": "gate",
-   "s": 0.36
+   "s": 0.388
   },
   {
    "stage": "validate_final",

@@ -10,13 +10,13 @@
  "env": {},
  "status": "EXPECTED_REJECTION",
  "published": false,
- "terminal_proof": "GAS_LEVER_EXHAUSTION_PROOF",
- "engine_status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 60.000 l (2.1617 BBTUD); sisa 9.3066 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.197",
+ "engine_status": "TERMINAL_INFEASIBLE",
  "checks": [
-  "OK tidak dipublikasikan; terminal proof: GAS_LEVER_EXHAUSTION_PROOF; status FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=66.3755 di luar window [65.4200,65.4600] (deviasi 0.9155 BB"
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 60.000 l (2.1617 BBTUD); sisa 9.3066 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.197; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 60.000 l (2.1617 BBTUD); sisa 9.3066 BBTUD > batas atas penu"
  ],
  "cp": 102.4698,
- "econ_cp": null,
+ "econ_cp": 102.894,
  "hr": 8633.04,
  "gas_bbtud": 66.3755,
  "gas_quota_bbtud": 65.46,
@@ -27,8 +27,37 @@
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 1.15,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 1.47,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "09:00",
+   "deficit_mw": 32.21,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:00",
+   "deficit_mw": 15.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  }
+ ],
  "events": [
   "G4+09:30",
   "G4-17:30",
@@ -40,45 +69,45 @@
  ],
  "rows": 48,
  "payload_hash": "3d51ed91caa17ab3b5651eec",
- "job_input_hash": "2bfb7397dd356ba74cc314b6a1ecaea9ee233982ade61a88acdf22006d971fe7",
- "run_cached": false,
+ "job_input_hash": "6170bd7f30c67b06933d639e35ad82a988885fe1b7da3ae1fae0026ee1fea11e",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 37.29,
- "cpu_s": 29.189999999999998,
- "max_rss_kb": 227976,
+ "wall_s": 41.35,
+ "cpu_s": 38.5,
+ "max_rss_kb": 286628,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.001
+   "s": 0.002
   },
   {
    "stage": "cand_run",
-   "s": 2.707
+   "s": 3.035
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.011
   },
   {
    "stage": "cand_run",
-   "s": 1.666
+   "s": 1.916
   },
   {
    "stage": "cand_assess",
-   "s": 0.009
+   "s": 0.006
   },
   {
    "stage": "cand_run",
-   "s": 2.651
+   "s": 3.497
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.006
   },
   {
    "stage": "cand_run",
-   "s": 1.996
+   "s": 2.46
   },
   {
    "stage": "cand_assess",
@@ -86,23 +115,23 @@
   },
   {
    "stage": "cand_run",
-   "s": 5.563
+   "s": 6.748
   },
   {
    "stage": "cand_assess",
-   "s": 0.009
+   "s": 0.006
   },
   {
    "stage": "cand_run",
-   "s": 2.455
+   "s": 3.16
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.01
   },
   {
    "stage": "pipeline_core_total",
-   "s": 19.406
+   "s": 23.377
   },
   {
    "stage": "block_consolidation_total",
@@ -110,7 +139,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 0.008
+   "s": 0.012
   },
   {
    "stage": "family_evidence",
@@ -118,39 +147,43 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.006
+   "s": 0.007
   },
   {
    "stage": "priority_fix",
-   "s": 15.503
+   "s": 12.006
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.942
+   "s": 0.406
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.886
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.016
+   "s": 0.014
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.005
   },
   {
    "stage": "gate_hpa",
-   "s": 0.117
+   "s": 0.079
   },
   {
    "stage": "gate_merit",
-   "s": 0.048
+   "s": 0.023
   },
   {
    "stage": "gate",
-   "s": 0.21
+   "s": 0.127
   },
   {
    "stage": "validate_final",
-   "s": 0.006
+   "s": 0.002
   }
  ],
  "tightening_evals": null,

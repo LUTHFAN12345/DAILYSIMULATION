@@ -70,45 +70,45 @@
  ],
  "rows": 48,
  "payload_hash": "206fed57544745eee611ab6d",
- "job_input_hash": "2950bce5af11d11f65f2bb45ffb1ae5580fa6cd4e599990e83c8ddb0418b0c0b",
- "run_cached": false,
+ "job_input_hash": "b095c43643f4e019713ad4165d6610a376be11f200f888f6693ce7cdf9b1c674",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 16.01,
- "cpu_s": 15.790000000000001,
- "max_rss_kb": 183648,
+ "wall_s": 18.37,
+ "cpu_s": 18.17,
+ "max_rss_kb": 183656,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.001
+   "s": 0.002
   },
   {
    "stage": "cand_run",
-   "s": 2.496
+   "s": 3.036
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.081
+   "s": 0.12
   },
   {
    "stage": "cand_rank",
-   "s": 0.057
+   "s": 0.078
   },
   {
    "stage": "pipeline_core_total",
-   "s": 2.641
+   "s": 3.242
   },
   {
    "stage": "consol_run",
-   "s": 1.168
+   "s": 1.248
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 4.385
+   "s": 4.313
   },
   {
    "stage": "bundle_family_evidence",
@@ -116,19 +116,19 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 4.157
+   "s": 5.498
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 0.919
+   "s": 1.04
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.034
+   "s": 0.031
   },
   {
    "stage": "event_proof",
-   "s": 2.107
+   "s": 2.279
   },
   {
    "stage": "gate_acceptance_review",
@@ -144,11 +144,11 @@
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 12.989
+   "s": 14.638
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.007
+   "s": 0.008
   },
   {
    "stage": "gate_acceptance_review",
@@ -156,19 +156,19 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.027
+   "s": 0.036
   },
   {
    "stage": "gate_merit",
-   "s": 0.008
+   "s": 0.011
   },
   {
    "stage": "gate",
-   "s": 0.053
+   "s": 0.074
   },
   {
    "stage": "validate_final",
-   "s": 0.002
+   "s": 0.003
   }
  ],
  "tightening_evals": 22,

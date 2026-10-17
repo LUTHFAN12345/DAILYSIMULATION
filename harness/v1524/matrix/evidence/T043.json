@@ -16,7 +16,7 @@
   "OK tidak dipublikasikan; terminal proof: INPUT_CONTRADICTION:BLOCK_REQUIRED_CONTRADICTORY_INPUT; status None; msg PLN Export is outside the configured range. row 21: Export 16.49 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
  ],
  "cp": 93.9685,
- "econ_cp": null,
+ "econ_cp": 94.2284,
  "hr": 8452.62,
  "gas_bbtud": 65.4553,
  "gas_quota_bbtud": 65.46,
@@ -27,8 +27,30 @@
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 12.87,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 12.87,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "06:30",
+   "deficit_mw": 21.54,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
  "events": [
   "G1+08:00",
   "G1-18:30",
@@ -37,13 +59,13 @@
  ],
  "rows": 48,
  "payload_hash": "095c96ff75ba73eca2950d36",
- "job_input_hash": "24e40ea9d5a1f2bb3edc4c61bccef1ee2efec7722d2418f28cd76124e36ffa74",
- "run_cached": false,
+ "job_input_hash": "15bd51f4621ec59a4aca2a9a592738852bdb685f8fcf86ec8262cd66b4bd7423",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 81.63,
- "cpu_s": 47.65,
- "max_rss_kb": 218436,
+ "wall_s": 75.08,
+ "cpu_s": 52.910000000000004,
+ "max_rss_kb": 229352,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -51,7 +73,19 @@
   },
   {
    "stage": "cand_run",
-   "s": 5.219
+   "s": 4.814
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.181
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.592
   },
   {
    "stage": "cand_assess",
@@ -63,59 +97,47 @@
   },
   {
    "stage": "cand_run",
-   "s": 10.242
+   "s": 6.145
   },
   {
    "stage": "cand_assess",
-   "s": 0.015
+   "s": 0.011
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.168
+   "s": 0.198
   },
   {
    "stage": "cand_run",
-   "s": 6.247
+   "s": 21.29
   },
   {
    "stage": "cand_assess",
-   "s": 0.01
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.152
+   "s": 0.082
   },
   {
    "stage": "cand_run",
-   "s": 20.788
+   "s": 5.345
   },
   {
    "stage": "cand_assess",
-   "s": 0.015
+   "s": 0.007
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.151
-  },
-  {
-   "stage": "cand_run",
-   "s": 10.364
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.022
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.174
+   "s": 0.077
   },
   {
    "stage": "pipeline_core_total",
-   "s": 62.125
+   "s": 56.653
   },
   {
    "stage": "block_consolidation_total",
-   "s": 0.064
+   "s": 0.027
   },
   {
    "stage": "plan_latest_legal_starts",
@@ -123,23 +145,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.722
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.015
-  },
-  {
-   "stage": "cand_run",
-   "s": 0.717
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.015
-  },
-  {
-   "stage": "cand_run",
-   "s": 4.749
+   "s": 0.427
   },
   {
    "stage": "cand_assess",
@@ -147,7 +153,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.459
+   "s": 0.415
   },
   {
    "stage": "cand_assess",
@@ -155,7 +161,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.357
+   "s": 3.612
   },
   {
    "stage": "cand_assess",
@@ -163,15 +169,31 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.419
+   "s": 0.368
   },
   {
    "stage": "cand_assess",
-   "s": 0.007
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.337
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
   },
   {
    "stage": "pipeline_core_total",
-   "s": 7.769
+   "s": 5.952
   },
   {
    "stage": "block_consolidation_total",
@@ -179,7 +201,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 1.88
+   "s": 2.039
   },
   {
    "stage": "family_evidence",
@@ -187,23 +209,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.016
+   "s": 0.006
   },
   {
    "stage": "priority_fix",
-   "s": 8.931
+   "s": 8.469
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.033
+   "s": 0.045
+  },
+  {
+   "stage": "event_proof",
+   "s": 1.289
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.008
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.012
   }
  ],
  "tightening_evals": null,

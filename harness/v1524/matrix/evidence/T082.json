@@ -70,13 +70,13 @@
  ],
  "rows": 48,
  "payload_hash": "dc8516d673f2b0c5c1df610f",
- "job_input_hash": "12f780a7c28f1415954b58cc160e58dc73f24e38a74a34f0f5692cfc772ede09",
- "run_cached": false,
+ "job_input_hash": "bef88a1f1f1bce01ddaca0888b54395b880be3804a902112eee7bdd10cb618a0",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 83.79,
- "cpu_s": 41.31,
- "max_rss_kb": 468600,
+ "wall_s": 87.27,
+ "cpu_s": 43.150000000000006,
+ "max_rss_kb": 469032,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -84,43 +84,43 @@
   },
   {
    "stage": "cand_run",
-   "s": 5.645
+   "s": 6.899
   },
   {
    "stage": "cand_assess",
-   "s": 0.017
+   "s": 0.021
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.275
+   "s": 0.367
   },
   {
    "stage": "cand_rank",
-   "s": 0.146
+   "s": 0.252
   },
   {
    "stage": "pipeline_core_total",
-   "s": 6.084
+   "s": 7.541
   },
   {
    "stage": "consol_run",
-   "s": 4.873
+   "s": 5.311
   },
   {
    "stage": "consol_run",
-   "s": 2.911
+   "s": 2.5
   },
   {
    "stage": "consol_run",
-   "s": 1.906
+   "s": 2.121
   },
   {
    "stage": "consol_run",
-   "s": 2.903
+   "s": 2.718
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 9.634
+   "s": 9.439
   },
   {
    "stage": "bundle_family_evidence",
@@ -128,59 +128,59 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 45.77
+   "s": 46.042
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 2.671
+   "s": 2.881
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.735
+   "s": 0.945
   },
   {
    "stage": "event_proof",
-   "s": 4.296
+   "s": 5.434
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.013
   },
   {
    "stage": "gate_hpa",
-   "s": 0.078
+   "s": 0.105
   },
   {
    "stage": "gate_merit",
-   "s": 0.037
+   "s": 0.054
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 76.799
+   "s": 78.684
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.016
+   "s": 0.019
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.012
+   "s": 0.009
   },
   {
    "stage": "gate_hpa",
-   "s": 0.066
+   "s": 0.104
   },
   {
    "stage": "gate_merit",
-   "s": 0.032
+   "s": 0.048
   },
   {
    "stage": "gate",
-   "s": 0.142
+   "s": 0.217
   },
   {
    "stage": "validate_final",
-   "s": 0.001
+   "s": 0.002
   }
  ],
  "tightening_evals": 124,

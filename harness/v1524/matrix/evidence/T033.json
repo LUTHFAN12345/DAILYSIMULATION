@@ -63,13 +63,13 @@
  ],
  "rows": 48,
  "payload_hash": "c45c3b9b146a0348905de337",
- "job_input_hash": "85957b1e93cb91935c08e8f243ce2a1644d8c1640de56471dd575b63f1060c61",
- "run_cached": false,
+ "job_input_hash": "7a2a7d9ad1a9df16c3e0ffbc6b95087db275b0c83e6a5972f31de06d53526f35",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 26.54,
- "cpu_s": 15.07,
- "max_rss_kb": 177272,
+ "wall_s": 24.54,
+ "cpu_s": 17.189999999999998,
+ "max_rss_kb": 177544,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -77,31 +77,31 @@
   },
   {
    "stage": "cand_run",
-   "s": 7.327
+   "s": 7.814
   },
   {
    "stage": "cand_assess",
-   "s": 0.026
+   "s": 0.016
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.152
+   "s": 0.143
   },
   {
    "stage": "cand_rank",
-   "s": 0.08
+   "s": 0.121
   },
   {
    "stage": "pipeline_core_total",
-   "s": 7.586
+   "s": 8.096
   },
   {
    "stage": "block_required_lead",
-   "s": 0.014
+   "s": 0.023
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 5.836
+   "s": 6.612
   },
   {
    "stage": "bundle_family_evidence",
@@ -109,35 +109,35 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 9.948
+   "s": 5.977
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 1.026
+   "s": 1.11
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.03
+   "s": 0.061
   },
   {
    "stage": "event_proof",
-   "s": 1.275
+   "s": 1.64
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.004
   },
   {
    "stage": "gate_hpa",
-   "s": 0.026
+   "s": 0.028
   },
   {
    "stage": "gate_merit",
-   "s": 0.005
+   "s": 0.006
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 18.197
+   "s": 15.487
   },
   {
    "stage": "pre_gate_misc",
@@ -149,15 +149,15 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.025
+   "s": 0.027
   },
   {
    "stage": "gate_merit",
-   "s": 0.006
+   "s": 0.007
   },
   {
    "stage": "gate",
-   "s": 0.046
+   "s": 0.049
   },
   {
    "stage": "validate_final",

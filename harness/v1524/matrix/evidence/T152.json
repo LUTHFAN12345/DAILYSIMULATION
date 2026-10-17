@@ -41,33 +41,33 @@
  ],
  "rows": 48,
  "payload_hash": "2474ecb1947e12989487c6c0",
- "job_input_hash": "d16f50c9eaa5935806b75d817def6ce6c4389b255fa3e7926bd748ff492d0860",
- "run_cached": false,
+ "job_input_hash": "774680127654d48ac11d9c853406425c9d6ad2e34526c5e6f616f18a438701e8",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 2.53,
- "cpu_s": 1.23,
- "max_rss_kb": 40340,
+ "wall_s": 2.19,
+ "cpu_s": 1.08,
+ "max_rss_kb": 39828,
  "phase_timing": [
   {
    "stage": "pre_gate_misc",
-   "s": 0.016
+   "s": 0.023
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.008
+   "s": 0.004
   },
   {
    "stage": "gate_hpa",
-   "s": 0.495
+   "s": 0.288
   },
   {
    "stage": "gate_merit",
-   "s": 0.203
+   "s": 0.152
   },
   {
    "stage": "gate",
-   "s": 0.959
+   "s": 0.639
   },
   {
    "stage": "validate_final",

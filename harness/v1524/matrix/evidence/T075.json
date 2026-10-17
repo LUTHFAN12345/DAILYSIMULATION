@@ -72,13 +72,13 @@
  ],
  "rows": 48,
  "payload_hash": "c992983b7217771757bdcaab",
- "job_input_hash": "5193263a22ce749ee8e4d644f5a19012fcd90455924fc7c31363ceef4513a5bb",
- "run_cached": false,
+ "job_input_hash": "958964f411f41db6f98a0061a7de0336dca9d02f756d308c4eb90cb2b8ce63a1",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 23.77,
- "cpu_s": 23.39,
- "max_rss_kb": 321908,
+ "wall_s": 30.78,
+ "cpu_s": 26.49,
+ "max_rss_kb": 320676,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -86,27 +86,27 @@
   },
   {
    "stage": "cand_run",
-   "s": 2.35
+   "s": 2.5
   },
   {
    "stage": "cand_assess",
-   "s": 0.008
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.094
+   "s": 0.069
   },
   {
    "stage": "cand_rank",
-   "s": 0.054
+   "s": 0.052
   },
   {
    "stage": "pipeline_core_total",
-   "s": 2.508
+   "s": 2.627
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 3.696
+   "s": 3.666
   },
   {
    "stage": "bundle_family_evidence",
@@ -114,59 +114,59 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 10.825
+   "s": 13.294
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 1.216
+   "s": 1.353
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.041
+   "s": 0.042
   },
   {
    "stage": "event_proof",
-   "s": 4.915
+   "s": 9.035
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.004
+   "s": 0.007
   },
   {
    "stage": "gate_hpa",
-   "s": 0.032
+   "s": 0.056
   },
   {
    "stage": "gate_merit",
-   "s": 0.016
+   "s": 0.029
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 20.822
+   "s": 27.596
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.011
+   "s": 0.019
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.005
+   "s": 0.008
   },
   {
    "stage": "gate_hpa",
-   "s": 0.039
+   "s": 0.058
   },
   {
    "stage": "gate_merit",
-   "s": 0.014
+   "s": 0.025
   },
   {
    "stage": "gate",
-   "s": 0.083
+   "s": 0.138
   },
   {
    "stage": "validate_final",
-   "s": 0.002
+   "s": 0.006
   }
  ],
  "tightening_evals": 65,

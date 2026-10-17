@@ -16,7 +16,7 @@
   "OK tidak dipublikasikan; terminal proof: RESERVE_INFEASIBILITY_CERTIFICATE; status None; msg Spinning Reserve is below the configured requirement. row 1: Spinning Reserve 25.23 MW < requirement 40.00 MW (headroom unit online tidak cukup) Recommended act"
  ],
  "cp": 106.7854,
- "econ_cp": null,
+ "econ_cp": 107.2096,
  "hr": 8656.71,
  "gas_bbtud": 65.4413,
  "gas_quota_bbtud": 65.46,
@@ -27,8 +27,37 @@
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 1.15,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 2.1,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:babelan_ramp+spinning_reserve"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "08:30",
+   "deficit_mw": 1.59,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:00",
+   "deficit_mw": 15.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  }
+ ],
  "events": [
   "G4+09:30",
   "G4-16:30",
@@ -40,13 +69,13 @@
  ],
  "rows": 48,
  "payload_hash": "f443767082204492e44e14a4",
- "job_input_hash": "9bff15c7a4b980a7b9bb076ab5fb446dae7cc331fafc2829b2be66d96ec1b553",
- "run_cached": false,
+ "job_input_hash": "d01e960b06aed085c32f22b6daad432bd97c996d6d616b2ee2a875f2a47bcb11",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 66.97,
- "cpu_s": 63.84,
- "max_rss_kb": 291628,
+ "wall_s": 78.8,
+ "cpu_s": 72.62,
+ "max_rss_kb": 345844,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -54,43 +83,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 3.597
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.011
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.152
-  },
-  {
-   "stage": "cand_run",
-   "s": 5.682
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.009
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.113
-  },
-  {
-   "stage": "cand_run",
-   "s": 9.412
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.009
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.151
-  },
-  {
-   "stage": "cand_run",
-   "s": 3.572
+   "s": 3.852
   },
   {
    "stage": "cand_assess",
@@ -98,11 +91,35 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.144
+   "s": 0.147
   },
   {
    "stage": "cand_run",
-   "s": 3.624
+   "s": 5.697
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.111
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.783
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.156
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.581
   },
   {
    "stage": "cand_assess",
@@ -110,11 +127,23 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.096
+   "s": 0.141
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.173
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.087
   },
   {
    "stage": "pipeline_core_total",
-   "s": 30.471
+   "s": 33.03
   },
   {
    "stage": "block_consolidation_total",
@@ -126,7 +155,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.411
+   "s": 0.346
   },
   {
    "stage": "cand_assess",
@@ -134,7 +163,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.343
+   "s": 0.38
   },
   {
    "stage": "cand_assess",
@@ -142,7 +171,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 5.621
+   "s": 5.946
   },
   {
    "stage": "cand_assess",
@@ -150,15 +179,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 11.261
+   "s": 11.857
   },
   {
    "stage": "cand_assess",
-   "s": 0.008
+   "s": 0.01
   },
   {
    "stage": "cand_run",
-   "s": 2.348
+   "s": 2.622
   },
   {
    "stage": "cand_assess",
@@ -166,7 +195,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.339
+   "s": 0.356
   },
   {
    "stage": "cand_assess",
@@ -174,7 +203,7 @@
   },
   {
    "stage": "pipeline_core_total",
-   "s": 20.68
+   "s": 21.86
   },
   {
    "stage": "block_consolidation_total",
@@ -182,7 +211,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 1.086
+   "s": 1.05
   },
   {
    "stage": "family_evidence",
@@ -190,23 +219,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.015
+   "s": 0.008
   },
   {
    "stage": "priority_fix",
-   "s": 13.844
+   "s": 11.988
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.212
+   "s": 0.173
+  },
+  {
+   "stage": "event_proof",
+   "s": 10.007
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.022
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.009
+   "s": 0.023
   }
  ],
  "tightening_evals": null,

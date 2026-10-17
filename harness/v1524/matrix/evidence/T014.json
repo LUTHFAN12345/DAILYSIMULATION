@@ -62,13 +62,13 @@
  ],
  "rows": 48,
  "payload_hash": "d38adfc048520a8301890280",
- "job_input_hash": "c0555321401d3ab5cbcc42b3d10b379751a3c9cc78fb5f1f4a8dce538d5d64c7",
- "run_cached": false,
+ "job_input_hash": "c857bfb0cd6b9381f58d3a1605eddea98f1b78430e3161861a05a95a16329e98",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 150.95,
- "cpu_s": 114.96000000000001,
- "max_rss_kb": 754188,
+ "wall_s": 156.9,
+ "cpu_s": 119.78,
+ "max_rss_kb": 752844,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -76,7 +76,19 @@
   },
   {
    "stage": "cand_run",
-   "s": 7.351
+   "s": 7.977
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.106
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.633
   },
   {
    "stage": "cand_assess",
@@ -84,23 +96,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.089
+   "s": 0.106
   },
   {
    "stage": "cand_run",
-   "s": 6.711
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.009
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.125
-  },
-  {
-   "stage": "cand_run",
-   "s": 7.657
+   "s": 7.536
   },
   {
    "stage": "cand_assess",
@@ -108,11 +108,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.107
+   "s": 0.086
   },
   {
    "stage": "cand_run",
-   "s": 12.503
+   "s": 13.512
   },
   {
    "stage": "cand_assess",
@@ -120,11 +120,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.096
+   "s": 0.104
   },
   {
    "stage": "cand_run",
-   "s": 3.491
+   "s": 3.716
   },
   {
    "stage": "cand_assess",
@@ -132,11 +132,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.141
+   "s": 0.105
   },
   {
    "stage": "pipeline_core_total",
-   "s": 42.195
+   "s": 44.77
   },
   {
    "stage": "block_consolidation_total",
@@ -144,91 +144,91 @@
   },
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.002
+   "s": 0.001
   },
   {
    "stage": "cand_run",
-   "s": 2.727
+   "s": 3.307
   },
   {
    "stage": "cand_assess",
-   "s": 0.006
-  },
-  {
-   "stage": "cand_run",
-   "s": 2.76
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.006
-  },
-  {
-   "stage": "cand_rank",
-   "s": 0.084
-  },
-  {
-   "stage": "pipeline_core_total",
-   "s": 5.585
-  },
-  {
-   "stage": "consol_run",
-   "s": 1.61
-  },
-  {
-   "stage": "consol_run",
-   "s": 1.062
-  },
-  {
-   "stage": "consol_run",
-   "s": 3.49
-  },
-  {
-   "stage": "bundle_v8_priority_review",
-   "s": 4.939
-  },
-  {
-   "stage": "bundle_family_evidence",
    "s": 0.007
   },
   {
-   "stage": "commitment_tightening",
-   "s": 18.068
+   "stage": "cand_run",
+   "s": 3.342
   },
   {
-   "stage": "bundle_priority_fix",
-   "s": 12.027
+   "stage": "cand_assess",
+   "s": 0.007
   },
   {
-   "stage": "bundle_proof_completion",
-   "s": 0.819
+   "stage": "cand_rank",
+   "s": 0.078
   },
   {
-   "stage": "event_proof",
-   "s": 4.022
+   "stage": "pipeline_core_total",
+   "s": 6.742
   },
   {
-   "stage": "gate_acceptance_review",
-   "s": 0.003
+   "stage": "consol_run",
+   "s": 1.79
   },
   {
-   "stage": "gate_hpa",
-   "s": 0.092
+   "stage": "consol_run",
+   "s": 1.072
   },
   {
-   "stage": "gate_merit",
-   "s": 0.022
+   "stage": "consol_run",
+   "s": 3.458
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 7.78
+   "s": 4.305
   },
   {
    "stage": "bundle_family_evidence",
-   "s": 0.011
+   "s": 0.006
   },
   {
    "stage": "commitment_tightening",
-   "s": 34.767
+   "s": 20.079
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 12.618
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.852
+  },
+  {
+   "stage": "event_proof",
+   "s": 3.848
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.104
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.018
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 7.602
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.024
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 34.749
   }
  ],
  "tightening_evals": 88,

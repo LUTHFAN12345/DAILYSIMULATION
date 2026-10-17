@@ -71,13 +71,13 @@
  ],
  "rows": 48,
  "payload_hash": "44cfcda2f8a97c7d103674d4",
- "job_input_hash": "ff0450297575e690e294a90eb9ecab42f51ffcb9c7d42b771f0cad3ce0ca44ac",
- "run_cached": false,
+ "job_input_hash": "8ddb84e8bacdcd513ed2f1438cd1e08ee8083badd7006295f99c6b0be35e980d",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 33.58,
- "cpu_s": 33.14,
- "max_rss_kb": 372328,
+ "wall_s": 50.27,
+ "cpu_s": 31.08,
+ "max_rss_kb": 372428,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -85,39 +85,39 @@
   },
   {
    "stage": "cand_run",
-   "s": 2.939
+   "s": 6.235
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.017
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.09
+   "s": 0.164
   },
   {
    "stage": "cand_rank",
-   "s": 0.079
+   "s": 0.129
   },
   {
    "stage": "pipeline_core_total",
-   "s": 3.115
+   "s": 6.547
   },
   {
    "stage": "consol_run",
-   "s": 0.454
+   "s": 0.714
   },
   {
    "stage": "consol_run",
-   "s": 1.559
+   "s": 3.227
   },
   {
    "stage": "consol_run",
-   "s": 1.785
+   "s": 2.837
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 4.523
+   "s": 8.293
   },
   {
    "stage": "bundle_family_evidence",
@@ -125,35 +125,35 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 13.607
+   "s": 20.046
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 2.45
+   "s": 2.601
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.055
+   "s": 0.041
   },
   {
    "stage": "event_proof",
-   "s": 5.26
+   "s": 4.594
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.006
+   "s": 0.003
   },
   {
    "stage": "gate_hpa",
-   "s": 0.043
+   "s": 0.033
   },
   {
    "stage": "gate_merit",
-   "s": 0.01
+   "s": 0.009
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 30.043
+   "s": 42.921
   },
   {
    "stage": "pre_gate_misc",
@@ -161,7 +161,7 @@
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.004
   },
   {
    "stage": "gate_hpa",

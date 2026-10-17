@@ -72,33 +72,33 @@
  ],
  "rows": 48,
  "payload_hash": "f14a9f87d594cba2c3acaae0",
- "job_input_hash": "c346903c585f5fda70eda7bb3db124a3f8d06f2eaeeac09a730bc317fcd64aa8",
- "run_cached": false,
+ "job_input_hash": "5fe1d5e3d753d861d6e7c25e3935b36c5d4c572f0bcf9cb6e32901e0cb99eb84",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 30.56,
- "cpu_s": 30.27,
- "max_rss_kb": 408152,
+ "wall_s": 42.19,
+ "cpu_s": 41.330000000000005,
+ "max_rss_kb": 407996,
  "phase_timing": [
   {
    "stage": "consol_run",
-   "s": 2.265
+   "s": 4.715
   },
   {
    "stage": "consol_run",
-   "s": 0.953
+   "s": 1.914
   },
   {
    "stage": "consol_run",
-   "s": 0.917
+   "s": 1.727
   },
   {
    "stage": "consol_run",
-   "s": 1.188
+   "s": 2.391
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 1.598
+   "s": 3.07
   },
   {
    "stage": "bundle_family_evidence",
@@ -106,35 +106,35 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 17.393
+   "s": 20.854
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 0.934
+   "s": 1.053
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.041
+   "s": 0.046
   },
   {
    "stage": "event_proof",
-   "s": 4.263
+   "s": 4.916
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.004
+   "s": 0.006
   },
   {
    "stage": "gate_hpa",
-   "s": 0.035
+   "s": 0.049
   },
   {
    "stage": "gate_merit",
-   "s": 0.015
+   "s": 0.013
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 30.02
+   "s": 41.343
   },
   {
    "stage": "pre_gate_misc",
@@ -146,7 +146,7 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.032
+   "s": 0.03
   },
   {
    "stage": "gate_merit",
@@ -154,7 +154,7 @@
   },
   {
    "stage": "gate",
-   "s": 0.065
+   "s": 0.064
   },
   {
    "stage": "validate_final",

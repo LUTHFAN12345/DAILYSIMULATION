@@ -5,7 +5,7 @@
  "fixture": "A0_actual",
  "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
  "mode": "Fastest",
- "expected": "REJECT",
+ "expected": "PRECHECK_REJECT",
  "note": "",
  "env": {},
  "status": "EXPECTED_REJECTION",
@@ -13,10 +13,11 @@
  "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ",
  "engine_status": "TERMINAL_INFEASIBLE",
  "checks": [
-  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran te"
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran te",
+  "OK fix_precheck: {\"ok\": false, \"unit\": \"G2\", \"row\": 20, \"value\": 40, \"mode\": \"CC\", \"min_mw\": 20, \"max_mw\": 31, \"reasons\": [{\"code\": \"DI_ATAS_MAX\", \"text\": \"40.00 MW > MAX legal 31.00 MW (Effective Max row 20).\"}]}"
  ],
  "cp": 105.7868,
- "econ_cp": null,
+ "econ_cp": 106.211,
  "hr": 8628.98,
  "gas_bbtud": 65.4586,
  "gas_quota_bbtud": 65.46,
@@ -25,10 +26,39 @@
  "distillate_l": 317291,
  "hard_validation": "FAIL",
  "release_gate": "FAIL",
- "c1_c4_stg": "FAIL",
+ "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:30",
+   "deficit_mw": 0.18,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:max_load"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 1.47,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:max_load"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "09:00",
+   "deficit_mw": 32.21,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:max_load"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:00",
+   "deficit_mw": 15.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:max_load"
+  }
+ ],
  "events": [
   "G4+09:30",
   "G4-17:30",
@@ -40,13 +70,13 @@
  ],
  "rows": 48,
  "payload_hash": "2c5b1b49c20bb793dd4270a0",
- "job_input_hash": "7e70b6207b0e576605e23d2a4541c646d10bf852c5ebb36fe6f3f202d5b17a04",
- "run_cached": false,
+ "job_input_hash": "f558b5cd8e76a04c2ce36a677017f4a1aae5958638fdbe11e2663441866f84d2",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 138.88,
- "cpu_s": 54.92,
- "max_rss_kb": 264308,
+ "wall_s": 117.9,
+ "cpu_s": 54.480000000000004,
+ "max_rss_kb": 326180,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -54,7 +84,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 7.308
+   "s": 5.497
   },
   {
    "stage": "cand_assess",
@@ -62,11 +92,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.154
+   "s": 0.136
   },
   {
    "stage": "cand_run",
-   "s": 13.56
+   "s": 11.562
   },
   {
    "stage": "cand_assess",
@@ -74,47 +104,47 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.184
+   "s": 0.192
   },
   {
    "stage": "cand_run",
-   "s": 20.036
+   "s": 18.643
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
+   "s": 0.01
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.467
+   "s": 0.323
   },
   {
    "stage": "cand_run",
-   "s": 17.881
+   "s": 13.677
   },
   {
    "stage": "cand_assess",
-   "s": 0.034
+   "s": 0.014
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.337
+   "s": 0.17
   },
   {
    "stage": "cand_run",
-   "s": 10.521
+   "s": 7.233
   },
   {
    "stage": "cand_assess",
-   "s": 0.022
+   "s": 0.017
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.233
+   "s": 0.146
   },
   {
    "stage": "pipeline_core_total",
-   "s": 81.809
+   "s": 65.289
   },
   {
    "stage": "block_consolidation_total",
@@ -122,35 +152,27 @@
   },
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.002
+   "s": 0.001
   },
   {
    "stage": "cand_run",
-   "s": 0.999
+   "s": 1.037
   },
   {
    "stage": "cand_assess",
-   "s": 0.024
+   "s": 0.022
   },
   {
    "stage": "cand_run",
-   "s": 1.034
+   "s": 1.015
   },
   {
    "stage": "cand_assess",
-   "s": 0.018
+   "s": 0.022
   },
   {
    "stage": "cand_run",
-   "s": 2.081
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.025
-  },
-  {
-   "stage": "cand_run",
-   "s": 1.207
+   "s": 2.185
   },
   {
    "stage": "cand_assess",
@@ -158,23 +180,31 @@
   },
   {
    "stage": "cand_run",
-   "s": 17.549
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.015
-  },
-  {
-   "stage": "cand_run",
-   "s": 0.856
+   "s": 1.146
   },
   {
    "stage": "cand_assess",
    "s": 0.022
   },
   {
+   "stage": "cand_run",
+   "s": 16.459
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.574
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
    "stage": "pipeline_core_total",
-   "s": 24.622
+   "s": 22.986
   },
   {
    "stage": "block_consolidation_total",
@@ -182,7 +212,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 0.025
+   "s": 0.017
   },
   {
    "stage": "family_evidence",
@@ -190,23 +220,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.019
+   "s": 0.01
   },
   {
    "stage": "priority_fix",
-   "s": 28.694
+   "s": 17.584
   },
   {
    "stage": "proof_completion_c4",
-   "s": 1.288
+   "s": 0.793
+  },
+  {
+   "stage": "event_proof",
+   "s": 9.445
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.027
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.012
+   "s": 0.015
   }
  ],
  "tightening_evals": null,

@@ -16,7 +16,7 @@
   "NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 1: Export 15.4 < RangeMin 155 Recommended action: Keep the source block running longer or increase legal output "
  ],
  "cp": 105.9801,
- "econ_cp": null,
+ "econ_cp": 106.4043,
  "hr": 8633.04,
  "gas_bbtud": 65.4438,
  "gas_quota_bbtud": 65.46,
@@ -27,8 +27,37 @@
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "09:30",
+   "deficit_mw": 124.19,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "07:30",
+   "deficit_mw": 48.56,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "01:30",
+   "deficit_mw": 42.07,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "01:00",
+   "deficit_mw": 92.73,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
  "events": [
   "G4+09:30",
   "G4-17:30",
@@ -40,13 +69,13 @@
  ],
  "rows": 48,
  "payload_hash": "5c824aae3345f4c290db58e1",
- "job_input_hash": "ae0fac0610417d12920573fef1a511b6f965289ea5a9c355b58a406d2050d933",
- "run_cached": false,
+ "job_input_hash": "6850127630feb78f11535f933ff5c1f2bc707d6c3273ee63769ae53025f9b24b",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 42.35,
- "cpu_s": 41.63,
- "max_rss_kb": 242756,
+ "wall_s": 46.17,
+ "cpu_s": 45.54,
+ "max_rss_kb": 311632,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -54,11 +83,23 @@
   },
   {
    "stage": "cand_run",
-   "s": 2.678
+   "s": 2.996
   },
   {
    "stage": "cand_assess",
    "s": 0.005
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.119
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.853
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
@@ -66,7 +107,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 5.702
+   "s": 9.488
   },
   {
    "stage": "cand_assess",
@@ -74,11 +115,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.122
+   "s": 0.148
   },
   {
    "stage": "cand_run",
-   "s": 10.018
+   "s": 6.511
   },
   {
    "stage": "cand_assess",
@@ -86,11 +127,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.178
+   "s": 0.08
   },
   {
    "stage": "cand_run",
-   "s": 6.106
+   "s": 3.546
   },
   {
    "stage": "cand_assess",
@@ -98,23 +139,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.09
-  },
-  {
-   "stage": "cand_run",
-   "s": 3.343
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.005
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.07
+   "s": 0.071
   },
   {
    "stage": "pipeline_core_total",
-   "s": 31.81
+   "s": 32.168
   },
   {
    "stage": "block_consolidation_total",
@@ -126,7 +155,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.337
+   "s": 0.41
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.369
   },
   {
    "stage": "cand_assess",
@@ -134,7 +171,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.347
+   "s": 0.654
   },
   {
    "stage": "cand_assess",
@@ -142,23 +179,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.716
+   "s": 0.501
   },
   {
    "stage": "cand_assess",
-   "s": 0.006
+   "s": 0.011
   },
   {
    "stage": "cand_run",
-   "s": 0.522
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.006
-  },
-  {
-   "stage": "cand_run",
-   "s": 6.209
+   "s": 5.734
   },
   {
    "stage": "cand_assess",
@@ -166,7 +195,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.455
+   "s": 0.288
   },
   {
    "stage": "cand_assess",
@@ -174,7 +203,7 @@
   },
   {
    "stage": "pipeline_core_total",
-   "s": 8.878
+   "s": 8.215
   },
   {
    "stage": "block_consolidation_total",
@@ -182,7 +211,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 1.009
+   "s": 0.892
   },
   {
    "stage": "family_evidence",
@@ -190,23 +219,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.011
+   "s": 0.006
   },
   {
    "stage": "priority_fix",
-   "s": 0.132
+   "s": 0.159
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.082
+   "s": 0.093
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.174
   },
   {
    "stage": "pre_gate_misc",
    "s": 0.007
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.003
   }
  ],
  "tightening_evals": null,

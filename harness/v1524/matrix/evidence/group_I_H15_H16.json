@@ -7,21 +7,21 @@
             "a1": {
                 "ok": true,
                 "scoped": true,
-                "record_id": "rec_20261017150458_8bd0255229",
+                "record_id": "rec_20261017164252_21ed767713",
                 "version": 1,
                 "error": null,
                 "skipped_identical": false,
-                "ms": 4,
+                "ms": 5.5,
                 "backend": "sqlite-wal"
             },
             "a2": {
                 "ok": true,
                 "scoped": true,
-                "record_id": "rec_20261017150458_035a4f95e4",
+                "record_id": "rec_20261017164252_1221091ca8",
                 "version": 2,
                 "error": null,
                 "skipped_identical": false,
-                "ms": 0.7,
+                "ms": 0.6,
                 "backend": "sqlite-wal"
             },
             "latest_note": "autosave-2"
@@ -81,7 +81,7 @@
             "save": {
                 "ok": true
             },
-            "key": "rpt_d778c8a82daa17b18794dae3",
+            "key": "rpt_8d409bfffb621a193579d119",
             "open_ok": true,
             "cp": 93.4567
         }
@@ -101,8 +101,8 @@
         "title": "Different-name membuat report baru",
         "status": "PASS",
         "detail": {
-            "k1": "rpt_d778c8a82daa17b18794dae3",
-            "k3": "rpt_e48542097dd8178c30773a40"
+            "k1": "rpt_8d409bfffb621a193579d119",
+            "k3": "rpt_ea592521289bdec7d92a62fb"
         }
     },
     {
@@ -110,7 +110,7 @@
         "title": "Monitoring mempunyai 48 row",
         "status": "PASS",
         "detail": {
-            "monitoring_key": "rpt_4f825a942ee223862843ae86",
+            "monitoring_key": "rpt_26d954539b0592ee4c566dfe",
             "rows": 48,
             "save": true
         }
@@ -131,7 +131,7 @@
         "detail": {
             "ok": false,
             "error": "NO_PERMISSION",
-            "report_key": "rpt_1d48011895fcf415f569e419"
+            "report_key": "rpt_a6e8340df60109968b2f2e61"
         }
     },
     {
@@ -140,8 +140,8 @@
         "status": "PASS",
         "detail": {
             "bad": "BAD_INPUT_SNAPSHOT",
-            "entries_before": 6,
-            "entries_after": 6,
+            "entries_before": 14,
+            "entries_after": 14,
             "replay": true,
             "migrations": 2,
             "isolation": [
@@ -165,6 +165,16 @@
                 ]
             },
             "db": [
+                {
+                    "unit_id": "G8",
+                    "row_index": 30,
+                    "fixed_mw": "80.0000"
+                },
+                {
+                    "unit_id": "G8",
+                    "row_index": 30,
+                    "fixed_mw": "80.0000"
+                },
                 {
                     "unit_id": "G8",
                     "row_index": 30,

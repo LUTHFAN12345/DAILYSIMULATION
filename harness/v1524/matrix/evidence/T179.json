@@ -71,13 +71,13 @@
  ],
  "rows": 48,
  "payload_hash": "b3252f0a02baf9b70f715230",
- "job_input_hash": "10ccea46d5fd4f0791e3418b11f1232078aa81c2c432417c7c8afa674339d550",
- "run_cached": false,
+ "job_input_hash": "3511763ec9aae69bb3fcd5a7dd10b385198518536dc15b11a2678f455210dfaf",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 40.67,
- "cpu_s": 27.78,
- "max_rss_kb": 300460,
+ "wall_s": 26.31,
+ "cpu_s": 25.82,
+ "max_rss_kb": 296384,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -85,31 +85,31 @@
   },
   {
    "stage": "cand_run",
-   "s": 7.43
+   "s": 3.391
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.22
+   "s": 0.098
   },
   {
    "stage": "cand_rank",
-   "s": 0.113
+   "s": 0.056
   },
   {
    "stage": "pipeline_core_total",
-   "s": 7.775
+   "s": 3.551
   },
   {
    "stage": "consol_run",
-   "s": 2.521
+   "s": 1.109
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 8.925
+   "s": 4.264
   },
   {
    "stage": "bundle_family_evidence",
@@ -117,35 +117,35 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 17.218
+   "s": 13.661
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 0.753
+   "s": 0.743
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.049
+   "s": 0.055
   },
   {
    "stage": "event_proof",
-   "s": 2.641
+   "s": 2.219
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.004
+   "s": 0.003
   },
   {
    "stage": "gate_hpa",
-   "s": 0.031
+   "s": 0.039
   },
   {
    "stage": "gate_merit",
-   "s": 0.027
+   "s": 0.016
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 32.568
+   "s": 22.321
   },
   {
    "stage": "pre_gate_misc",
@@ -153,19 +153,19 @@
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.004
+   "s": 0.003
   },
   {
    "stage": "gate_hpa",
-   "s": 0.029
+   "s": 0.036
   },
   {
    "stage": "gate_merit",
-   "s": 0.016
+   "s": 0.014
   },
   {
    "stage": "gate",
-   "s": 0.066
+   "s": 0.07
   },
   {
    "stage": "validate_final",

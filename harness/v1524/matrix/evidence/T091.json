@@ -8,14 +8,14 @@
  "expected": "EITHER",
  "note": "",
  "env": {},
- "status": "FAIL",
+ "status": "PASS",
  "published": true,
  "terminal_proof": null,
  "engine_status": "FASTEST_FINAL",
  "checks": [
   "OK rows 48",
   "OK row di luar band export: []",
-  "NG deviasi gas -2.2058"
+  "OK gas 71.4418 dalam window [71.46-0,04, 71.46]"
  ],
  "cp": 76.8123,
  "econ_cp": 77.2437,
@@ -71,13 +71,13 @@
  ],
  "rows": 48,
  "payload_hash": "15fa3db84a53434823922f1c",
- "job_input_hash": "be5e8198ea3b52f37561c5e4eeace6434d5097361387cc0bbbae3bfa4100dcc7",
- "run_cached": false,
+ "job_input_hash": "8a00c68e6f8c16ae381810f493a527a0b08b8652bd6eaf071b98298f367fde2f",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 22.42,
- "cpu_s": 22.16,
- "max_rss_kb": 227184,
+ "wall_s": 27.56,
+ "cpu_s": 27.31,
+ "max_rss_kb": 226848,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -85,43 +85,43 @@
   },
   {
    "stage": "cand_run",
-   "s": 3.681
+   "s": 4.212
   },
   {
    "stage": "cand_assess",
-   "s": 0.006
+   "s": 0.007
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.101
+   "s": 0.14
   },
   {
    "stage": "cand_rank",
-   "s": 0.067
+   "s": 0.08
   },
   {
    "stage": "pipeline_core_total",
-   "s": 3.857
+   "s": 4.44
   },
   {
    "stage": "consol_run",
-   "s": 0.338
+   "s": 0.423
   },
   {
    "stage": "consol_run",
-   "s": 1.102
+   "s": 0.967
   },
   {
    "stage": "consol_run",
-   "s": 0.938
+   "s": 0.913
   },
   {
    "stage": "consol_run",
-   "s": 1.325
+   "s": 1.448
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 6.043
+   "s": 7.868
   },
   {
    "stage": "bundle_family_evidence",
@@ -129,39 +129,19 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 4.22
+   "s": 7.119
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 1.284
+   "s": 1.174
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.061
+   "s": 0.047
   },
   {
    "stage": "event_proof",
-   "s": 2.328
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.003
-  },
-  {
-   "stage": "gate_hpa",
-   "s": 0.028
-  },
-  {
-   "stage": "gate_merit",
-   "s": 0.018
-  },
-  {
-   "stage": "final_bundle_comparator",
-   "s": 18.045
-  },
-  {
-   "stage": "pre_gate_misc",
-   "s": 0.009
+   "s": 2.336
   },
   {
    "stage": "gate_acceptance_review",
@@ -169,19 +149,39 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.043
+   "s": 0.03
   },
   {
    "stage": "gate_merit",
-   "s": 0.021
+   "s": 0.013
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 22.703
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.029
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.014
   },
   {
    "stage": "gate",
-   "s": 0.088
+   "s": 0.062
   },
   {
    "stage": "validate_final",
-   "s": 0.002
+   "s": 0.001
   }
  ],
  "tightening_evals": 29,

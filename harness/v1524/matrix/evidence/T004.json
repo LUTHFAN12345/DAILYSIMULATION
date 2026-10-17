@@ -64,33 +64,45 @@
  ],
  "rows": 48,
  "payload_hash": "f9265fba30e8d11a6806fc25",
- "job_input_hash": "fa1ac0a9b2f0150d573941e574e5bfc29d05c0586f6e038f96baf21e30ee5bc6",
- "run_cached": false,
+ "job_input_hash": "bd1c1454047dcd3d3521a3a1ea4dbead68de99477417f7a7fb461214bedf6d34",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 106.38,
- "cpu_s": 55.6,
- "max_rss_kb": 502236,
+ "wall_s": 111.23,
+ "cpu_s": 59.39,
+ "max_rss_kb": 501924,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.001
+   "s": 0.002
   },
   {
    "stage": "cand_run",
-   "s": 13.067
+   "s": 14.488
   },
   {
    "stage": "cand_assess",
-   "s": 0.016
+   "s": 0.01
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.235
+   "s": 0.165
   },
   {
    "stage": "cand_run",
-   "s": 6.431
+   "s": 6.475
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.239
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.45
   },
   {
    "stage": "cand_assess",
@@ -98,11 +110,23 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.232
+   "s": 0.208
   },
   {
    "stage": "cand_run",
-   "s": 10.564
+   "s": 10.538
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.193
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.391
   },
   {
    "stage": "cand_assess",
@@ -110,35 +134,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.206
-  },
-  {
-   "stage": "cand_run",
-   "s": 9.296
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.01
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.207
-  },
-  {
-   "stage": "cand_run",
-   "s": 4.839
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.008
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.077
+   "s": 0.108
   },
   {
    "stage": "pipeline_core_total",
-   "s": 48.442
+   "s": 50.994
   },
   {
    "stage": "block_consolidation_total",
@@ -150,87 +150,87 @@
   },
   {
    "stage": "cand_run",
-   "s": 3.922
+   "s": 2.602
   },
   {
    "stage": "cand_assess",
-   "s": 0.014
+   "s": 0.006
   },
   {
    "stage": "cand_rank",
-   "s": 0.161
+   "s": 0.077
   },
   {
    "stage": "cand_run",
-   "s": 5.237
+   "s": 5.201
   },
   {
    "stage": "cand_assess",
-   "s": 0.022
+   "s": 0.023
   },
   {
    "stage": "pipeline_core_total",
-   "s": 9.358
+   "s": 7.911
   },
   {
    "stage": "consol_run",
-   "s": 3.683
+   "s": 3.957
   },
   {
    "stage": "consol_run",
-   "s": 2.213
+   "s": 1.918
   },
   {
    "stage": "consol_run",
-   "s": 6.221
+   "s": 6.765
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 6.964
+   "s": 7.285
   },
   {
    "stage": "bundle_family_evidence",
-   "s": 0.714
+   "s": 0.63
   },
   {
    "stage": "commitment_tightening",
-   "s": 15.716
+   "s": 16.315
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 3.73
+   "s": 4.666
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.114
+   "s": 0.116
   },
   {
    "stage": "event_proof",
-   "s": 7.683
+   "s": 9.014
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.011
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.071
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.027
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 51.373
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.012
   },
   {
    "stage": "gate_acceptance_review",
    "s": 0.007
-  },
-  {
-   "stage": "gate_hpa",
-   "s": 0.07
-  },
-  {
-   "stage": "gate_merit",
-   "s": 0.031
-  },
-  {
-   "stage": "final_bundle_comparator",
-   "s": 47.718
-  },
-  {
-   "stage": "pre_gate_misc",
-   "s": 0.016
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.003
   }
  ],
  "tightening_evals": 40,

@@ -111,9 +111,10 @@ class R:
         st = str(self.status() or ''); msg = str(self.o.get('message') or '')
         if st == 'USER_FUEL_DECISION_REQUIRED' and (self.i.get('Gas Shortage Candidates') or []): return 'FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS'
         if st.startswith('TERMINAL_INFEASIBLE'): return 'TERMINAL_INFEASIBLE:' + msg[:200]
+        if st == 'USER_ACTION_REQUIRED' and isinstance(self.i.get('Gas Window Conflict'), dict) and self.i.get('Gas Window Conflict'): return 'GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION'
         bl = [b for b in ((self.o.get('release_gate') or {}).get('blocking_reasons') or []) if str(b).startswith('TERMINAL_')]
         if bl: return 'TERMINAL_BLOCKING:' + ','.join(map(str, bl))
-        bi = [b for b in ((self.o.get('release_gate') or {}).get('blocking_reasons') or []) if re.search('CONTRADICTORY|INPUT_INVALID|INPUT_REJECT|INFEASIBLE_INPUT', str(b))]
+        bi = [b for b in ((self.o.get('release_gate') or {}).get('blocking_reasons') or []) if re.search('CONTRADICTORY|INPUT_INVALID|INPUT_REJECT|INFEASIBLE_INPUT|_TIDAK_LEGAL:', str(b))]
         if bi: return 'INPUT_CONTRADICTION:' + ','.join(map(str, bi))
         tc = self.i.get('Fastest Terminal Certificate')
         if isinstance(tc, dict) and (tc.get('code') or tc.get('status')): return 'TERMINAL_CERTIFICATE:' + str(tc.get('code') or tc.get('status'))
@@ -137,7 +138,7 @@ def run_engine(inp, cpu, envx=None):
         if k == '__APP': app = v
         else: env[k] = v
     if 'PP_V1523_SHUFFLE' in envx or '__COLD' in envx:   # run order-shuffle / cold dijalankan pada salinan app tersendiri tanpa cache job
-        app = '/tmp/w/mxcold_%d' % cpu
+        app = '/tmp/w/mxcold_%s' % h   # direktori app dingin unik per test (tidak berbagi antar thread)
         subprocess.run(['bash', '-c', f'rm -rf {app}.tmp && mkdir -p {app}.tmp && cp -r {APP}/*.php {APP}/config {APP}/install {APP}/database {app}.tmp/ 2>/dev/null; mkdir -p {app}.tmp/jobs; rm -rf {app}; mv {app}.tmp {app}'])
     p = subprocess.run(['taskset', '-c', str(cpu), PHP, RUNJOB, app, fi, f], capture_output=True, text=True, env=env, timeout=1800)
     try: return json.load(open(f)), h, False

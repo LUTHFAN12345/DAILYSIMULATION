@@ -88,13 +88,13 @@
  ],
  "rows": 48,
  "payload_hash": "917a5e3b5645d4102d8142f5",
- "job_input_hash": "1f699b12596c3d9ca96ebb9de42328a83895e6e111803aaec0213cd2c0b30bf0",
- "run_cached": false,
+ "job_input_hash": "31f1b8ccc62fc8ef406db8d1d99760681065a2bc1266a9168bdb6da0cda6139e",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t3",
- "wall_s": 148.33,
- "cpu_s": 75.91000000000001,
- "max_rss_kb": 570784,
+ "wall_s": 163.6,
+ "cpu_s": 84.81,
+ "max_rss_kb": 570272,
  "phase_timing": [
   {
    "stage": "ie_warm_attempt",
@@ -102,7 +102,7 @@
   },
   {
    "stage": "supplier_cert_guard",
-   "s": 3.793
+   "s": 4.15
   },
   {
    "stage": "plan_latest_legal_starts",
@@ -110,19 +110,19 @@
   },
   {
    "stage": "cand_run",
-   "s": 25.252
+   "s": 21.28
   },
   {
    "stage": "cand_assess",
-   "s": 0.017
+   "s": 0.01
   },
   {
    "stage": "cand_gas_land",
-   "s": 7.792
+   "s": 7.814
   },
   {
    "stage": "cand_run",
-   "s": 16.242
+   "s": 18.303
   },
   {
    "stage": "cand_assess",
@@ -130,31 +130,31 @@
   },
   {
    "stage": "cand_rank",
-   "s": 0.181
+   "s": 0.175
   },
   {
    "stage": "pipeline_core_total",
-   "s": 49.497
+   "s": 47.593
   },
   {
    "stage": "fast_pipeline",
-   "s": 49.497
+   "s": 47.594
   },
   {
    "stage": "consol_run",
-   "s": 15.507
+   "s": 21.823
   },
   {
    "stage": "consol_run",
-   "s": 17.057
+   "s": 22.797
   },
   {
    "stage": "consol_run",
-   "s": 19.271
+   "s": 23.313
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 18.908
+   "s": 22.522
   },
   {
    "stage": "bundle_family_evidence",
@@ -162,39 +162,19 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 11.802
+   "s": 7.965
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 0.663
+   "s": 0.89
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 5.542
+   "s": 6.061
   },
   {
    "stage": "event_proof",
-   "s": 4.603
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.008
-  },
-  {
-   "stage": "gate_hpa",
-   "s": 0.088
-  },
-  {
-   "stage": "gate_merit",
-   "s": 0.023
-  },
-  {
-   "stage": "final_bundle_comparator",
-   "s": 93.891
-  },
-  {
-   "stage": "pre_gate_misc",
-   "s": 0.017
+   "s": 4.937
   },
   {
    "stage": "gate_acceptance_review",
@@ -202,19 +182,39 @@
   },
   {
    "stage": "gate_hpa",
-   "s": 0.104
+   "s": 0.081
   },
   {
    "stage": "gate_merit",
-   "s": 0.024
+   "s": 0.018
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 110.862
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.016
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.095
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.021
   },
   {
    "stage": "gate",
-   "s": 0.219
+   "s": 0.186
   },
   {
    "stage": "validate_final",
-   "s": 0.006
+   "s": 0.002
   }
  ],
  "tightening_evals": 37,

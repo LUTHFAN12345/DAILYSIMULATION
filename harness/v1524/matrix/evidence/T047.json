@@ -71,13 +71,13 @@
  ],
  "rows": 48,
  "payload_hash": "21418f5f029d9c9e4177c7a1",
- "job_input_hash": "d0e9f212a0352e1bbed419693e2d0db7665056045594980a48611377e6dd8d04",
- "run_cached": false,
+ "job_input_hash": "9df0fad64a206a61181cb95778ba5f426a64df7baa667db520c820841ff0b664",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 97.79,
- "cpu_s": 58.269999999999996,
- "max_rss_kb": 402496,
+ "wall_s": 101.88,
+ "cpu_s": 59.550000000000004,
+ "max_rss_kb": 404404,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -85,7 +85,19 @@
   },
   {
    "stage": "cand_run",
-   "s": 4.47
+   "s": 7.239
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.296
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.361
   },
   {
    "stage": "cand_assess",
@@ -93,47 +105,11 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.131
+   "s": 0.216
   },
   {
    "stage": "cand_run",
-   "s": 3.628
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.006
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.098
-  },
-  {
-   "stage": "cand_run",
-   "s": 3.962
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.005
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.07
-  },
-  {
-   "stage": "cand_run",
-   "s": 3.962
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.005
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.086
-  },
-  {
-   "stage": "cand_run",
-   "s": 7.388
+   "s": 8.581
   },
   {
    "stage": "cand_assess",
@@ -141,39 +117,55 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.155
+   "s": 0.16
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.565
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.177
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.401
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.017
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.192
   },
   {
    "stage": "pipeline_core_total",
-   "s": 33.007
+   "s": 53.565
   },
   {
    "stage": "block_consolidation_total",
-   "s": 0.101
+   "s": 0.143
   },
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.001
+   "s": 0.002
   },
   {
    "stage": "cand_run",
-   "s": 4.889
+   "s": 4.677
   },
   {
    "stage": "cand_assess",
-   "s": 0.01
+   "s": 0.015
   },
   {
    "stage": "cand_run",
-   "s": 4.37
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.013
-  },
-  {
-   "stage": "cand_run",
-   "s": 4.27
+   "s": 4.309
   },
   {
    "stage": "cand_assess",
@@ -181,15 +173,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 6.543
+   "s": 4.449
   },
   {
    "stage": "cand_assess",
-   "s": 0.01
+   "s": 0.018
   },
   {
    "stage": "cand_run",
-   "s": 5.389
+   "s": 7.485
   },
   {
    "stage": "cand_assess",
@@ -197,7 +189,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 2.03
+   "s": 5.594
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.134
   },
   {
    "stage": "cand_assess",
@@ -205,15 +205,15 @@
   },
   {
    "stage": "cand_rank",
-   "s": 0.172
+   "s": 0.226
   },
   {
    "stage": "pipeline_core_total",
-   "s": 27.743
+   "s": 28.971
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 3.985
+   "s": 2.657
   },
   {
    "stage": "bundle_family_evidence",
@@ -221,23 +221,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 18.278
+   "s": 8.832
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 2.47
+   "s": 1.006
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.089
+   "s": 0.044
   },
   {
    "stage": "event_proof",
-   "s": 11.312
+   "s": 5.541
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.004
   }
  ],
  "tightening_evals": 57,

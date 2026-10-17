@@ -16,80 +16,205 @@
   "OK rows 48",
   "OK row di luar band export: []"
  ],
- "cp": 91.7975,
- "econ_cp": null,
- "hr": 8495.1,
- "gas_bbtud": 65.4497,
+ "cp": 95.2753,
+ "econ_cp": 95.7086,
+ "hr": 8493.71,
+ "gas_bbtud": 65.4488,
  "gas_quota_bbtud": 65.46,
- "gas_deviation_bbtud": -6.9009,
- "daily_export_mwh": 688.22,
- "distillate_l": 191539,
+ "gas_deviation_bbtud": -8.097,
+ "daily_export_mwh": 829.68,
+ "distillate_l": 224737,
  "hard_validation": "PASS",
  "release_gate": "PASS",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "10:30",
+   "first_needed": "10:30",
+   "deficit_mw": 2.1,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G5",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 6.21,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:00",
+   "first_needed": "08:30",
+   "deficit_mw": 12.5,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "03:30",
+   "first_needed": "07:00",
+   "deficit_mw": 26.71,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
  "events": [
   "G1+10:30",
   "G1-16:30",
   "G5+08:00",
   "G5-18:00",
   "G6+05:00",
-  "G9+05:00",
+  "G9+03:30",
   "S1+08:30"
  ],
  "rows": 48,
  "payload_hash": "0ef83826b6d6c0a1a29ae1e0",
- "job_input_hash": "de1d73f489be2cde300c4e22048a90005a27f113d57b458245710534e6442cbd",
- "run_cached": false,
+ "job_input_hash": "7c3e77eff4282349a5502eabb46c7e421890b9a7f31a4270160b1027243bf47d",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 4.31,
- "cpu_s": 4.25,
- "max_rss_kb": 56424,
+ "wall_s": 42.09,
+ "cpu_s": 41.67,
+ "max_rss_kb": 292644,
  "phase_timing": [
   {
-   "stage": "v8_priority_review",
-   "s": 0.071
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
   },
   {
-   "stage": "family_evidence",
-   "s": 0
+   "stage": "cand_run",
+   "s": 2.854
   },
   {
-   "stage": "priority_fix",
-   "s": 2.587
+   "stage": "cand_assess",
+   "s": 0.009
   },
   {
-   "stage": "proof_completion_c4",
-   "s": 0.066
+   "stage": "cand_fuel_assess",
+   "s": 0.109
   },
   {
-   "stage": "pre_gate_misc",
-   "s": 0.01
+   "stage": "cand_run",
+   "s": 4.577
   },
   {
-   "stage": "gate_acceptance_review",
+   "stage": "cand_assess",
    "s": 0.006
   },
   {
+   "stage": "cand_fuel_assess",
+   "s": 0.099
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.54
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.005
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.101
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.698
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.107
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.569
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.124
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.075
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 26.891
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 3.077
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 8.398
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.49
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.039
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.093
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
    "stage": "gate_hpa",
-   "s": 0.049
+   "s": 0.025
   },
   {
    "stage": "gate_merit",
-   "s": 0.016
+   "s": 0.009
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 14.185
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.023
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.008
   },
   {
    "stage": "gate",
-   "s": 0.086
+   "s": 0.047
   },
   {
    "stage": "validate_final",
-   "s": 0.002
+   "s": 0.001
   }
  ],
- "tightening_evals": null,
+ "tightening_evals": 52,
  "evidence": "evidence/runs/0ef83826b6d6c0a1a29ae1e0.json"
 }

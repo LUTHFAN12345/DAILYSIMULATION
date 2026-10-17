@@ -11,47 +11,73 @@
  "status": "FAIL",
  "published": false,
  "terminal_proof": null,
- "engine_status": "USER_ACTION_REQUIRED",
+ "engine_status": null,
  "checks": [
-  "NG tidak dipublikasikan; terminal proof: None; status USER_ACTION_REQUIRED; msg Change Over yang diminta tidak dapat dieksekusi: unit_present = 0 / unit tidak ada pada model. Baris yang ditampilkan adalah kandidat yang ditolak, bukan rencan"
+  "NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 21: Export 19.89 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal output"
  ],
- "cp": 101.3279,
- "econ_cp": null,
- "hr": 8610.7,
- "gas_bbtud": 65.4562,
+ "cp": 77.3441,
+ "econ_cp": 77.8064,
+ "hr": 8451.82,
+ "gas_bbtud": 65.44,
  "gas_quota_bbtud": 65.46,
- "gas_deviation_bbtud": -9.8754,
- "daily_export_mwh": 722.59,
- "distillate_l": 274097,
+ "gas_deviation_bbtud": -2.2542,
+ "daily_export_mwh": -87.01,
+ "distillate_l": 62567,
  "hard_validation": "VALID-INFEASIBLE",
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 12.87,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 12.87,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "09:30",
+   "first_needed": "10:30",
+   "deficit_mw": 0.76,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "06:30",
+   "deficit_mw": 21.54,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
  "events": [
-  "G1+06:00",
+  "G1+08:00",
   "G1-12:00",
   "G2-12:00",
-  "G3+07:00",
-  "G3-19:30",
-  "G4+11:30",
-  "G5+06:00",
+  "G5+07:30",
   "G5-12:00",
-  "G6+10:00",
+  "G6+09:30",
   "G9+01:00",
-  "S1+10:30",
+  "S1+13:00",
   "S2-12:00"
  ],
  "rows": 48,
- "payload_hash": "72a0263e97d800cd01d0dbe0",
- "job_input_hash": "59425410e19603928ff2b34f30afad0e777fe32f54a0fde08489ec4051c8a301",
- "run_cached": false,
+ "payload_hash": "df052b81d9b545bc0555c1e7",
+ "job_input_hash": "f46ba16a4e90f8b3d36f952004057e41027eedef7a60544861ee95440211f64f",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 13.98,
- "cpu_s": 13.7,
- "max_rss_kb": 100808,
+ "wall_s": 4,
+ "cpu_s": 3.92,
+ "max_rss_kb": 82204,
  "phase_timing": [
   {
    "stage": "v8_priority_review",
@@ -67,37 +93,41 @@
   },
   {
    "stage": "priority_fix",
-   "s": 10.022
+   "s": 1.275
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.886
+   "s": 0.026
+  },
+  {
+   "stage": "event_proof",
+   "s": 1.475
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.012
+   "s": 0.009
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.006
+   "s": 0.005
   },
   {
    "stage": "gate_hpa",
-   "s": 0.065
+   "s": 0.022
   },
   {
    "stage": "gate_merit",
-   "s": 0.035
+   "s": 0.014
   },
   {
    "stage": "gate",
-   "s": 0.151
+   "s": 0.064
   },
   {
    "stage": "validate_final",
-   "s": 0.002
+   "s": 0.003
   }
  ],
  "tightening_evals": null,
- "evidence": "evidence/runs/72a0263e97d800cd01d0dbe0.json"
+ "evidence": "evidence/runs/df052b81d9b545bc0555c1e7.json"
 }

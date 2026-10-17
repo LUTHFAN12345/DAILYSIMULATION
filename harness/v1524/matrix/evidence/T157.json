@@ -80,13 +80,13 @@
  ],
  "rows": 48,
  "payload_hash": "ae9b8ca1067c77225d4bdc75",
- "job_input_hash": "42c9b5bfc81ef743fbc961ac8ad7a2a13b69b8a2734402a8f1e448c3b9c21b85",
- "run_cached": false,
+ "job_input_hash": "60bad9194ec5fc3a916b140ef9062ed4369ee85cdb093e5161d1af9fe74b4834",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t1",
- "wall_s": 112.02,
- "cpu_s": 55.269999999999996,
- "max_rss_kb": 462720,
+ "wall_s": 109.45,
+ "cpu_s": 51.6,
+ "max_rss_kb": 462188,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -94,31 +94,31 @@
   },
   {
    "stage": "cand_run",
-   "s": 9.754
+   "s": 9.493
   },
   {
    "stage": "cand_assess",
-   "s": 0.01
+   "s": 0.009
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.261
+   "s": 0.183
   },
   {
    "stage": "cand_run",
-   "s": 10.429
+   "s": 8.77
   },
   {
    "stage": "cand_assess",
-   "s": 0.015
+   "s": 0.009
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.443
+   "s": 0.271
   },
   {
    "stage": "cand_run",
-   "s": 16.712
+   "s": 16.438
   },
   {
    "stage": "cand_assess",
@@ -126,47 +126,47 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.176
+   "s": 0.21
   },
   {
    "stage": "cand_run",
-   "s": 9.689
+   "s": 8.323
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
+   "s": 0.013
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.238
+   "s": 0.152
   },
   {
    "stage": "cand_rank",
-   "s": 0.168
+   "s": 0.146
   },
   {
    "stage": "pipeline_core_total",
-   "s": 47.921
+   "s": 44.034
   },
   {
    "stage": "consol_run",
-   "s": 0.778
+   "s": 0.838
   },
   {
    "stage": "consol_run",
-   "s": 3.266
+   "s": 3.53
   },
   {
    "stage": "consol_run",
-   "s": 6.847
+   "s": 6.96
   },
   {
    "stage": "consol_run",
-   "s": 4.849
+   "s": 5.386
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 9.386
+   "s": 8.971
   },
   {
    "stage": "bundle_family_evidence",
@@ -174,59 +174,59 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 25.037
+   "s": 28.589
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 4.192
+   "s": 3.22
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 1.137
+   "s": 0.757
   },
   {
    "stage": "event_proof",
-   "s": 6.282
+   "s": 5.371
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.005
+   "s": 0.009
   },
   {
    "stage": "gate_hpa",
-   "s": 0.173
+   "s": 0.099
   },
   {
    "stage": "gate_merit",
-   "s": 0.106
+   "s": 0.062
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 62.75
+   "s": 64.304
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.025
+   "s": 0.016
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.014
+   "s": 0.008
   },
   {
    "stage": "gate_hpa",
-   "s": 0.179
+   "s": 0.105
   },
   {
    "stage": "gate_merit",
-   "s": 0.112
+   "s": 0.058
   },
   {
    "stage": "gate",
-   "s": 0.424
+   "s": 0.243
   },
   {
    "stage": "validate_final",
-   "s": 0.007
+   "s": 0.006
   }
  ],
  "tightening_evals": 72,

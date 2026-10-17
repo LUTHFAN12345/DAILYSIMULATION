@@ -1,0 +1,4 @@
+{"unit":"g1","cannot_stop":true,"last":"Stop","sc_cc":"CC","stop_policy":"HOLD_TO_END_AFTER_START","commitment_semantics":"START_BASED_ON_SIMULATION"}
+{"unit":"g3","cannot_stop":true,"last":"Stop","sc_cc":"CC","stop_policy":"HOLD_TO_END_AFTER_START","commitment_semantics":"START_BASED_ON_SIMULATION"}
+{"unit":"g4","cannot_stop":true,"last":"Stop","sc_cc":"CC","stop_policy":"HOLD_TO_END_AFTER_START","commitment_semantics":"START_BASED_ON_SIMULATION"}
+{"unit":"g5","cannot_stop":true,"last":"Stop","sc_cc":"CC","stop_policy":"HOLD_TO_END_AFTER_START","commitment_semantics":"START_BASED_ON_SIMULATION"}

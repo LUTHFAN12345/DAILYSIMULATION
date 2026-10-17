@@ -78,13 +78,13 @@
  ],
  "rows": 48,
  "payload_hash": "55c79f6a18226d9ffd14d4c8",
- "job_input_hash": "48b73e377f65128659aff78af99488ed630047658bf52b12c44b73cb9ee5e4b6",
+ "job_input_hash": "70297f8f632bb608e75ddd286ff277ec84f9ad86106a9d88b99dd7cce523df03",
  "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 21.56,
- "cpu_s": 21.31,
- "max_rss_kb": 233704,
+ "wall_s": 25.35,
+ "cpu_s": 23.89,
+ "max_rss_kb": 233952,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
@@ -92,27 +92,27 @@
   },
   {
    "stage": "cand_run",
-   "s": 4.663
+   "s": 5.467
   },
   {
    "stage": "cand_assess",
-   "s": 0.005
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.089
+   "s": 0.142
   },
   {
    "stage": "cand_rank",
-   "s": 0.061
+   "s": 0.094
   },
   {
    "stage": "pipeline_core_total",
-   "s": 4.819
+   "s": 5.71
   },
   {
    "stage": "bundle_v8_priority_review",
-   "s": 4.259
+   "s": 5.733
   },
   {
    "stage": "bundle_family_evidence",
@@ -120,35 +120,35 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 6.951
+   "s": 7.929
   },
   {
    "stage": "bundle_priority_fix",
-   "s": 0.666
+   "s": 0.831
   },
   {
    "stage": "bundle_proof_completion",
-   "s": 0.368
+   "s": 0.449
   },
   {
    "stage": "event_proof",
-   "s": 3.376
+   "s": 3.303
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.005
+   "s": 0.004
   },
   {
    "stage": "gate_hpa",
-   "s": 0.041
+   "s": 0.037
   },
   {
    "stage": "gate_merit",
-   "s": 0.018
+   "s": 0.019
   },
   {
    "stage": "final_bundle_comparator",
-   "s": 15.811
+   "s": 18.484
   },
   {
    "stage": "pre_gate_misc",
@@ -156,19 +156,19 @@
   },
   {
    "stage": "gate_acceptance_review",
-   "s": 0.003
+   "s": 0.004
   },
   {
    "stage": "gate_hpa",
-   "s": 0.033
+   "s": 0.046
   },
   {
    "stage": "gate_merit",
-   "s": 0.017
+   "s": 0.022
   },
   {
    "stage": "gate",
-   "s": 0.075
+   "s": 0.101
   },
   {
    "stage": "validate_final",

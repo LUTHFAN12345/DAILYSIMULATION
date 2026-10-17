@@ -10183,6 +10183,11 @@ function pp_sp_fix_precheck(array $input, string $u, int $row, $value): array {
         $cs = array_map('strtolower', (array)($m['unit_cannot_stop'] ?? [])); $rmd = strtolower((string)($m['required_mode'][$u]['mode'] ?? ''));
         if ($v <= 1e-6 && (in_array($u, $cs, true) || $rmd === 'continuous')) $why[] = ['code' => 'CONTINUOUS_RUNNING', 'text' => strtoupper($u) . ' wajib running (Unit Continuous Running / Block Required); 0 MW tidak legal.'];
         if (!empty($m['change_over']['enabled'])) { $co = strtolower(json_encode($m['change_over'])); if (strpos($co, '"' . $u . '"') !== false) $why[] = ['code' => 'CHANGE_OVER', 'text' => strtoupper($u) . ' terlibat Change Over aktif; Fixed Load tidak dapat menimpa urutan Change Over.']; }
+        /* V15.24: Stop Based On Request — unit 0 MW mulai row Stop At (cell hitam) dan sesudahnya; Fixed Load > 0 pada row itu bertentangan */
+        $sm = (array)($m['stop_mode'][$u] ?? []);
+        if ($v > 1e-6 && strtolower((string)($sm['mode'] ?? '')) === 'stop_at' && preg_match('~^(\d{1,2}):(\d{2})$~', trim((string)($sm['at'] ?? '')), $sa)) {
+            $srow = intdiv((int)$sa[1] * 60 + (int)$sa[2], 30); if ($srow === 0) $srow = 48;
+            if ($row >= $srow) $why[] = ['code' => 'SESUDAH_STOP_REQUEST', 'text' => sprintf('%s Stop Based On Request %s: 0 MW mulai row %d; Fixed Load %.2f MW pada row %d bertentangan dengan Stop Request.', strtoupper($u), (string)$sm['at'], $srow, $v, $row)]; }
         if ($v > 1e-6 && preg_match('~^s\d$~', $u)) $why[] = ['code' => 'STG_KOPLING', 'text' => 'Beban STG ditentukan uap GTG (kopling GTG/STG); Fixed Load hanya untuk GTG/GE/Babelan.'];
         /* ramp terhadap Fixed Load user di row tetangga (keduanya instruksi keras -> pasangan yang melanggar ramp tidak pernah legal) */
         $rl = function_exists('pp_unit_ramp_limit') ? pp_unit_ramp_limit($u) : null;

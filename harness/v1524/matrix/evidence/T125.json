@@ -10,13 +10,13 @@
  "env": {},
  "status": "EXPECTED_REJECTION",
  "published": false,
- "terminal_proof": "GAS_LEVER_EXHAUSTION_PROOF",
- "engine_status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 16.0082 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0899 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.4",
+ "engine_status": "TERMINAL_INFEASIBLE",
  "checks": [
-  "OK tidak dipublikasikan; terminal proof: GAS_LEVER_EXHAUSTION_PROOF; status FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=69.5895 di luar window [65.4200,65.4600] (deviasi 4.1295 BB"
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 16.0082 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0899 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.4; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 16.0082 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0899 BBTUD > batas atas pe"
  ],
  "cp": 102.4089,
- "econ_cp": null,
+ "econ_cp": 102.8132,
  "hr": 8579.9,
  "gas_bbtud": 69.5895,
  "gas_quota_bbtud": 65.46,
@@ -27,8 +27,37 @@
  "release_gate": "FAIL",
  "c1_c4_stg": "PASS",
  "proof_binding": true,
- "event_proof_status": null,
- "first_needed": [],
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "01:00",
+   "first_needed": "09:00",
+   "deficit_mw": 7.25,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G4",
+   "start": "08:30",
+   "first_needed": "09:30",
+   "deficit_mw": 0.29,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota+min_load+startup_sequence"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "09:30",
+   "deficit_mw": 0.29,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:30",
+   "deficit_mw": 27,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota+export_range"
+  }
+ ],
  "events": [
   "G1+01:00",
   "G4+08:30",
@@ -39,21 +68,33 @@
  ],
  "rows": 48,
  "payload_hash": "e7737fd390b4c8b0688f2add",
- "job_input_hash": "9454311ecbc0d58f19e60070ab0cd0f6cccb34cabc6ee47e3ed5125cc13f64f7",
- "run_cached": false,
+ "job_input_hash": "4a3d8aee1aeab70d5dd7f014e5c1468c524c49418d9a771e00c951d84eb10cd5",
+ "run_cached": true,
  "php": "7.4.33",
  "affinity": "Cpus_allowed_list:\t2",
- "wall_s": 149.11,
- "cpu_s": 81.82,
- "max_rss_kb": 412776,
+ "wall_s": 164.63,
+ "cpu_s": 90.82,
+ "max_rss_kb": 471172,
  "phase_timing": [
   {
    "stage": "plan_latest_legal_starts",
-   "s": 0.001
+   "s": 0.005
   },
   {
    "stage": "cand_run",
-   "s": 4.79
+   "s": 9.159
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.208
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.993
   },
   {
    "stage": "cand_assess",
@@ -61,35 +102,23 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.085
+   "s": 0.086
   },
   {
    "stage": "cand_run",
-   "s": 4.83
+   "s": 12.343
   },
   {
    "stage": "cand_assess",
-   "s": 0.007
+   "s": 0.006
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.101
+   "s": 0.16
   },
   {
    "stage": "cand_run",
-   "s": 13.013
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.014
-  },
-  {
-   "stage": "cand_fuel_assess",
-   "s": 0.202
-  },
-  {
-   "stage": "cand_run",
-   "s": 15.059
+   "s": 14.99
   },
   {
    "stage": "cand_assess",
@@ -97,23 +126,23 @@
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.17
+   "s": 0.176
   },
   {
    "stage": "cand_run",
-   "s": 9.61
+   "s": 9.051
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
+   "s": 0.017
   },
   {
    "stage": "cand_fuel_assess",
-   "s": 0.198
+   "s": 0.217
   },
   {
    "stage": "pipeline_core_total",
-   "s": 57.004
+   "s": 62.441
   },
   {
    "stage": "block_consolidation_total",
@@ -125,7 +154,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 0.653
+   "s": 0.624
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.856
   },
   {
    "stage": "cand_assess",
@@ -133,15 +170,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 8.535
+   "s": 6.959
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
+   "s": 0.01
   },
   {
    "stage": "cand_run",
-   "s": 7.624
+   "s": 27.867
   },
   {
    "stage": "cand_assess",
@@ -149,7 +186,7 @@
   },
   {
    "stage": "cand_run",
-   "s": 27.412
+   "s": 16.03
   },
   {
    "stage": "cand_assess",
@@ -157,23 +194,15 @@
   },
   {
    "stage": "cand_run",
-   "s": 14.447
+   "s": 6.623
   },
   {
    "stage": "cand_assess",
-   "s": 0.011
-  },
-  {
-   "stage": "cand_run",
-   "s": 6.743
-  },
-  {
-   "stage": "cand_assess",
-   "s": 0.015
+   "s": 0.01
   },
   {
    "stage": "pipeline_core_total",
-   "s": 71.868
+   "s": 73.473
   },
   {
    "stage": "block_consolidation_total",
@@ -181,7 +210,7 @@
   },
   {
    "stage": "v8_priority_review",
-   "s": 0.017
+   "s": 0.022
   },
   {
    "stage": "family_evidence",
@@ -189,23 +218,23 @@
   },
   {
    "stage": "commitment_tightening",
-   "s": 0.016
+   "s": 0.015
   },
   {
    "stage": "priority_fix",
-   "s": 18.348
+   "s": 18.537
   },
   {
    "stage": "proof_completion_c4",
-   "s": 0.838
+   "s": 0.788
+  },
+  {
+   "stage": "event_proof",
+   "s": 8.293
   },
   {
    "stage": "pre_gate_misc",
-   "s": 0.021
-  },
-  {
-   "stage": "gate_acceptance_review",
-   "s": 0.008
+   "s": 0.023
   }
  ],
  "tightening_evals": null,

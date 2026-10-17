@@ -34,7 +34,7 @@ def topo():
     return t
 
 TARGET = {'A0_actual': ('normal Fastest', 30), 'A8_cfg_G9_ke_G5': ('difficult/cross-block', 40), 'A1_gas_cukup': ('gas-cukup (mandatory window)', 40), 'A2_lng': ('shortage/LNG', 40),
-          'A7_IE_plus20': ('terminal/infeasible (IE +20)', 40), 'B0_input_data': ('fuel decision required (input_data)', 40), 'rerun': ('exact rerun', 15), 'fix': ('one-cell Fix Load', 10)}
+          'A7_IE_plus20': ('terminal/infeasible (IE +20)', 40), 'B0_input_data': ('fuel decision required (input_data)', 40), 'rerun': ('exact rerun', 15), 'fix': ('one-cell Fix Load (feasible, G8 row 8 = 95 MW)', 10), 'fixrepair': ('one-cell Fix Load memaksa commitment repair (G2 row 20 = 25 MW)', None)}
 
 if __name__ == '__main__':
     new, old, md, js = sys.argv[1:5]
