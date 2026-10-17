@@ -8088,16 +8088,21 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
         $ext = max($ext, count(pp_startup_caps($stg ?: 'x', $md)) + ($stg && function_exists('pp_stg_release_rows') ? (int)pp_stg_release_rows($stg, $md) : 0) + 1); }
         $plan = []; foreach ($wds ?? array_map('intval', explode(',', (string)(getenv('PP_V1523_WINDOWS') ?: '3'))) as $w0) { $plan[] = [$w0, false]; if ($compound && (string)getenv('PP_V1523_HOLD_IV') !== '0') $plan[] = [$w0, true]; }
     foreach ($plan as [$wd, $holdIv]) {
-        if ($holdIv) { $anyS = false; foreach ($X as $u => $mk) foreach (pp_v8_intervals((array)$mk) as [$ia, $ib]) if ($ia > 1 && $ia >= $r0 - $wd && $ia <= $r1 + max($wd, $ext)) $anyS = true; if (!$anyS) break; }   // tanpa startup di jendela: percobaan kedua identik
+        if ($holdIv) { $anyS = false; foreach ($X as $u => $mk) foreach (pp_v8_intervals((array)$mk) as [$ia, $ib]) if ($ia > 1 && $ia >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $ia <= $r1 + max($wd, $ext)) $anyS = true; if (!$anyS) break; }   // tanpa startup di jendela: percobaan kedua identik
             $in = json_decode(json_encode($orig), true); $mm = &$in['data3']['modeling'];
             $mm['unit_stop_time'] = array_merge((array)($mm['unit_stop_time'] ?? []), pp_v8_stops($X)); $fx = (array)($mm['unit_fix_load'] ?? []);
             foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u); $rules = (array)($fx[$u] ?? []);
-                for ($r = 1; $r <= 48; $r++) { if (($r >= $r0 - $wd && $r <= $r1 + max($wd, $ext)) || pp_get_fixed_load($mm, $u, $r) >= 0 || empty($X[$u][$r])) continue;
+                for ($r = 1; $r <= 48; $r++) { if (($r >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $r <= $r1 + max($wd, $ext)) || pp_get_fixed_load($mm, $u, $r) >= 0 || empty($X[$u][$r])) continue;
+                    $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+                if ($rules) $fx[$u] = $rules; }
+            /* Babelan (batubara, ramp 10 MW/row) ikut dikunci di luar jendela: tanpa ini core menggeser lintasan BB di row yang tidak terkait */
+            foreach (['b1' => 'BB1', 'b2' => 'BB2'] as $u => $U) { $rules = (array)($fx[$u] ?? []);
+                for ($r = 1; $r <= 48; $r++) { if (($r >= $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)) && $r <= $r1 + max($wd, $ext)) || pp_get_fixed_load($mm, $u, $r) >= 0) continue;
                     $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
                 if ($rules) $fx[$u] = $rules; }
             /* startup yang berada di dalam jendela DIPAKSA (Start Based on Request pada row start kandidat); core tidak menyalakan unit
              * tak-diminta dengan sendirinya, sehingga tanpa ini penundaan start terbaca sebagai decommit */
-            $wa = $r0 - $wd; $wb = $r1 + max($wd, $ext);
+            $wa = $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1)); $wb = $r1 + max($wd, $ext);
             foreach ($X as $u => $mk) foreach (pp_v8_intervals((array)$mk) as [$ia, $ib]) if ($ia > 1 && $ia >= $wa && $ia <= $wb && !isset($mm['required_mode'][$u])) {
                 $mm['required_mode'][$u] = ['mode' => 'start_at', 'at' => pp_v1518_row_time($ia - 1)];
                 if (!in_array($u, array_map('strtolower', (array)($mm['required_units'] ?? [])), true)) $mm['required_units'][] = $u;
@@ -8120,8 +8125,8 @@ function pp_v1523_local_eval(array $orig, array $W, array $XW, array $X, array $
                 if (is_array($oG) && count((array)($oG['data'] ?? [])) === 48) { $aG = pp_sp_assess($orig, $oG); $restore(); if (!empty($aG['valid'])) { $o = $oG; $a = $aG; $ok = true; } }
             }
             if ($ok) { $Mo = pp_v8_masks((array)$o['data']); foreach ($Mo as $u => $mk) foreach ($mk as $r => $on) if ($on && empty($X[$u][$r])) { $ok = false; break 2; } }
-            $att[] = ['window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'hold_interval' => $holdIv, 'valid' => $ok, 'why' => $ok ? [] : pp_v1523_viol_detail($orig, $o, $a)];
-            $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - $wd), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[count($att) - 1]['why'], 'attempts' => $att];
+            $att[] = ['window' => [max(1, $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1))), min(48, $r1 + max($wd, $ext))], 'hold_interval' => $holdIv, 'valid' => $ok, 'why' => $ok ? [] : pp_v1523_viol_detail($orig, $o, $a)];
+            $res = ['o' => $o, 'valid' => $ok, 'window' => [max(1, $r0 - min($wd, (int)(getenv('PP_V1523_LEFT_MARGIN') ?: 1))), min(48, $r1 + max($wd, $ext))], 'met' => $ok ? pp_v1523_metrics($orig, $o, $K) : null, 'why' => $ok ? [] : $att[count($att) - 1]['why'], 'attempts' => $att];
             if ($ok) break; }
     return $res;
 }
