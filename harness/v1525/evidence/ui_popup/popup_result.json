@@ -1,0 +1,7065 @@
+[
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     199,
+     1290,
+     522.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 493.25,
+     "r": [
+      1078,
+      477.25,
+      1172.5,
+      509.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 493.25,
+     "r": [
+      1180.5,
+      477.25,
+      1277,
+      509.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     199,
+     1339,
+     522.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 493.25,
+     "r": [
+      1127,
+      477.25,
+      1221.5,
+      509.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 493.25,
+     "r": [
+      1229.5,
+      477.25,
+      1326,
+      509.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     199,
+     1339,
+     522.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 493.25,
+     "r": [
+      1127,
+      477.25,
+      1221.5,
+      509.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 493.25,
+     "r": [
+      1229.5,
+      477.25,
+      1326,
+      509.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     266,
+     1290,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 560.25,
+     "r": [
+      1078,
+      544.25,
+      1172.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 560.25,
+     "r": [
+      1180.5,
+      544.25,
+      1277,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     266,
+     1339,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 560.25,
+     "r": [
+      1127,
+      544.25,
+      1221.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 560.25,
+     "r": [
+      1229.5,
+      544.25,
+      1326,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     266,
+     1339,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 560.25,
+     "r": [
+      1127,
+      544.25,
+      1221.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 560.25,
+     "r": [
+      1229.5,
+      544.25,
+      1326,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     266,
+     1290,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 560.25,
+     "r": [
+      1078,
+      544.25,
+      1172.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 560.25,
+     "r": [
+      1180.5,
+      544.25,
+      1277,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     266,
+     1339,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 560.25,
+     "r": [
+      1127,
+      544.25,
+      1221.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 560.25,
+     "r": [
+      1229.5,
+      544.25,
+      1326,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1114,
+     266,
+     1339,
+     589.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1174.25,
+     "y": 560.25,
+     "r": [
+      1127,
+      544.25,
+      1221.5,
+      576.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1277.75,
+     "y": 560.25,
+     "r": [
+      1229.5,
+      544.25,
+      1326,
+      576.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     827,
+     255,
+     1052,
+     578.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 887.25,
+     "y": 549.25,
+     "r": [
+      840,
+      533.25,
+      934.5,
+      565.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 990.75,
+     "y": 549.25,
+     "r": [
+      942.5,
+      533.25,
+      1039,
+      565.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1103,
+     255,
+     1328,
+     578.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1163.25,
+     "y": 549.25,
+     "r": [
+      1116,
+      533.25,
+      1210.5,
+      565.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1266.75,
+     "y": 549.25,
+     "r": [
+      1218.5,
+      533.25,
+      1315,
+      565.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1104,
+     255,
+     1329,
+     578.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1164.25,
+     "y": 549.25,
+     "r": [
+      1117,
+      533.25,
+      1211.5,
+      565.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1267.75,
+     "y": 549.25,
+     "r": [
+      1219.5,
+      533.25,
+      1316,
+      565.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     827,
+     247,
+     1052,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 887.25,
+     "y": 541.25,
+     "r": [
+      840,
+      525.25,
+      934.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 990.75,
+     "y": 541.25,
+     "r": [
+      942.5,
+      525.25,
+      1039,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1103,
+     247,
+     1328,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1163.25,
+     "y": 541.25,
+     "r": [
+      1116,
+      525.25,
+      1210.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1266.75,
+     "y": 541.25,
+     "r": [
+      1218.5,
+      525.25,
+      1315,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1104,
+     247,
+     1329,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1164.25,
+     "y": 541.25,
+     "r": [
+      1117,
+      525.25,
+      1211.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1267.75,
+     "y": 541.25,
+     "r": [
+      1219.5,
+      525.25,
+      1316,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     827,
+     247,
+     1052,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 887.25,
+     "y": 541.25,
+     "r": [
+      840,
+      525.25,
+      934.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 990.75,
+     "y": 541.25,
+     "r": [
+      942.5,
+      525.25,
+      1039,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1103,
+     247,
+     1328,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1163.25,
+     "y": 541.25,
+     "r": [
+      1116,
+      525.25,
+      1210.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1266.75,
+     "y": 541.25,
+     "r": [
+      1218.5,
+      525.25,
+      1315,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1104,
+     247,
+     1329,
+     570.25
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1164.25,
+     "y": 541.25,
+     "r": [
+      1117,
+      525.25,
+      1211.5,
+      557.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1267.75,
+     "y": 541.25,
+     "r": [
+      1219.5,
+      525.25,
+      1316,
+      557.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z100-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   677,
+   290,
+   902,
+   613.25,
+   1366,
+   640
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     841,
+     138,
+     1066,
+     461.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 901.25,
+     "y": 432.25,
+     "r": [
+      854,
+      416.25,
+      948.5,
+      448.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1004.75,
+     "y": 432.25,
+     "r": [
+      956.5,
+      416.25,
+      1053,
+      448.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     823,
+     166,
+     1048,
+     489.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 883.25,
+     "y": 460.25,
+     "r": [
+      836,
+      444.25,
+      930.5,
+      476.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 986.75,
+     "y": 460.25,
+     "r": [
+      938.5,
+      444.25,
+      1035,
+      476.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     166,
+     1059,
+     489.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 460.25,
+     "r": [
+      847,
+      444.25,
+      941.5,
+      476.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 460.25,
+     "r": [
+      949.5,
+      444.25,
+      1046,
+      476.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     166,
+     1059,
+     489.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 460.25,
+     "r": [
+      847,
+      444.25,
+      941.5,
+      476.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 460.25,
+     "r": [
+      949.5,
+      444.25,
+      1046,
+      476.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     823,
+     123,
+     1048,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 883.25,
+     "y": 417.25,
+     "r": [
+      836,
+      401.25,
+      930.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 986.75,
+     "y": 417.25,
+     "r": [
+      938.5,
+      401.25,
+      1035,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     123,
+     1059,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 417.25,
+     "r": [
+      847,
+      401.25,
+      941.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 417.25,
+     "r": [
+      949.5,
+      401.25,
+      1046,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     123,
+     1059,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 417.25,
+     "r": [
+      847,
+      401.25,
+      941.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 417.25,
+     "r": [
+      949.5,
+      401.25,
+      1046,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     823,
+     123,
+     1048,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 883.25,
+     "y": 417.25,
+     "r": [
+      836,
+      401.25,
+      930.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 986.75,
+     "y": 417.25,
+     "r": [
+      938.5,
+      401.25,
+      1035,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     123,
+     1059,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 417.25,
+     "r": [
+      847,
+      401.25,
+      941.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 417.25,
+     "r": [
+      949.5,
+      401.25,
+      1046,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     834,
+     123,
+     1059,
+     446.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 894.25,
+     "y": 417.25,
+     "r": [
+      847,
+      401.25,
+      941.5,
+      433.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 997.75,
+     "y": 417.25,
+     "r": [
+      949.5,
+      401.25,
+      1046,
+      433.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z125-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   673,
+   166,
+   898,
+   489.25,
+   1093,
+   512
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     659,
+     53,
+     884,
+     376.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 719.25,
+     "y": 347.25,
+     "r": [
+      672,
+      331.25,
+      766.5,
+      363.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 822.75,
+     "y": 347.25,
+     "r": [
+      774.5,
+      331.25,
+      871,
+      363.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     655,
+     83,
+     880,
+     406.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 715.25,
+     "y": 377.25,
+     "r": [
+      668,
+      361.25,
+      762.5,
+      393.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 818.75,
+     "y": 377.25,
+     "r": [
+      770.5,
+      361.25,
+      867,
+      393.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     83,
+     881,
+     406.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 377.25,
+     "r": [
+      669,
+      361.25,
+      763.5,
+      393.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 377.25,
+     "r": [
+      771.5,
+      361.25,
+      868,
+      393.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     83,
+     881,
+     406.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 377.25,
+     "r": [
+      669,
+      361.25,
+      763.5,
+      393.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 377.25,
+     "r": [
+      771.5,
+      361.25,
+      868,
+      393.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     655,
+     40,
+     880,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 715.25,
+     "y": 334.25,
+     "r": [
+      668,
+      318.25,
+      762.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 818.75,
+     "y": 334.25,
+     "r": [
+      770.5,
+      318.25,
+      867,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     40,
+     881,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 334.25,
+     "r": [
+      669,
+      318.25,
+      763.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 334.25,
+     "r": [
+      771.5,
+      318.25,
+      868,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     40,
+     881,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 334.25,
+     "r": [
+      669,
+      318.25,
+      763.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 334.25,
+     "r": [
+      771.5,
+      318.25,
+      868,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     655,
+     40,
+     880,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 715.25,
+     "y": 334.25,
+     "r": [
+      668,
+      318.25,
+      762.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 818.75,
+     "y": 334.25,
+     "r": [
+      770.5,
+      318.25,
+      867,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     40,
+     881,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 334.25,
+     "r": [
+      669,
+      318.25,
+      763.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 334.25,
+     "r": [
+      771.5,
+      318.25,
+      868,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     656,
+     40,
+     881,
+     363.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 716.25,
+     "y": 334.25,
+     "r": [
+      669,
+      318.25,
+      763.5,
+      350.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 819.75,
+     "y": 334.25,
+     "r": [
+      771.5,
+      318.25,
+      868,
+      350.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-laptop1366-z150-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   638,
+   83,
+   863,
+   406.25,
+   911,
+   427
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1241,
+     581,
+     1466,
+     904.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301.25,
+     "y": 875.25,
+     "r": [
+      1254,
+      859.25,
+      1348.5,
+      891.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.75,
+     "y": 875.25,
+     "r": [
+      1356.5,
+      859.25,
+      1453,
+      891.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1625,
+     581,
+     1850,
+     904.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1685.25,
+     "y": 875.25,
+     "r": [
+      1638,
+      859.25,
+      1732.5,
+      891.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1788.75,
+     "y": 875.25,
+     "r": [
+      1740.5,
+      859.25,
+      1837,
+      891.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1615,
+     581,
+     1840,
+     904.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.25,
+     "y": 875.25,
+     "r": [
+      1628,
+      859.25,
+      1722.5,
+      891.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.75,
+     "y": 875.25,
+     "r": [
+      1730.5,
+      859.25,
+      1827,
+      891.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1241,
+     579,
+     1466,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301.25,
+     "y": 873.25,
+     "r": [
+      1254,
+      857.25,
+      1348.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.75,
+     "y": 873.25,
+     "r": [
+      1356.5,
+      857.25,
+      1453,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1625,
+     579,
+     1850,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1685.25,
+     "y": 873.25,
+     "r": [
+      1638,
+      857.25,
+      1732.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1788.75,
+     "y": 873.25,
+     "r": [
+      1740.5,
+      857.25,
+      1837,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1615,
+     579,
+     1840,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.25,
+     "y": 873.25,
+     "r": [
+      1628,
+      857.25,
+      1722.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.75,
+     "y": 873.25,
+     "r": [
+      1730.5,
+      857.25,
+      1827,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1241,
+     579,
+     1466,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301.25,
+     "y": 873.25,
+     "r": [
+      1254,
+      857.25,
+      1348.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.75,
+     "y": 873.25,
+     "r": [
+      1356.5,
+      857.25,
+      1453,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1625,
+     579,
+     1850,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1685.25,
+     "y": 873.25,
+     "r": [
+      1638,
+      857.25,
+      1732.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1788.75,
+     "y": 873.25,
+     "r": [
+      1740.5,
+      857.25,
+      1837,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1615,
+     579,
+     1840,
+     902.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.25,
+     "y": 873.25,
+     "r": [
+      1628,
+      857.25,
+      1722.5,
+      889.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.75,
+     "y": 873.25,
+     "r": [
+      1730.5,
+      857.25,
+      1827,
+      889.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     836,
+     264,
+     1061,
+     587.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 896.25,
+     "y": 558.25,
+     "r": [
+      849,
+      542.25,
+      943.5,
+      574.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 999.75,
+     "y": 558.25,
+     "r": [
+      951.5,
+      542.25,
+      1048,
+      574.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1529,
+     264,
+     1754,
+     587.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1589.25,
+     "y": 558.25,
+     "r": [
+      1542,
+      542.25,
+      1636.5,
+      574.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1692.75,
+     "y": 558.25,
+     "r": [
+      1644.5,
+      542.25,
+      1741,
+      574.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1649,
+     264,
+     1874,
+     587.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1709.25,
+     "y": 558.25,
+     "r": [
+      1662,
+      542.25,
+      1756.5,
+      574.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1812.75,
+     "y": 558.25,
+     "r": [
+      1764.5,
+      542.25,
+      1861,
+      574.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     836,
+     549,
+     1061,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 896.25,
+     "y": 843.25,
+     "r": [
+      849,
+      827.25,
+      943.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 999.75,
+     "y": 843.25,
+     "r": [
+      951.5,
+      827.25,
+      1048,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1529,
+     549,
+     1754,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1589.25,
+     "y": 843.25,
+     "r": [
+      1542,
+      827.25,
+      1636.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1692.75,
+     "y": 843.25,
+     "r": [
+      1644.5,
+      827.25,
+      1741,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1649,
+     549,
+     1874,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1709.25,
+     "y": 843.25,
+     "r": [
+      1662,
+      827.25,
+      1756.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1812.75,
+     "y": 843.25,
+     "r": [
+      1764.5,
+      827.25,
+      1861,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     836,
+     549,
+     1061,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 896.25,
+     "y": 843.25,
+     "r": [
+      849,
+      827.25,
+      943.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 999.75,
+     "y": 843.25,
+     "r": [
+      951.5,
+      827.25,
+      1048,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1529,
+     549,
+     1754,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1589.25,
+     "y": 843.25,
+     "r": [
+      1542,
+      827.25,
+      1636.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1692.75,
+     "y": 843.25,
+     "r": [
+      1644.5,
+      827.25,
+      1741,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1649,
+     549,
+     1874,
+     872.25
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1709.25,
+     "y": 843.25,
+     "r": [
+      1662,
+      827.25,
+      1756.5,
+      859.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1812.75,
+     "y": 843.25,
+     "r": [
+      1764.5,
+      827.25,
+      1861,
+      859.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z100-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   686,
+   221,
+   911,
+   544.25,
+   1920,
+   952
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     236,
+     1290,
+     559.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 530.25,
+     "r": [
+      1078,
+      514.25,
+      1172.5,
+      546.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 530.25,
+     "r": [
+      1180.5,
+      514.25,
+      1277,
+      546.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     236,
+     1509,
+     559.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 530.25,
+     "r": [
+      1297,
+      514.25,
+      1391.5,
+      546.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 530.25,
+     "r": [
+      1399.5,
+      514.25,
+      1496,
+      546.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     236,
+     1509,
+     559.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 530.25,
+     "r": [
+      1297,
+      514.25,
+      1391.5,
+      546.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 530.25,
+     "r": [
+      1399.5,
+      514.25,
+      1496,
+      546.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     389,
+     1290,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 683.25,
+     "r": [
+      1078,
+      667.25,
+      1172.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 683.25,
+     "r": [
+      1180.5,
+      667.25,
+      1277,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     389,
+     1509,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 683.25,
+     "r": [
+      1297,
+      667.25,
+      1391.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 683.25,
+     "r": [
+      1399.5,
+      667.25,
+      1496,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     389,
+     1509,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 683.25,
+     "r": [
+      1297,
+      667.25,
+      1391.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 683.25,
+     "r": [
+      1399.5,
+      667.25,
+      1496,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1065,
+     389,
+     1290,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125.25,
+     "y": 683.25,
+     "r": [
+      1078,
+      667.25,
+      1172.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.75,
+     "y": 683.25,
+     "r": [
+      1180.5,
+      667.25,
+      1277,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     389,
+     1509,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 683.25,
+     "r": [
+      1297,
+      667.25,
+      1391.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 683.25,
+     "r": [
+      1399.5,
+      667.25,
+      1496,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1284,
+     389,
+     1509,
+     712.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1344.25,
+     "y": 683.25,
+     "r": [
+      1297,
+      667.25,
+      1391.5,
+      699.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1447.75,
+     "y": 683.25,
+     "r": [
+      1399.5,
+      667.25,
+      1496,
+      699.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     830,
+     257,
+     1055,
+     580.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 890.25,
+     "y": 551.25,
+     "r": [
+      843,
+      535.25,
+      937.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 993.75,
+     "y": 551.25,
+     "r": [
+      945.5,
+      535.25,
+      1042,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     257,
+     1496,
+     580.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 551.25,
+     "r": [
+      1284,
+      535.25,
+      1378.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 551.25,
+     "r": [
+      1386.5,
+      535.25,
+      1483,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     257,
+     1496,
+     580.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 551.25,
+     "r": [
+      1284,
+      535.25,
+      1378.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 551.25,
+     "r": [
+      1386.5,
+      535.25,
+      1483,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     830,
+     365,
+     1055,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 890.25,
+     "y": 659.25,
+     "r": [
+      843,
+      643.25,
+      937.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 993.75,
+     "y": 659.25,
+     "r": [
+      945.5,
+      643.25,
+      1042,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     365,
+     1496,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 659.25,
+     "r": [
+      1284,
+      643.25,
+      1378.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 659.25,
+     "r": [
+      1386.5,
+      643.25,
+      1483,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     365,
+     1496,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 659.25,
+     "r": [
+      1284,
+      643.25,
+      1378.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 659.25,
+     "r": [
+      1386.5,
+      643.25,
+      1483,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     830,
+     365,
+     1055,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 890.25,
+     "y": 659.25,
+     "r": [
+      843,
+      643.25,
+      937.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 993.75,
+     "y": 659.25,
+     "r": [
+      945.5,
+      643.25,
+      1042,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     365,
+     1496,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 659.25,
+     "r": [
+      1284,
+      643.25,
+      1378.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 659.25,
+     "r": [
+      1386.5,
+      643.25,
+      1483,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1271,
+     365,
+     1496,
+     688.25
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1331.25,
+     "y": 659.25,
+     "r": [
+      1284,
+      643.25,
+      1378.5,
+      675.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1434.75,
+     "y": 659.25,
+     "r": [
+      1386.5,
+      643.25,
+      1483,
+      675.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z125-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   680,
+   36,
+   905,
+   359.25,
+   1536,
+   762
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     932,
+     197,
+     1157,
+     520.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 992.25,
+     "y": 491.25,
+     "r": [
+      945,
+      475.25,
+      1039.5,
+      507.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1095.75,
+     "y": 491.25,
+     "r": [
+      1047.5,
+      475.25,
+      1144,
+      507.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     197,
+     1253,
+     520.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 491.25,
+     "r": [
+      1041,
+      475.25,
+      1135.5,
+      507.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 491.25,
+     "r": [
+      1143.5,
+      475.25,
+      1240,
+      507.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     197,
+     1253,
+     520.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 491.25,
+     "r": [
+      1041,
+      475.25,
+      1135.5,
+      507.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 491.25,
+     "r": [
+      1143.5,
+      475.25,
+      1240,
+      507.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     932,
+     261,
+     1157,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 992.25,
+     "y": 555.25,
+     "r": [
+      945,
+      539.25,
+      1039.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1095.75,
+     "y": 555.25,
+     "r": [
+      1047.5,
+      539.25,
+      1144,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     261,
+     1253,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 555.25,
+     "r": [
+      1041,
+      539.25,
+      1135.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 555.25,
+     "r": [
+      1143.5,
+      539.25,
+      1240,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     261,
+     1253,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 555.25,
+     "r": [
+      1041,
+      539.25,
+      1135.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 555.25,
+     "r": [
+      1143.5,
+      539.25,
+      1240,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     932,
+     261,
+     1157,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 992.25,
+     "y": 555.25,
+     "r": [
+      945,
+      539.25,
+      1039.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1095.75,
+     "y": 555.25,
+     "r": [
+      1047.5,
+      539.25,
+      1144,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     261,
+     1253,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 555.25,
+     "r": [
+      1041,
+      539.25,
+      1135.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 555.25,
+     "r": [
+      1143.5,
+      539.25,
+      1240,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1028,
+     261,
+     1253,
+     584.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1088.25,
+     "y": 555.25,
+     "r": [
+      1041,
+      539.25,
+      1135.5,
+      571.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1191.75,
+     "y": 555.25,
+     "r": [
+      1143.5,
+      539.25,
+      1240,
+      571.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     826,
+     254,
+     1051,
+     577.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 886.25,
+     "y": 548.25,
+     "r": [
+      839,
+      532.25,
+      933.5,
+      564.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 989.75,
+     "y": 548.25,
+     "r": [
+      941.5,
+      532.25,
+      1038,
+      564.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     254,
+     1244,
+     577.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 548.25,
+     "r": [
+      1032,
+      532.25,
+      1126.5,
+      564.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 548.25,
+     "r": [
+      1134.5,
+      532.25,
+      1231,
+      564.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     254,
+     1244,
+     577.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 548.25,
+     "r": [
+      1032,
+      532.25,
+      1126.5,
+      564.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 548.25,
+     "r": [
+      1134.5,
+      532.25,
+      1231,
+      564.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     826,
+     242,
+     1051,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 886.25,
+     "y": 536.25,
+     "r": [
+      839,
+      520.25,
+      933.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 989.75,
+     "y": 536.25,
+     "r": [
+      941.5,
+      520.25,
+      1038,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     242,
+     1244,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 536.25,
+     "r": [
+      1032,
+      520.25,
+      1126.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 536.25,
+     "r": [
+      1134.5,
+      520.25,
+      1231,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     242,
+     1244,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 536.25,
+     "r": [
+      1032,
+      520.25,
+      1126.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 536.25,
+     "r": [
+      1134.5,
+      520.25,
+      1231,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     826,
+     242,
+     1051,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 886.25,
+     "y": 536.25,
+     "r": [
+      839,
+      520.25,
+      933.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 989.75,
+     "y": 536.25,
+     "r": [
+      941.5,
+      520.25,
+      1038,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     242,
+     1244,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 536.25,
+     "r": [
+      1032,
+      520.25,
+      1126.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 536.25,
+     "r": [
+      1134.5,
+      520.25,
+      1231,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     1019,
+     242,
+     1244,
+     565.25
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1079.25,
+     "y": 536.25,
+     "r": [
+      1032,
+      520.25,
+      1126.5,
+      552.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1182.75,
+     "y": 536.25,
+     "r": [
+      1134.5,
+      520.25,
+      1231,
+      552.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-fhd1920-z150-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   676,
+   285,
+   901,
+   608.25,
+   1280,
+   635
+  ]
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     189,
+     997,
+     512.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 483.25,
+     "r": [
+      785,
+      467.25,
+      879.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 483.25,
+     "r": [
+      887.5,
+      467.25,
+      984,
+      499.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     189,
+     997,
+     512.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 483.25,
+     "r": [
+      785,
+      467.25,
+      879.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 483.25,
+     "r": [
+      887.5,
+      467.25,
+      984,
+      499.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     189,
+     997,
+     512.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 483.25,
+     "r": [
+      785,
+      467.25,
+      879.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 483.25,
+     "r": [
+      887.5,
+      467.25,
+      984,
+      499.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     772,
+     334,
+     997,
+     657.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 832.25,
+     "y": 628.25,
+     "r": [
+      785,
+      612.25,
+      879.5,
+      644.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 935.75,
+     "y": 628.25,
+     "r": [
+      887.5,
+      612.25,
+      984,
+      644.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     689,
+     257,
+     914,
+     580.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 749.25,
+     "y": 551.25,
+     "r": [
+      702,
+      535.25,
+      796.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 852.75,
+     "y": 551.25,
+     "r": [
+      804.5,
+      535.25,
+      901,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     257,
+     991,
+     580.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 551.25,
+     "r": [
+      779,
+      535.25,
+      873.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 551.25,
+     "r": [
+      881.5,
+      535.25,
+      978,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     257,
+     991,
+     580.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 551.25,
+     "r": [
+      779,
+      535.25,
+      873.5,
+      567.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 551.25,
+     "r": [
+      881.5,
+      535.25,
+      978,
+      567.25
+     ]
+    },
+    "parent": true,
+    "placed": "below",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     689,
+     313,
+     914,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 749.25,
+     "y": 607.25,
+     "r": [
+      702,
+      591.25,
+      796.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 852.75,
+     "y": 607.25,
+     "r": [
+      804.5,
+      591.25,
+      901,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     313,
+     991,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 607.25,
+     "r": [
+      779,
+      591.25,
+      873.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 607.25,
+     "r": [
+      881.5,
+      591.25,
+      978,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "PASS",
+  "detail": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "PASS",
+  "detail": {
+   "aK": {
+    "pop": false,
+    "fix": 86.5,
+    "runs": 1
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     313,
+     991,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 607.25,
+     "r": [
+      779,
+      591.25,
+      873.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 607.25,
+     "r": [
+      881.5,
+      591.25,
+      978,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     689,
+     313,
+     914,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 749.25,
+     "y": 607.25,
+     "r": [
+      702,
+      591.25,
+      796.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 852.75,
+     "y": 607.25,
+     "r": [
+      804.5,
+      591.25,
+      901,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     313,
+     991,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 607.25,
+     "r": [
+      779,
+      591.25,
+      873.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 607.25,
+     "r": [
+      881.5,
+      591.25,
+      978,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "PASS",
+  "detail": {
+   "g": {
+    "pop": [
+     766,
+     313,
+     991,
+     636.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 826.25,
+     "y": 607.25,
+     "r": [
+      779,
+      591.25,
+      873.5,
+      623.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 929.75,
+     "y": 607.25,
+     "r": [
+      881.5,
+      591.25,
+      978,
+      623.25
+     ]
+    },
+    "parent": true,
+    "placed": "above",
+    "z": "10070"
+   },
+   "afterEsc": {
+    "pop": false,
+    "fix": null,
+    "fs": true,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup/UI-POP-tablet1024-z100-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   672,
+   356,
+   897,
+   679.25,
+   1024,
+   708
+  ]
+ }
+]

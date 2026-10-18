@@ -362,7 +362,10 @@ if (function_exists('rs_enabled') && rs_enabled()) {
   table.simgrid td.ff-manual{background:#ffe8c2 !important;color:#9a5b00;font-weight:800;cursor:pointer}
   table.simgrid tbody tr:nth-child(even) td.ff-manual{background:#ffdfa8 !important}
   /* Manual Fixed Load popover (Ctrl+Click) */
-  .fixpop{position:absolute;z-index:10050;background:#fff;border:1px solid #e2c0c4;border-radius:12px;box-shadow:0 10px 30px rgba(120,20,28,.18);padding:12px;min-width:200px;font-family:var(--sans)}
+  .fixpop{position:fixed;z-index:10070;background:#fff;border:1px solid #e2c0c4;border-radius:12px;box-shadow:0 10px 30px rgba(120,20,28,.18);padding:12px;min-width:200px;max-width:calc(100vw - 16px);box-sizing:border-box;font-family:var(--sans);display:flex;flex-direction:column;overflow:hidden}
+  /* V15.25: popup Fix Load/Fixed Flow di portal <body>, posisi fixed terhadap viewport yang terlihat (clamp + flip); isi boleh scroll, footer OK/Cancel selalu terlihat */
+  .fixpop-sc{overflow:auto;min-height:0;flex:1 1 auto}
+  .fixpop .fixpop-b{flex:0 0 auto;background:#fff;padding-top:8px;border-top:1px solid #f1e3e5}
   .fixpop-h{font-weight:800;font-size:12px;color:#a3262e;margin-bottom:8px;letter-spacing:.02em}
   .fixpop-l{display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;color:#7a8294}
   .fixpop-l span{font-weight:600;color:#9aa1b0;text-transform:none}
@@ -7525,21 +7528,16 @@ function clearFixedFlow(area,row){
 function openFFPop(td,area,row){
   closeFixPop();
   const cur=cellFixedFlow(area,row);
-  const rect=td.getBoundingClientRect();
   const pop=document.createElement('div'); pop.id='fixpop'; pop.className='fixpop';
   pop.innerHTML=`<div class="fixpop-h">${area} · ${hm(OUTPUT.data[row].Time)}</div>
-    <label class="fixpop-l">Fixed Flow <span>MMSCFD</span><input type="number" step="0.1" id="fixpop-val" value="${cur!=null?cur:(td.textContent.trim()||'')}"></label>
+    <div class="fixpop-sc"><label class="fixpop-l">Fixed Flow <span>MMSCFD</span><input type="number" step="0.1" id="fixpop-val" value="${cur!=null?cur:(td.textContent.trim()||'')}"></label></div>
     <div class="fixpop-b">
       <button type="button" class="btn" id="fixpop-apply">Input Fixed Flow Manual</button>
       <button type="button" class="btn ghost" id="fixpop-cancel">Cancel Input</button>
     </div>`;
-  document.body.appendChild(pop);
-  pop.style.top=(window.scrollY+rect.bottom+6)+'px';
-  pop.style.left=Math.min(window.scrollX+rect.left, window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-12)+'px';
-  $('fixpop-val').focus();
+  fixPopMount(pop,td);
   $('fixpop-apply').onclick=()=>{ const v=num($('fixpop-val').value); setFixedFlow(area,row,v); closeFixPop(); toast('Fixed Flow '+area+' = '+v.toFixed(1)+' MMSCFD — re-running…'); runSim(); };
   $('fixpop-cancel').onclick=()=>{ clearFixedFlow(area,row); closeFixPop(); toast('Cleared manual fixed flow ('+area+') — re-running…'); runSim(); };
-  setTimeout(()=>document.addEventListener('mousedown',fixPopOutside),0);
 }
 function bindFixedFlowCells(){
   const tbl=$('tbl-result'); if(!tbl) return;
@@ -7623,29 +7621,53 @@ async function fixPrecheck(unit,row,value){
   try{ const r=await fetch('run.php?mode=fix_precheck',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({input:payload,unit,row:row+1,value})});
        return await r.json(); }catch(e){ return {ok:false,reasons:[{text:'Precheck gagal: '+(e&&e.message||e)}]}; }
 }
-function closeFixPop(){ const p=$('fixpop'); if(p) p.remove(); }
+function closeFixPop(){ const p=$('fixpop'); if(p){ if(p._unbind) p._unbind(); p.remove(); } document.removeEventListener('mousedown',fixPopOutside,true); }
+/* V15.25 — penempatan popup generik: batas terlihat = visualViewport ∩ panel modal Full Screen (bila terbuka); bawah sel bila muat,
+   flip ke atas bila tidak, lalu clamp dengan margin aman; tinggi dibatasi ruang terlihat (isi scroll, footer tetap). Ikut sel saat scroll/resize. */
+function fixPopBounds(){ const M=8, vv=window.visualViewport;
+  let L=vv?vv.offsetLeft:0, T=vv?vv.offsetTop:0, R=L+(vv?vv.width:document.documentElement.clientWidth), B=T+(vv?vv.height:window.innerHeight);
+  const fsm=$('simfs-modal'); if(fsm&&getComputedStyle(fsm).display!=='none'){ const pr=($('simfs-panel')||fsm).getBoundingClientRect();
+    L=Math.max(L,pr.left); T=Math.max(T,pr.top); R=Math.min(R,pr.right); B=Math.min(B,pr.bottom); }
+  return {L:L+M,T:T+M,R:R-M,B:B-M}; }
+function fixPopPlace(pop,td){ if(!pop||!pop.isConnected) return; const b=fixPopBounds(), r=td.getBoundingClientRect(), G=6;
+  pop.style.maxHeight=Math.max(120,b.B-b.T)+'px'; pop.style.maxWidth=Math.max(180,b.R-b.L)+'px';
+  const h=pop.offsetHeight, w=pop.offsetWidth;
+  let top=r.bottom+G; if(top+h>b.B){ const up=r.top-G-h; top=(up>=b.T)?up:Math.max(b.T,b.B-h); }
+  let left=r.left; if(left+w>b.R){ const fl=r.right-w; left=(fl>=b.L)?fl:Math.max(b.L,b.R-w); } if(left<b.L) left=b.L;
+  pop.style.top=Math.round(top)+'px'; pop.style.left=Math.round(left)+'px'; pop.dataset.placed=(top<r.top?'above':'below'); }
+function fixPopMount(pop,td){
+  pop.setAttribute('role','dialog'); pop.setAttribute('aria-modal','true'); pop.setAttribute('aria-label',(pop.querySelector('.fixpop-h')||{}).textContent||'Fixed Load');
+  document.body.appendChild(pop); fixPopPlace(pop,td);
+  document.addEventListener('mousedown',fixPopOutside,true);   // capture, didaftarkan sinkron: popup dibuka pada event click (mousedown pembuka sudah lewat)
+  const re=()=>fixPopPlace(pop,td), vv=window.visualViewport;
+  const key=e=>{ if(!pop.isConnected) return;
+    if(e.key==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); closeFixPop(); return; }   // Esc = Cancel (tanpa menyimpan, tanpa Run, tidak menutup Full Screen)
+    if(e.key==='Enter'&&e.target&&e.target.id==='fixpop-val'){ e.preventDefault(); e.stopPropagation(); const v=e.target.value; if(v!==''&&isFinite(Number(v))){ const ok=$('fixpop-apply'); if(ok) ok.click(); } return; }
+    if(e.key==='Tab'){ const f=[...pop.querySelectorAll('input,button,select,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null); if(!f.length) return;
+      const i=f.indexOf(document.activeElement); if(e.shiftKey&&(i<=0)){ e.preventDefault(); f[f.length-1].focus(); } else if(!e.shiftKey&&(i===f.length-1||i<0)){ e.preventDefault(); f[0].focus(); } } };
+  document.addEventListener('keydown',key,true); window.addEventListener('resize',re); document.addEventListener('scroll',re,true); if(vv){ vv.addEventListener('resize',re); vv.addEventListener('scroll',re); }
+  const ro=(typeof ResizeObserver!=='undefined')?new ResizeObserver(re):null; if(ro) ro.observe(pop);
+  pop._unbind=()=>{ document.removeEventListener('keydown',key,true); window.removeEventListener('resize',re); document.removeEventListener('scroll',re,true); if(vv){ vv.removeEventListener('resize',re); vv.removeEventListener('scroll',re); } if(ro) ro.disconnect(); };
+  const inp=$('fixpop-val'); if(inp){ inp.focus({preventScroll:true}); try{ inp.select(); }catch(e){} }
+}
 async function openFixPop(td,unit,row){
   closeFixPop();
   const cur=cellFixed(unit,row), R=(OUTPUT&&OUTPUT.data&&OUTPUT.data[row])||{}, key=unit.toUpperCase();
   const sim=+R[key===('B1')?'BB1':(key==='B2'?'BB2':key)]||0;
   const m=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{}, esc2=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const rect=td.getBoundingClientRect();
   const pop=document.createElement('div'); pop.id='fixpop'; pop.className='fixpop';
   pop.innerHTML=`<div class="fixpop-h">User Fixed Load · ${key}</div>
-    <div class="fixpop-i"><b>Unit</b><span>${key}</span><b>Tanggal</b><span>${esc2(m.plan_date||'-')}</span><b>Waktu row</b><span>${hm(R.Time)} (row ${row+1})</span>
+    <div class="fixpop-sc"><div class="fixpop-i"><b>Unit</b><span>${key}</span><b>Tanggal</b><span>${esc2(m.plan_date||'-')}</span><b>Waktu row</b><span>${hm(R.Time)} (row ${row+1})</span>
       <b>Load simulasi</b><span>${fmt(sim,2)} MW</span><b>Mode</b><span id="fixpop-mode">…</span><b>MIN legal</b><span id="fixpop-min">…</span><b>MAX legal</b><span id="fixpop-max">…</span>
       ${cur!=null?`<b>Fixed saat ini</b><span>${fmt(cur,2)} MW</span>`:''}</div>
-    <label class="fixpop-l">Fixed Load <span>MW</span><input type="number" step="0.1" id="fixpop-val" value="${cur!=null?cur:fmt(sim,2)}"></label>
-    <div class="fixpop-err" id="fixpop-err"></div>
+    <label class="fixpop-l">Fixed Load <span>MW</span><input type="number" step="0.1" id="fixpop-val" value="${cur!=null?cur:(Math.round(sim*100)/100)}"></label>
+    <div class="fixpop-err" id="fixpop-err"></div></div>
     <div class="fixpop-b">
       <button type="button" class="btn" id="fixpop-apply">OK</button>
       <button type="button" class="btn ghost" id="fixpop-cancel">Cancel</button>
       ${cur!=null?'<button type="button" class="btn ghost" id="fixpop-remove">Remove Fix</button>':''}
     </div>`;
-  document.body.appendChild(pop);
-  pop.style.top=(window.scrollY+rect.bottom+6)+'px';
-  pop.style.left=Math.max(8,Math.min(window.scrollX+rect.left, window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-12))+'px';
-  $('fixpop-val').focus();
+  fixPopMount(pop,td);
   fixPrecheck(unit,row,cur!=null?cur:sim).then(pc=>{ if(!$('fixpop')) return; $('fixpop-mode').textContent=pc.mode||'-';
     $('fixpop-min').textContent=pc.min_mw!=null?fmt(pc.min_mw,2)+' MW':'-'; $('fixpop-max').textContent=pc.max_mw!=null?fmt(pc.max_mw,2)+' MW':'-'; });
   $('fixpop-apply').onclick=async()=>{
@@ -7659,9 +7681,8 @@ async function openFixPop(td,unit,row){
   };
   $('fixpop-cancel').onclick=()=>closeFixPop();
   if($('fixpop-remove')) $('fixpop-remove').onclick=()=>{ clearFixLoad(unit,row); closeFixPop(); syncFixCells(); fixRun('Remove Fix '+key+' '+hm(R.Time)); };
-  setTimeout(()=>document.addEventListener('mousedown',fixPopOutside),0);
 }
-function fixPopOutside(e){ const p=$('fixpop'); if(p && !p.contains(e.target)){ closeFixPop(); document.removeEventListener('mousedown',fixPopOutside); } }
+function fixPopOutside(e){ const p=$('fixpop'); if(p && !p.contains(e.target)) closeFixPop(); }   // klik luar = batal (tidak menyimpan)
 function bindFixLoadCells(){
   const tbl=$('tbl-result'); if(!tbl) return;
   tbl.querySelectorAll('td[data-fix]').forEach(td=>{

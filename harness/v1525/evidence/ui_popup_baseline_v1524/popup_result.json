@@ -1,0 +1,4995 @@
+[
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     198.625,
+     1289.75,
+     506.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 477.875,
+     "r": [
+      1077.75,
+      461.875,
+      1172.25,
+      493.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 477.875,
+     "r": [
+      1180.25,
+      461.875,
+      1276.75,
+      493.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     198.625,
+     1354,
+     506.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 477.875,
+     "r": [
+      1142,
+      461.875,
+      1236.5,
+      493.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 477.875,
+     "r": [
+      1244.5,
+      461.875,
+      1341,
+      493.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     198.625,
+     1354,
+     506.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 477.875,
+     "r": [
+      1142,
+      461.875,
+      1236.5,
+      493.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 477.875,
+     "r": [
+      1244.5,
+      461.875,
+      1341,
+      493.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     331.625,
+     1289.75,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 609.875,
+     "r": [
+      1077.75,
+      593.875,
+      1172.25,
+      625.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 610.875,
+     "r": [
+      1180.25,
+      594.875,
+      1276.75,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     331.625,
+     1354,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 610.875,
+     "r": [
+      1142,
+      594.875,
+      1236.5,
+      626.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 610.875,
+     "r": [
+      1244.5,
+      594.875,
+      1341,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     331.625,
+     1289.75,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 609.875,
+     "r": [
+      1077.75,
+      593.875,
+      1172.25,
+      625.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 610.875,
+     "r": [
+      1180.25,
+      594.875,
+      1276.75,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     331.625,
+     1354,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 610.875,
+     "r": [
+      1142,
+      594.875,
+      1236.5,
+      626.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 610.875,
+     "r": [
+      1244.5,
+      594.875,
+      1341,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     827.234375,
+     317.828125,
+     1052.234375,
+     626.078125
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 887.484375,
+     "y": 597.078125,
+     "r": [
+      840.234375,
+      581.078125,
+      934.734375,
+      613.078125
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 990.984375,
+     "y": 597.078125,
+     "r": [
+      942.734375,
+      581.078125,
+      1039.234375,
+      613.078125
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     198.625,
+     1354,
+     506.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 477.875,
+     "r": [
+      1142,
+      461.875,
+      1236.5,
+      493.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 477.875,
+     "r": [
+      1244.5,
+      461.875,
+      1341,
+      493.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     198.625,
+     1354,
+     506.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 477.875,
+     "r": [
+      1142,
+      461.875,
+      1236.5,
+      493.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 477.875,
+     "r": [
+      1244.5,
+      461.875,
+      1341,
+      493.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     331.625,
+     1289.75,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 609.875,
+     "r": [
+      1077.75,
+      593.875,
+      1172.25,
+      625.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 610.875,
+     "r": [
+      1180.25,
+      594.875,
+      1276.75,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     331.828125,
+     1354,
+     640.078125
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 611.078125,
+     "r": [
+      1142,
+      595.078125,
+      1236.5,
+      627.078125
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 610.078125,
+     "r": [
+      1244.5,
+      594.078125,
+      1341,
+      626.078125
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     331.625,
+     1289.75,
+     639.875
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 610.875,
+     "r": [
+      1077.75,
+      594.875,
+      1172.25,
+      626.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 610.875,
+     "r": [
+      1180.25,
+      594.875,
+      1276.75,
+      626.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1129,
+     331.828125,
+     1354,
+     640.078125
+    ],
+    "vw": 1366,
+    "vh": 640,
+    "ok": {
+     "hit": true,
+     "x": 1189.25,
+     "y": 611.078125,
+     "r": [
+      1142,
+      595.078125,
+      1236.5,
+      627.078125
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1292.75,
+     "y": 610.078125,
+     "r": [
+      1244.5,
+      594.078125,
+      1341,
+      626.078125
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z100-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "FAIL",
+  "detail": [
+   827.234375,
+   386.828125,
+   1052.234375,
+   695.078125,
+   1366,
+   640
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     130,
+     1081,
+     438.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 409.25,
+     "r": [
+      869,
+      393.25,
+      963.5,
+      425.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 409.25,
+     "r": [
+      971.5,
+      393.25,
+      1068,
+      425.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     130,
+     1081,
+     438.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 409.25,
+     "r": [
+      869,
+      393.25,
+      963.5,
+      425.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 409.25,
+     "r": [
+      971.5,
+      393.25,
+      1068,
+      425.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     130,
+     1081,
+     438.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 409.25,
+     "r": [
+      869,
+      393.25,
+      963.5,
+      425.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 409.25,
+     "r": [
+      971.5,
+      393.25,
+      1068,
+      425.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     624.75,
+     259,
+     849.75,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 685,
+     "y": 538.25,
+     "r": [
+      637.75,
+      522.25,
+      732.25,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 788.5,
+     "y": 538.25,
+     "r": [
+      740.25,
+      522.25,
+      836.75,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     259,
+     1081,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 916.25,
+     "y": 538.25,
+     "r": [
+      869,
+      522.25,
+      963.5,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 1019.75,
+     "y": 538.25,
+     "r": [
+      971.5,
+      522.25,
+      1068,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "FAIL",
+  "detail": [
+   true,
+   true,
+   false,
+   false,
+   false,
+   false
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "FAIL",
+  "detail": {
+   "aK": {
+    "pop": true,
+    "fix": null,
+    "runs": 0
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r24-ge4-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     204,
+     1081,
+     512.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 483.25,
+     "r": [
+      869,
+      467.25,
+      963.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 482.25,
+     "r": [
+      971.5,
+      466.25,
+      1068,
+      498.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     204,
+     1081,
+     512.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 483.25,
+     "r": [
+      869,
+      467.25,
+      963.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 483.25,
+     "r": [
+      971.5,
+      467.25,
+      1068,
+      499.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     823.140625,
+     249.984375,
+     1048.140625,
+     558.234375
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 883.390625,
+     "y": 529.234375,
+     "r": [
+      836.140625,
+      513.234375,
+      930.640625,
+      545.234375
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 986.890625,
+     "y": 529.234375,
+     "r": [
+      938.640625,
+      513.234375,
+      1035.140625,
+      545.234375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     625.0625,
+     259,
+     850.0625,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 685.3125,
+     "y": 538.25,
+     "r": [
+      638.0625,
+      522.25,
+      732.5625,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 788.8125,
+     "y": 538.25,
+     "r": [
+      740.5625,
+      522.25,
+      837.0625,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     259,
+     1081,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 916.25,
+     "y": 538.25,
+     "r": [
+      869,
+      522.25,
+      963.5,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 1019.75,
+     "y": 538.25,
+     "r": [
+      971.5,
+      522.25,
+      1068,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     624.75,
+     259,
+     849.75,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 685,
+     "y": 538.25,
+     "r": [
+      637.75,
+      522.25,
+      732.25,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 788.5,
+     "y": 538.25,
+     "r": [
+      740.25,
+      522.25,
+      836.75,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     259,
+     1081,
+     567.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": false,
+     "x": 916.25,
+     "y": 538.25,
+     "r": [
+      869,
+      522.25,
+      963.5,
+      554.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 1019.75,
+     "y": 538.25,
+     "r": [
+      971.5,
+      522.25,
+      1068,
+      554.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r24-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-CANCEL",
+  "desc": "Klik Cancel menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-OUTSIDE",
+  "desc": "Klik di luar menutup tanpa menyimpan",
+  "status": "PASS",
+  "detail": {
+   "pop": false,
+   "fix": null
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-ENTER-INVALID",
+  "desc": "Enter dengan nilai kosong tidak menyimpan / tidak Run",
+  "status": "PASS",
+  "detail": {
+   "pop": true,
+   "fix": null,
+   "runs": 0
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-TABTRAP",
+  "desc": "Tab tetap di dalam popup (focus trap)",
+  "status": "FAIL",
+  "detail": [
+   true,
+   true,
+   false,
+   false,
+   false,
+   false
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-g9-ENTER-OK",
+  "desc": "Enter dengan nilai legal 86.5 = OK (Fix tersimpan, Run dipicu)",
+  "status": "FAIL",
+  "detail": {
+   "aK": {
+    "pop": true,
+    "fix": null,
+    "runs": 0
+   },
+   "mm": [
+    "65 MW",
+    "108 MW"
+   ]
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r24-ge4-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     823.140625,
+     203.984375,
+     1048.140625,
+     512.234375
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 883.390625,
+     "y": 482.234375,
+     "r": [
+      836.140625,
+      466.234375,
+      930.640625,
+      498.234375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 986.890625,
+     "y": 483.234375,
+     "r": [
+      938.640625,
+      467.234375,
+      1035.140625,
+      499.234375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     856,
+     204,
+     1081,
+     512.25
+    ],
+    "vw": 1093,
+    "vh": 512,
+    "ok": {
+     "hit": true,
+     "x": 916.25,
+     "y": 483.25,
+     "r": [
+      869,
+      467.25,
+      963.5,
+      499.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1019.75,
+     "y": 482.25,
+     "r": [
+      971.5,
+      466.25,
+      1068,
+      498.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z125-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-fullscreen-r48-ge4-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z125-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   823.140625,
+   203.984375,
+   1048.140625,
+   512.234375,
+   1093,
+   512
+  ]
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     105,
+     899,
+     413.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 384.25,
+     "r": [
+      687,
+      368.25,
+      781.5,
+      400.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 384.25,
+     "r": [
+      789.5,
+      368.25,
+      886,
+      400.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     105,
+     899,
+     413.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 384.25,
+     "r": [
+      687,
+      368.25,
+      781.5,
+      400.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 384.25,
+     "r": [
+      789.5,
+      368.25,
+      886,
+      400.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     105,
+     899,
+     413.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 384.25,
+     "r": [
+      687,
+      368.25,
+      781.5,
+      400.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 384.25,
+     "r": [
+      789.5,
+      368.25,
+      886,
+      400.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     409.75,
+     119,
+     634.75,
+     427.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 470,
+     "y": 398.25,
+     "r": [
+      422.75,
+      382.25,
+      517.25,
+      414.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 573.5,
+     "y": 398.25,
+     "r": [
+      525.25,
+      382.25,
+      621.75,
+      414.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     174,
+     899,
+     482.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": false,
+     "x": 734.25,
+     "y": 453.25,
+     "r": [
+      687,
+      437.25,
+      781.5,
+      469.25
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 837.75,
+     "y": 453.25,
+     "r": [
+      789.5,
+      437.25,
+      886,
+      469.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-g3-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     119,
+     899,
+     427.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 398.25,
+     "r": [
+      687,
+      382.25,
+      781.5,
+      414.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 398.25,
+     "r": [
+      789.5,
+      382.25,
+      886,
+      414.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-normal-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-normal-r48-ge4-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     118.4375,
+     899,
+     426.6875
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 397.6875,
+     "r": [
+      687,
+      381.6875,
+      781.5,
+      413.6875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 397.6875,
+     "r": [
+      789.5,
+      381.6875,
+      886,
+      413.6875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     410.0625,
+     105,
+     635.0625,
+     413.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 470.3125,
+     "y": 384.25,
+     "r": [
+      423.0625,
+      368.25,
+      517.5625,
+      400.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 573.8125,
+     "y": 384.25,
+     "r": [
+      525.5625,
+      368.25,
+      622.0625,
+      400.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     105,
+     899,
+     413.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 384.25,
+     "r": [
+      687,
+      368.25,
+      781.5,
+      400.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 384.25,
+     "r": [
+      789.5,
+      368.25,
+      886,
+      400.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     409.75,
+     119,
+     634.75,
+     427.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 470,
+     "y": 398.25,
+     "r": [
+      422.75,
+      382.25,
+      517.25,
+      414.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 573.5,
+     "y": 398.25,
+     "r": [
+      525.25,
+      382.25,
+      621.75,
+      414.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     118.4375,
+     899,
+     426.6875
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 397.6875,
+     "r": [
+      687,
+      381.6875,
+      781.5,
+      413.6875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 396.6875,
+     "r": [
+      789.5,
+      380.6875,
+      886,
+      412.6875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     409.75,
+     119,
+     634.75,
+     427.25
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 470,
+     "y": 398.25,
+     "r": [
+      422.75,
+      382.25,
+      517.25,
+      414.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 573.5,
+     "y": 398.25,
+     "r": [
+      525.25,
+      382.25,
+      621.75,
+      414.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, laptop1366)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     674,
+     118.4375,
+     899,
+     426.6875
+    ],
+    "vw": 911,
+    "vh": 427,
+    "ok": {
+     "hit": true,
+     "x": 734.25,
+     "y": 397.6875,
+     "r": [
+      687,
+      381.6875,
+      781.5,
+      413.6875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 837.75,
+     "y": 396.6875,
+     "r": [
+      789.5,
+      380.6875,
+      886,
+      412.6875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-laptop1366-z150-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-laptop1366-z150-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   674,
+   118.4375,
+   899,
+   426.6875,
+   911,
+   427
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1240.75,
+     292.625,
+     1465.75,
+     600.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301,
+     "y": 571.875,
+     "r": [
+      1253.75,
+      555.875,
+      1348.25,
+      587.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.5,
+     "y": 571.875,
+     "r": [
+      1356.25,
+      555.875,
+      1452.75,
+      587.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1625.0625,
+     292.625,
+     1850.0625,
+     600.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1685.3125,
+     "y": 571.875,
+     "r": [
+      1638.0625,
+      555.875,
+      1732.5625,
+      587.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1788.8125,
+     "y": 571.875,
+     "r": [
+      1740.5625,
+      555.875,
+      1837.0625,
+      587.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1615.140625,
+     292.625,
+     1840.140625,
+     600.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.390625,
+     "y": 571.875,
+     "r": [
+      1628.140625,
+      555.875,
+      1722.640625,
+      587.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.890625,
+     "y": 571.875,
+     "r": [
+      1730.640625,
+      555.875,
+      1827.140625,
+      587.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1240.75,
+     643.625,
+     1465.75,
+     951.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301,
+     "y": 921.875,
+     "r": [
+      1253.75,
+      905.875,
+      1348.25,
+      937.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.5,
+     "y": 922.875,
+     "r": [
+      1356.25,
+      906.875,
+      1452.75,
+      938.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1615.140625,
+     643.625,
+     1840.140625,
+     951.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.390625,
+     "y": 922.875,
+     "r": [
+      1628.140625,
+      906.875,
+      1722.640625,
+      938.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.890625,
+     "y": 922.875,
+     "r": [
+      1730.640625,
+      906.875,
+      1827.140625,
+      938.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1240.75,
+     643.625,
+     1465.75,
+     951.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301,
+     "y": 921.875,
+     "r": [
+      1253.75,
+      905.875,
+      1348.25,
+      937.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.5,
+     "y": 922.875,
+     "r": [
+      1356.25,
+      906.875,
+      1452.75,
+      938.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1615.140625,
+     643.625,
+     1840.140625,
+     951.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.390625,
+     "y": 922.875,
+     "r": [
+      1628.140625,
+      906.875,
+      1722.640625,
+      938.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.890625,
+     "y": 922.875,
+     "r": [
+      1730.640625,
+      906.875,
+      1827.140625,
+      938.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     835.546875,
+     264.1875,
+     1060.546875,
+     572.4375
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 895.796875,
+     "y": 543.4375,
+     "r": [
+      848.546875,
+      527.4375,
+      943.046875,
+      559.4375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 999.296875,
+     "y": 543.4375,
+     "r": [
+      951.046875,
+      527.4375,
+      1047.546875,
+      559.4375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1625.0625,
+     580.625,
+     1850.0625,
+     888.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1685.3125,
+     "y": 859.875,
+     "r": [
+      1638.0625,
+      843.875,
+      1732.5625,
+      875.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1788.8125,
+     "y": 859.875,
+     "r": [
+      1740.5625,
+      843.875,
+      1837.0625,
+      875.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1615.140625,
+     580.625,
+     1840.140625,
+     888.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1675.390625,
+     "y": 859.875,
+     "r": [
+      1628.140625,
+      843.875,
+      1722.640625,
+      875.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1778.890625,
+     "y": 859.875,
+     "r": [
+      1730.640625,
+      843.875,
+      1827.140625,
+      875.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1240.75,
+     643.625,
+     1465.75,
+     951.875
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1301,
+     "y": 921.875,
+     "r": [
+      1253.75,
+      905.875,
+      1348.25,
+      937.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1404.5,
+     "y": 922.875,
+     "r": [
+      1356.25,
+      906.875,
+      1452.75,
+      938.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1683,
+     644.1875,
+     1908,
+     952.4375
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1743.25,
+     "y": 923.4375,
+     "r": [
+      1696,
+      907.4375,
+      1790.5,
+      939.4375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1846.75,
+     "y": 923.4375,
+     "r": [
+      1798.5,
+      907.4375,
+      1895,
+      939.4375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-g3-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1661.859375,
+     644.1875,
+     1886.859375,
+     952.4375
+    ],
+    "vw": 1920,
+    "vh": 952,
+    "ok": {
+     "hit": true,
+     "x": 1722.109375,
+     "y": 923.4375,
+     "r": [
+      1674.859375,
+      907.4375,
+      1769.359375,
+      939.4375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1825.609375,
+     "y": 923.4375,
+     "r": [
+      1777.359375,
+      907.4375,
+      1873.859375,
+      939.4375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z100-fullscreen-r48-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-fullscreen-r48-ge4-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "PASS",
+  "detail": [
+   835.546875,
+   601.1875,
+   1060.546875,
+   909.4375,
+   1920,
+   952
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     235.625,
+     1289.75,
+     543.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 514.875,
+     "r": [
+      1077.75,
+      498.875,
+      1172.25,
+      530.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 514.875,
+     "r": [
+      1180.25,
+      498.875,
+      1276.75,
+      530.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     235.625,
+     1524,
+     543.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 514.875,
+     "r": [
+      1312,
+      498.875,
+      1406.5,
+      530.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 514.875,
+     "r": [
+      1414.5,
+      498.875,
+      1511,
+      530.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     235.625,
+     1524,
+     543.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 514.875,
+     "r": [
+      1312,
+      498.875,
+      1406.5,
+      530.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 514.875,
+     "r": [
+      1414.5,
+      498.875,
+      1511,
+      530.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     453.625,
+     1289.75,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 731.875,
+     "r": [
+      1077.75,
+      715.875,
+      1172.25,
+      747.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 732.875,
+     "r": [
+      1180.25,
+      716.875,
+      1276.75,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     453.625,
+     1524,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 732.875,
+     "r": [
+      1312,
+      716.875,
+      1406.5,
+      748.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 732.875,
+     "r": [
+      1414.5,
+      716.875,
+      1511,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     453.625,
+     1289.75,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 731.875,
+     "r": [
+      1077.75,
+      715.875,
+      1172.25,
+      747.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 732.875,
+     "r": [
+      1180.25,
+      716.875,
+      1276.75,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     453.625,
+     1524,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 732.875,
+     "r": [
+      1312,
+      716.875,
+      1406.5,
+      748.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 732.875,
+     "r": [
+      1414.5,
+      716.875,
+      1511,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     829.796875,
+     260.484375,
+     1054.796875,
+     568.734375
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 890.046875,
+     "y": 539.734375,
+     "r": [
+      842.796875,
+      523.734375,
+      937.296875,
+      555.734375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 993.546875,
+     "y": 539.734375,
+     "r": [
+      945.296875,
+      523.734375,
+      1041.796875,
+      555.734375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     508.625,
+     1524,
+     816.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": false,
+     "x": 1359.25,
+     "y": 787.875,
+     "r": [
+      1312,
+      771.875,
+      1406.5,
+      803.875
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 1462.75,
+     "y": 787.875,
+     "r": [
+      1414.5,
+      771.875,
+      1511,
+      803.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     508.625,
+     1524,
+     816.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": false,
+     "x": 1359.25,
+     "y": 787.875,
+     "r": [
+      1312,
+      771.875,
+      1406.5,
+      803.875
+     ]
+    },
+    "cancel": {
+     "hit": false,
+     "x": 1462.75,
+     "y": 787.875,
+     "r": [
+      1414.5,
+      771.875,
+      1511,
+      803.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     453.625,
+     1289.75,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 731.875,
+     "r": [
+      1077.75,
+      715.875,
+      1172.25,
+      747.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 732.875,
+     "r": [
+      1180.25,
+      716.875,
+      1276.75,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     453.484375,
+     1524,
+     761.734375
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 732.734375,
+     "r": [
+      1312,
+      716.734375,
+      1406.5,
+      748.734375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 731.734375,
+     "r": [
+      1414.5,
+      715.734375,
+      1511,
+      747.734375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1064.75,
+     453.625,
+     1289.75,
+     761.875
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1125,
+     "y": 732.875,
+     "r": [
+      1077.75,
+      716.875,
+      1172.25,
+      748.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1228.5,
+     "y": 732.875,
+     "r": [
+      1180.25,
+      716.875,
+      1276.75,
+      748.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 125%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1299,
+     453.484375,
+     1524,
+     761.734375
+    ],
+    "vw": 1536,
+    "vh": 762,
+    "ok": {
+     "hit": true,
+     "x": 1359.25,
+     "y": 732.734375,
+     "r": [
+      1312,
+      716.734375,
+      1406.5,
+      748.734375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1462.75,
+     "y": 731.734375,
+     "r": [
+      1414.5,
+      715.734375,
+      1511,
+      747.734375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z125-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z125-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "FAIL",
+  "detail": [
+   829.796875,
+   463.484375,
+   1054.796875,
+   771.734375,
+   1536,
+   762
+  ]
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     196.625,
+     1268,
+     504.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 475.875,
+     "r": [
+      1056,
+      459.875,
+      1150.5,
+      491.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 475.875,
+     "r": [
+      1158.5,
+      459.875,
+      1255,
+      491.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     196.625,
+     1268,
+     504.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 475.875,
+     "r": [
+      1056,
+      459.875,
+      1150.5,
+      491.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 475.875,
+     "r": [
+      1158.5,
+      459.875,
+      1255,
+      491.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     196.625,
+     1268,
+     504.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 475.875,
+     "r": [
+      1056,
+      459.875,
+      1150.5,
+      491.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 475.875,
+     "r": [
+      1158.5,
+      459.875,
+      1255,
+      491.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.625,
+     1268,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 604.875,
+     "r": [
+      1056,
+      588.875,
+      1150.5,
+      620.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 605.875,
+     "r": [
+      1158.5,
+      589.875,
+      1255,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.625,
+     1268,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 605.875,
+     "r": [
+      1056,
+      589.875,
+      1150.5,
+      621.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 605.875,
+     "r": [
+      1158.5,
+      589.875,
+      1255,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.625,
+     1268,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 604.875,
+     "r": [
+      1056,
+      588.875,
+      1150.5,
+      620.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 605.875,
+     "r": [
+      1158.5,
+      589.875,
+      1255,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.625,
+     1268,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 605.875,
+     "r": [
+      1056,
+      589.875,
+      1150.5,
+      621.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 605.875,
+     "r": [
+      1158.5,
+      589.875,
+      1255,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     825.953125,
+     319.671875,
+     1050.953125,
+     627.921875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 886.203125,
+     "y": 598.921875,
+     "r": [
+      838.953125,
+      582.921875,
+      933.453125,
+      614.921875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 989.703125,
+     "y": 598.921875,
+     "r": [
+      941.453125,
+      582.921875,
+      1037.953125,
+      614.921875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     196.625,
+     1268,
+     504.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 475.875,
+     "r": [
+      1056,
+      459.875,
+      1150.5,
+      491.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 475.875,
+     "r": [
+      1158.5,
+      459.875,
+      1255,
+      491.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     196.625,
+     1268,
+     504.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 475.875,
+     "r": [
+      1056,
+      459.875,
+      1150.5,
+      491.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 475.875,
+     "r": [
+      1158.5,
+      459.875,
+      1255,
+      491.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.625,
+     1268,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 604.875,
+     "r": [
+      1056,
+      588.875,
+      1150.5,
+      620.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 605.875,
+     "r": [
+      1158.5,
+      589.875,
+      1255,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.671875,
+     1268,
+     634.921875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 605.921875,
+     "r": [
+      1056,
+      589.921875,
+      1150.5,
+      621.921875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 604.921875,
+     "r": [
+      1158.5,
+      588.921875,
+      1255,
+      620.921875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     717.75,
+     326.625,
+     942.75,
+     634.875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 778,
+     "y": 605.875,
+     "r": [
+      730.75,
+      589.875,
+      825.25,
+      621.875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 881.5,
+     "y": 605.875,
+     "r": [
+      833.25,
+      589.875,
+      929.75,
+      621.875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 150%, fhd1920)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     1043,
+     326.671875,
+     1268,
+     634.921875
+    ],
+    "vw": 1280,
+    "vh": 635,
+    "ok": {
+     "hit": true,
+     "x": 1103.25,
+     "y": 605.921875,
+     "r": [
+      1056,
+      589.921875,
+      1150.5,
+      621.921875
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 1206.75,
+     "y": 604.921875,
+     "r": [
+      1158.5,
+      588.921875,
+      1255,
+      620.921875
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-fhd1920-z150-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-fhd1920-z150-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "FAIL",
+  "detail": [
+   825.953125,
+   381.671875,
+   1050.953125,
+   689.921875,
+   1280,
+   635
+  ]
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     189,
+     1012,
+     497.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 468.25,
+     "r": [
+      800,
+      452.25,
+      894.5,
+      484.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 468.25,
+     "r": [
+      902.5,
+      452.25,
+      999,
+      484.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     189,
+     1012,
+     497.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 468.25,
+     "r": [
+      800,
+      452.25,
+      894.5,
+      484.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 468.25,
+     "r": [
+      902.5,
+      452.25,
+      999,
+      484.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     189,
+     1012,
+     497.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 468.25,
+     "r": [
+      800,
+      452.25,
+      894.5,
+      484.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 468.25,
+     "r": [
+      902.5,
+      452.25,
+      999,
+      484.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     400,
+     1012,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.25,
+     "r": [
+      800,
+      663.25,
+      894.5,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 678.25,
+     "r": [
+      902.5,
+      662.25,
+      999,
+      694.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     400,
+     1012,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.25,
+     "r": [
+      800,
+      663.25,
+      894.5,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 679.25,
+     "r": [
+      902.5,
+      663.25,
+      999,
+      695.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     400,
+     1012,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.25,
+     "r": [
+      800,
+      663.25,
+      894.5,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 678.25,
+     "r": [
+      902.5,
+      662.25,
+      999,
+      694.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-normal-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (normal, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     400,
+     1012,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.25,
+     "r": [
+      800,
+      663.25,
+      894.5,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 679.25,
+     "r": [
+      902.5,
+      663.25,
+      999,
+      695.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-normal-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     338.859375,
+     1012,
+     647.109375
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 618.109375,
+     "r": [
+      800,
+      602.109375,
+      894.5,
+      634.109375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 618.109375,
+     "r": [
+      902.5,
+      602.109375,
+      999,
+      634.109375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r1-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-g9",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     590.0625,
+     382,
+     815.0625,
+     690.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 650.3125,
+     "y": 661.25,
+     "r": [
+      603.0625,
+      645.25,
+      697.5625,
+      677.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 753.8125,
+     "y": 661.25,
+     "r": [
+      705.5625,
+      645.25,
+      802.0625,
+      677.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r1-g9.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r1-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     382,
+     1012,
+     690.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 661.25,
+     "r": [
+      800,
+      645.25,
+      894.5,
+      677.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 661.25,
+     "r": [
+      902.5,
+      645.25,
+      999,
+      677.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r1-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     400,
+     1012,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.25,
+     "r": [
+      800,
+      663.25,
+      894.5,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 678.25,
+     "r": [
+      902.5,
+      662.25,
+      999,
+      694.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r24-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r24-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     399.859375,
+     1012,
+     708.109375
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.109375,
+     "r": [
+      800,
+      663.109375,
+      894.5,
+      695.109375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 678.109375,
+     "r": [
+      902.5,
+      662.109375,
+      999,
+      694.109375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r24-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-g3",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     589.75,
+     400,
+     814.75,
+     708.25
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 650,
+     "y": 679.25,
+     "r": [
+      602.75,
+      663.25,
+      697.25,
+      695.25
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 753.5,
+     "y": 679.25,
+     "r": [
+      705.25,
+      663.25,
+      801.75,
+      695.25
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r48-g3.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-g9-ERROR",
+  "desc": "langkah uji gagal dijalankan",
+  "status": "FAIL",
+  "detail": "page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#fixpop') to be visible\u001b[22m\n"
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-fullscreen-r48-ge4",
+  "desc": "Popup terlihat penuh, OK/Cancel dapat diklik; Esc batal tanpa ubah (fullscreen, zoom 100%, tablet1024)",
+  "status": "FAIL",
+  "detail": {
+   "g": {
+    "pop": [
+     787,
+     399.859375,
+     1012,
+     708.109375
+    ],
+    "vw": 1024,
+    "vh": 708,
+    "ok": {
+     "hit": true,
+     "x": 847.25,
+     "y": 679.109375,
+     "r": [
+      800,
+      663.109375,
+      894.5,
+      695.109375
+     ]
+    },
+    "cancel": {
+     "hit": true,
+     "x": 950.75,
+     "y": 678.109375,
+     "r": [
+      902.5,
+      662.109375,
+      999,
+      694.109375
+     ]
+    },
+    "parent": true,
+    "z": "10050"
+   },
+   "afterEsc": {
+    "pop": true,
+    "fix": null,
+    "fs": false,
+    "runs": 0
+   },
+   "shot": "evidence/ui_popup_baseline_v1524/UI-POP-tablet1024-z100-fullscreen-r48-ge4.png"
+  }
+ },
+ {
+  "id": "UI-POP-tablet1024-z100-SCROLL",
+  "desc": "Popup tetap di viewport setelah tabel di-scroll",
+  "status": "FAIL",
+  "detail": [
+   787,
+   436.859375,
+   1012,
+   745.109375,
+   1024,
+   708
+  ]
+ }
+]

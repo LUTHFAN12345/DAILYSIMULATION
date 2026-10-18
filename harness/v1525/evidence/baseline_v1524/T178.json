@@ -1,0 +1,223 @@
+{
+ "id": "T178",
+ "group": "H",
+ "title": "Fix + Actual Gas lebih rendah",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.22 (f822347) / V15.23 (1639a5b)",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": null,
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=62.2778 di luar window [65.4200,65.4600] (deviasi 3.1422 BB"
+ ],
+ "cp": 112.3743,
+ "econ_cp": 112.7985,
+ "hr": 8637.87,
+ "gas_bbtud": 65.4262,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.5092,
+ "daily_export_mwh": 885.16,
+ "distillate_l": 319445,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:00",
+   "first_needed": "09:30",
+   "deficit_mw": 0.76,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 1.47,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "09:30",
+   "deficit_mw": 0.76,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:00",
+   "deficit_mw": 15.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  }
+ ],
+ "events": [
+  "G4+09:00",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "5d4ce34a20aca0f589d46565",
+ "job_input_hash": "22584d14c2a9a0a6a554d58048b9189b0fac30f098e99f0f0a5ace4ff6ebdf07",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 80.23,
+ "cpu_s": 51.21,
+ "max_rss_kb": 367948,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.069
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.159
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 6.245
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.075
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_gas_land",
+   "s": 1.965
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.802
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_run",
+   "s": 19.963
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.467
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_gas_land",
+   "s": 4.291
+  },
+  {
+   "stage": "cand_run",
+   "s": 16.008
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.918
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_gas_land",
+   "s": 1.79
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 54.691
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.01
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.007
+  },
+  {
+   "stage": "priority_fix",
+   "s": 10.925
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 1.838
+  },
+  {
+   "stage": "event_proof",
+   "s": 5.623
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.015
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.075
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.041
+  },
+  {
+   "stage": "gate",
+   "s": 0.15
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/base1524_evd/runs/5d4ce34a20aca0f589d46565.json"
+}

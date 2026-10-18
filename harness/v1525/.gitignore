@@ -1,0 +1,8 @@
+evidence/**/runs/
+__pycache__/
+evidence/**/*.png
+!evidence/**/*laptop1366-z100-fullscreen-r48*.png
+!evidence/**/*laptop1366-z150-fullscreen-r48*.png
+!evidence/**/*fhd1920-z125-fullscreen-r24*.png
+!evidence/**/*tablet1024-z100-normal-r48*.png
+!evidence/**/*SCROLL.png
