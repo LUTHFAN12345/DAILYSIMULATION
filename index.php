@@ -2071,9 +2071,10 @@ const PRI_BLOCKS = [
   {name:'Standby Unit Jababeka', gtg:['g7'],                    stg:null},
   {name:'Standby Unit MM2100',   gtg:['g10'],                   stg:null},
 ];
+/* V15.25: Distillate Unit Priority Block 1 dan Block 2 DIGABUNG menjadi satu urutan Priority 1-6 (lintas blok); hanya unit
+ * Running & legal yang dipakai engine (unit Stop tidak distart demi distillate). Block 3 / Standby tetap kelompok sendiri. */
 const DIST_BLOCKS = [
-  {name:'Block 1',               units:['g3','g4','g6']},
-  {name:'Block 2',               units:['g1','g2','g5']},
+  {name:'Block 1–2',             units:['g3','g4','g6','g1','g2','g5'], merged:true},
   {name:'Block 3',               units:['g8','g9']},
   {name:'Standby Unit Jababeka', units:['g7']},
   {name:'Standby Unit MM2100',   units:['g10']},
@@ -2081,7 +2082,7 @@ const DIST_BLOCKS = [
 const BP_NAMES=PRI_BLOCKS.map(b=>b.name);
 const byName=(n)=>PRI_BLOCKS.find(b=>b.name===n);
 function setEq(a,b){a=[...a].sort();b=[...b].sort();return a.length===b.length&&a.every((x,i)=>x===b[i]);}
-let BP_STATE=[], UP_STATE={}, DIST_STATE={};
+let BP_STATE=[], UP_STATE={}, DIST_STATE={}, DIST_MIGRATION=null;
 
 function initPriorityState(){
   const m=INPUT.data3.modeling;
@@ -2106,11 +2107,22 @@ function initPriorityState(){
   });
   while(BP_STATE.length<7) BP_STATE.push({block:'',required:false});
   BP_STATE=BP_STATE.slice(0,7);
-  DIST_STATE={};
+  DIST_STATE={}; DIST_MIGRATION=null;
   DIST_BLOCKS.forEach(b=>{
     let order=b.units.slice();
-    (m.unit_priority_dist||[]).forEach(grp=>{const us=grp.filter(x=>b.units.includes(x));
-      if(us.length&&setEq(us,b.units)) order=us.slice();});
+    if(b.merged){
+      /* MIGRASI DETERMINISTIK: payload lama berisi dua daftar (Block 1, Block 2). Urutan gabungan = unit tiap grup sesuai urutan
+       * grup DAN urutan unit yang tersimpan (urutan eksplisit user dipertahankan, identik dengan cara engine meratakan daftar);
+       * unit yang hilang ditambahkan menurut urutan bawaan. Payload baru (satu daftar 6 unit) dipakai apa adanya. */
+      const out=[]; let nGrp=0;
+      (m.unit_priority_dist||[]).forEach(grp=>{const us=(grp||[]).map(x=>String(x).toLowerCase()).filter(x=>b.units.includes(x)); if(us.length) nGrp++; us.forEach(x=>{if(!out.includes(x))out.push(x);});});
+      b.units.forEach(x=>{if(!out.includes(x))out.push(x);});
+      if(nGrp>1) DIST_MIGRATION={from:'BLOCK1_BLOCK2_SEPARATE_LISTS',to:'PRIORITY_1_6',order:out.slice(),rule:'grup digabung sesuai urutan grup tersimpan, urutan unit dalam grup dipertahankan'};
+      order=out;
+    } else {
+      (m.unit_priority_dist||[]).forEach(grp=>{const us=grp.filter(x=>b.units.includes(x));
+        if(us.length&&setEq(us,b.units)) order=us.slice();});
+    }
     DIST_STATE[b.name]=order;
   });
 }
@@ -2277,7 +2289,8 @@ function renderDistPriority(){
         .map(u=>`<option value="${u}" ${order[i]===u?'selected':''}>${u.toUpperCase()}</option>`).join('');
       rows+=`<tr><td class="pn">Priority ${i+1}</td><td><select data-dist="${b.name}" data-i="${i}">${opts}</select></td></tr>`;
     }
-    html+=`<div class="blk-card"><div class="blk-h">${b.name}<span class="units">(${b.units.map(u=>u.toUpperCase()).join(', ')})</span></div><table class="prio">${rows}</table></div>`;
+    const note=b.merged?`<div class="dist-note" style="font-size:11px;color:#64748b;padding:4px 10px 8px">Priority 1–6 lintas Block 1–2. Engine hanya memakai unit yang sedang <b>Running</b> &amp; legal (unit Stop tidak distart demi distillate); bila plafon unit prioritas pertama tercapai, sisa ke unit eligible berikutnya.${DIST_MIGRATION?' <i>(dimigrasikan dari dua daftar Block 1 / Block 2)</i>':''}</div>`:'';
+    html+=`<div class="blk-card" data-dist-card="${b.name}"><div class="blk-h">${b.name}<span class="units">(${b.units.map(u=>u.toUpperCase()).join(', ')})</span></div>${note}<table class="prio">${rows}</table></div>`;
   });
   $('dist-blocks').innerHTML=html;
   $('dist-blocks').querySelectorAll('[data-dist]').forEach(s=>s.addEventListener('change',e=>{

@@ -8080,7 +8080,7 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
     $lngQuota     = (float)($q['lng'] ?? 0) + (in_array($action, ['add_lng','mixed_lng_distillate'], true) ? $addLng : 0);
     $pgnTotalQuota = $pgnPipeQuota + $lngQuota;
 
-    $gas_ok = true; $shortage = 0.0; $dist_total_litres = 0.0; $dist_units = [];
+    $gas_ok = true; $shortage = 0.0; $dist_total_litres = 0.0; $dist_units = []; $GLOBALS['__pp_dist_selection'] = null;
     $GLOBALS['__pp_dist_gas_offset'] = 0.0;   /* V15.17: offset hanya milik simulasi ini (sebelumnya dapat basi dari simulasi sebelumnya bila blok distillate tidak berjalan) */
     $gasTol = 0.05;   // Revisi Sec.2.1: small rounding tolerance, not a target inflation
 
@@ -8240,6 +8240,17 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
             $__contDone = false; $GLOBALS['__pp_dist_cont'] = null;
             if ($remaining > 1e-9 && (string)getenv('PP_DIST_CONT') !== '0') {
                 $__uC = []; foreach (array_merge($order16, $fallback710) as $x) if (($unitGasBBTUD[$x] ?? 0) > 1e-9) $__uC[] = $x;
+                /* V15.25 AUDIT PEMILIHAN UNIT DISTILLATE: urutan global Priority (Block 1-2 digabung Priority 1-6, lalu fallback),
+                 * hanya unit yang SEDANG berbeban (punya pemakaian gas pada row planning) dan legal yang eligible; unit Stop
+                 * TIDAK distart demi prioritas distillate. Alasan setiap unit yang dilewati dicatat. */
+                $__selA = [];
+                foreach (array_merge($order16, $fallback710) as $x) {
+                    if (in_array($x, $__uC, true)) { $__selA[] = ['unit' => strtoupper($x), 'eligible' => true, 'reason' => 'RUNNING_LEGAL_FUEL_CAPABLE']; continue; }
+                    $whyX = !isset($d3[$x]) || !pp_unit_present($d3, $x) ? 'UNIT_TIDAK_TERSEDIA' : (in_array($x, array_map('strtolower', (array)($model['unit_stop'] ?? [])), true) ? 'TRIP_ATAU_STOP_SEHARIAN' : 'TIDAK_BERBEBAN_PADA_ROW_PLANNING_(STOP)_TIDAK_DISTART_DEMI_DISTILLATE');
+                    $__selA[] = ['unit' => strtoupper($x), 'eligible' => false, 'reason' => $whyX];
+                }
+                $GLOBALS['__pp_dist_selection'] = ['schema' => 'v1525-distillate-unit-selection-v1', 'priority_order' => array_map('strtoupper', array_merge($order16, $fallback710)),
+                    'eligible_order' => array_map('strtoupper', $__uC), 'units' => $__selA, 'rule' => 'Priority global Block 1-2 (1-6) lalu fallback G7,G10,G8,G9; hanya unit berbeban & legal; plafon/level unit prioritas pertama dimaksimalkan lebih dulu, sisa ke eligible berikutnya'];
                 $__pinBc = $model['__dist_budget_pin_bbtud'] ?? null;
                 $__modeC = (is_numeric($__pinBc) && (float)$__pinBc > 0.0) ? 'floor' : 'band';
                 $__al = pp_dist_continuous_alloc($d3, $data, $actualRows, $__uC, $remaining, 0.04, $capLitres, $__modeC, $dist_total_litres);
@@ -9390,6 +9401,7 @@ $info = [
         'Dispatch (MWh)' => round($disp_total_MWh, 2),
         'Daily PLN Exp (MWh)' => round($exp_total_MWh, 2),
         'Daily Export Plan' => $GLOBALS['__pp_daily_export_plan'] ?? null,
+        'Distillate Unit Selection' => (pp_action_uses_distillate($action) && isset($GLOBALS['__pp_dist_selection'])) ? array_merge($GLOBALS['__pp_dist_selection'], ['used_litres_by_unit' => array_change_key_case($dist_units ?? [], CASE_UPPER)]) : null,
         /* §1/§3 IDENTITAS ENERGI: TOTAL FUEL = GAS FUEL TOTAL + DISTILLATE ENERGY.
          *   TOTAL FUEL        = gross total fuel energy (kebutuhan sebelum pemisahan jenis) = $gas_BBTUD.
          *   DISTILLATE ENERGY = energi gas yang digantikan distillate (row-level: Σ fuel×fraksi) = offset.
