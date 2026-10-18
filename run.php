@@ -4807,7 +4807,34 @@ function pp_v1517_engine_input(array $input): array {
     if ((string)getenv('PP_V1517_STRIP_RP') !== '0' && isset($input['data3']['modeling']['report_planning'])) unset($input['data3']['modeling']['report_planning']);
     return $input;
 }
+/* V15.25 MAXIMUM REVIEW >= FASTEST: kandidat Fastest (pipeline Fastest lengkap: bundle final, V8, tightening, Unit Priority fix, bukti
+ * event, gerbang) SELALU masuk himpunan kandidat Maximum Review. Pemenang dipilih dengan comparator final yang SAMA (pp_v1523_metrics /
+ * pp_v1523_cmp) di antara hasil yang lolos validasi penuh dan boleh dipublikasikan; Maximum Review tidak pernah lebih buruk daripada
+ * Fastest. Change Over (jalur non-Fastest khusus) tidak terdampak. PP_V1525_MR_FAST=0 -> perilaku V15.24. */
 function pp_job_run_economic_review(string $id, array $input): array {
+    if ((string)getenv('PP_V1525_MR_FAST') === '0' || !empty($input['_fast_default']) || !empty($input['data3']['modeling']['change_over']['enabled']) || !empty($input['_v1525_mr_inner']))
+        return pp_job_run_economic_review_v1524($id, $input);
+    /* kandidat Fastest dihitung LEBIH DULU pada state proses yang bersih (identik dengan job Fastest mandiri), lalu Maximum Review */
+    $inF = $input; $inF['_fast_default'] = true; $inF['_maximum_review'] = false; $inF['_v1525_mr_inner'] = 1; $t0 = microtime(true); $rf = null; $errF = null;
+    pp_job_progress($id, 'MAXIMUM_REVIEW_KANDIDAT_FASTEST', 5.0);
+    try { $rf = pp_job_run_economic_review_v1524($id, $inF); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $errF = $e->getMessage(); }
+    $tF = microtime(true) - $t0;
+    $r = pp_job_run_economic_review_v1524($id, $input);
+    if (($r['mode'] ?? '') === 'PRELIM_REQUIRED' || !is_array($r['output'] ?? null)) return $r;
+    if (!is_array($rf) || !is_array($rf['output'] ?? null) || ($rf['mode'] ?? '') === 'PRELIM_REQUIRED') { $r['output']['info']['Maximum Review vs Fastest'] = ['status' => 'FASTEST_UNAVAILABLE', 'error' => $errF]; return $r; }
+    $pubM = !empty($r['publish_allowed']) || !empty($r['output']['publish_allowed']); $pubF = !empty($rf['publish_allowed']) || !empty($rf['output']['publish_allowed']);
+    $orig = pp_normalize_copy($input); $K = pp_v1523_classes($orig);
+    $mM = $pubM ? pp_v1523_metrics($orig, $r['output'], $K) : null; $mF = $pubF ? pp_v1523_metrics($orig, $rf['output'], $K) : null;
+    $useF = $pubF && (!$pubM || pp_v1523_cmp($mF, $mM) < 0);
+    $rep = ['status' => 'COMPARED', 'maximum_review' => ['publishable' => $pubM, 'cp' => $r['output']['info']['Cost Production (USD/MWh)'] ?? null, 'metrics' => $mM],
+            'fastest' => ['publishable' => $pubF, 'cp' => $rf['output']['info']['Cost Production (USD/MWh)'] ?? null, 'metrics' => $mF],
+            'winner' => $useF ? 'FASTEST_CANDIDATE' : 'MAXIMUM_REVIEW', 'comparator' => 'pp_v1523_cmp (sama dengan Fastest)', 'fastest_wall_s' => round($tF, 2), 'total_wall_s' => round(microtime(true) - $t0, 2)];
+    if (!$useF) { $r['output']['info']['Maximum Review vs Fastest'] = $rep; return $r; }
+    $rf['output']['info']['Maximum Review vs Fastest'] = $rep;
+    if (is_array($rf['output']['info']['Run Status'] ?? null)) $rf['output']['info']['Run Status']['mode_selected_by_maximum_review'] = 'FASTEST_CANDIDATE';
+    $rf['mode'] = $r['mode'] ?? ($rf['mode'] ?? null); return $rf;
+}
+function pp_job_run_economic_review_v1524(string $id, array $input): array {
     $input = pp_v1517_engine_input($input);
     $GLOBALS['ppJobOwnerUid'] = (string)((pp_job_read($id) ?? [])['owner_uid'] ?? '');   // V15.21: scope basis warm per pemilik
     $inputAsli = $input;                          // identitas job turunan memakai input yang sama

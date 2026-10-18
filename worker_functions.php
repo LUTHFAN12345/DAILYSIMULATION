@@ -13454,18 +13454,6 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ($blocked) continue;
                         $startCands[] = $us;
                     }
-                    /* V15.25 KONTINGENSI (generik): sesudah seluruh GTG ber-HRSG habis, GTG simple-cycle Jababeka (tanpa HRSG,
-                     * bukan MM2100 — mis. unit standby) menjadi kandidat start terakhir menurut Unit Priority user. Sebelumnya
-                     * daftar kandidat hanya ^g[1-6]$ sehingga trip unit besar (G9) berakhir tanpa commitment sah walau unit
-                     * standby tersedia. PP_V1525_SC_LASTRESORT=0 -> lama. */
-                    if ((string)getenv('PP_V1525_SC_LASTRESORT') !== '0') foreach (pp_priority_flat($model, '/^g\d+$/') as $us) {
-                        if (!isset($d3[$us]) || preg_match('/^g[1-6]$/', $us) || pp_is_mm2100_unit($us) || pp_gtg_to_stg($d3, $us) !== '' || !pp_unit_present($d3, $us)) continue;
-                        if (($lastStatus[$us] ?? '') === 'running') continue;
-                        $anyOn = false; for ($r = 0; $r < $n; $r++) if ((float)($genRows[$r][$us] ?? 0) > 0.01) { $anyOn = true; break; }
-                        if ($anyOn) continue;
-                        $blocked = true; for ($r = 0; $r < $n; $r++) if (!pp_is_unit_stopped($d3, $model, $us, $r + 1)) { $blocked = false; break; }
-                        if (!$blocked) $startCands[] = $us;
-                    }
                     foreach ($startCands as $us) {
                         $mcc = (float)($d3[$us]['min_ccload'] ?? ($d3[$us]['min_scload'] ?? 20));
                         $started = false;
@@ -13541,9 +13529,38 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         }
                         if (!$mv) break;
                     }
-                    /* V15.25: unit simple-cycle last resort (kapasitas besar) dinaikkan sampai lantai Export tercapai / max
-                     * efektif / RangeMax — loop di atas hanya 8 x 0,5 MW (memadai untuk GTG 31 MW, tidak untuk unit 105 MW). */
-                    $scC = array_values(array_filter($startCands, fn($x) => !preg_match('/^g[1-6]$/', $x)));
+                    /* V15.25 KONTINGENSI (generik): HANYA bila sesudah seluruh start + kenaikan GTG ber-HRSG di atas masih ada row
+                     * di bawah lantai Export, GTG simple-cycle Jababeka (tanpa HRSG, bukan MM2100 — mis. unit standby) distart sebagai
+                     * last resort menurut Unit Priority user pada satu segmen kontigu yang menutup row kurang (anti start-stop), lalu
+                     * dinaikkan sampai lantai tercapai / max efektif / ramp / RangeMax. Sebelumnya kandidat hanya ^g[1-6]$ sehingga
+                     * trip unit besar (G9) berakhir tanpa commitment sah walau unit standby tersedia. PP_V1525_SC_LASTRESORT=0 -> lama. */
+                    $underSC = [];
+                    for ($r = 0; $r < $n; $r++) {
+                        if (isset($actualRows[$r]) || $expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] - 0.05) continue;
+                        /* kekurangan KAPASITAS nyata: bahkan seluruh GTG ber-HRSG + Babelan yang tersedia pada row ini di max efektif tidak cukup */
+                        $gC = $genRows[$r];
+                        foreach (['g1','g2','g3','g4','g5','g6','g8','g9','b1','b2'] as $uC) { if (!isset($d3[$uC]) || !pp_unit_present($d3, $uC) || pp_is_unit_stopped($d3, $model, $uC, $r + 1) || $isFixed($uC, $r)) continue;
+                            $mC = pp_effective_maxload($d3, $model, $uC, $r + 1); if ($mC <= 0) $mC = (float)($d3[$uC]['max_load'] ?? 0); $gC[$uC] = max((float)($gC[$uC] ?? 0), $mC); }
+                        pp_recompute_stgs($gC, $d3, $model, $r + 1);
+                        if ($expOf($gC, $ieVals[$r]) < $rMinR[$r] - 0.05) $underSC[] = $r;
+                    }
+                    $scC = [];
+                    if ($underSC && (string)getenv('PP_V1525_SC_LASTRESORT') !== '0') foreach (pp_priority_flat($model, '/^g\d+$/') as $us) {
+                        if (!isset($d3[$us]) || preg_match('/^g[1-6]$/', $us) || pp_is_mm2100_unit($us) || pp_gtg_to_stg($d3, $us) !== '' || !pp_unit_present($d3, $us)) continue;
+                        if (($lastStatus[$us] ?? '') === 'running') continue;
+                        $anyOn = false; for ($r = 0; $r < $n; $r++) if ((float)($genRows[$r][$us] ?? 0) > 0.01) { $anyOn = true; break; }
+                        if ($anyOn) continue;
+                        $u0 = $underSC[0]; $u1 = $underSC[count($underSC) - 1]; $msc = (float)($d3[$us]['min_scload'] ?? 30); $okS = false;
+                        for ($r = $u0; $r <= $u1; $r++) {
+                            if ($isFixed($us, $r) || isset($actualRows[$r]) || pp_is_unit_stopped($d3, $model, $us, $r + 1)) continue;
+                            $sv = $genRows[$r]; $genRows[$r][$us] = $msc; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                            if (($needBus && $busOf($genRows[$r], $ieVals[$r]) < $busMin - 1e-6) || $expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] + 1e-6) { $genRows[$r] = $sv; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); continue; }
+                            $okS = true;
+                        }
+                        if ($okS) { $scC[] = $us; $warnings[] = sprintf('Non-required %s dinyalakan sbg LAST RESORT simple-cycle (rows %d-%d): seluruh GTG ber-HRSG sudah distart/dinaikkan tetapi Export masih di bawah Range Min — evidence row-level tersedia.', strtoupper($us), $u0 + 1, $u1 + 1); }
+                        $stillU = false; foreach ($underSC as $r) if ($expOf($genRows[$r], $ieVals[$r]) < $rMinR[$r] - 0.05) { $stillU = true; break; }
+                        if (!$stillU) break;
+                    }
                     if ($scC) for ($sw = 0; $sw < 240; $sw++) { $mv = false;
                         for ($r = 0; $r < $n; $r++) {
                             if (isset($actualRows[$r]) || $expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] + 0.5) continue;
