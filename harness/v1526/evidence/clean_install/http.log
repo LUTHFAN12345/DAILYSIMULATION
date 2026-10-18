@@ -1,0 +1,10 @@
+[Sun Oct 18 21:51:53 2026] PHP 7.4.33 Development Server (http://127.0.0.1:8199) started
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39766 Accepted
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39766 [200]: GET /run.php?mode=report_status
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39766 Closing
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39780 Accepted
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39780 [200]: GET /index.php
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39780 Closing
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39782 Accepted
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39782 [200]: GET /run.php?mode=report_yesterday&plan_date=2026-10-05
+[Sun Oct 18 21:51:54 2026] 127.0.0.1:39782 Closing
