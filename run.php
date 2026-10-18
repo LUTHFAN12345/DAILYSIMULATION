@@ -487,6 +487,11 @@ function pp_engine_fingerprint(): string {
         $p = __DIR__ . '/' . $f; clearstatcache(true, $p);
         $parts[] = $f . ':' . (is_file($p) ? hash_file('sha256', $p) : 'missing');
     }
+    /* V15.25: flag rollback / perilaku engine (env PP_*) ikut sidik jari — hasil yang dihitung dengan flag berbeda tidak pernah dipakai ulang
+     * oleh cache job/final/bundle/basis. Variabel diagnostik/harness dan sakelar jalur warm (bukan perilaku hasil) dikecualikan. */
+    $env = []; foreach ((array)getenv() as $ek => $ev) if (is_string($ek) && strpos($ek, 'PP_') === 0
+        && !preg_match('~^PP_(IE_WARM|SIMSTAT|SIMDUMP|V1523_DUMP|V1524_ATTLOG|V1518_DEBUG|.*_DBG|PROJECT_KEY|REPORT_FINAL_GUARD|JOB_ROOT)$~', $ek)) $env[$ek] = (string)$ev;
+    ksort($env); if ($env) $parts[] = 'env:' . json_encode($env);
     return $fp = substr(hash('sha256', implode('|', $parts)), 0, 20);
 }
 

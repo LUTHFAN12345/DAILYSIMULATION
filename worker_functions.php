@@ -8819,6 +8819,8 @@ function pp_validate_hard_constraints(array $input, array $output): array {
             if (is_array($cfg) && strtolower((string)($cfg['mode'] ?? '')) === 'continuous') $contV[] = strtolower((string)$u);
         $colOf = fn($u) => strtoupper($u);
         $units = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3'];
+        $contRem = []; foreach ((array)($model['__v1525_continuation'] ?? ($model['startup_continuation_applied'] ?? [])) as $ciV)
+            if (is_array($ciV) && ($ciV['status'] ?? '') === 'KELANJUTAN_SEQUENCE') foreach ((array)($ciV['remaining_profile_mw'] ?? []) as $cu => $cp) $contRem[strtolower((string)$cu)] = array_values((array)$cp);
         foreach ($units as $u) {
             if (!isset($d3v[$u])) continue;
             $C = $colOf($u);
@@ -8876,6 +8878,8 @@ function pp_validate_hard_constraints(array $input, array $output): array {
                     if ($l >= $mcc - 0.01) continue;
                     $k = $i - $a;
                     if ($fresh && $k < count($seqW) && $l <= (float)$seqW[$k] + 0.01) continue;   // langkah startup sah
+                    /* V15.25 KELANJUTAN STARTUP lintas tanggal: segmen row 1 unit dengan sisa profil sequence dari kemarin (Start Up CC) */
+                    if (!$fresh && $a === 0 && !$isStg && isset($contRem[$u]) && $k < count($contRem[$u]) && $l <= (float)$contRem[$u][$k] + 0.01) continue;
                     if ($isStg) {                                                                  // STG mengikuti calc dari GTG
                         if ($l >= 0.01) continue;                                                   // >0: hasil calc_stg (sah)
                         continue;
@@ -9339,6 +9343,9 @@ function pp_validate_startup(array $genRows, array $d3, array $model): array {
                 $__contYesterday = ($r === 0 &&
                     strtolower((string)($model['unit_last_data_status'][strtoupper($u)] ?? '')) === 'running');
                 $__seqArr = $__contYesterday ? [] : pp_start_sequence($d3, $model, $u, $genRows, $r);
+                /* V15.25 KELANJUTAN STARTUP lintas tanggal (Start Up CC): unit Running sejak kemarin di tengah sequence -> sisa profil */
+                if ($__contYesterday) foreach ((array)($model['__v1525_continuation'] ?? ($model['startup_continuation_applied'] ?? [])) as $__ci)
+                    if (is_array($__ci) && ($__ci['status'] ?? '') === 'KELANJUTAN_SEQUENCE' && isset($__ci['remaining_profile_mw'][strtoupper($u)])) { $__seqArr = array_values((array)$__ci['remaining_profile_mw'][strtoupper($u)]); $__contYesterday = !$__seqArr; }
                 $__seqIdx = 0;
                 $seq = $__contYesterday ? 0 : max(1, count($__seqArr));
             }

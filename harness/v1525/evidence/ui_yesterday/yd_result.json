@@ -6,15 +6,15 @@
   "detail": {
    "r": [
     908.75,
-    366.63153076171875,
+    367.469970703125,
     1058.53125,
-    392.63153076171875
+    393.469970703125
    ],
    "arrow": [
     1308.4140625,
-    374.31121826171875,
+    375.149658203125,
     1324.9140625,
-    384.95184326171875
+    385.790283203125
    ],
    "vis": true
   }
@@ -109,7 +109,7 @@
     "saved_by": "yd_user",
     "saved_at_utc": "2026-10-18 05:34:02.055141",
     "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
-    "applied_at": "2026-10-18T05:35:20.647Z",
+    "applied_at": "2026-10-18T09:18:30.086Z",
     "yesterday": "2026-10-04",
     "units_skipped_explicit_commitment": [
      "G2",
@@ -171,7 +171,7 @@
     "saved_by": "yd_user",
     "saved_at_utc": "2026-10-18 05:34:02.055141",
     "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
-    "applied_at": "2026-10-18T05:35:22.533Z",
+    "applied_at": "2026-10-18T09:18:32.470Z",
     "yesterday": "2026-10-04",
     "units_skipped_explicit_commitment": [
      "G2",
@@ -204,7 +204,7 @@
     "saved_by": "yd_user",
     "saved_at_utc": "2026-10-18 05:34:02.055141",
     "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
-    "applied_at": "2026-10-18T05:35:22.765Z",
+    "applied_at": "2026-10-18T09:18:32.848Z",
     "yesterday": "2026-10-04",
     "units_skipped_explicit_commitment": [
      "G2",
