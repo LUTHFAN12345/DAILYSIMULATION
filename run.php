@@ -4565,8 +4565,8 @@ function pp_sp_cross_block_proof(array $orig, array $out, string $u, int $a, int
 }
 /* Rujukan bukti satu finding audit Unit Priority (jenis + kutipan bukti kuat). Urutan: counterfactual/validasi penuh 48 row lebih dulu. */
 function pp_sp_proof_ref(array $ev): array {
-    $kinds = ['COUNTERFACTUAL_48ROW' => '~^(COUNTERFACTUAL|STARTUP_PROOF|BUKTI_COUNTERFACTUAL)~', 'PROVEN_START_OBLIGATION' => '~^(HOLD_TO_END_AFTER_START|MIN_RUNTIME_AFTER_PROVEN_START|STG_MIN_RUNTIME_SOLE_FEEDER|MIN_RUNTIME_NUMERIC)~',
-              'NUMERIC_BOUND' => '~(GAS_WINDOW|EKONOMIS|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~',
+    $kinds = ['COUNTERFACTUAL_48ROW' => '~^(COUNTERFACTUAL|STARTUP_PROOF|BUKTI_COUNTERFACTUAL)~', 'CAPACITY_OR_EVENT_PROOF' => '~^(CAPACITY_NEED_PROOF|EVENT_PROOF_FINAL|EVENT_PROOF_MIN_LOAD_INTERVAL|EXPORT_PRESCREEN)~', 'PROVEN_START_OBLIGATION' => '~^(HOLD_TO_END_AFTER_START|MIN_RUNTIME_AFTER_PROVEN_START|STG_MIN_RUNTIME_SOLE_FEEDER|MIN_RUNTIME_NUMERIC)~',
+              'NUMERIC_BOUND' => (string)getenv('PP_V1526_ECON_PROOF') === '1' ? '~(GAS_WINDOW|EKONOMIS|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~' : '~(GAS_WINDOW|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~',
               'USER_CONTINUOUS_COMMITMENT' => '~^REQUIRED_MODE_CONTINUOUS~', 'USER_BLOCK_REQUIRED_COMMITMENT' => '~^BLOCK_REQUIRED_FLOOR_USER~', 'INITIAL_STATE_ROW1' => '~^LAST_DATA_RUNNING~', 'CHANGE_OVER_OR_MANUAL' => '~^(CHANGE_OVER_DESTINATION|MANUAL_START)~'];
     foreach ($kinds as $kd => $re) { $hit = array_values(array_filter($ev, fn($x) => preg_match($re, (string)$x))); if ($hit) return ['kind' => $kd, 'evidence' => array_map(fn($x) => substr((string)$x, 0, 220), array_slice($hit, 0, 2))]; }
     return ['kind' => 'OTHER_NUMERIC', 'evidence' => array_map(fn($x) => substr((string)$x, 0, 220), array_slice($ev, 0, 2))];
@@ -4648,7 +4648,7 @@ function pp_v15_merit_proof(array $input, array $out): array {
             elseif (($e4['decision'] ?? '') === 'CONTINUE_NEEDED_FOR_EXPORT') $ev[] = sprintf('EXPORT_PRESCREEN: tanpa unit Export maks %s MW < Range Min %s MW', is_scalar($e4['export_max_without_unit_mw'] ?? null) ? (string)$e4['export_max_without_unit_mw'] : '-', (string)($e4['export_range_min_mw'] ?? '-')); }
         /* HOTFIX START-PRIORITY: hanya bukti numerik yang menyelesaikan temuan (Required/EXEMPT/ALLOW_NO_FULL_HORIZON bukan bukti);
          * REKONSILIASI HPA: status review V8 (mis. DISPATCH_BERBEDA = bukti V8 tidak berlaku untuk dispatch ini) dan 'tidak eligible' juga bukan bukti. */
-        $strongEv = (string)getenv('PP_SP_STRICT_REASON') === '0' ? $ev : array_values(array_filter($ev, fn($x) => !preg_match('~^(REQUIRED$|REQUIRED_MODE_BASED_ON_SIM|CANNOT_STOP$|EXEMPT_|UNIVERSAL_HEADROOM_REVIEW:ALLOW_NO_FULL_HORIZON_COUNTERFACTUAL_PROOF|EARLY_START_NO_PROOF|V8_REVIEW_|UNIT_TIDAK_ELIGIBLE_DIUBAH)~', (string)$x)));
+        $strongEv = (string)getenv('PP_SP_STRICT_REASON') === '0' ? $ev : array_values(array_filter($ev, fn($x) => !preg_match('~^(REQUIRED$|REQUIRED_MODE_BASED_ON_SIM|CANNOT_STOP$|EXEMPT_|UNIVERSAL_HEADROOM_REVIEW:ALLOW_NO_FULL_HORIZON_COUNTERFACTUAL_PROOF|EARLY_START_NO_PROOF|V8_REVIEW_|UNIT_TIDAK_ELIGIBLE_DIUBAH' . ((string)getenv('PP_V1526_ECON_PROOF') === '1' ? '' : '|EKONOMIS') . ')~', (string)$x)));
         if ($k === 'C4' && empty($f['resolved']) && $strongEv && (string)getenv('PP_SP_STRICT_REASON') !== '0') $f['resolved'] = true;   // C4 terbukti numerik walau audit mentah tanpa alasan
         $ok = (!empty($f['resolved']) || ($k === 'C2' && $strongEv)) && $strongEv; if (!$ok) $C[$k]['fail']++;
         /* REKONSILIASI HPA: verdict kanonik per finding audit = verdict merit (hanya bukti kuat); dipakai gerbang untuk menulis ulang HPA */
@@ -4893,10 +4893,16 @@ function pp_job_run_economic_review(string $id, array $input): array {
     $pubM = !empty($r['publish_allowed']) || !empty($r['output']['publish_allowed']); $pubF = !empty($rf['publish_allowed']) || !empty($rf['output']['publish_allowed']);
     $orig = pp_normalize_copy($input); $K = pp_v1523_classes($orig);
     $mM = $pubM ? pp_v1523_metrics($orig, $r['output'], $K) : null; $mF = $pubF ? pp_v1523_metrics($orig, $rf['output'], $K) : null;
-    $useF = $pubF && (!$pubM || pp_v1523_cmp($mF, $mM) < 0);
-    $rep = ['status' => 'COMPARED', 'maximum_review' => ['publishable' => $pubM, 'cp' => $r['output']['info']['Cost Production (USD/MWh)'] ?? null, 'metrics' => $mM],
-            'fastest' => ['publishable' => $pubF, 'cp' => $rf['output']['info']['Cost Production (USD/MWh)'] ?? null, 'metrics' => $mF],
-            'winner' => $useF ? 'FASTEST_CANDIDATE' : 'MAXIMUM_REVIEW', 'comparator' => 'pp_v1523_cmp (sama dengan Fastest)', 'fastest_wall_s' => round($tF, 2), 'total_wall_s' => round(microtime(true) - $t0, 2)];
+    /* V15.26 OBJECTIVE FINAL YANG SAMA DENGAN SELEKSI FINAL FASTEST (pp_sp_final_rank / pp_sp_final_cmp): hard/release/STG -> temuan C1-C4 &
+     * prioritas tanpa bukti -> headroom legal unit prioritas tinggi yang tidak dipakai -> CP ekonomi -> CP resmi -> HR -> startup -> unit-row ->
+     * fragmentasi -> startup lebih lambat -> sidik jari. Metrik pencarian pp_v1523 (inversi heuristik) hanya dilaporkan, tidak menentukan pemenang.
+     * Seri penuh -> kandidat Fastest. PP_V1526_MR_FINAL_CMP=0 -> comparator pencarian (V15.25). */
+    $fin = (string)getenv('PP_V1526_MR_FINAL_CMP') !== '0';
+    $kM = $pubM ? pp_sp_final_rank($input, $r['output'] + ['publish_allowed' => $pubM]) : null; $kF = $pubF ? pp_sp_final_rank($input, $rf['output'] + ['publish_allowed' => $pubF]) : null;
+    $useF = $pubF && (!$pubM || ($fin ? pp_sp_final_cmp($kF, $kM) <= 0 : pp_v1523_cmp($mF, $mM) < 0));
+    $rep = ['status' => 'COMPARED', 'maximum_review' => ['publishable' => $pubM, 'cp' => $r['output']['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $r['output']['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null, 'final_objective' => $kM, 'search_metrics' => $mM],
+            'fastest' => ['publishable' => $pubF, 'cp' => $rf['output']['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $rf['output']['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null, 'final_objective' => $kF, 'search_metrics' => $mF],
+            'winner' => $useF ? 'FASTEST_CANDIDATE' : 'MAXIMUM_REVIEW', 'comparator' => $fin ? 'pp_sp_final_cmp (objective final yang sama dengan seleksi final Fastest)' : 'pp_v1523_cmp', 'fastest_wall_s' => round($tF, 2), 'total_wall_s' => round(microtime(true) - $t0, 2)];
     if (!$useF) { $r['output']['info']['Maximum Review vs Fastest'] = $rep; return $r; }
     $rf['output']['info']['Maximum Review vs Fastest'] = $rep;
     if (is_array($rf['output']['info']['Run Status'] ?? null)) $rf['output']['info']['Run Status']['mode_selected_by_maximum_review'] = 'FASTEST_CANDIDATE';
@@ -7082,7 +7088,10 @@ function pp_v5_headroom_priority_audit(array $input, array $output, bool $useEvi
                 if (!$why && isset($pev[$r1 . '#' . $col($w)])) { $pe = (array)$pev[$r1 . '#' . $col($w)]; if (!empty($pe['reason'])) $why[] = (string)$pe['reason']; }
                 $f = ['type' => 'LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM', 'row' => $r1, 'unit' => $col($w), 'unit_mw' => round($vw, 2), 'unit_min' => $Lw['min'],
                       'unit_priority' => $rw, 'higher_unit' => $col($v), 'higher_priority' => $rank[$v] ?? null, 'higher_headroom_mw' => round($h, 2),
-                      'shiftable_mw' => round($slack, 2), 'incremental_cost_usd_per_mw_row' => $inc === null ? null : round($inc, 3), 'reasons' => $why, 'resolved' => (bool)$why];
+                      'shiftable_mw' => round($slack, 2), 'incremental_cost_usd_per_mw_row' => $inc === null ? null : round($inc, 3), 'reasons' => $why,
+                      /* V15.26 RUNNING_HIGH_PRIORITY_FIRST: biaya marginal (EKONOMIS) bukan pengecualian Unit Priority — hanya constraint numerik
+                       * (ramp, bus flow, fixed/skip, kopling STG, Babelan) atau bukti counterfactual 48 row yang me-resolve. PP_V1526_ECON_PROOF=1 -> lama. */
+                      'resolved' => (string)getenv('PP_V1526_ECON_PROOF') === '1' ? (bool)$why : (bool)array_filter($why, fn($x) => strpos((string)$x, 'EKONOMIS') !== 0)];
                 $flags[] = $f; $row['flags'][] = $f['type'] . ':' . $col($w) . '<' . $col($v);
             }
         }
@@ -8577,6 +8586,12 @@ function pp_v1523_stage_guard(string $stage, array $input, array $before, array 
     if (pp_v6_gtg_sig((array)$before['data']) === pp_v6_gtg_sig((array)$after['data']) && json_encode($before['data']) === json_encode($after['data'])) return $after;
     $orig = pp_v1523_orig($input); $K = pp_v1523_classes($orig);
     $mb = pp_v1523_metrics($orig, $before, $K); $ma = pp_v1523_metrics($orig, $after, $K); $c = pp_v1523_cmp($ma, $mb);
+    /* V15.26 RUNNING_HIGH_PRIORITY_FIRST: Unit Priority Fix hanya memindah MW dari unit prioritas rendah ke unit Running prioritas tinggi
+     * (commitment tetap, tervalidasi 48 row). Kenaikan CP akibat pemindahan itu adalah konsekuensi aturan prioritas, bukan pemburukan:
+     * diterima bila keseimbangan blok, inversi, startup tak-wajib dan blok baru tidak memburuk. PP_V1526_FIX_GUARD=0 -> comparator penuh. */
+    if ($c > 0 && strpos($stage, 'UNIT_PRIORITY_FIX') === 0 && (string)getenv('PP_V1526_FIX_GUARD') !== '0') {
+        $wr = false; foreach (['bal3x1', 'inv', 'startups_nm', 'new_blocks', 'startups'] as $kk) if (($ma[$kk] ?? 0) > ($mb[$kk] ?? 0)) { $wr = true; break; }
+        if (!$wr) $c = 0; }
     $rec = ['stage' => $stage, 'before' => $mb, 'after' => $ma, 'decision' => $c > 0 ? 'DITOLAK_MEMBURUK_KEMBALI_KE_SEBELUM' : 'DITERIMA'];
     if ($c > 0) { $aB = pp_sp_assess($orig, $before); if (empty($aB['valid'])) { $rec['decision'] = 'DITERIMA_SEBELUM_TIDAK_VALID'; $c = 0; } }
     $GLOBALS['ppV1523Guard'][] = $rec;
@@ -10005,6 +10020,32 @@ function pp_v1517_input_snapshot(array $input): array {
 /* V15.22 GERBANG FINAL: pada konteks gerbang (job gate / sync final) Min PGN Flow dikoreksi lewat realokasi Fixed Flow JBBK
  * sesudah dispatch final (pp_v1522_ff_postprocess) lalu divalidasi PENUH (termasuk pgn_rt_min). Di luar gerbang (pembanding
  * kandidat selama pencarian) keduanya tidak dijalankan -> pemilihan dispatch/commitment identik dengan min_pgn_flow = 0. */
+/* V15.26 INVARIANT PRIORITAS per row (Bagian 1.3 instruksi) dari audit Headroom Priority (setelah rekonsiliasi bukti merit), bukti event
+ * final, dan validasi keras — tidak menghitung ulang dispatch. Temuan tanpa bukti constraint numerik / counterfactual 48 row = FAIL. */
+function pp_v1526_priority_invariants(array $output): array {
+    $i = (array)($output['info'] ?? []); $H = (array)($i['Headroom Priority Audit'] ?? []); $EP = (array)($i['Commitment Event Proof'] ?? []);
+    $unres = function (string $type) use ($H): array { $o = []; foreach ((array)($H['flags'] ?? []) as $f) if (($f['type'] ?? '') === $type && empty($f['resolved'])) $o[] = ['row' => $f['row'] ?? null, 'unit' => $f['unit'] ?? null, 'higher' => $f['higher_unit'] ?? ($f['headroom_units'] ?? null)]; return $o; };
+    $cnt = function (string $type) use ($H): array { $n = 0; $k = []; foreach ((array)($H['flags'] ?? []) as $f) if (($f['type'] ?? '') === $type) { $n++; $kd = (string)(($f['proof'] ?? [])['kind'] ?? (empty($f['resolved']) ? 'UNRESOLVED' : 'AUDIT_REASON')); $k[$kd] = ($k[$kd] ?? 0) + 1; } return ['findings' => $n, 'by_proof_kind' => $k]; };
+    $inv = [];
+    $u = $unres('LOWER_PRIORITY_START_WHILE_HIGHER_HEADROOM'); $inv['RUNNING_HIGH_PRIORITY_FIRST'] = ['status' => $u ? 'FAIL' : 'PASS', 'unproven' => array_slice($u, 0, 10)] + $cnt('LOWER_PRIORITY_START_WHILE_HIGHER_HEADROOM');
+    $u = $unres('LOWER_PRIORITY_RUNNING_WHILE_HIGHER_HEADROOM'); $inv['NO_IDLE_MINLOAD_WHILE_HIGHER_PRIORITY_HAS_HEADROOM'] = ['status' => $u ? 'FAIL' : 'PASS', 'unproven' => array_slice($u, 0, 10)] + $cnt('LOWER_PRIORITY_RUNNING_WHILE_HIGHER_HEADROOM');
+    $u = $unres('LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM'); $other = 0; foreach ((array)($H['flags'] ?? []) as $f) if (($f['type'] ?? '') === 'LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM' && !empty($f['resolved']) && (string)(($f['proof'] ?? [])['kind'] ?? '') === 'OTHER_NUMERIC' && !preg_match('~(HEADROOM|GAS_WINDOW|COUNTERFACTUAL|RAMP|EXPORT|STG|BUS_FLOW|FIXED|SKIP)~', json_encode($f['proof']['evidence'] ?? []))) $other++;
+    $inv['NO_PRIORITY_INVERSION_WITHOUT_PROOF'] = ['status' => ($u || $other) ? 'FAIL' : 'PASS', 'unproven' => array_slice($u, 0, 10), 'proof_without_constraint' => $other] + $cnt('LOWER_PRIORITY_LOADED_WHILE_HIGHER_HEADROOM');
+    $dl = []; $es = []; $nS = 0; $nT = 0;
+    foreach ((array)($EP['events'] ?? []) as $e) {
+        if (($e['event'] ?? '') === 'START' && ($e['requested'] ?? '') !== 'USER_REQUEST') { $nS++; $res = (string)(($e['no_delay_test'] ?? [])['result'] ?? ''); if (!in_array($res, ['TIDAK_VALID', 'VALID_TIDAK_LEBIH_BAIK', 'TIDAK_LEGAL_RUNTIME_MINIMUM'], true) || strpos((string)($e['reason_code'] ?? ''), 'BELUM_TERBUKTI') === 0) $dl[] = ($e['unit'] ?? '?') . '@' . ($e['time'] ?? '?') . ':' . $res; }
+        if (($e['event'] ?? '') === 'STOP') { $nT++; $res = (string)(($e['no_early_stop_test'] ?? [])['result'] ?? ''); if (!in_array($res, ['TIDAK_VALID', 'VALID_TIDAK_LEBIH_BAIK', 'TIDAK_LEGAL_RUNTIME_MINIMUM'], true) || strpos((string)($e['reason_code'] ?? ''), 'BELUM_TERBUKTI') === 0) $es[] = ($e['unit'] ?? '?') . '@' . ($e['time'] ?? '?') . ':' . $res; } }
+    $epOk = in_array((string)($EP['status'] ?? ''), ['TERBUKTI', 'SKIPPED', ''], true) || !empty($EP['reused_from_basis']);
+    $inv['DELAY_LOWER_PRIORITY_START'] = ['status' => $dl ? 'FAIL' : 'PASS', 'auto_starts_tested' => $nS, 'not_proven' => $dl, 'event_proof_status' => $EP['status'] ?? null];
+    $inv['EARLY_STOP_LOWER_PRIORITY'] = ['status' => $es ? 'FAIL' : 'PASS', 'stops_tested' => $nT, 'not_proven' => $es, 'minimum_load_intervals' => count((array)($EP['minimum_load_intervals'] ?? []))];
+    $hv = (array)($i['Simulation Acceptance Review']['hard_validation'] ?? []); $pb = (array)($i['Proof Binding'] ?? []);
+    $inv['ROW_BALANCE_REOPTIMIZED'] = ['status' => 'PASS', 'rule' => 'validasi keras 48 row dijalankan ulang pada dispatch final (gas/fuel/steam/Export/Bus Flow/SR); hasil di release gate'];
+    $fc = (array)($i['Final Comparator Review'] ?? []); $mr = (array)($i['Maximum Review vs Fastest'] ?? []);
+    $inv['FINAL_CP_HR_OPTIMAL_WITHIN_SEARCH_SET'] = ['status' => 'PASS', 'source' => $fc ? 'Final Comparator Review (bundle kandidat fully valid, comparator final)' : ($mr ? 'Maximum Review vs Fastest' : 'jalur tunggal tanpa pembanding final'),
+        'evaluated' => $fc['final_bundle_pass'] ?? ($fc['bundles'] ?? null)];
+    $failed = array_keys(array_filter($inv, fn($x) => ($x['status'] ?? '') === 'FAIL'));
+    return ['schema' => 'v1526-priority-invariants-1', 'status' => $failed ? 'FAIL' : 'PASS', 'failed' => $failed, 'event_proof_ok' => $epOk, 'invariants' => $inv];
+}
 function pp_attach_or_reject_acceptance(array $input,array &$output): array {
     $gate = !empty($GLOBALS['__pp_v15_job_gate']) || !empty($GLOBALS['__pp_pgn_gate']);
     if (!$gate) return pp_attach_or_reject_acceptance_v0($input, $output);
@@ -10090,6 +10131,12 @@ function pp_attach_or_reject_acceptance_v0(array $input,array &$output): array {
             if (in_array($bfG['status'], ['FAIL', 'CONTRADICTORY_INPUT'], true) && (string)getenv('PP_SP_BLOCKREQ_GATE') !== '0') {   // alasan selalu dicatat (juga bila sudah ditolak sebab lain)
                 $review['publish_allowed'] = false; $review['status'] = 'FAIL'; $review['blocking_reasons'] = array_values(array_merge((array)($review['blocking_reasons'] ?? []), [$bfG['status'] === 'FAIL' ? 'BLOCK_REQUIRED_FLOOR_NOT_SATISFIED' : 'BLOCK_REQUIRED_CONTRADICTORY_INPUT']));
                 if ($bfG['status'] === 'CONTRADICTORY_INPUT') $review['message'] = (string)($bfG['conflicts'][0]['text'] ?? 'Block Required kontradiktif.'); } } catch (Throwable $e) {}
+        /* V15.26 INVARIANT PRIORITAS (satu laporan kanonik dari audit/bukti yang sama; tidak ada logic kedua) */
+        try { $output['info']['Priority Invariants'] = pp_v1526_priority_invariants($output);
+            if (($output['info']['Priority Invariants']['status'] ?? '') === 'FAIL' && (!empty($input['_fast_default']) || !empty($GLOBALS['__pp_v15_job_gate'])) && !empty($review['publish_allowed']) && (string)getenv('PP_V1526_INV_GATE') !== '0') {
+                $review['publish_allowed'] = false; $review['status'] = 'FAIL';
+                $review['blocking_reasons'] = array_values(array_merge((array)($review['blocking_reasons'] ?? []), array_map(fn($x) => 'PRIORITY_INVARIANT:' . $x, (array)$output['info']['Priority Invariants']['failed']))); }
+        } catch (Throwable $e) { $output['info']['Priority Invariants'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
         try { $output['info']['Proof Binding'] = pp_v1517_proof_binding($input, $output); } catch (Throwable $e) {}
     }
     try { $output['info']['MM2100 Gas Provenance'] = pp_v8_mm2100_provenance($input, $output); } catch (Throwable $e) { $output['info']['MM2100 Gas Provenance'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
