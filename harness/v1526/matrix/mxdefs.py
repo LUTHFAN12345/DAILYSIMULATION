@@ -547,3 +547,13 @@ def define(G):
       env={'PP_V1526_CONSOL_PLAN': '0', 'PP_V1526_CONSOL_FALLBACK': '0', 'PP_V1526_CONSOL_ALL': '0', 'PP_V1526_CONSOL_CMP': '0', '__COLD': '1'})
     T('P', 'Priority Invariants (7 invariant Rule 1) PASS dan menjadi gerbang publish (A0)', A0, None, 'PASS', std + [inv_pass()])
     T('P', 'Priority Invariants PASS pada skenario LNG (A2)', 'A2_lng', None, 'PASS', std + [inv_pass()])
+    # V15.26 (Section 5 E2E distillate): G6 prioritas 1 Stop + G5 prioritas 2 Running -> G5 dipilih; G6 berbeban penuh lalu spill ke G5; tanpa shortage -> tanpa distillate
+    def dist_used(r): return [u for u in ('G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10') if any(float(w.get('Dist_' + u) or 0) > 0.01 for w in r.d)]
+    T('P', 'Distillate: G6 prioritas 1 Stop (trip), G5 prioritas 2 Running -> G5 dipakai, G6 tidak distart', A0, chain(free('g6'), lambda i: trip(i, 'g6'), prio16(['g6', 'g5', 'g4', 'g3', 'g1', 'g2'])), 'EITHER',
+      std + [off_all('g6'), dist_sel_ok(), lambda r: ((not dist_used(r)) or ((r.i.get('Distillate Unit Selection') or {}).get('eligible_order') or [None])[0] == 'G5' and 'G5' in dist_used(r), f"dipakai {dist_used(r)} eligible {(r.i.get('Distillate Unit Selection') or {}).get('eligible_order')}")])
+    def prefix_ok(r):
+        el = (r.i.get('Distillate Unit Selection') or {}).get('eligible_order') or []; u = dist_used(r)
+        return ((not u) or set(u) == set(el[:len(u)])), f"dipakai {u} eligible {el} (spill wajib mengikuti urutan prioritas eligible)"
+    T('P', 'Distillate: G6 prioritas 1 lalu spill ke prioritas eligible berikutnya (G5) bila kebutuhan melebihi kapasitas G6', A0, prio16(['g6', 'g5', 'g4', 'g3', 'g1', 'g2']), 'EITHER', std + [dist_sel_ok(), prefix_ok])
+    T('P', 'Distillate: gas cukup (tanpa shortage) dengan aksi Use Distillate -> distillate tidak dipakai', 'A1_gas_cukup', lambda i: fuel(i, 'use_distillate'), 'EITHER',
+      std + [lambda r: (not dist_used(r) and float(r.i.get('Required Distillate (l/day)') or 0) <= 0.5, f"dipakai {dist_used(r)} liter {r.i.get('Required Distillate (l/day)')}")])

@@ -4972,8 +4972,6 @@ function pp_run_simulation_once(array $input): array {
 function pp_run_simulation_once_raw(array $input): array {
     if (($sf = (string)getenv('PP_SIMSTAT')) === '') return pp_v1525_sim_act_dist($input);
     if (empty($GLOBALS['__simstat_reg'])) { $GLOBALS['__simstat_reg'] = 1; register_shutdown_function(function () use ($sf) { @file_put_contents($sf, json_encode(($GLOBALS['__simstat'] ?? []) + ['snap_hits' => $GLOBALS['ppV1525ActSnapHits'] ?? 0]) . "\n", FILE_APPEND); }); }
-    if (($sdp = (string)getenv('PP_SIMDUP')) !== '') { $ci = $input; foreach (array_keys($ci) as $kk) if (is_string($kk) && $kk !== '' && $kk[0] === '_') unset($ci[$kk]);
-        @file_put_contents($sdp, md5(json_encode($ci)) . ' ' . md5(json_encode([$GLOBALS['__pp_budget']['states'] ?? null])) . ' ' . implode('<', array_map(fn($f) => $f['function'] ?? '?', array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 40), 3))) . "\n", FILE_APPEND); }
     $tS = microtime(true); $o = pp_v1525_sim_act_dist($input);
     $GLOBALS['__simstat']['n'] = ($GLOBALS['__simstat']['n'] ?? 0) + 1; $GLOBALS['__simstat']['s'] = ($GLOBALS['__simstat']['s'] ?? 0) + microtime(true) - $tS;
     return $o;
