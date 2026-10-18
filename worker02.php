@@ -4506,7 +4506,9 @@ function pp_actual_gas_compensation_raw(array $input, array $out): array {
             if (isset($supLastSide[$sideN])) { $pP = $supLastSide[$sideN]; $distPrev = $sideN === 'U' ? ($lo - $pP) : ($pP - $pq); }
             if ($distPrev !== null && $distPrev > 0.05 && abs($pu - $supLastSide[$sideN]) < 0.25 * $distPrev) $supStag = ($supStag ?? 0) + 1; else $supStag = 0;
             $supLastSide[$sideN] = $pu;
-            if ($supStag >= (int)(getenv('PP_SUP_STAGNANT_N') ?: 2)) { $searchMode = 'V1517_RESPON_TIDAK_KONTINU_BERHENTI'; break; }
+            /* V15.27: berhenti sesudah SATU langkah stagnan. Terukur A1 (110 pencarian): seluruh pencarian yang berhenti stagnan berakhir di luar window
+             * (gap >= 0,38 BBTUD) sehingga kandidat tetap gagal window gas; langkah stagnan kedua hanya menambah satu core run. PP_V1527_SUP_STAG1=0 -> 2. */
+            if ($supStag >= (int)(getenv('PP_SUP_STAGNANT_N') ?: ((string)getenv('PP_V1527_SUP_STAG1') === '0' ? 2 : 1))) { $searchMode = 'V1517_RESPON_TIDAK_KONTINU_BERHENTI'; break; }
         } elseif ($it === 1) { $supLastSide = [($pu < $lo ? 'U' : 'O') => $pu]; $supStag = 0; }
         /* V15.18 RUNTIME — SIKLUS STATE FISIK: respons PGN fisik bolak-balik persis antara dua state (A,B,A,B,A,B) sementara target
          * internal terus bergerak = bukti stagnasi (terukur snapshot plan-1: 22,8681/22,9067 dari percobaan 4 s.d. plafon 32, 15 s per core).
