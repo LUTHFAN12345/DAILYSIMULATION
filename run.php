@@ -4095,6 +4095,9 @@ function pp_v1518_ie_classification(array $inputAsli, array $output, float $engi
  * sama, Actual kosong) atau dihitung sekali dengan job yang sama atas D(S); jam actual dikunci lewat Fix Load internal (act_lock, bukan
  * Fix Load user) + jendela stop untuk unit yang mati. PP_V1526_ACT_ANCHOR=0 -> perilaku V15.25. */
 function pp_v1526_act_on(): bool { return (string)getenv('PP_V1526_ACT_ANCHOR') !== '0'; }
+/* unit yang dikunci pada jam actual / tahap dispatch terkunci: GTG + Babelan + unit MM2100 (GE1-GE4). Tanpa GE, core me-redispatch GE pada jam
+ * actual (MM2100 aktif: GE2 row 2 3,5 -> 12,5 MW) sehingga pemakaian MM2100 jam lampau berubah. PP_V1526_LOCK_GE=0 -> tanpa GE (V15.25). */
+function pp_v1526_lock_units(): array { return array_merge(pp_tl_gt_units(), ['b1', 'b2'], (string)getenv('PP_V1526_LOCK_GE') === '0' ? [] : ['ge1', 'ge2', 'ge3', 'ge4']); }
 function pp_v1526_act_rows(array $in): array {
     $m = (array)($in['data3']['modeling'] ?? []); $L = [];
     foreach (['actual_pgn_total', 'actual_energy_jababeka', 'actual_energy_mm2100'] as $k) foreach ((array)($m[$k] ?? []) as $ix => $v)
@@ -4114,7 +4117,7 @@ function pp_v1526_anchor_file(array $clean): string { $s = pp_ie_series($clean);
 /* kunci jam actual pada dispatch $bd: Fix Load internal (act_lock) untuk unit menyala + jendela stop untuk unit GT yang mati */
 function pp_v1526_act_lock(array $in, array $bd, array $rows): array {
     $m = (array)($in['data3']['modeling'] ?? []); $fx = (array)($m['unit_fix_load'] ?? []); $st = (array)($m['unit_stop_time'] ?? []);
-    foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $gt = $u[0] === 'g'; $r0 = null;
+    foreach (pp_v1526_lock_units() as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $gt = $u[0] === 'g'; $r0 = null;
         for ($r = 1; $r <= 49; $r++) { $inL = $r <= 48 && isset($rows[$r]);
             $v = $inL ? (float)($bd[$r - 1][$U] ?? 0) : 0.0; $fixed = $inL && pp_get_fixed_load($m, $u, $r) >= 0;
             if ($inL && !$fixed && $v > 0.01) $fx[$u][] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4), 'act_lock' => 1];
@@ -4206,7 +4209,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     if ($actChanged && !$fixChanged && $ieSame && (string)getenv('PP_V1525_ACT_LOCK') !== '0') {
         $in0 = json_decode(json_encode($c), true); $m0 = &$in0['data3']['modeling'];
         $m0['unit_stop_time'] = array_merge((array)($m0['unit_stop_time'] ?? []), $stops); $fx0 = (array)($m0['unit_fix_load'] ?? []);
-        foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0[$u] ?? []);
+        foreach (pp_v1526_lock_units() as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0[$u] ?? []);
             for ($r = 1; $r <= 48; $r++) { if (pp_get_fixed_load($m0, $u, $r) >= 0) continue; $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
             if ($rules) $fx0[$u] = $rules; }
         $m0['unit_fix_load'] = $fx0; $m0['__tl_no_auto_start'] = true; $m0['time_budget_seconds'] = 30.0; $m0['time_budget_max_seconds'] = 30.0; unset($m0);
@@ -4232,7 +4235,7 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
                 try { pp_tl_clean_globals(); pp_export_floor_repair($gen, $d3N, $mN, array_map('floatval', pp_ie_series($cN)['eff']), $lock, (float)($rngN['min'] ?? 0), (float)($rngN['max'] ?? INF), $evd, $dO, true); } catch (Throwable $e) {}
                 $rowsT = []; foreach ($gen as $ri => $g) { $rw = $bd[$ri]; foreach ($g as $u => $v) { if ($u === 'b1') $rw['BB1'] = $v; elseif ($u === 'b2') $rw['BB2'] = $v; else $rw[strtoupper($u)] = $v; } $rowsT[] = $rw; }
                 $in0b = json_decode(json_encode($c), true); $m0b = &$in0b['data3']['modeling']; $m0b['unit_stop_time'] = array_merge((array)($m0b['unit_stop_time'] ?? []), $stops); $fx0b = (array)($m0b['unit_fix_load'] ?? []);
-                foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0b[$u] ?? []);
+                foreach (pp_v1526_lock_units() as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0b[$u] ?? []);
                     for ($r = 1; $r <= 48; $r++) { if (pp_get_fixed_load($m0b, $u, $r) >= 0) continue; $v = (float)($rowsT[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
                     if ($rules) $fx0b[$u] = $rules; }
                 $m0b['unit_fix_load'] = $fx0b; $m0b['__tl_no_auto_start'] = true; $m0b['time_budget_seconds'] = 30.0; $m0b['time_budget_max_seconds'] = 30.0; unset($m0b);
@@ -4242,6 +4245,20 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
                 $stages[] = ['tahap' => '0b_ACTUAL_GAS_TRIM_ROW_PLANNING', 's' => round(microtime(true) - $t0b, 3), 'kelebihan_bbtud' => round($dTot, 4), 'iterasi' => $itT + 1, 'valid' => is_array($a0b) && !empty($a0b['valid']),
                              'detail' => (is_array($a0b) && empty($a0b['valid'])) ? array_slice(pp_v1523_viol_detail($c, $a0b['output'] ?? null, $a0b), 0, 4) : [], 'row_terkunci_actual' => array_map(fn($x) => $x + 1, array_keys($lock))];
                 if (is_array($a0b) && !empty($a0b['valid'])) $a0 = $a0b; } }
+        /* V15.26 TAHAP 0c — kegagalan HANYA kuota MM2100 (Actual MM2100 menyimpang): GTG/Babelan tetap dikunci 48 row, unit MM2100 (GE1-GE4)
+         * bebas pada row mendatang (jam actual tetap terkunci lewat act_lock) sehingga pass lantai/plafon MM2100 menyerap deviasi actual.
+         * Satu core run + validasi penuh. PP_V1526_ACT_MM_STAGE=0 -> tanpa tahap ini. */
+        if (is_array($a0) && empty($a0['valid']) && (string)getenv('PP_V1526_ACT_MM_STAGE') !== '0' && (array)($a0['violations'] ?? []) === ['mm2100_quota']) {
+            $t0c = microtime(true); $in0c = json_decode(json_encode($c), true); $m0c = &$in0c['data3']['modeling'];
+            $m0c['unit_stop_time'] = array_merge((array)($m0c['unit_stop_time'] ?? []), $stops); $fx0c = (array)($m0c['unit_fix_load'] ?? []);
+            foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0c[$u] ?? []);
+                for ($r = 1; $r <= 48; $r++) { if (pp_get_fixed_load($m0c, $u, $r) >= 0) continue; $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+                if ($rules) $fx0c[$u] = $rules; }
+            $m0c['unit_fix_load'] = $fx0c; $m0c['__tl_no_auto_start'] = true; $m0c['time_budget_seconds'] = 30.0; $m0c['time_budget_max_seconds'] = 30.0; unset($m0c);
+            $a0c = null; try { pp_tl_clean_globals(); pp_budget_start(30.0, true, true); $o0c = pp_run_simulation_core($in0c); $a0c = pp_tl_assess($c, $o0c); $a0c['output'] = $o0c; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a0c = null; } finally { pp_tl_clean_globals(); }
+            $stages[] = ['tahap' => '0c_ACTUAL_MM2100_GE_ROW_MENDATANG', 's' => round(microtime(true) - $t0c, 3), 'valid' => is_array($a0c) && !empty($a0c['valid']),
+                         'detail' => (is_array($a0c) && empty($a0c['valid'])) ? array_slice(pp_v1523_viol_detail($c, $a0c['output'] ?? null, $a0c), 0, 4) : []];
+            if (is_array($a0c) && !empty($a0c['valid'])) $a0 = $a0c; }
         if (is_array($a0) && !empty($a0['valid'])) { $a = $a0;
             /* dispatch 48 row identik dengan basis -> bukti event basis berlaku (lihat pp_v1524_event_closure) */
             if (is_array($B['event_proof'] ?? null) && pp_v1525_unit_sig((array)$a0['output']['data']) === pp_v1525_unit_sig($bd))
@@ -5246,7 +5263,7 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
     /* V15.26: bukti jam actual immutable — dispatch row jam actual dibandingkan dengan rencana jangkar D(S) (toleransi 0,05 MW) */
     if (is_array($output['info'] ?? null) && empty($inputAsli['_v1526_anchor_inner']) && ($ar = pp_v1526_act_report()) !== null) {
         if (is_array($A26 = $GLOBALS['ppV1526ActAnchor'] ?? null) && count((array)($output['data'] ?? [])) === 48) { $dv = [];
-            foreach (array_keys($A26['rows']) as $r) foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u);
+            foreach (array_keys($A26['rows']) as $r) foreach (pp_v1526_lock_units() as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u);
                 $x = (float)($output['data'][$r - 1][$U] ?? 0); $y = (float)($A26['data'][$r - 1][$U] ?? 0); if (abs($x - $y) > 0.05) $dv[] = ['row' => $r, 'unit' => $U, 'final_mw' => round($x, 3), 'anchor_mw' => round($y, 3)]; }
             $ar['actual_rows_dispatch_identical'] = !$dv; $ar['deviations'] = array_slice($dv, 0, 12); }
         $output['info']['Actual Hour Anchor'] = $ar; }

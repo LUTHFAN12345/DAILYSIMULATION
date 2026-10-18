@@ -1,3 +1,29 @@
+# MATRIX CHANGELOG — V15.26 (basis matrix V15.25: 229 test engine)
+
+ID engine T001–T229 dipertahankan (definisi identik V15.25; kolom `baseline_version` = V15.25 (debf01f), `build` = V15.26).
+Perubahan oracle yang ada: `cmp_final`/`mr_ok` (grup M, T227–T228) memakai objective final yang sama dengan seleksi final Fastest
+(`pp_sp_final_cmp`) — sebelumnya comparator pencarian `pp_v1523_cmp`. Test baru ditambahkan sesudah T229 (grup P):
+
+| ID | isi | oracle |
+|---|---|---|
+| T230 | A1 gas cukup: alternatif konsolidasi blok dievaluasi dengan latest legal start alternatif itu sendiri + fallback start aturan lama + pendaratan gas; pemenang = urutan objective final | published, Priority Invariants PASS, CP <= 68,4615 dan startup GTG <= 8 (nilai V15.25) |
+| T231 | A1 dengan konsolidasi V15.25 (`PP_V1526_CONSOL_PLAN/FALLBACK/ALL/CMP=0`, app dingin) | valid; CP >= hasil V15.26 (perbaikan tidak memperburuk) |
+| T232 | A0: 7 invariant Rule 1 (Priority Invariants) | status PASS (gerbang publish) |
+| T233 | A2 LNG: Priority Invariants | status PASS |
+| T234 | Distillate: G6 prioritas 1 Stop (trip), G5 prioritas 2 Running | G6 tidak distart; prioritas eligible pertama = G5 dan G5 dipakai |
+| T235 | Distillate: G6 prioritas 1, kebutuhan melebihi kapasitas G6 | unit yang dipakai = prefiks urutan prioritas eligible (spill berurutan) |
+| T236 | Distillate: gas cukup (A1) dengan aksi Use Distillate | distillate tidak dipakai (0 l) |
+
+Total V15.26: **236 test engine** (+ grup I/H15/H16 MySQL dan UI V15.25 — source UI/store tidak berubah, tidak diulang menurut strategi uji hemat).
+
+Uji di luar `mx.py`:
+- `../actual_gas/ag_tests.py` — Actual Gas dua arah (PGN / TOTAL Fixed Flow Jababeka / MM2100; satu jam, jam 1–4, ketiganya bersamaan; distillate / LNG / Fix Load / supplier window; netral x1,00) — warm, warm ulang, dingin.
+- `../row_audit.py` — audit 48 row (A0, A1, A3, T154, T214, T034).
+- `../sensitivity.py` — sensitivitas objective final (band CP, toleransi CP ekonomi, toleransi headroom).
+- `../bench/bench.py` — benchmark 1 CPU V15.25 vs V15.26 (payload identik).
+
+---
+
 # MATRIX CHANGELOG — V15.25 (basis matrix V15.24: 207 test engine + 14 test DB/UI-store = 221)
 
 ID engine lama T001–T207 dipertahankan (definisi identik dengan V15.24; hanya kolom `baseline_version` = V15.24 (d207780) dan `build` = V15.25).

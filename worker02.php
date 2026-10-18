@@ -7342,7 +7342,10 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
              * dari rencana yang sudah diganti. */
             $GLOBALS['__pp_mm2100_floor_ev'] = null;
             if ($mmQuotaFloorQ > 1e-9) {
-                $mmUsedNow  = pp_mm2100_used_bbtud($genRows, $d3);
+                /* V15.26: ukuran pemakaian = ukuran validator (actual MM2100 jam terisi + estimasi jam lain). Tanpa $model, Actual MM2100 di
+                 * bawah estimasi tidak pernah memicu lantai (MM2100 lo -10% jam 1-4: 2,9959 < 3,02 tanpa koreksi). PP_V1526_MM_ACT_TRIM=0 -> lama. */
+                $mmMdl = (string)getenv('PP_V1526_MM_ACT_TRIM') !== '0' ? $model : null;
+                $mmUsedNow  = pp_mm2100_used_bbtud($genRows, $d3, $mmMdl);
                 $mmFloorNeed = ($mmQuotaFloorQ - 0.04) - $mmUsedNow;
                 if ($mmFloorNeed > 1e-9) {
                     $mmCeilRoom = max(0.0, $mmQuotaFloorQ - $mmUsedNow);
@@ -7374,7 +7377,7 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
                         'needed_bbtud'       => round($mmFloorNeed, 6),
                         'ceiling_room_bbtud' => round($mmCeilRoom, 6),
                         'added_bbtud'        => round($mmGot, 6),
-                        'used_after_bbtud'   => round(pp_mm2100_used_bbtud($genRows, $d3), 6),
+                        'used_after_bbtud'   => round(pp_mm2100_used_bbtud($genRows, $d3, $mmMdl), 6),
                         'applied'            => $mmGot > 1e-9,
                         'topup_evidence'     => $mmEv,
                     ];
@@ -7729,12 +7732,19 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
         $__cq = pp_mm2100_quota_energy_bbtud($model);
         if ($__cq > 1e-9) {
             $__bl0 = pp_mm2100_used_bbtud($genRows, $d3, $model); $__ex = $__bl0 - $__cq;
-            if ($__ex > 1e-9 && $__ex <= 0.02) {
+            /* V15.26: kelebihan yang berasal dari Actual MM2100 TERUKUR di atas estimasi (jam lampau, immutable) wajib diserap row mendatang —
+             * batas langkah diperluas sebesar deviasi actual itu (dihitung dari fungsi pemakaian yang sama tanpa actual). Tanpa actual: 0,02
+             * seperti sebelumnya. PP_V1526_MM_ACT_TRIM=0 -> 0,02 saja. */
+            $__lim = 0.02;
+            if ((string)getenv('PP_V1526_MM_ACT_TRIM') !== '0' && array_filter((array)($model['actual_energy_mm2100'] ?? []), fn($v) => $v !== '' && $v !== null)) {
+                $__mNA = $model; unset($__mNA['actual_energy_mm2100']); $__lim += max(0.0, $__bl0 - pp_mm2100_used_bbtud($genRows, $d3, $__mNA)); }
+            if ($__ex > 1e-9 && $__ex <= $__lim) {
                 $__skip = $actualRows;
                 foreach ((array)($model['actual_energy_mm2100'] ?? []) as $__ai => $__av)
                     if ($__av !== null && $__av !== '') { $__h = intdiv((int)$__ai, 2); $__skip[2 * $__h] = true; $__skip[2 * $__h + 1] = true; }
                 $__steps = []; $__bl = $__bl0;
-                for ($__k = 0; $__k < 40 && $__bl > $__cq + 1e-9; $__k++) {
+                $__tgt = $__lim > 0.02 + 1e-12 ? $__cq - 0.005 : $__cq;   // kelebihan dari actual: mendarat di dalam jendela (bukan tepat di plafon)
+                for ($__k = 0; $__k < 40 && $__bl > $__tgt + 1e-9; $__k++) {
                     $__pick = null;
                     for ($__r = count($genRows) - 1; $__r >= 0 && $__pick === null; $__r--) {
                         if (isset($__skip[$__r])) continue;
@@ -7750,7 +7760,7 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
                     /* langkah dari kurva bahan bakar unit: MW yang dibutuhkan untuk memotong kelebihan */
                     $__mnU = pp_effective_min_load($d3, $model, $__u, $__r + 1);
                     $__dE = (calc_fuel($d3, $__u, $__from) - calc_fuel($d3, $__u, max($__mnU, $__from - 1.0))) / 2.0 / max(0.01, $__from - max($__mnU, $__from - 1.0));
-                    $__need = ($__bl - $__cq) + 0.00002;
+                    $__need = ($__bl - $__tgt) + 0.00002;
                     $__dMW = $__dE > 1e-9 ? ceil($__need / $__dE * 100.0) / 100.0 : 0.01;
                     $__dMW = max(0.01, min($__dMW, $__from - $__mnU));
                     $genRows[$__r][$__u] = round($__from - $__dMW, 2);
@@ -9110,16 +9120,21 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
     /* V15.26 ESTIMASI JAM ACTUAL = RENCANA JANGKAR YANG DITAMPILKAN: realokasi Fixed Flow JBBK (Min PGN Flow) pada jam historis sudah
      * dijalankan menurut rencana jangkar (act_hour_ff_plan). Estimasi PGN jam actual = Est_PGN pra-realokasi + (FF asli - FF rencana) dan
      * estimasi Jababeka jam actual = FF rencana (bukan rata-rata harian datar) -> Actual = nilai estimasi yang ditampilkan = delta nol;
-     * Actual lebih tinggi / lebih rendah menggeser Effective Total Gas tepat sebesar selisihnya. Tanpa jangkar: perilaku V15.25. */
-    $ffPlanH = (string)getenv('PP_V1526_ACT_FF') === '0' ? [] : (array)($model['act_hour_ff_plan'] ?? []);
-    if ($ffPlanH) {
+     * Actual lebih tinggi / lebih rendah menggeser Effective Total Gas tepat sebesar selisihnya. PP_V1526_ACT_FF=0 -> perilaku V15.25. */
+    /* Jababeka & MM2100: estimasi jam actual = estimasi PER ROW yang ditampilkan (Est_FF_J / Est_FF_M pasangan jam; Jababeka memakai FF rencana
+     * jangkar bila ada), bukan rata-rata harian datar pp_blend. MM2100 bergantung beban G10/GE (A0+KP72: jam 1 0,0622 vs datar 0,125), sehingga
+     * rata-rata datar menggeser Effective Total Gas walau Actual = estimasi — validator kuota MM2100 (mmDailyUsed) sudah memakai estimasi per row. */
+    $ffOn = (string)getenv('PP_V1526_ACT_FF') !== '0'; $ffPlanH = $ffOn ? (array)($model['act_hour_ff_plan'] ?? []) : [];
+    if ($ffOn && ($ffPlanH || $nAej > 0 || $nAem > 0)) {
         $shiftR = fn(int $i): float => isset($ffPlanH[$i + 1]) && is_numeric($ffPlanH[$i + 1]) ? ((float)($data[$i]['FixedFlow_J'] ?? 0) - (float)$ffPlanH[$i + 1]) * $ghvJ / 48000.0 : 0.0;
         $estJR = fn(int $i): float => isset($ffPlanH[$i + 1]) && is_numeric($ffPlanH[$i + 1]) ? (float)$ffPlanH[$i + 1] * $ghvJ / 48000.0 : (float)($data[$i]['Est_FF_J'] ?? 0);
-        $pgnShift = 0.0; $dJ = 0.0;
+        $pgnShift = 0.0; $dJ = 0.0; $dM = 0.0;
         for ($h = 0; $h < $Hn; $h++) { $i0 = 2 * $h; $i1 = $i0 + 1;
             if ($hourCell($aP, $h) !== null) $pgnShift += $shiftR($i0) + $shiftR($i1);
-            if (($aj = $hourCell($aJ, $h)) !== null) $dJ += $aj - ($estJR($i0) + $estJR($i1)); }
-        $pgnTotal -= $pgnShift; $actEnergyJ = $estEnergyJ + $dJ; $actualTotalGas = $actPGN + $actEnergyJ + $actEnergyM;
+            if (($aj = $hourCell($aJ, $h)) !== null) $dJ += $aj - ($estJR($i0) + $estJR($i1));
+            if (($am = $hourCell($aM, $h)) !== null) $dM += $am - ((float)($data[$i0]['Est_FF_M'] ?? 0) + (float)($data[$i1]['Est_FF_M'] ?? 0)); }
+        $pgnTotal -= $pgnShift; if ($nAej > 0) $actEnergyJ = $estEnergyJ + $dJ; if ($nAem > 0) $actEnergyM = $estEnergyM + $dM;
+        $actualTotalGas = $actPGN + $actEnergyJ + $actEnergyM;
     }
     /* PROMPT §6.2: identitas PGN TOTAL = PGN PIPE + LNG wajib tetap berlaku saat ACTUAL PGN
      * mengalahkan estimation. LNG adalah kontrak fixed (TIDAK boleh dikurangi diam-diam) —
