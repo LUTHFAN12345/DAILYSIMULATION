@@ -2266,8 +2266,10 @@ function pp_v1525_startup_continuation(array &$m, array $d3): void {
         $mode = strtolower((string)($c['mode'] ?? $modeOf($stg))); $lag = pp_stg_lag($stg, $mode); $caps = pp_startup_caps($stg, $mode); $e = max(0, (int)($c['elapsed_rows'] ?? 0));
         $units = array_values(array_filter(array_map('strtolower', (array)($c['units'] ?? [])), fn($u) => isset($d3[$u]))); if (!$units) $units = array_slice($feeders($stg), 0, 1);
         $rec = ['stg' => strtoupper($stg), 'mode' => $mode, 'lag_rows' => $lag, 'profile_mw' => $caps, 'elapsed_rows' => $e, 'units' => array_map('strtoupper', $units), 'source' => $c['source'] ?? null];
-        /* commitment STG eksplisit user (Required/continuous/start_at) menang atas kelanjutan: sequence tidak dipaksakan, konflik dicatat */
-        if (isset($m['required_mode'][$stg]) || in_array($stg, array_map('strtolower', (array)($m['required_units'] ?? [])), true)) {
+        /* commitment STG eksplisit user yang menetapkan WAKTU (Continuous Running sejak row 1 / Start Based On Request) menang atas
+         * kelanjutan: sequence tidak dipaksakan, konflik dicatat. Required + Start Based On Simulation tidak menetapkan waktu -> kelanjutan berlaku. */
+        $rmS = strtolower((string)(($m['required_mode'][$stg] ?? [])['mode'] ?? ''));
+        if (in_array($rmS, ['continuous', 'start_at'], true)) {   // Required + Start Based On Simulation kompatibel: waktu start dari kelanjutan
             foreach ($units as $u) $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $rec['status'] = 'DIABAIKAN_KOMITMEN_STG_EKSPLISIT'; $rec['reason'] = 'USER_EXPLICIT_STG_COMMITMENT_WINS'; $info[$stg] = $rec; continue; }
         if ($e >= $lag) { foreach ($units as $u) $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $m['unit_last_data_status'][strtoupper($stg)] = 'Running'; $rec['status'] = 'SEQUENCE_SELESAI_KEMARIN_RUNNING'; $info[$stg] = $rec; continue; }
         foreach ($units as $u) { $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $rules = (array)($m['unit_fix_load'][$u] ?? []); $rem = [];
@@ -2957,7 +2959,10 @@ function pp_start_sequence(array $d3, array $model, string $u, array $genRows, i
         for ($rA = 0; $rA < min($startRow0, count($genRows)); $rA++) { foreach ($fdS as $fA) if ($fA !== $u && (float)($genRows[$rA][$fA] ?? 0) > 0.01) { $anc0 = $rA; break 2; } }
         if ($anc0 !== null) {
             $mdA = strtolower((string)($model['stg_startup_mode'][$stg] ?? ($model['stg_startup_mode'][$stg . '_startup'] ?? 'warm')));
-            if ($anc0 + pp_stg_release_rows($stg, $mdA) <= $startRow0 + 1) return $GLOBALS['__pp_seq_ctx'][$__k] = $addl;
+            /* V15.25: batas umum = lead-in Additional (1 + jumlah langkah) yang sama dengan pp_v1518_block_sequence (earliest = F + 2 - lead) dan
+             * validator; untuk S1/S2 ([5,15]) identik dengan aturan lama (<= start + 1), untuk Block 3 ([40..70]) <= start + 5. */
+            $lim = (string)getenv('PP_V1525_ADDL_LEADIN') === '0' ? 1 : max(1, count($addl) - 1);
+            if ($anc0 + pp_stg_release_rows($stg, $mdA) <= $startRow0 + $lim) return $GLOBALS['__pp_seq_ctx'][$__k] = $addl;
         }
     }
     $mdC = strtolower((string)($model['stg_startup_mode'][$stg] ?? ($model['stg_startup_mode'][$stg . '_startup'] ?? 'warm')));

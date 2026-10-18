@@ -2802,8 +2802,8 @@ function ydApply(){
     if(typeof COMMIT_MODE!=='undefined'&&COMMIT_MODE[u]&&COMMIT_MODE[u]!=='-'){ skipped.push(U); return; }   // explicit user commitment wins
     if(x.status==='Start Up CC'&&!SC_ELIGIBLE.includes(u)) return;
     const sg=x.status==='Start Up CC'?YD_STG_OF(u):null;   // STG blok dengan commitment eksplisit: kelanjutan tidak dipaksakan, GTG = Running
-    if(sg&&COMMIT_MODE[sg]&&COMMIT_MODE[sg]!=='-'){ setUnitLast(u,'Running'); return; } setUnitLast(u,x.status); });
-  const cont={}, contSkipped=[]; Object.entries(j.startup_continuation||{}).forEach(([sg,c])=>{ const us=(c.units||[]).filter(u=>!skipped.includes(u.toUpperCase())); if(skipped.includes(sg.toUpperCase())){ contSkipped.push(sg.toUpperCase()); return; } if(us.length) cont[sg]=Object.assign({},c,{units:us,source:'YESTERDAY_DATA:'+((j.source||{}).report_key||'')}); });
+    if(sg&&(COMMIT_MODE[sg]==='continuous'||COMMIT_MODE[sg]==='request')){ setUnitLast(u,'Running'); return; } setUnitLast(u,x.status); });
+  const cont={}, contSkipped=[]; Object.entries(j.startup_continuation||{}).forEach(([sg,c])=>{ const us=(c.units||[]).filter(u=>!skipped.includes(u.toUpperCase())); if(COMMIT_MODE[sg]==='continuous'||COMMIT_MODE[sg]==='request'){ contSkipped.push(sg.toUpperCase()); return; } if(us.length) cont[sg]=Object.assign({},c,{units:us,source:'YESTERDAY_DATA:'+((j.source||{}).report_key||'')}); });
   if(Object.keys(cont).length) m.startup_continuation=cont; else delete m.startup_continuation;
   m.yesterday_data_source=Object.assign({},j.source||{},{applied_at:new Date().toISOString(),yesterday:j.yesterday,units_skipped_explicit_commitment:skipped,continuation_skipped_explicit_stg:contSkipped});
   ydClose(); renderUnitFlags(); if(typeof toast==='function') toast('Yesterday data applied ('+((j.source||{}).source_label||'')+')'+(skipped.length?' — commitment eksplisit dipertahankan: '+skipped.join(', '):''));

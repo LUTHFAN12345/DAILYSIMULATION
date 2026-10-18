@@ -461,7 +461,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017';
+const PP_ENGINE_BUILD_ID = 'V15.25-REMEDIATION-UI-LOGIC-FULL-REGRESSION-20261018';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -4877,7 +4877,10 @@ function pp_job_run_economic_review(string $id, array $input): array {
     /* kandidat Fastest dihitung LEBIH DULU pada state proses yang bersih (identik dengan job Fastest mandiri), lalu Maximum Review */
     $inF = $input; $inF['_fast_default'] = true; $inF['_maximum_review'] = false; $inF['_v1525_mr_inner'] = 1; $t0 = microtime(true); $rf = null; $errF = null;
     pp_job_progress($id, 'MAXIMUM_REVIEW_KANDIDAT_FASTEST', 5.0);
+    /* kandidat Fastest dingin (tanpa basis warm IE): hasil tidak bergantung riwayat job lain pada konteks yang sama */
+    $wOld = getenv('PP_IE_WARM'); if ((string)getenv('PP_V1525_MR_FAST_COLD') !== '0') putenv('PP_IE_WARM=0');
     try { $rf = pp_job_run_economic_review_v1524($id, $inF); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $errF = $e->getMessage(); }
+    finally { if ($wOld === false) putenv('PP_IE_WARM'); else putenv('PP_IE_WARM=' . $wOld); }
     $tF = microtime(true) - $t0;
     $r = pp_job_run_economic_review_v1524($id, $input);
     if (($r['mode'] ?? '') === 'PRELIM_REQUIRED' || !is_array($r['output'] ?? null)) return $r;

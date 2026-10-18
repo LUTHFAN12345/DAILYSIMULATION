@@ -491,7 +491,9 @@ def define(G):
             ok = all(abs(g - c0) < 0.05 for g, c0 in zip(got, caps)) and s3 == a + 14
             return ok, f'lead {lead.upper()} start row {a} ({rt(a - 1)}): profil {got} (harus 40x7,50x2,60x5); S3 first load row {s3} (harus {a + 14} = start + 7,5 jam)'
         return c
-    T('N', 'Block 3 cold startup: 40 MW 3,5 jam, 50 MW 1 jam, 60 MW 2,5 jam; S3 berbeban tepat 7,5 jam sesudah startup', A0, b3cold(), 'PASS', std + [b3cold_profile()])
+    def b1run(i):   # Block 1 & 2 penuh Running sejak 00:00 agar row 1 layak tanpa Block 3 (fixture A0: hanya G8/S3 yang menopang row 1)
+        M(i)['unit_last_data_status'].update({'G6': 'Running', 'G4': 'Running', 'G3': 'Running', 'S1': 'Running', 'G5': 'Running', 'G1': 'Running'}); return i
+    T('N', 'Block 3 cold startup: 40 MW 3,5 jam, 50 MW 1 jam, 60 MW 2,5 jam; S3 berbeban tepat 7,5 jam sesudah startup', A0, b3cold(b1run), 'PASS', std + [b3cold_profile()])
     def cont(stg, e, units, uld):
         def m(i): M(i)['startup_continuation'] = {stg: {'elapsed_rows': e, 'units': units, 'source': 'MATRIX'}}; M(i)['unit_last_data_status'].update(uld); return i
         return m
