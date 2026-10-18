@@ -3139,7 +3139,8 @@ function pp_sp_assess(array $c0, array $o): array { pp_tl_clean_globals(); if (f
     try { return pp_tl_assess($c0, $o); } finally { pp_tl_clean_globals(); if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); } }
 /* Profil tahap (observasi saja, tidak memengaruhi hasil): durasi tiap tahap baru Start Priority dicatat ke info job. */
 function pp_sp_prof(string $k, float $t0, array $x = []): void {
-    $GLOBALS['ppSpProf'][] = ['stage' => $k, 's' => round(microtime(true) - $t0, 3), 'at_s' => isset($GLOBALS['ppSpProfT0']) ? round(microtime(true) - (float)$GLOBALS['ppSpProfT0'], 3) : null] + $x;
+    $nS = (int)($GLOBALS['ppSimRaw'] ?? 0); $dS = $nS - (int)($GLOBALS['ppSimRawProf'] ?? $nS); $GLOBALS['ppSimRawProf'] = $nS;
+    $GLOBALS['ppSpProf'][] = ['stage' => $k, 's' => round(microtime(true) - $t0, 3), 'at_s' => isset($GLOBALS['ppSpProfT0']) ? round(microtime(true) - (float)$GLOBALS['ppSpProfT0'], 3) : null, 'sims' => $dS] + $x;
 }
 /* COMPARATOR FINAL PRODUKSI (urutan resmi 16 langkah, pp_sp_final_cmp): kandidat valid set material produksi (seed incumbent, tetangga
  * +-1, latest legal) masing-masing dibawa ke hasil FINAL — review V8, family stop/hold, Unit Priority Fix, pelengkap bukti C4, bukti
@@ -5180,7 +5181,7 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
     if (!isset($input['data3']['modeling'])) $input['data3']['modeling'] = [];
     $input = pp_econ_job_sim_input($input, (float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0));
     pp_budget_start((float)($GLOBALS['__pp_async_worker_ceiling'] ?? 900.0), true, true);
-    $t = microtime(true); $GLOBALS['ppSpProf'] = []; $GLOBALS['ppSpProfT0'] = $t;
+    $t = microtime(true); $GLOBALS['ppSpProf'] = []; $GLOBALS['ppSpProfT0'] = $t; $GLOBALS['ppSimRawProf'] = (int)($GLOBALS['ppSimRaw'] ?? 0);
     /* V3: state identik -> memo; perubahan data slot/kuota dari final valid terakhir -> recompute
      * inkremental (commitment dipertahankan, kandidat yang dapat menyalip dievaluasi ulang);
      * selain itu, atau bila inkremental tidak dapat menjamin pemenang -> pipeline exact penuh. */
@@ -8906,8 +8907,9 @@ function pp_v1524_event_closure(array $inputAsli, array $o, float $em = 600.0): 
         $o['info']['Commitment Event Proof'] = $ep; if (function_exists('pp_sp_prof')) pp_sp_prof('event_proof', microtime(true), ['closure' => 0, 'reused' => true]); return $o; }
     $tV = microtime(true); $closure = [];
     try { $ep = pp_v1524_event_proof($inputAsli, $o);
-        for ($it = 0; $it < (int)(getenv('PP_V1524_CLOSURE_MAX') ?: 3) && (string)getenv('PP_V1524_CLOSURE') !== '0' && is_array($ep['_improve'] ?? null); $it++) {
-            $imp = $ep['_improve']; $o2 = $imp['o']; foreach ((array)($o['info'] ?? []) as $k0 => $v0) if (!array_key_exists($k0, (array)($o2['info'] ?? []))) $o2['info'][$k0] = $v0;
+        $prioTried = (string)getenv('PP_V1527_CLOSURE_PRIO') === '0';
+        for ($it = 0; $it < (int)(getenv('PP_V1524_CLOSURE_MAX') ?: 3) && (string)getenv('PP_V1524_CLOSURE') !== '0' && (is_array($ep['_improve'] ?? null) || (!$prioTried && is_array($ep['_improve_prio'] ?? null))); $it++) {
+            if (is_array($ep['_improve'] ?? null)) $imp = $ep['_improve']; else { $imp = $ep['_improve_prio']; $imp['test'] .= ' [kandidat prioritas + Unit Priority Fix]'; $prioTried = true; } $o2 = $imp['o']; foreach ((array)($o['info'] ?? []) as $k0 => $v0) if (!array_key_exists($k0, (array)($o2['info'] ?? []))) $o2['info'][$k0] = $v0;
             foreach (['V8 Priority Review', 'Stop Family Evidence', 'Fastest Unit Priority Fix', 'Commitment Tightening', 'Comparator Invariant Guard', 'Block Consolidation Review', 'V15.23 Fuel State Assessment', 'Candidate Registry', 'Run Status', 'IE Incremental Redispatch'] as $k0) if (isset($o['info'][$k0])) $o2['info'][$k0] = $o['info'][$k0];
             if (function_exists('pp_v3_relabel')) pp_v3_relabel($o2, $inputAsli);
             $clean(); $o3 = $o2; try { $o3 = pp_v15_fast_priority_fix($inputAsli, $o2, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
@@ -8917,7 +8919,7 @@ function pp_v1524_event_closure(array $inputAsli, array $o, float $em = 600.0): 
             if (json_encode($g2['data'] ?? null) === json_encode($o['data'] ?? null)) { $closure[] = ['test' => $imp['test'], 'decision' => 'DITOLAK_STAGE_GUARD']; break; }
             $closure[] = ['iteration' => $it + 1, 'test' => $imp['test'], 'decision' => 'DITERAPKAN', 'before' => $ep['final_metrics'] ?? null, 'after' => $imp['met']];
             $o = $g2; $clean(); $ep = pp_v1524_event_proof($inputAsli, $o); }
-        unset($ep['_improve']); if ($closure) $ep['closure'] = $closure; $o['info']['Commitment Event Proof'] = $ep;
+        unset($ep['_improve'], $ep['_improve_prio']); if ($closure) $ep['closure'] = $closure; $o['info']['Commitment Event Proof'] = $ep;
     } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Event Proof'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
     $clean(); if (function_exists('pp_sp_prof')) pp_sp_prof('event_proof', $tV, ['closure' => count($closure)]);
     return $o;
@@ -8941,9 +8943,14 @@ function pp_v1524_event_proof(array $input, array $o): array {
     $ev = function (array $X, bool $compound) use (&$nEval, $cap, $orig, $o, $XW, $K, $restore) {
         if ($nEval >= $cap) return null; $chg = []; foreach ($X as $u => $mk) foreach ($mk as $r => $on) if ((bool)$on !== (bool)($XW[$u][$r] ?? false)) $chg[$r] = true;
         if (!$chg) return null; $nEval++; $R = pp_v1523_local_eval($orig, $o, $XW, $X, $K, $restore, $chg, null, $compound); $nEval += max(0, count((array)($R['attempts'] ?? [])) - 1); $restore(); return $R; };
-    $best = null;
-    $verdict = function (?array $R, string $test = '') use ($mW, &$best): string { if ($R === null) return 'TIDAK_DIEVALUASI_BATAS'; if (empty($R['valid'])) return 'TIDAK_VALID';
-        if (pp_v1523_cmp($R['met'], $mW) >= 0) return 'VALID_TIDAK_LEBIH_BAIK';
+    $best = null; $bestPr = null;
+    $verdict = function (?array $R, string $test = '') use ($mW, &$best, &$bestPr): string { if ($R === null) return 'TIDAK_DIEVALUASI_BATAS'; if (empty($R['valid'])) return 'TIDAK_VALID';
+        if (pp_v1523_cmp($R['met'], $mW) >= 0) {
+            /* V15.27 kandidat prioritas: langkah valid yang mengurangi inversi prioritas tanpa startup / blok baru, namun belum lebih ekonomis
+             * sebelum Unit Priority Fix; diuji SEKALI melalui rantai closure yang sama dan diterima hanya bila objective ekonomi final lebih baik */
+            $m = $R['met']; if (pp_v1527_econ_first() && is_array($R['o'] ?? null) && $m['inv'] < $mW['inv'] && $m['startups_nm'] <= $mW['startups_nm'] && $m['new_blocks'] <= $mW['new_blocks']
+                && ($bestPr === null || (($m['inv'] <=> $bestPr['met']['inv']) ?: (pp_v1523_cmp($m, $bestPr['met']) ?: strcmp($test, $bestPr['test']))) < 0)) $bestPr = ['o' => $R['o'], 'met' => $m, 'test' => $test];
+            return 'VALID_TIDAK_LEBIH_BAIK'; }
         if (is_array($R['o'] ?? null) && ($best === null || (pp_v1523_cmp($R['met'], $best['met']) ?: strcmp($test, $best['test'])) < 0)) $best = ['o' => $R['o'], 'met' => $R['met'], 'test' => $test];
         return 'VALID_LEBIH_BAIK'; };
     /* margin per row */
@@ -9036,7 +9043,7 @@ function pp_v1524_event_proof(array $input, array $o): array {
     $unev = array_values(array_filter($events, fn($e) => $e['reason_code'] === 'TIDAK_DIEVALUASI'));
     return ['schema' => 'v1524-event-proof-1', 'status' => $bad ? 'TIDAK_TERBUKTI' : ($unev ? 'SEBAGIAN_TIDAK_DIEVALUASI' : 'TERBUKTI'), 'final_metrics' => $mW,
         'events' => $events, 'minimum_load_intervals' => $minLoad, 'not_proven' => array_map(fn($e) => $e['unit'] . ' ' . $e['event'] . ' ' . $e['time'], $bad),
-        'evaluations' => $nEval, 'wall_s' => round(microtime(true) - $t0, 3), '_improve' => $best,
+        'evaluations' => $nEval, 'wall_s' => round(microtime(true) - $t0, 3), '_improve' => $best, '_improve_prio' => $bestPr,
         'method' => 'defisit analitik (Export - beban unit + legal headroom GT/Babelan online lain; STG tidak dihitung) + uji redispatch engine jendela lokal (tunda start 1 row / stop 1 row lebih awal / swap peer) terhadap dispatch FINAL'];
 }
 /* V15.25 TAHAP AUTO BALANCE 2+2 (sesudah Commitment Tightening): setiap komposisi 3+1 dari startup OTOMATIS (pp_v1525_bal3x1_rows)

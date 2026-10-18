@@ -4970,6 +4970,7 @@ function pp_run_simulation_once(array $input): array {
  * shortage digeser delta (actual tetap apa adanya; hanya substitusi distillate pada row planning yang berubah, dibatasi plafon
  * liter user). Hasil kedua dipakai hanya bila Effective Total Gas lebih dekat ke window. PP_V1525_ACT_DIST=0 -> nonaktif. */
 function pp_run_simulation_once_raw(array $input): array {
+    $GLOBALS['ppSimRaw'] = (int)($GLOBALS['ppSimRaw'] ?? 0) + 1;
     if (($sf = (string)getenv('PP_SIMSTAT')) === '') return pp_v1525_sim_act_dist($input);
     if (empty($GLOBALS['__simstat_reg'])) { $GLOBALS['__simstat_reg'] = 1; register_shutdown_function(function () use ($sf) { @file_put_contents($sf, json_encode(($GLOBALS['__simstat'] ?? []) + ['snap_hits' => $GLOBALS['ppV1525ActSnapHits'] ?? 0]) . "\n", FILE_APPEND); }); }
     $tS = microtime(true); $o = pp_v1525_sim_act_dist($input);
@@ -4979,7 +4980,7 @@ function pp_run_simulation_once_raw(array $input): array {
 function pp_v1525_snap_gkey($k): bool {
     if (!is_string($k) || $k === 'GLOBALS' || $k === 'argv' || $k === 'argc' || preg_match('/^_[A-Z]/', $k)) return false;
     return !in_array($k, ['__ppx_once_calls', '__pp_core_runs', '__pp_core_runs_total', '__pp_fuel_epoch', '__pp_budget', '__pp_budget_aborts', '__ppx_once_memo', '__ppx_once_depth',
-        '__ppx_once_memo_hits', '__simstat', '__simstat_reg', 'ppV1525ActSnap', 'ppV1525WantSnap', 'ppV1525ActSnapHits', 'ppTlHook'], true);
+        '__ppx_once_memo_hits', '__simstat', '__simstat_reg', 'ppV1525ActSnap', 'ppV1525WantSnap', 'ppV1525ActSnapHits', 'ppTlHook', 'ppSimRaw', 'ppSimRawProf'], true);
 }
 function pp_v1525_sim_act_dist(array $input): array {
     $m0 = (array)($input['data3']['modeling'] ?? []);
