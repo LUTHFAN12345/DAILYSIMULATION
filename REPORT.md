@@ -1,211 +1,199 @@
-# REPORT V15.24 — Order-Independent Commitment Tightening, Final-Dispatch Event Proof, 192+ Regression
+# REPORT V15.25 — Remediasi UI + Logic + Full Regression (basis V15.24)
 
-Engine build: `V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017`. Baseline paket: `XAMPP_START_PRIORITY_RC_V1523_COMMITMENT_TIGHTENING.zip` (V15.23) di atas V15.22.
-Platform acceptance: **PHP 7.4.33** (opcache CLI aktif), engine dikunci ke **1 logical CPU** (`taskset -c 0`, dibuktikan `Cpus_allowed_list` proses worker). Hasil multi-core dipisahkan (bagian helper-failure).
+Engine build: `V15.25-REMEDIATION-UI-LOGIC-FULL-REGRESSION-20261018`. Baseline: V15.24 (`d207780`, ZIP FULL SHA-256 `cc8135fc…8aef`, direproduksi — lihat `harness/v1525/BASELINE_V1524_CONFIRMED.md`).
+Platform acceptance: **PHP 7.4.33** (opcache CLI aktif), setiap run engine dipin ke **1 logical CPU** (`taskset`, dibuktikan `Cpus_allowed_list`). MariaDB lokal untuk store report.
 
-## 1. Skenario aktual (A0, snapshot user) — sebelum / sesudah
+## 0. Ringkasan gate
 
-| versi | CP (USD/MWh) | HR (BTU/kWh) | Distillate (l) | Gas (BBTUD) | event start/stop |
+| gate | hasil |
+|---|---|
+| Matrix engine 229 test (207 lama + 22 baru) | **193 PASS, 36 EXPECTED_REJECTION (bukti terminal numerik), 0 FAIL** |
+| 14 FAIL V15.24 | 0 FAIL: 8 PASS (published FASTEST_FINAL, hard PASS), 6 EXPECTED_REJECTION dengan sertifikat numerik |
+| Grup I + H15/H16 (MySQL, gi.php) | 14/14 PASS |
+| UI semantic smoke V15.24 (Playwright) | 26/26 PASS |
+| UI popup Ctrl+Click / Fix Load (3 layar x zoom 100/125/150 %, normal & Full Screen) | 203/203 PASS (V15.24: 134 dari 143 FAIL) |
+| UI Distillate Priority 1–6 | 5/5 PASS |
+| UI Check Yesterday Data / Start Up CC / target backward | 12/12 PASS; backend 9/9 PASS |
+| Maximum Review vs Fastest | kandidat Fastest selalu dibandingkan; pemenang = comparator final (T227, T228) |
+| Runtime 1 CPU (target normal 30 s / sulit 40 s / exact rerun 15 s / Actual Gas inkremental 5 s / Fix warm 10 s) | **TIDAK LULUS**: exact rerun (0,5–0,7 s) dan Actual Gas inkremental (0,75–0,92 s) lulus; A0 cold 41–43 s, gas/LNG/terminal/Actual cold 73–110 s, Fix Load warm 27 s di atas target |
+
+**Keputusan paket:** gate runtime adalah gate material yang belum lulus, sehingga paket **tidak** diberi nama FINAL/VALIDATED. Paket yang dibangun: `XAMPP_V1525_RC_RUNTIME_GATE_OPEN_{PATCH,FULL_DEPLOYMENT,DOCUMENTATION}.zip` (release candidate, clean-install smoke lulus, lihat bagian 8).
+
+## 1. Skenario aktual A0 (snapshot user) — sebelum / sesudah
+
+| versi | CP (USD/MWh) | HR (BTU/kWh) | Distillate (l) | Gas (BBTUD) | event |
 |---|---|---|---|---|---|
-| V15.22 (PHP 7.4, 1 CPU) | 105.8901 | 8575.04 | 318214 | 65.4547 | G1+10:00 G1-17:30 G5+07:30 G5-19:30 G6+01:00 G9+01:00 S1+04:30 |
-| V15.24 (PHP 7.4, 1 CPU) | 93.4567 | 8481.93 | 208545 | 65.4567 | G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 |
+| V15.24 | 93.4567 | 8481.93 | 208545 | 65.4567 | G3+05:30 G3-17:00 G5+07:30 G5-18:30 G6+10:00 G9+05:00 S1+09:00 |
+| V15.25 | 93.4567 | 8481.93 | 208545 | 65.4567 | identik (Event Proof TERBUKTI, 25 evaluasi) |
 
-V15.23 pada PHP 8.3 multi-core: CP 93,4422 (commitment identik dengan V15.24; selisih CP 0,0145 = perbedaan floating point PHP 7.4 vs 8.3 pada commitment yang sama).
+A0 tidak berubah karena tidak memuat komposisi 3+1, Actual Gas, Start Up CC, target Export harian, maupun kelanjutan startup. Prescreen kapasitas tightening (`PP_V1525_CAPBOUND=0` -> output identik, T229) hanya mengurangi simulasi.
 
-### Bukti event dispatch FINAL A0 (status **TERBUKTI**, 25 evaluasi redispatch, 4.921 s)
+## 2. Matrix regresi (Fastest; PHP 7.4.33; worker dipin 1 CPU per run; 3 run paralel di CPU berbeda)
 
-| unit | event | jam | alasan | first-needed | defisit MW tanpa unit (sesudah legal headroom unit lain) | uji tunda/stop 1 row | swap same-block | swap cross-block |
-|---|---|---|---|---|---|---|---|---|
-| G3 | START | 05:30 | DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range | 08:30 | 3.48 | TIDAK_VALID export_range: row 18: Export 2.83 < RangeMin 30 | G4:VALID_TIDAK_LEBIH_BAIK | G1:TIDAK_VALID |
-| G3 | STOP | 17:00 | STOP_PALING_AWAL_LEGAL | - | - | TIDAK_VALID export_range: row 32: Export 11.32 < RangeMin 30 | - | - |
-| G5 | START | 07:30 | DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range | 08:30 | 22.39 | TIDAK_VALID export_range: row 17: Export 3.25 < RangeMin 30; export_range: row 27: Export 28.95 < RangeMin 30 | G1:TIDAK_VALID | - |
-| G5 | STOP | 18:30 | STOP_PALING_AWAL_LEGAL | - | - | TIDAK_VALID export_range: row 36: Export 10.18 < RangeMin 15 | - | - |
-| G6 | START | 10:00 | REQUIRED_START_PALING_LAMBAT_LEGAL:export_range | 10:30 | 11.77 | TIDAK_VALID export_range: row 21: Export 27.51 < RangeMin 30; export_range: row 22: Export 25.51 < RangeMin 30 | G4:TIDAK_VALID | G1:TIDAK_VALID |
-| G9 | START | 05:00 | REQUIRED_START_PALING_LAMBAT_LEGAL:export_range | 06:30 | 12.37 | TIDAK_VALID export_range: row 15: Export -13.2 < RangeMin 15; export_range: row 16: Export 0.62 < RangeMin 15 | - | - |
+| grup | jumlah | PASS | EXPECTED_REJECTION | FAIL |
+|---|---|---|---|---|
+| A | 32 | 31 | 1 | 0 |
+| B | 30 | 29 | 1 | 0 |
+| C | 16 | 11 | 5 | 0 |
+| D | 30 | 24 | 6 | 0 |
+| E | 24 | 14 | 10 | 0 |
+| F | 18 | 17 | 1 | 0 |
+| G | 14 | 8 | 6 | 0 |
+| H | 14 | 10 | 4 | 0 |
+| J | 7 | 7 | 0 | 0 |
+| X | 23 | 22 | 1 | 0 |
+| K | 6 | 5 | 1 | 0 |
+| L | 6 | 6 | 0 | 0 |
+| N | 7 | 7 | 0 | 0 |
+| M | 2 | 2 | 0 | 0 |
+| **total engine** | **229** | **193** | **36** | **0** |
 
-Interval beban minimum: G3 05:30–08:30 STARTUP_SEQUENCE (defisit maks bila dilepas 3.48 MW); G3 12:30–16:30 DIPERLUKAN_KAPASITAS_EXPORT_MIN (defisit maks bila dilepas 29.61 MW); G5 07:30–08:00 STARTUP_SEQUENCE (defisit maks bila dilepas 0 MW); G5 12:00–13:30 DIPERLUKAN_KAPASITAS_EXPORT_MIN (defisit maks bila dilepas 2.5 MW); G5 17:00–18:00 DIPERLUKAN_KAPASITAS_EXPORT_MIN (defisit maks bila dilepas 27.17 MW); G6 10:00–13:00 STARTUP_SEQUENCE (defisit maks bila dilepas 14.89 MW); G6 00:00–00:00 DIPERLUKAN_KAPASITAS_EXPORT_MIN (defisit maks bila dilepas 7.69 MW); G9 05:00–07:00 STARTUP_SEQUENCE (defisit maks bila dilepas 50.7 MW)
+Grup I + H15/H16 (MySQL): 14/14 PASS. Total engine + DB: **243 test, 207 PASS, 36 EXPECTED_REJECTION, 0 FAIL** (+ UI 26 + 203 + 5 + 12, backend yesterday 9).
+Oracle publikasi diperketat: hasil hanya dihitung published bila job-level `publish_allowed`, hard validation PASS, 48 row, **dan** output tidak `preliminary` / `publish_allowed=false` (lihat bagian 5, temuan 2+2).
 
-## 2. Matrix regresi (Fastest; PHP 7.4.33, worker dipin 1 CPU per run)
+### 14 FAIL V15.24 -> V15.25
 
-| grup | jumlah | PASS | EXPECTED_REJECTION | FAIL | Test ID FAIL |
-|---|---|---|---|---|---|
-| A | 32 | 31 | 1 | 0 | - |
-| B | 30 | 29 | 1 | 0 | - |
-| C | 16 | 11 | 5 | 0 | - |
-| D | 30 | 24 | 6 | 0 | - |
-| E | 24 | 14 | 5 | 5 | T124, T127, T128, T129, T130 |
-| F | 18 | 9 | 4 | 5 | T134, T135, T136, T137, T139 |
-| G | 14 | 6 | 5 | 3 | T154, T161, T164 |
-| H | 14 | 8 | 5 | 1 | T178 |
-| J | 7 | 7 | 0 | 0 | - |
-| X | 22 | 21 | 1 | 0 | - |
-| I (+H15/H16, MySQL/UI) | 14 | 14 | 0 | 0 | - |
-| UI semantic smoke (Playwright) | 26 | 26 | 0 | 0 | - |
+| test | judul | V15.24 | V15.25 | CP V15.25 | wall s (matrix, 3 run paralel) | bukti |
+|---|---|---|---|---|---|---|
+| T124 | PLN Export Priority susunan kedua (Daily target required 1800) | FAIL | EXPECTED_REJECTION | 115.1217 | 61.67 | TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.1657 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sis |
+| T127 | Daily Export tepat target (target 1500 required) | FAIL | EXPECTED_REJECTION | 102.2193 | 59.04 | TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.2880 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sis |
+| T128 | Daily Export di bawah target perlu koreksi (target 2600 required) | FAIL | EXPECTED_REJECTION | 114.0188 | 133.79 | TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.9729 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sis |
+| T129 | Daily Export infeasible dengan terminal proof (target 6000 required) | FAIL | EXPECTED_REJECTION | 114.0188 | 0.9 | TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET: Target Export harian REQUIRED 6000.00 MWh > energi Export maksimum 3617.42 MWh (batas ata |
+| T130 | Dev Dispatch positif dan negatif (rule -10..+10 row 10-30) | FAIL | EXPECTED_REJECTION | 119.6635 | 0.83 | TERMINAL_INFEASIBLE:INPUT_CONTRADICTION_EXPORT_BAND_STEP: Row 27 -> row 28: Export harus <= 100.00 lalu >= 140.00 MW, perubahan minimum 40.00 MW > bat |
+| T134 | Actual PGN lebih rendah (row 1-8) | FAIL | PASS | 93.0236 | 68.04 | published FASTEST_FINAL, hard PASS |
+| T135 | Actual Fixed Flow Jababeka lebih tinggi (row 1-8) | FAIL | PASS | 108.7221 | 116.98 | published FASTEST_FINAL, hard PASS |
+| T136 | Actual Fixed Flow Jababeka lebih rendah | FAIL | PASS | 100.8793 | 0.73 | published FASTEST_FINAL, hard PASS |
+| T137 | Actual MM2100 lebih tinggi | FAIL | PASS | 94.248 | 1.81 | published FASTEST_FINAL, hard PASS |
+| T139 | Kombinasi ketiga Actual Gas | FAIL | EXPECTED_REJECTION | 92.677 | 220.14 | GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION |
+| T154 | Trip G9 | FAIL | PASS | 108.3314 | 32.76 | published FASTEST_FINAL, hard PASS |
+| T161 | Change Over legal (Block 1 start 08:00, Block 2 stop 12:00) | FAIL | EXPECTED_REJECTION | 109.1954 | 0.84 | TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 6 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum ( |
+| T164 | Gas/Export/Bus Flow setelah trip (G9 trip + busflow_min 20) | FAIL | PASS | 108.3314 | 35.1 | published FASTEST_FINAL, hard PASS |
+| T178 | Fix + Actual Gas lebih rendah | FAIL | PASS | 94.3407 | 1.6 | published FASTEST_FINAL, hard PASS |
 
-**Total engine+DB: 221 test — PASS 174, EXPECTED_REJECTION 33, FAIL 14** (+26 UI smoke).
 
-EXPECTED_REJECTION (bukti terminal per test):
+### EXPECTED_REJECTION (bukti terminal)
 
-- T028 Konfigurasi Initial Stop + Simulation + Hold dipindahkan ke G8 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b
+- T028 Konfigurasi Initial Stop + Simulation + Hold dipindahkan ke G8 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32
 - T043 Seluruh feeder Block 1 Stop -> input ditolak / Block 1 tidak dapat dipenuhi — INPUT_CONTRADICTION:BLOCK_REQUIRED_CONTRADICTORY_INPUT
-- T067 Distillate hanya pada unit prioritas pertama bila cukup (shortage kecil) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 60.000 l (2.1617 BBTUD); sisa 9.3066 BBTUD > batas atas penu
-- T069 Distillate level 30% dari batas user — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 99.240 l (3.5755 BBTUD); sisa 7.8928 BBTUD > batas atas penu
-- T070 Distillate level 50% dari batas user — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 165.400 l (5.9592 BBTUD); sisa 5.5091 BBTUD > batas atas pen
+- T067 Distillate hanya pada unit prioritas pertama bila cukup (shortage kecil) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 60.000 l (2.1617 BBTUD); sisa 9.3066 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.197
+- T069 Distillate level 30% dari batas user — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 99.240 l (3.5755 BBTUD); sisa 7.8928 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.197
+- T070 Distillate level 50% dari batas user — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 165.400 l (5.9592 BBTUD); sisa 5.5091 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.19
 - T077 LNG lebih ekonomis dibanding Distillate (action recommendation) — FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS
 - T078 Kombinasi LNG + Distillate diperlukan (IE +20, action recommendation) — FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS
-- T086 LNG quota turun (-4) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.4683 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 3.5500 BBTUD > batas atas pe
+- T086 LNG quota turun (-4) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.4683 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 3.5500 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.1
 - T102 Gas Shortage dengan LNG + Distillate (IE +20, recommendation) — FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS
-- T103 Kapasitas LNG tidak cukup (add_lng 1 BBTUD, shortage aktual) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi 1.0000 BBTUD masih tersisa kebutuhan 10.1919 BBTUD > batas atas penurunan gas yang masih dapat dipaka
-- T104 Kapasitas Distillate tidak cukup (limit 20000 l) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 20.000 l (0.7206 BBTUD); sisa 10.7477 BBTUD > batas atas pen
-- T105 Terminal fuel infeasible (IE +20, distillate limit aktual) [A7] — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.8010 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 5.8827 BBTUD > batas atas pe
+- T103 Kapasitas LNG tidak cukup (add_lng 1 BBTUD, shortage aktual) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi 1.0000 BBTUD masih tersisa kebutuhan 10.1919 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.1777 BBTUD. Opsi: tambahan LNG total
+- T104 Kapasitas Distillate tidak cukup (limit 20000 l) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 20.000 l (0.7206 BBTUD); sisa 10.7477 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.19
+- T105 Terminal fuel infeasible (IE +20, distillate limit aktual) [A7] — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.8010 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 5.8827 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.4
 - T106 Stale fuel-decision cache tidak dipakai (action none setelah distillate) — FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS
 - T116 Follow PV naik tajam — RESERVE_INFEASIBILITY_CERTIFICATE
-- T117 Follow PV turun tajam — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 13.6230 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 1.7047 BBTUD > batas atas pe
+- T117 Follow PV turun tajam — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 13.6230 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 1.7047 BBTUD > batas atas penurunan gas yang masih dapat dipakai 1.1
 - T122 SR Effective Minimum tinggi (40 MW) — RESERVE_INFEASIBILITY_CERTIFICATE
-- T125 Export Range ketat (min 40 sepanjang hari) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 16.0082 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0899 BBTUD > batas atas pe
-- T132 Adjustment beberapa unit + Bus Flow boundary (G2 26, G8 90; busflow_min 20) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.9900 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0717 BBTUD > batas atas pe
-- T133 Actual PGN lebih tinggi dari simulasi (row 1-8) — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
-- T140 Historical actual immutable (actual row 1-8 tercermin di output) — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
-- T141 Current/future planning rows adjustable (row 9+ tanpa actual) — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
-- T150 Save Actual Gas draft/final dan Monitoring reload exact [engine payload] — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
-- T152 Trip Babelan unit 2 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G8 105 MW, S2 16.03 MW, S3 57.
-- T153 Trip G8 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b
-- T155 Trip unit prioritas tertinggi GT (G8, plus B2 tetap) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b
-- T162 Change Over tidak legal (Block 2 stop 01:00 sebelum Block 1 siap) — INPUT_CONTRADICTION:CHANGE_OVER_TIDAK_LEGAL:WAKTU_MANUAL_TERLALU_RAPAT
-- T163 Ramp dan reserve setelah trip (G8 trip 12:00, SR 10) — RESERVE_INFEASIBILITY_CERTIFICATE
-- T171 Fix di atas MAX ditolak (G2 40 MW) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran te
-- T172 Fix di bawah MIN ditolak (G2 5 MW) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 5 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (2 pelanggaran ter
+- T124 PLN Export Priority susunan kedua (Daily target required 1800) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.1657 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 5.2473 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.0
+- T125 Export Range ketat (min 40 sepanjang hari) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 16.0082 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0899 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.4
+- T127 Daily Export tepat target (target 1500 required) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.2880 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 3.3697 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.1
+- T128 Daily Export di bawah target perlu koreksi (target 2600 required) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.9729 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 6.0546 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.0
+- T129 Daily Export infeasible dengan terminal proof (target 6000 required) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET: Target Export harian REQUIRED 6000.00 MWh > energi Export maksimum 3617.42 MWh (batas atas per row = min(RangeMax, kapasitas fisik seluruh unit tersedia pada b
+- T130 Dev Dispatch positif dan negatif (rule -10..+10 row 10-30) — TERMINAL_INFEASIBLE:INPUT_CONTRADICTION_EXPORT_BAND_STEP: Row 27 -> row 28: Export harus <= 100.00 lalu >= 140.00 MW, perubahan minimum 40.00 MW > batas langkah Export 35 MW per 30 menit (hard constraint export_step). Pi
+- T132 Adjustment beberapa unit + Bus Flow boundary (G2 26, G8 90; busflow_min 20) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 15.9900 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 4.0717 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.5
+- T139 Kombinasi ketiga Actual Gas — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
+- T152 Trip Babelan unit 2 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, G8 105 MW, S2 16.03 MW, S3 57.68 MW) pada beban maksimum -> Export mak
+- T153 Trip G8 — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32
+- T155 Trip unit prioritas tertinggi GT (G8, plus B2 tetap) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32
+- T161 Change Over legal (Block 1 start 08:00, Block 2 stop 12:00) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 6 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S
+- T162 Change Over tidak legal (Block 2 stop 01:00 sebelum Block 1 siap) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 8 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S
+- T163 Ramp dan reserve setelah trip (G8 trip 12:00, SR 10) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 17.0908 BBTUD > plafon distillate user 330.800 l (11.9183 BBTUD); sisa 5.1725 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.1
+- T171 Fix di atas MAX ditolak (G2 40 MW) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 40 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (1 pelanggaran tersisa). Fixed Load tidak diubah/dihapus 
+- T172 Fix di bawah MIN ditolak (G2 5 MW) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G2 row 20 = 5 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (2 pelanggaran tersisa). Fixed Load tidak diubah/dihapus e
 - T173 Fix pada unit Trip/Unavailable ditolak (G5 trip + fix) — 
-- T175 Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G5 row 30 = 25 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (4 pelanggaran te
-- T177 Fix + Actual Gas lebih tinggi — GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION
+- T175 Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30) — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G5 row 30 = 25 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (4 pelanggaran tersisa). Fixed Load tidak diubah/dihapus 
 - T194 Stale preliminary/recommendation basis ditolak (aksi recommendation sesudah distillate, app hangat) = run dingin — FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS
+- T213 Plafon distillate kecil (40000 l): hanya prioritas eligible pertama — TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 40.000 l (1.4412 BBTUD); sisa 10.0271 BBTUD > batas atas penurunan gas yang masih dapat dipakai 0.19
 
-FAIL (akar masalah di bagian 6):
 
-- T124 [E] PLN Export Priority susunan kedua (Daily target required 1800) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 1: Export 15.4 < RangeMin 72.04 Recommended action: Keep the source block running longer or increase legal o
-- T127 [E] Daily Export tepat target (target 1500 required) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 1: Export 15.4 < RangeMin 59.07 Recommended action: Keep the source block running longer or increase legal o
-- T128 [E] Daily Export di bawah target perlu koreksi (target 2600 required) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 1: Export 15.4 < RangeMin 106.6 Recommended action: Keep the source block running longer or increase legal o
-- T129 [E] Daily Export infeasible dengan terminal proof (target 6000 required) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 1: Export 15.4 < RangeMin 155 Recommended action: Keep the source block running longer or increase legal out
-- T130 [E] Dev Dispatch positif dan negatif (rule -10..+10 row 10-30) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 10: Export 118.94 > RangeMax 100 Recommended action: Keep the source block running longer or increase legal 
-- T134 [F] Actual PGN lebih rendah (row 1-8) — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=62.2954 di luar window [65.4200,65.4600] (deviasi 3.124
-- T135 [F] Actual Fixed Flow Jababeka lebih tinggi (row 1-8) — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=69.0145 di luar window [65.4200,65.4600] (deviasi 3.554
-- T136 [F] Actual Fixed Flow Jababeka lebih rendah — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=67.3665 di luar window [65.4200,65.4600] (deviasi 1.906
-- T137 [F] Actual MM2100 lebih tinggi — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=65.6038 di luar window [65.4200,65.4600] (deviasi 0.143
-- T139 [F] Kombinasi ketiga Actual Gas — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=65.6421 di luar window [65.4200,65.4600] (deviasi 0.182
-- T154 [G] Trip G9 — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 17: Export 19.32 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal ou
-- T161 [G] Change Over legal (Block 1 start 08:00, Block 2 stop 12:00) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 21: Export 19.89 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal ou
-- T164 [G] Gas/Export/Bus Flow setelah trip (G9 trip + busflow_min 20) — NG tidak dipublikasikan; terminal proof: None; status None; msg PLN Export is outside the configured range. row 17: Export 19.32 < RangeMin 30 Recommended action: Keep the source block running longer or increase legal ou
-- T178 [H] Fix + Actual Gas lebih rendah — NG tidak dipublikasikan; terminal proof: None; status None; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=62.2778 di luar window [65.4200,65.4600] (deviasi 3.142
+### Grup baru K/L/M/N + X229
 
-Payload engine unik: 154 dari 207 test engine (test berpayload sama memakai oracle berbeda; lihat MATRIX_CHANGELOG.md).
+- T208 [K] Distillate Priority 1-6 global: payload lama 2 grup Block 1/Block 2 = payload gabungan (migrasi identik) — PASS, CP 93.4567; identik dengan A0_actual: events=True cp 93.4567 vs 93.4567 proof=True 48row=True; dipakai ['G3', 'G6']; eligible ['G6', 'G3', 'G2', 'G5', 'G8', 'G9']; tidak eligible tapi dipakai []; prioritas eligible pertama G6 dipakai=True
+- T209 [K] Distillate Priority 1-6: Block 2 di atas Block 1 (G1,G2,G5,G6,G4,G3) — PASS, CP 93.4762; dipakai ['G2']; eligible ['G2', 'G5', 'G6', 'G3', 'G8', 'G9']; tidak eligible tapi dipakai []; prioritas eligible pertama G2 dipakai=True; pola Distillate->Gas->Distillate: []
+- T210 [K] Distillate Priority 1-6 campuran lintas blok (G2,G6,G5,G4,G1,G3) — PASS, CP 93.4762; dipakai ['G2']; eligible ['G2', 'G6', 'G5', 'G3', 'G8', 'G9']; tidak eligible tapi dipakai []; prioritas eligible pertama G2 dipakai=True; pola Distillate->Gas->Distillate: []
+- T211 [K] Unit prioritas 1 Stop seharian (G6 trip): dilewati dengan alasan, tidak distart demi distillate — PASS, CP 93.0509; g6 online 0/48; dipakai ['G3', 'G4']; eligible ['G4', 'G3', 'G2', 'G5', 'G8', 'G9']; tidak eligible tapi dipakai []; prioritas eligible pertama G4 dipakai=True; G6: {'unit': 'G6', 'eligible': False, 'reason': 'TRIP_ATAU_STOP_SEHARIAN'}
+- T212 [K] Unit Stop (G4 tidak berbeban) prioritas 1: tidak eligible, unit running berikutnya dipakai — PASS, CP 93.4567; dipakai ['G3', 'G6']; eligible ['G6', 'G3', 'G2', 'G5', 'G8', 'G9']; tidak eligible tapi dipakai []; prioritas eligible pertama G6 dipakai=True
+- T213 [K] Plafon distillate kecil (40000 l): hanya prioritas eligible pertama — EXPECTED_REJECTION, CP 102.4698; tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti 11.4683 BBTUD > plafon distillate user 40.000 l (1.4412 BBTUD); sisa 10.0271 B
+- T214 [L] S1 & S2 paralel, startup tambahan otomatis: 2+2 diuji sebelum 3+1 (IE +30 row 17-40) — PASS, CP 107.0065; Block Balance 2x2 EVALUATED reason ['AUTO_BALANCE_2X2_TIDAK_LEGAL_3X1_DIPERTAHANKAN', 'AUTO_BALANCE_2X2_TIDAK_LEGAL_3X1_DIPERTAHANKAN', 'AUTO_BALANCE_2X2_TIDAK_LEGAL_3X1_DIPERTAHANKAN', 'AUTO_BALAN; event proof TERBUKTI not_proven=[]
+- T215 [L] S1 & S2 paralel tanpa kebutuhan unit tambahan (IE +0): tidak ada 3+1 otomatis — PASS, CP 97.8234; 
+- T216 [L] S1 & S2 paralel IE +15: keputusan 2+2/3+1 dicatat dengan alasan — PASS, CP 101.3333; 
+- T217 [L] Intent user eksplisit (G1 Start Based On Request 08:00) tidak ditimpa 2+2 — PASS, CP 109.1974; g1 first_on=17 expected 17 (08:30)
+- T218 [L] Blok lawan tidak legal (G3/G4 trip): 3+1 dipertahankan dengan alasan — PASS, CP 116.5369; g3 online 0/48; g4 online 0/48
+- T219 [L] Prioritas unit ditukar (Block 2 di atas Block 1) + IE +30 — PASS, CP 107.0065; 
+- T220 [N] Block 3 cold startup: 40 MW 3,5 jam, 50 MW 1 jam, 60 MW 2,5 jam; S3 berbeban tepat 7,5 jam sesudah startup — PASS, CP 115.5544; lead G8 start row 2 (00:30): profil [40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 50.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0] (harus 40x7,50x2,60x5); S3 first load row 16 (harus 16 = start + 7,5 jam)
+- T221 [N] Start Up CC kemarin: G6 sudah 3 row sequence cold S1 -> sisa profil 20 MW, S1 berbeban row 5 — PASS, CP 94.2265; S1 first load row 5 (harus 5); info {"stg": "S1", "mode": "cold", "lag_rows": 7, "profile_mw": [5, 15, 20, 20, 20, 20, 20], "elapsed_rows": 3, "units": ["G6"], "source": "MATRIX", "remaining_profil; g6 fix 20 MW rows 1-4; bad=[]
+- T222 [N] Start Up CC manual (G6, elapsed 0): sequence cold penuh dari row 1, S1 berbeban row 8 — PASS, CP 94.8797; S1 first load row 8 (harus 8); info {"stg": "S1", "mode": "cold", "lag_rows": 7, "profile_mw": [5, 15, 20, 20, 20, 20, 20], "elapsed_rows": 0, "units": ["G6"], "source": "MANUAL_START_UP_CC", "rema
+- T223 [N] Kelanjutan sequence + commitment STG eksplisit (S1 continuous): commitment user menang, alasan dicatat — PASS, CP 94.2366; info {"s1": {"stg": "S1", "mode": "cold", "lag_rows": 7, "profile_mw": [5, 15, 20, 20, 20, 20, 20], "elapsed_rows": 3, "units": ["G6"], "source": "MATRIX", "status": "DIABAIKAN_KOMITMEN_STG_EKSPLIS
+- T224 [N] Backward scheduling S1 target first load 06:00: GTG start mundur 7 row (same day) — PASS, CP 93.9239; S1 first 12 info {"mode": "BACKWARD_START_SAME_DAY", "target_first_load_row": 12, "lag_rows": 7, "gtg": "G6", "gtg_first_load_row": 5, "stg_first_load_row": 12}
+- T225 [N] Backward scheduling S1 target 02:00 (sebelum lag): kelanjutan dari kemarin, S1 berbeban row 4 — PASS, CP 94.1836; S1 first load row 4 (harus 4); info {"stg": "S1", "mode": "cold", "lag_rows": 7, "profile_mw": [5, 15, 20, 20, 20, 20, 20], "elapsed_rows": 4, "units": ["G6"], "source": "BACKWARD_SCHEDULE_TARGET_0
+- T226 [N] Kelanjutan cross-day selesai kemarin (elapsed >= lag): unit & STG Running sejak row 1 — PASS, CP 94.2366; S1 row1 11.19 G6 row1 20.0
+- T227 [M] Maximum Review tidak lebih buruk dari Fastest (A0): kandidat Fastest selalu dibandingkan, pemenang = comparator final — PASS, CP 93.4567; MR CP 94.4508 (inv 10) vs Fastest CP 93.4567 (inv 15; job Fastest mandiri 93.4567); pemenang comparator final FASTEST_CANDIDATE, dipublikasikan FASTEST_CANDIDATE CP 93.4567
+- T228 [M] Maximum Review tidak lebih buruk dari Fastest (A3 G6->G4): pemenang = comparator final — PASS, CP 95.4159; MR CP 95.4159 (inv 17) vs Fastest CP 93.5553 (inv 21; job Fastest mandiri 93.5553); pemenang comparator final MAXIMUM_REVIEW, dipublikasikan MAXIMUM_REVIEW CP 95.4159
+- T229 [X] Prescreen batas atas kapasitas Export OFF (PP_V1525_CAPBOUND=0) -> output identik — PASS, CP 93.4567; identik dengan A0_actual: events=True cp 93.4567 vs 93.4567 proof=True 48row=True
 
-## 3. Benchmark P0.4 (PHP 7.4.33, 1 logical CPU, 3 cold + 3 warm)
 
-Topologi: CPU(s):                                  4 / On-line CPU(s) list:                     0-3 / Model name:                              Intel(R) Xeon(R) Processor @ 2.10GHz / Thread(s) per core:                      1 / Core(s) per socket:                      4 / Socket(s):                               1
-Kuota cgroup: /sys/fs/cgroup/cpu/cpu.cfs_quota_us=-1, /sys/fs/cgroup/cpu/cpu.cfs_period_us=100000; affinity worker: `taskset -c 0` -> `Cpus_allowed_list: 0`; PHP 7.4.33 (cli) (built: Oct 17 2026 13:10:59) ( NTS ); {"opcache.enable_cli":"1","zts":0,"pcntl":true,"memory_limit":"1024M"}; helper_slots = 0 pada 1 CPU (cores_detected memakai affinity).
+## 3. Runtime PHP 7.4.33 — 1 logical CPU
 
-Definisi: cold = cache job/basis/bundle dikosongkan + proses PHP baru; warm = cache dipertahankan, job baru untuk payload sama (dilayani registry hasil); exact rerun = payload identik; Fix Load warm = satu sel Fix Load sesudah run A0 (cache basis).
-
-| skenario | mode | target s | V15.24 wall median (min–max) | V15.24 CPU s | V15.24 RSS MB | V15.22 wall median (min–max) | V15.22 CPU s | V15.22 RSS MB | CP V15.24 / V15.22 | deterministik |
-|---|---|---|---|---|---|---|---|---|---|---|
-| normal Fastest | cold | 30 | 36.02 (35.8–37.44) | 35.59 | 454.0 | 71.48 (70.47–71.73) | 57.27 | 395.4 | [93.4567] / [105.8901] | True |
-| normal Fastest | warm | 30 | 0.55 (0.51–0.63) | 0.52 | 38.9 | 5.32 (5.28–5.65) | 5.24 | 57.7 | [93.4567] / [105.8901] | True |
-| gas-cukup (mandatory window) | cold | 40 | 77.25 (76.31–81.21) | 76.33 | 555.0 | 87.2 (86.63–95.16) | 68.23 | 468.1 | [68.4413] / [68.4413] | True |
-| gas-cukup (mandatory window) | warm | 40 | 2.64 (2.49–2.74) | 2.6 | 67.3 | 4.11 (4.09–4.18) | 2.55 | 66.1 | [68.4413] / [68.4413] | True |
-| shortage/LNG | cold | 40 | 51.46 (49.46–53.51) | 50.61 | 260.9 | 115.26 (114.88–117.85) | 96.01 | 518.4 | [73.9965] / [73.9965] | True |
-| shortage/LNG | warm | 40 | 0.57 (0.53–0.62) | 0.52 | 38.8 | 2.09 (2.04–2.11) | 0.53 | 38.7 | [73.9965] / [73.9965] | True |
-| terminal/infeasible (IE +20) | cold | 40 | 89.86 (85.08–93.03) | 88.74 | 466.7 | 134.25 (133.89–137.52) | 96.66 | 578.9 | [122.0047] / [122.0047] | True |
-| terminal/infeasible (IE +20) | warm | 40 | 22.49 (21.87–23.95) | 22.14 | 115.4 | 23.32 (22.88–24.4) | 20.05 | 82.8 | [122.0047] / [122.0047] | True |
-| difficult/cross-block | cold | 40 | 41.66 (41.34–43.51) | 41.14 | 435.4 | 100.28 (98.5–101.29) | 75.06 | 317.4 | [101.7689] / [106.0179] | True |
-| difficult/cross-block | warm | 40 | 0.52 (0.49–0.54) | 0.5 | 38.8 | 3.73 (3.66–3.8) | 0.65 | 38.7 | [101.7689] / [106.0179] | True |
-| fuel decision required (input_data) | cold | 40 | 1.86 (1.79–2.39) | 1.81 | 55.7 | 1.88 (1.69–2.21) | 1.84 | 55.5 | [68.4541] / [68.4541] | True |
-| fuel decision required (input_data) | warm | 40 | 2.08 (1.97–2.16) | 2.03 | 55.7 | 1.81 (1.77–1.86) | 1.78 | 55.4 | [68.4541] / [68.4541] | True |
-| one-cell Fix Load (feasible, G8 row 8 = 95 MW) | cold | 10 | 35.03 (34.97–35.24) | 34.54 | 442.1 | 95.02 (95.02–95.02) | 69.48 | 441.5 | [93.3691] / [95.5793] | True |
-| one-cell Fix Load (feasible, G8 row 8 = 95 MW) | warm | 10 | 0.66 (0.52–36.96) | 0.63 | 38.9 | 7.88 (2.12–91.47) | 7.78 | 65.6 | [93.3691] / [107.4461] | True |
-| one-cell Fix Load memaksa commitment repair (G2 row 20 = 25 MW) | warm | - | 23.73 (23.73–23.73) | 23.37 | 284.7 | 77.4 (77.4–77.4) | 61.38 | 409.7 | [93.3625] / [106.0083] | True |
-| exact rerun | exact | 15 | 0.5 (0.48–0.55) | 0.47 | 38.9 | 5.49 (5.39–5.77) | 5.42 | 57.6 | [93.4567] / [105.8901] | True |
-
-## 4. Root cause dan perbaikan (generik, tanpa nama unit / fixture)
-
-| # | Root cause (terukur) | Perbaikan | Fungsi |
-|---|---|---|---|
-| 1 | Commitment Tightening V15.23 menerapkan perbaikan pertama yang ditemukan (first-improvement), memotong evaluasi dengan anggaran per kandidat — hasil bergantung urutan kandidat dan anggaran. | Pencarian **best-improvement per ronde**: seluruh kandidat neighborhood dibentuk dari baseline kanonik yang sama, seluruhnya dievaluasi (redispatch, dedup sidik jari commitment) tanpa mengubah baseline, diranking comparator deterministik + sidik jari, satu pemenang diterapkan, perbaikan lain yang sel commitment-nya tidak beririsan digabung berurutan rank (masing-masing dievaluasi ulang). Anggaran hanya diperiksa di awal ronde (ronde tidak pernah terpotong). Log kandidat kanonik (terurut). Uji 3 urutan acak (`PP_V1523_SHUFFLE`) identik byte: 48 row, CP, HR, event, bukti, gate. | `pp_v1523_tighten` |
-| 2 | Comparator V15.23 menaruh CP ekonomi di atas prioritas unit; urutan Bagian VII menghendaki running-unit-first / inversi prioritas / startup tak-perlu / blok baru sebelum CP. | **Comparator V15.24**: valid -> inversi running-unit-first (unit-row level L berbeban sementara legal headroom unit online berprioritas lebih tinggi >= bebannya) -> startup tak-wajib -> blok baru -> CP ekonomi (band 0,02%) -> HR -> startup -> online unit-row -> start lebih lambat -> stop lebih awal -> sidik jari. `PP_V1524_CMP=0` = comparator V15.23. | `pp_v1523_metrics`, `pp_v1523_cmp` |
-| 3 | Biner penuh untuk latest legal start / earliest legal stop memboroskan evaluasi (log2 rentang per kandidat per ronde). | Pencarian **galloping** (1,2,4,… row lalu biner pada rentang terakhir) — hasil sama di bawah asumsi monoton, evaluasi O(log jarak). Penundaan unit Required yang +1 row-nya gagal HANYA pada batas bawah Export tidak diuji +2/+4/+6 (subset sel online -> pasti gagal, monoton; `PP_V1524_MONO=0` = selalu diuji, output identik — test X). BACKFILL bertingkat (+4/+6 hanya bila +2 valid & lebih baik). | `pp_v1523_tighten` |
-| 4 | Bukti start/stop V15.23 dihitung pada dispatch ANTARA (sebelum Unit Priority Fix) — Unit Priority Fix dapat membuat tunda-start / stop-awal yang tadinya tidak valid menjadi valid & lebih baik (terukur T045: G9 01:00, tunda valid & CP 102,09 -> 101,16). | **Bukti event pada dispatch FINAL** (`pp_v1524_event_proof`): per start & interval beban minimum — first-needed row & defisit MW (Export tanpa unit + legal headroom GT/Babelan online lain + kopling STG proporsional), unit running (beban, min/max legal, ramp, headroom), prioritas efektif, kandidat same-block / cross-block + uji swap, status bahan bakar & window gas, margin Export/SR/BusFlow/STG, lead time, CP/CP ekonomi/HR, uji tunda 1 row (galloping bila lebih baik), uji stop 1 row lebih awal, uji DECOMMIT & GESER interval bila penundaan gagal hanya karena runtime/sequence, kode alasan. **Penutupan** (`pp_v1524_event_closure`): langkah VALID & LEBIH BAIK terbaik diterapkan, melewati Unit Priority Fix + pelengkap bukti C4 yang sama, stage guard, bukti dihitung ulang (maks 3). Dipakai jalur bundle Fastest DAN jalur warm/Maximum Review. | `pp_v1524_event_proof`, `pp_v1524_event_closure`, `pp_sp_final_bundle`, `pp_job_run_economic_review` |
-| 5 | Merit C2 menolak start yang pembuktiannya hanya counterfactual penuh (start lebih awal dari lead sequence karena runtime minimum) — T034 tidak terpublikasi. | Bukti event final (tunda tidak valid + interval GESER tidak lebih baik + swap tidak lebih baik) diterima sebagai bukti numerik C2. | `pp_v15_merit_proof` |
-| 6 | Basis warm IE satu per konteks, ditimpa run terakhir -> rerun profil IE yang sama memberi hasil berbeda tergantung riwayat (T111: CP 95,0865 vs 93,4567). | Basis **eksak per (konteks, profil IE efektif, Actual Gas, Fix Load)**; profil yang pernah dihitung penuh memakai basisnya sendiri (identik dengan run dingin). | `pp_v1517_ie_store`, `pp_v1517_ie_warm`, `pp_v1524_ie_exact_file` |
-| 7 | Plafon bahan bakar user (distillate liter / LNG) lebih kecil dari kebutuhan terbukti -> hasil "aksi tidak diterapkan" (pratinjau non-terminal, distillate terjadwal melampaui plafon). | **TERMINAL_INFEASIBLE_FUEL_CAP** bila sisa kebutuhan > batas atas penurunan gas yang masih dapat dipakai (audit gas): bukti numerik (kebutuhan, plafon, sisa, batas audit) + opsi (plafon liter yang dibutuhkan / LNG tambahan / campuran). | `pp_v1524_fuel_cap_terminal`, `pp_attach_or_reject_acceptance`, `pp_job_run_economic_review` |
-| 8 | `Effective Total Gas` (dipakai validator bila ada jam Actual) dihitung dari gas KOTOR; `Total Gas Used` NETO (dikurangi offset distillate) -> setiap Actual Gas pada skenario distillate dinilai melampaui window sebesar offset (11,48 BBTUD). | Effective Total Gas memakai basis neto yang sama. | `worker02.php` (akuntansi gas) |
-| 9 | Jumlah core terdeteksi dari `/proc/cpuinfo` (4) walau proses dibatasi 1 CPU (affinity/cgroup) -> 3 helper time-slicing di 1 CPU (wall > CPU, terukur V15.22 A0 75 s wall vs 60 s CPU). | `cores = min(processor, affinity, kuota cgroup)` -> helper_slots 0 pada 1 CPU; topologi/affinity/kuota dilaporkan di `Runtime Platform Diagnostics`. | `pp_v4_cores`, `pp_v1524_cpu_limits`, `pp_v1518_runtime_diag` |
-| 10 | Hasil pembantu diterima bila `count(data) > 0` (parsial dapat menjadi FINAL); pembantu hang menahan job tanpa batas. | Hasil pembantu diterima hanya bila SHA-1 sidecar cocok, tepat 48 row, info ada, tidak terpotong; selain itu ditolak (reason code) dan dihitung ulang pemilik. Tugas terkunci > max(45 s, 3x durasi tugas terlama) diambil alih pemilik (fungsi murni -> identik). Hook injeksi kegagalan khusus pembantu (`PP_V1524_FAULT`, non-aktif tanpa env). | `pp_sp_par_pipeline`, `pp_sp_cand_task`, `pp_v4_cooperate`, `pp_v1524_fault` |
-
-File diubah terhadap V15.23: `run.php`, `worker02.php` (satu titik: basis neto Effective Total Gas). `index.php`, `weekly_ui.php`, `worker_functions.php`, `saved_data_store.php` tidak diubah. Engine build: `V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017`.
-
-## 5. P0 Gate
-
-| syarat | status | bukti |
-|---|---|---|
-| candidate-order independence | PASS — 3 seed acak (A,B,C) pada app tanpa cache identik dengan urutan kanonik (48 row unit, CP, event, status & kode bukti); uji P0.1 terpisah: hash data/bukti/tightening/gate identik | T185–T187, `harness/v1524/matrix/evidence/T18[5-7].json` |
-| comparator deterministik | PASS — cold x3, warm x3 hash dispatch identik (benchmark), shuffle identik | bagian 3, T185–T187 |
-| G5/G3 bukti numerik | PASS — tabel bagian 1 (first-needed 08:30, defisit, swap G4/G1, tunda tidak valid) | `Commitment Event Proof` pada run T184 |
-| gas-cukup runtime | root cause terdokumentasi (bagian 6.2); keputusan aman: dipertahankan | bagian 3 & 6.2 |
-| PHP 7.4 1 CPU benar-benar diuji | PASS — seluruh matrix & benchmark PHP 7.4.33, affinity terbukti per run | `__bench.affinity` setiap evidence |
-| helper failure aman | PASS — 7 skenario identik referensi serial | bagian 7 |
-| semantic smoke | PASS 26/26 + semantik engine G1/G3/G4/G5 identik | bagian 8 |
-
-## 6. Kegagalan tersisa dan keterbatasan (jujur, tidak dipalsukan)
-
-1. **Daily Export target REQUIRED (T124, T127, T128, T129; T130 dispatch-dev)** — lift target harian dibagi sebanding headroom RangeMax menjadi lantai per row termasuk row 1 (hanya unit Last Data Running) -> row 1 Export 15,4 < lantai 59–155 MW. Identik pada V15.22 (diverifikasi). Redistribusi pasca-dispatch dicoba dan dibatalkan (pada tahap itu commitment belum diputuskan -> target turun ke 550 MWh). Perbaikan benar: target harian ikut menggerakkan commitment.
-2. **Actual Gas menyimpang + aksi distillate aktif (T134–T137, T139)** — kompensasi actual tidak menyelesaikan ulang jumlah distillate dan sertifikat supplier-window tidak diterbitkan pada jalur distillate (pada skenario tanpa distillate penyimpangan yang sama menghasilkan `TERMINAL_INFEASIBLE_GAS_SUPPLIER_WINDOW` dengan bukti). V15.22 juga gagal (bahkan dengan deviasi palsu 10,8 BBTUD karena basis kotor — root cause #8 sudah diperbaiki).
-3. **Trip unit besar G9 (T154, T164)** — tidak ditemukan commitment valid (row 17 Export 19,32 < 30). Identik V15.22 (hash 4f6536ff19d8). Repair generik dicoba (majukan start / start unit tersedia) — seluruh kandidat tidak valid, +30 s — dibatalkan.
-4. **Runtime 1 CPU di atas target** untuk skenario normal (A0) dan beberapa skenario sulit — lihat bagian 3 (nilai aktual & bottleneck: tightening + bukti event pada redispatch core ~0,15–0,2 s/evaluasi; konsolidasi blok; review V8). Gas-cukup: CPU naik ±11 s vs V15.22 karena penilaian kandidat pada state bahan bakar (kandidat latest-legal gagal window gas wajib -> pendaratan gas + kandidat berikutnya); prescreen terbukti diuji dan tidak berlaku (deviasi 2,84 < batas audit 3,20 BBTUD) sehingga tidak dipasang.
-5. **Maximum Review smoke (T207)** CP 94,4592 vs Fastest 93,4567 — jalur Maximum Review menjalankan Tightening + bukti event (TERBUKTI) tetapi tanpa konsolidasi blok dan comparator final multi-kandidat milik Fastest, sehingga berakhir pada commitment lain (G1/G6 07:30); dilaporkan transparan.
-6. Pembantu lambat (uji `slow`) aman (identik) tetapi wall naik (110 s) — ambil alih memakai ambang 45 s / 3x tugas terlama.
-7. Grup H (Ctrl+Click / full screen) diuji pada tingkat payload & precheck server; interaksi klik UI hanya pada smoke semantik.
-
-### 6.1 Fix Load warm (target 10 s) — catatan benchmark
-Baris "one-cell Fix Load (feasible) warm" berisi 3 run: run pertama sesudah A0 (**36,96 s**, CPU 36,54 s) adalah perhitungan sebenarnya; dua run berikutnya (0,52 / 0,66 s) dilayani registry hasil payload yang sama. Median 0,66 s karena itu **tidak** dipakai sebagai klaim: nilai acuan Fix Load warm adalah **36,96 s (target 10 s tidak tercapai)**. Root cause: jalur warm lokal (Stage A, jendela redispatch sekitar sel Fix) tidak dapat mereproduksi dispatch FINAL yang sudah melalui tightening + Unit Priority Fix + closure bukti event, sehingga Stage A ditolak comparator dan pipeline jatuh ke perbaikan penuh (Stage C). V15.22 warm 7,9 s menghasilkan CP 107,45 dan tidak deterministik (rentang 2,1–91,5 s); V15.24 menghasilkan CP 93,37 deterministik. Eksperimen perluasan jendela warm dan forced-start warm diuji dan dibatalkan (hasil berbeda dari run dingin).
-
-### 6.2 Gas-cukup (P0.3) — root cause runtime
-Cold 77,25 s wall / 76,33 s CPU (V15.22: 87,2 s wall / 68,23 s CPU). Wall turun karena helper time-slicing dihapus; CPU naik ±8 s karena penilaian kandidat pada state bahan bakar: kandidat latest-legal yang gagal window gas wajib memicu pendaratan gas (~5 s) + evaluasi kandidat berikutnya. Prescreen "kandidat pasti gagal window" diuji tetapi tidak dapat dibuktikan aman (deviasi 2,84 < batas atas audit 3,20 BBTUD), sehingga tidak dipasang — hasil (CP 68,4413) identik V15.22.
-
-## 7. Helper failure (multi-core, DIPISAHKAN dari acceptance 1 CPU)
-PHP 7.4.33 tanpa pin (4 CPU, helper aktif), payload A0, hook `PP_V1524_FAULT` hanya pada proses pembantu. Seluruh skenario memberi 48 row + CP 93,4567 + hash data/bukti/gate identik referensi serial.
-
-| skenario | hasil | ditolak (reason) | diambil alih | mode paralel |
+| kasus | target | V15.24 wall s (status, CP) | V15.25 wall s (status, CP) | target V15.25 |
 |---|---|---|---|---|
-| referensi serial | PASS | - | - | NO_TASKS |
-| normal | PASS identik | - | - | PARALLEL |
-| crash | PASS identik | - | - | PARALLEL (tugas dihitung ulang pemilik) |
-| hang | PASS identik | - | spcand (20 s) | PARALLEL |
-| malformed | PASS identik | SIDIK_TIDAK_COCOK x2 | - | PARALLEL |
-| partial (<48 row) | PASS identik | ROW_TIDAK_48 x2 | - | PARALLEL |
-| satu lambat | PASS identik (wall 110 s) | - | - | PARALLEL |
-| semua gagal | PASS identik | - | - | SERIAL_OR_UNPROVEN |
+| A0 cold (3x) | <= 30 s | 49.80, 48.60, 50.47 (FASTEST_FINAL, 93.4567) | 41.64, 41.14, 42.84 (FASTEST_FINAL, 93.4567) | TIDAK LULUS |
+| Gas cukup A1 cold | <= 40 s | 99.83 (FASTEST_FINAL, 68.4413) | 103.46 (FASTEST_FINAL, 68.4413) | TIDAK LULUS |
+| LNG A2 cold | <= 40 s | 65.06 (FASTEST_FINAL, 73.9965) | 72.84 (FASTEST_FINAL, 73.9965) | TIDAK LULUS |
+| Terminal A7 cold | <= 40 s | 103.74 (TERMINAL_INFEASIBLE, 122.0047) | 109.83 (TERMINAL_INFEASIBLE, 122.0047) | TIDAK LULUS |
+| Actual PGN rendah cold (tanpa basis) | <= 40 s | 79.11 (None, 112.121) | 73.71 (FASTEST_FINAL, 93.0236) | TIDAK LULUS |
+| Exact rerun (3x warm) | <= 15 s | 0.54, 0.58, 0.64 (FASTEST_FINAL, 93.4567) | 0.57, 0.53, 0.69 (FASTEST_FINAL, 93.4567) | LULUS |
+| Actual PGN rendah inkremental | <= 5 s | 71.67, 74.31, 76.98 (None, 112.121) | 0.86, 0.77, 0.75 (FASTEST_FINAL, 93.183) | LULUS |
+| Actual Fixed Flow Jababeka tinggi inkremental | <= 5 s | 44.35, 45.66, 45.39 (None, 105.9801) | 0.80, 0.80, 0.91 (FASTEST_FINAL, 107.3177) | LULUS |
+| Actual MM2100 tinggi inkremental | <= 5 s | 60.49, 58.20, 57.41 (None, 105.9801) | 0.89, 0.92, 0.76 (FASTEST_FINAL, 94.248) | LULUS |
+| Fix Load warm G2 row 20 (tanpa cache hasil) | <= 10 s | 26.60, 27.39, 27.34 (FASTEST_FINAL, 93.3625) | 27.07, 27.22, 27.64 (FASTEST_FINAL, 92.8227) | TIDAK LULUS |
 
-Bukti: `harness/v1524/evidence/helper_fault_final/summary_final.txt`, `all_final.log`.
+Metode: `harness/v1525/bench/bench.py` — setiap run `taskset -c 1` (PHP 7.4.33, opcache CLI aktif; `Cpus_allowed_list: 1` tercatat per run), V15.25 lalu V15.24 dijalankan berurutan pada container yang sama tanpa beban lain. Cold = salinan app dengan `jobs/` kosong. Warm = basis A0 dijalankan dulu pada app yang sama, lalu exact rerun / Actual Gas / Fix Load (Fix Load tidak memakai cache hasil: payload baru). Data mentah: `harness/v1525/bench/raw/`.
+Catatan: V15.24 pada Actual Gas menghasilkan status kosong (tidak dipublikasikan) — FAIL fungsional, bukan hanya waktu. Fix Load warm pada kedua versi jatuh ke commitment repair penuh karena commitment basis tidak feasible dengan Fix G2 25 MW row 20 (~27 s).
+Profil satu job A0: ~184 simulasi inti, ~38,8 s dari 42,9 s di simulasi (rata-rata 0,21 s; 78 % di shaper final). Prescreen kapasitas mengurangi evaluasi Commitment Tightening 99 -> 83 (23,9 s -> 18,9 s) dengan hasil identik.
 
-## 8. UI semantic smoke (Playwright, Chromium) — 26/26 PASS
-UI-S1 (G1/G3/G4/G5: Initial Status Stop + Commitment Mode Simulation -> tidak dapat stop, HOLD_TO_END_AFTER_START), UI-SWAP-1/2, UI-S2, UI-S3 Block Required B0–B6 ON/OFF, UI-S4 Save / Reload / tanggal lain, UI-S5 stale-cache. Semantik engine (G1/G3/G4/G5) identik UI. Bukti: `harness/v1524/evidence/ui_smoke/smoke_final.json`, `engine_semantics_final.txt`.
+## 4. Perubahan per fase (generik; tanpa hard-code unit/tanggal/fixture)
 
-## 9. Lokasi evidence (paket DOCUMENTATION)
-- Matrix: `harness/v1524/matrix/` — definisi `mxdefs.py`, runner `mx.py`, `MATRIX_CHANGELOG.md`, evidence per test `evidence/T*.json` (status, cek, payload hash, `__bench` affinity), grup I/H15/H16 `evidence/group_I_H15_H16.json`, `report/<grup>/report.json|csv`.
-- Benchmark: `harness/v1524/bench/bench_final.md|json` (+ skrip `bench.sh`, `post.sh`, `benchrep.py`); raw JSON per run tidak dimasukkan (59 MB; dapat dibangkitkan ulang dengan `bench.sh`).
-- Helper failure: `harness/v1524/evidence/helper_fault_final/`; UI: `harness/v1524/evidence/ui_smoke/`.
-- Harness: `harness/v1524/runjob2.php` (runner job + pengukuran wall/CPU/RSS/affinity), `hf/`, `ui/`, `pack/pack.sh`.
+- **F1 grup E (Export harian / dispatch-dev):** target Export harian REQUIRED sebagai batas kumulatif (rencana + top-up akhir water-filling di dalam pita per row); validator `export_daily`; sertifikat `TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET` (batas atas energi = Σ min(RangeMax, kapasitas fisik)), `INPUT_CONTRADICTION_EXPORT_BAND_STEP` (pita dispatch-dev vs langkah Export 35 MW), dan konteks target harian pada `TERMINAL_INFEASIBLE_FUEL_CAP`.
+- **F1 grup F/H (Actual Gas):** rekonsiliasi Effective Total Gas pada jalur distillate (shortage digeser deviasi actual, iteratif secant, plafon liter user), baris jam actual immutable (validator Min PGN Flow memperlakukan jam actual sebagai historis), biaya MM2100 dari actual. V15.25 runtime: rerun rekonsiliasi hanya menjalankan blok akuntansi bahan bakar (state dispatch dipulihkan dari simulasi polos, `PP_V1525_ACT_SNAP`).
+- **F1 grup G (trip / Change Over):** GTG simple-cycle standby sebagai last resort hanya pada row kekurangan kapasitas nyata; sertifikat `TERMINAL_INFEASIBLE_EXPORT_CAPACITY` (row ≥ 2, seluruh unit tersedia maksimum); sertifikat terminal juga di jalur non-Fastest (Change Over / Maximum Review).
+- **F1 Maximum Review:** kandidat Fastest (dingin, tanpa basis warm IE) selalu dihitung lebih dulu lalu dibandingkan dengan comparator final yang sama; sidik jari engine memuat flag env `PP_*` sehingga cache hasil tidak tercampur antar-flag.
+- **F2 popup Ctrl+Click / Fix Load:** portal `position:fixed`, clamp/flip terhadap visualViewport ∩ panel Full Screen, footer OK/Cancel sticky, Esc/Enter/klik luar, focus trap, reposisi pada resize/scroll.
+- **F3 Distillate Priority 1–6:** Block 1 dan Block 2 digabung, migrasi payload lama deterministik (urutan grup lalu urutan unit), hanya unit Running & legal eligible, alasan unit dilewati (`Distillate Unit Selection`).
+- **F4 2+2 sebelum 3+1:** tahap Auto Balance sesudah tightening (pengganti = unit legal prioritas berikut di blok lawan, lead 0/1/2/4 row, redispatch + validasi penuh); comparator mengutamakan komposisi lebih seimbang hanya bila CP ekonomi tidak lebih buruk di luar band 0,02 %; intent user (Start Based On Request / Required) tidak ditimpa; reason code `AUTO_BALANCE_2X2_BEFORE_3X1` / `…_VALID_TETAPI_CP_EKONOMI_LEBIH_BURUK_3X1_DIPERTAHANKAN` / `…_TIDAK_LEGAL_3X1_DIPERTAHANKAN`.
+- **F5 Actual Gas inkremental:** tahap warm 0 (dispatch terkunci, rekonsiliasi akuntansi) dan 0b (trim gas row planning), bukti event basis dipakai ulang bila 48 row identik.
+- **F6:** tombol **Check Yesterday Data** (Monitoring Daily Plan > Daily Plan > No Data, versi aktif terbaru, data rusak dilewati dengan alasan, project terisolasi, pratinjau + Apply/Cancel + provenance); status **Start Up CC**; kelanjutan startup lintas tanggal (sisa profil sebagai fix load, feeder lain ditahan, mode `<mode>@n`), backward scheduling dari target first STG load (same-day start_at atau kelanjutan dari kemarin), commitment STG eksplisit yang menetapkan waktu (Continuous / Start Based On Request) menang dengan alasan dicatat; profil cold Block 3 40 MW 3,5 jam, 50 MW 1 jam, 60 MW 2,5 jam (S3 berbeban tepat 7,5 jam sesudah startup); aturan Additional HRSG pada shaper diselaraskan dengan `block_sequence`/validator untuk sequence Block 3 (6 langkah).
+- **Runtime:** prescreen batas atas kapasitas Export (sound) di Commitment Tightening; rekonsiliasi Actual Gas tanpa ulang dispatch.
 
-## 10. Paket final, clean install, dan smoke dari ZIP
-Dibangun oleh `harness/v1524/pack/pack.sh` dari commit branch `claude/keen-galileo-sjjhsk`.
+## 5. Temuan yang diperbaiki selama full regression (tidak dipalsukan PASS)
 
-| ZIP | isi | SHA-256 |
-|---|---|---|
-| `XAMPP_FINAL_VALIDATED_PATCH.zip` | run.php, worker02.php, CHECKPOINT.md, DEPLOYMENT_MANIFEST.md, SHA256SUMS.txt | `179a2dcdd62a54443710613a2f005be070aa9bba4348b17be74b6ca88e80b768` |
-| `XAMPP_FINAL_VALIDATED_FULL_DEPLOYMENT.zip` | runtime lengkap (tanpa config/db.php, secret, jobs, saved, input/output data, profiler, fixture, harness) | `cc8135fc4ab197b381d534ae2078547a2e3fd83ea27c89c1e9e851fbf66f8aef` |
-| `XAMPP_FINAL_VALIDATED_DOCUMENTATION.zip` | REPORT.md, CHECKPOINT.md, harness + evidence | (dicatat di jawaban akhir; ZIP ini memuat laporan ini sendiri) |
+1. 2+2 yang diterapkan membawa info output redispatch saja -> `Run Status` hilang -> hasil dikunci `RUN_NOT_CONVERGED` sementara job-level `publish_allowed=true` (17 test terhitung PASS pada run sebelumnya). Diperbaiki: metadata pipeline incumbent dibawa; job-level `publish_allowed` konsisten dengan kontrak hasil; oracle matrix diperketat. Matrix diulang penuh.
+2. Comparator 2+2 global tanpa batas CP membuat T032 gagal gerbang merit C4 -> preferensi 2+2 dibatasi band CP ekonomi; bukti event final (uji stop 1 row lebih awal, defisit interval beban minimum) dipakai sebagai bukti C4.
+3. Cache hasil tercampur antar-flag env (T188 Tightening OFF mengisi cache konteks A0) -> sidik jari engine memuat flag `PP_*`.
+4. Kelanjutan startup: Required + Start Based On Simulation pada STG tidak lagi dianggap konflik; validator mengenali sisa profil sequence dari kemarin.
 
-Verifikasi (seluruhnya pada hasil ekstrak FULL ZIP di folder kosong):
-- `sha256sum -c SHA256SUMS.txt` OK; lint PHP 7.4.33 seluruh `*.php` OK; secret scan OK; tidak ada berkas terlarang.
-- Smoke A0 (PHP 7.4.33, `taskset -c 0`): 38,79 s wall / 38,42 s CPU / 455 MB; 48 row, CP 93,4567, `FASTEST_FINAL`, publish, Event Proof TERBUKTI, hash dispatch `864d39afb316` **identik** dengan matrix T184; build `V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017`.
-- MySQL: database kosong baru + `database/schema.sql` dari ZIP + `config/db.php` dibuat dari `db.example.php` (tidak termasuk paket) -> `rs_status` ok (schema `pp-report-mysql-1`); grup I01–I12 + H15/H16 dijalankan ulang pada instalasi bersih: **14/14 PASS**.
-- Bukti: `harness/v1524/evidence/zip_clean_install/zip_smoke_A0.json`, `zip_clean_groupI.json`.
+## 6. Keterbatasan (dilaporkan apa adanya)
+
+- **Runtime cold 1 CPU belum memenuhi target** (bagian 3). Pada mesin uji ini V15.24 sendiri membutuhkan ~42 s untuk A0 (laporan V15.24: 36 s pada mesin lain). Profil: ~85–90 % waktu adalah simulasi inti (rata-rata ~0,2 s per simulasi, ~180–240 simulasi per job; 78 % di shaper final). Pengurangan lebih lanjut membutuhkan perubahan algoritmik pada shaper/tightening yang mengubah hasil; tidak dilakukan tanpa bukti kesetaraan.
+- Fix Load warm (payload baru, tanpa cache hasil) ~27 s pada V15.24 maupun V15.25: Fix yang membuat commitment basis tidak feasible memicu commitment repair penuh; target 10 s tidak tercapai.
+- Gas cukup / LNG / terminal cold 4–12 % lebih lambat daripada V15.24 pada mesin yang sama (tahap baru: Auto Balance 2+2, bukti event final, sertifikat); A0 cold 15 % lebih cepat.
+- Actual Gas cold (tanpa basis warm) tetap > 40 s (T134 ~61–68 s, T135 ~111–117 s, T139 ~212–220 s); jalur yang dipakai operator (rerun inkremental dari basis) < 2 s (T136/T137/T178).
+- T139 (kombinasi tiga Actual Gas) berakhir pada keputusan operator `GAS_WINDOW_CONFLICT` dengan bukti (bukan rencana final).
+- T032 (S2 Initial Stop + Simulation + Hold): CP 98,96 vs V15.24 98,37 (+0,6 %) — jalur pencarian berbeda karena preferensi keseimbangan blok; hasil valid & terbukti.
+- T228 (Maximum Review A3): MR dipublikasikan CP 95,42 vs Fastest 93,56 karena comparator final (aturan V15.24) mengutamakan inversi prioritas (17 vs 21) sebelum CP ekonomi.
+- Uji Block 3 cold memakai fixture A0 dengan Block 1 & 2 Running sejak 00:00; pada fixture A0 asli (hanya Block 3 yang menopang row 1) row 1 terbukti infeasible (sertifikat EXPORT_ROW_1).
+- Benchmark dan matrix dijalankan pada container 4 vCPU (worker dipin 1 CPU); angka absolut bergantung mesin.
+
+## 7. File diubah terhadap V15.24
+
+`index.php`, `run.php`, `saved_data_store.php`, `worker02.php`, `worker_functions.php`, `CHECKPOINT.md`, `DEPLOYMENT_MANIFEST.md`, `SHA256SUMS.txt`. Harness/evidence: `harness/v1525/` (matrix, UI, yesterday, bench, pack, evidence).
+
+## 8. Paket & clean-install smoke
+
+Paket (release candidate, BUKAN FINAL/VALIDATED karena gate runtime): `XAMPP_V1525_RC_RUNTIME_GATE_OPEN_PATCH.zip`, `XAMPP_V1525_RC_RUNTIME_GATE_OPEN_FULL_DEPLOYMENT.zip`, `XAMPP_V1525_RC_RUNTIME_GATE_OPEN_DOCUMENTATION.zip`; SHA-256 di `SHA256SUMS_ZIP.txt`.
+Verifikasi `harness/v1525/pack/pack.sh`: lint PHP 7.4 seluruh PHP runtime, secret scan, FULL tanpa `config/db.php` / `jobs/` / `saved/` / `input_data.json` / harness / output job.
+Clean install `harness/v1525/pack/clean_smoke.sh` (bukti `harness/v1525/evidence/clean_install/`): unzip ke direktori baru -> `sha256sum -c SHA256SUMS.txt` OK -> lint ZIP OK -> database MySQL baru dari `database/schema.sql` -> `report_status` schema `pp-report-mysql-1` OK -> `index.php` HTTP 200 -> `report_yesterday` NO_DATA (DB kosong) -> run A0 dari ZIP (PHP 7.4.33, 1 CPU): FASTEST_FINAL, CP 93,4567, 38,25 s.

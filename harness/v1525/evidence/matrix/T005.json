@@ -1,0 +1,248 @@
+{
+ "id": "T005",
+ "group": "A",
+ "title": "Initial Stop + Start Based On Request 04:00 G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 first_on=9 expected 9 (04:30)"
+ ],
+ "cp": 96.9537,
+ "econ_cp": 97.4294,
+ "hr": 8527.62,
+ "gas_bbtud": 65.4386,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.5696,
+ "daily_export_mwh": 659.42,
+ "distillate_l": 237853,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "09:30",
+   "deficit_mw": 10.01,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G4",
+   "start": "11:30",
+   "first_needed": "14:00",
+   "deficit_mw": 23.81,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G6",
+   "start": "07:30",
+   "first_needed": "10:30",
+   "deficit_mw": 2.37,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "07:00",
+   "deficit_mw": 0.75,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  }
+ ],
+ "events": [
+  "G1+08:00",
+  "G1-14:00",
+  "G4+11:30",
+  "G4-17:30",
+  "G5+04:30",
+  "G5-19:30",
+  "G6+07:30",
+  "G9+04:30",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "f79ce5fe62f3efa4c3d444d2",
+ "job_input_hash": "d055b8c5fd0119f054d2d0a80d050c2ee0532b9341b47a174873afc16b859c13",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 56.63,
+ "cpu_s": 56.36,
+ "max_rss_kb": 390872,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.609
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.07
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.246
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.088
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.31
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.124
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.196
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.088
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.809
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.136
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 27.358
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.307
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.079
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 3.4
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.079
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.266
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.612
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 4.949
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.382
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 4.16
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 5.033
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 2.629
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.698
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.042
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.049
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.031
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 25.315
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.013
+  }
+ ],
+ "tightening_evals": 19,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/f79ce5fe62f3efa4c3d444d2.json"
+}

@@ -1,0 +1,244 @@
+{
+ "id": "T122",
+ "group": "E",
+ "title": "SR Effective Minimum tinggi (40 MW)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "RESERVE_INFEASIBILITY_CERTIFICATE",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: RESERVE_INFEASIBILITY_CERTIFICATE; status None; msg Spinning Reserve is below the configured requirement. row 1: Spinning Reserve 25.23 MW < requirement 40.00 MW (headroom unit online tidak cukup) Recommended act"
+ ],
+ "cp": 106.7854,
+ "econ_cp": 107.2096,
+ "hr": 8656.71,
+ "gas_bbtud": 65.4413,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.6796,
+ "daily_export_mwh": 885.45,
+ "distillate_l": 324174,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 1.15,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 2.1,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:babelan_ramp+spinning_reserve"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "08:30",
+   "deficit_mw": 1.59,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:00",
+   "deficit_mw": 15.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:babelan_ramp+spinning_reserve"
+  }
+ ],
+ "events": [
+  "G4+09:30",
+  "G4-16:30",
+  "G5+07:30",
+  "G5-23:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "f443767082204492e44e14a4",
+ "job_input_hash": "2c457aae6810aec0a0aa3e126486d9f4e80999d27c566d7eda7e14f0d92ead40",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 157.54,
+ "cpu_s": 78.05,
+ "max_rss_kb": 347832,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.89
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.021
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.243
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.765
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.235
+  },
+  {
+   "stage": "cand_run",
+   "s": 21.162
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.017
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.335
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.688
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.03
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.354
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.765
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.024
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.208
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 70.998
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.841
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.017
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.803
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.017
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.662
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_run",
+   "s": 25.501
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.961
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.022
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.786
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.021
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 48.366
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 2.098
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.017
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 25.174
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.178
+  },
+  {
+   "stage": "event_proof",
+   "s": 9.708
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/f443767082204492e44e14a4.json"
+}

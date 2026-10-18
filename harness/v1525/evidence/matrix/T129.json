@@ -1,0 +1,79 @@
+{
+ "id": "T129",
+ "group": "E",
+ "title": "Daily Export infeasible dengan terminal proof (target 6000 required)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET: Target Export harian REQUIRED 6000.00 MWh > energi Export maksimum 3617.42 MWh (batas atas per row = min(RangeMax, kapasitas fisik seluruh unit tersedia pada b",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET: Target Export harian REQUIRED 6000.00 MWh > energi Export maksimum 3617.42 MWh (batas atas per row = min(RangeMax, kapasitas fisik seluruh unit tersedia pada b; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET: Target Export harian REQUIRED 6000.00 MWh > energi Export maksimum 3617.42 MWh (batas atas per row = min(RangeMax, kapa"
+ ],
+ "cp": 114.0188,
+ "econ_cp": null,
+ "hr": 8377.93,
+ "gas_bbtud": 67.1194,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -17.9729,
+ "daily_export_mwh": 1936.97,
+ "distillate_l": 498848,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "5c824aae3345f4c290db58e1",
+ "job_input_hash": "332e7d1dd1d8320f4731379433c9106a266b7cef6b476845ca05fe7e9d324f02",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 0.9,
+ "cpu_s": 0.88,
+ "max_rss_kb": 41792,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.01
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.011
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.011
+  },
+  {
+   "stage": "gate",
+   "s": 0.046
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/5c824aae3345f4c290db58e1.json"
+}

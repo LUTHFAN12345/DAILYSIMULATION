@@ -7,21 +7,21 @@
             "a1": {
                 "ok": true,
                 "scoped": true,
-                "record_id": "rec_20261018110049_094046d768",
+                "record_id": "rec_20261018110901_708cbe8748",
                 "version": 1,
                 "error": null,
                 "skipped_identical": false,
-                "ms": 3.3,
+                "ms": 3.6,
                 "backend": "sqlite-wal"
             },
             "a2": {
                 "ok": true,
                 "scoped": true,
-                "record_id": "rec_20261018110049_271727f3bb",
+                "record_id": "rec_20261018110901_71fcb805ab",
                 "version": 2,
                 "error": null,
                 "skipped_identical": false,
-                "ms": 0.6,
+                "ms": 0.8,
                 "backend": "sqlite-wal"
             },
             "latest_note": "autosave-2"
@@ -81,7 +81,7 @@
             "save": {
                 "ok": true
             },
-            "key": "rpt_423d765794ee4c3ce35b7b47",
+            "key": "rpt_ba19d433a00d5edf0122febc",
             "open_ok": true,
             "cp": 93.4567
         }
@@ -89,11 +89,11 @@
     {
         "id": "I07",
         "title": "Same-name menambah versi dan active version benar",
-        "status": "FAIL",
+        "status": "PASS",
         "detail": {
-            "versions": 1,
-            "active": 1,
-            "save2": false
+            "versions": 2,
+            "active": 2,
+            "save2": true
         }
     },
     {
@@ -101,8 +101,8 @@
         "title": "Different-name membuat report baru",
         "status": "PASS",
         "detail": {
-            "k1": "rpt_423d765794ee4c3ce35b7b47",
-            "k3": "rpt_42b0ea71c7ec4e76fb835425"
+            "k1": "rpt_ba19d433a00d5edf0122febc",
+            "k3": "rpt_49023fa1f5f9c27c7cb3ed77"
         }
     },
     {
@@ -110,7 +110,7 @@
         "title": "Monitoring mempunyai 48 row",
         "status": "PASS",
         "detail": {
-            "monitoring_key": "rpt_e1234622acc095e449a28ce2",
+            "monitoring_key": "rpt_91e818e78a2a6d0f89f86b58",
             "rows": 48,
             "save": true
         }
@@ -131,7 +131,7 @@
         "detail": {
             "ok": false,
             "error": "NO_PERMISSION",
-            "report_key": "rpt_ceacdedbf6572bc036c17e97"
+            "report_key": "rpt_5d7d961a2bd80a181d5e2eef"
         }
     },
     {
@@ -153,10 +153,29 @@
     {
         "id": "H15",
         "title": "Fix Save\/Reload\/Report exact (snapshot + user_fixed_loads)",
-        "status": "FAIL",
+        "status": "PASS",
         "detail": {
-            "fix": null,
-            "db": []
+            "fix": {
+                "g2": [
+                    {
+                        "start": 20,
+                        "stop": 20,
+                        "value": 25
+                    }
+                ]
+            },
+            "db": [
+                {
+                    "unit_id": "G2",
+                    "row_index": 20,
+                    "fixed_mw": "25.0000"
+                },
+                {
+                    "unit_id": "G2",
+                    "row_index": 20,
+                    "fixed_mw": "25.0000"
+                }
+            ]
         }
     },
     {

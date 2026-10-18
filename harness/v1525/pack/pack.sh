@@ -13,7 +13,7 @@ if grep -nE "(password|passwd|secret|api[_-]?key|token)['\"]?\s*(=>|=|:)\s*['\"]
 mkdir -p "$W/full"; tar cf - $RUNTIME | tar xf - -C "$W/full"; (cd "$W/full" && rm -f "$OUT/${PFX}_FULL_DEPLOYMENT.zip" && zip -qr -X "$OUT/${PFX}_FULL_DEPLOYMENT.zip" .)
 mkdir -p "$W/patch"; tar cf - $PATCH | tar xf - -C "$W/patch"; (cd "$W/patch" && rm -f "$OUT/${PFX}_PATCH.zip" && zip -qr -X "$OUT/${PFX}_PATCH.zip" .)
 mkdir -p "$W/doc"; cp REPORT.md CHECKPOINT.md DEPLOYMENT_MANIFEST.md "$W/doc/"; cp harness/v1525/matrix/MATRIX_CHANGELOG.md "$W/doc/"
-tar cf - --exclude='__pycache__' --exclude='*.in.json' harness/v1525 | tar xf - -C "$W/doc"
+git ls-files -co --exclude-standard harness/v1525 | grep -v -E '__pycache__|\.in\.json$' | tar cf - -T - | tar xf - -C "$W/doc"
 (cd "$W/doc" && rm -f "$OUT/${PFX}_DOCUMENTATION.zip" && zip -qr -X "$OUT/${PFX}_DOCUMENTATION.zip" .)
 unzip -l "$OUT/${PFX}_FULL_DEPLOYMENT.zip" | grep -E "config/db.php|/jobs/|saved/|input_data.json|harness|run_prof|\.in\.json" && { echo "FULL memuat berkas terlarang"; exit 1; } || echo "FULL content OK"
 unzip -l "$OUT/${PFX}_DOCUMENTATION.zip" | grep -E "config/db.php|input_data.json$" && { echo "DOC memuat berkas terlarang"; exit 1; } || echo "DOC content OK"

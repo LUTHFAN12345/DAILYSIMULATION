@@ -1,0 +1,238 @@
+{
+ "id": "T013",
+ "group": "A",
+ "title": "Initial Running + Stop Based On Simulation G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 interval [(1, 32)] (stop wajib sesudah start atau bukti terminal)"
+ ],
+ "cp": 94.9312,
+ "econ_cp": 95.3222,
+ "hr": 8505.57,
+ "gas_bbtud": 65.4394,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.9315,
+ "daily_export_mwh": 606.9,
+ "distillate_l": 220143,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "10:00",
+   "first_needed": "10:30",
+   "deficit_mw": 11.73,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 12.65,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:30",
+   "first_needed": "07:30",
+   "deficit_mw": 52.9,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+10:00",
+  "G4-19:00",
+  "G5-16:30",
+  "G6+05:30",
+  "G9+05:30",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "0951c00fa68c8013c52de50e",
+ "job_input_hash": "06d958dc10423e4160f7c516e06a100a0b52f7574eeb419fab8b1bb37ba75540",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 160.08,
+ "cpu_s": 133.69,
+ "max_rss_kb": 742636,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 17.103
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.105
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.612
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.086
+  },
+  {
+   "stage": "cand_run",
+   "s": 16.995
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.107
+  },
+  {
+   "stage": "cand_run",
+   "s": 21.949
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.143
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.453
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.141
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 86.994
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.018
+  },
+  {
+   "stage": "cand_run",
+   "s": 18.247
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.449
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.117
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 44.27
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 5.288
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 15.442
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.192
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 2.614
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 1.064
+  },
+  {
+   "stage": "event_proof",
+   "s": 3.639
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.026
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.009
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 28.335
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  }
+ ],
+ "tightening_evals": 54,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/0951c00fa68c8013c52de50e.json"
+}

@@ -6,3 +6,4 @@ data/
 input_data.json
 output_data.json
 .tl/
+dist/

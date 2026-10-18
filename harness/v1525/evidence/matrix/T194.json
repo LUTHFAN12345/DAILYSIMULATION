@@ -1,0 +1,111 @@
+{
+ "id": "T194",
+ "group": "X",
+ "title": "Stale preliminary/recommendation basis ditolak (aksi recommendation sesudah distillate, app hangat) = run dingin",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "dibandingkan dengan C015 (app hangat, payload sama) di report",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS",
+ "engine_status": "USER_FUEL_DECISION_REQUIRED",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: FUEL_DECISION_REQUIRED_WITH_VALIDATED_OPTIONS; status USER_FUEL_DECISION_REQUIRED; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=74.3813 di luar window [65.4200,65.4600] (deviasi 8.9213 BB"
+ ],
+ "cp": 64.4757,
+ "econ_cp": null,
+ "hr": 8661.43,
+ "gas_bbtud": 74.3813,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.9213,
+ "daily_export_mwh": 565.92,
+ "distillate_l": 247615,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+04:30",
+  "G1-15:00",
+  "G3+04:30",
+  "G3-10:30",
+  "G4+07:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+10:00",
+  "G9+05:00",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "fee5c0a632a8ec221518c4e3_43377730",
+ "job_input_hash": "843b0d1e625f7e7a2b8196bf4ee82450247aad7f5f2c998421be6796660e5752",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 8.32,
+ "cpu_s": 4.12,
+ "max_rss_kb": 60608,
+ "phase_timing": [
+  {
+   "stage": "ie_warm_attempt",
+   "s": 0
+  },
+  {
+   "stage": "supplier_cert_guard",
+   "s": 0.641
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.998
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 7.016
+  },
+  {
+   "stage": "fast_pipeline",
+   "s": 7.016
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.013
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.157
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.091
+  },
+  {
+   "stage": "gate",
+   "s": 0.379
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/fee5c0a632a8ec221518c4e3_43377730.json"
+}

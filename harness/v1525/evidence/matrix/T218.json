@@ -1,0 +1,239 @@
+{
+ "id": "T218",
+ "group": "L",
+ "title": "Blok lawan tidak legal (G3/G4 trip): 3+1 dipertahankan dengan alasan",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g3 online 0/48",
+  "OK g4 online 0/48"
+ ],
+ "cp": 116.5369,
+ "econ_cp": 116.9092,
+ "hr": 8746.4,
+ "gas_bbtud": 65.4587,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -15.0674,
+ "daily_export_mwh": 825.18,
+ "distillate_l": 418205,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 2.78,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G7",
+   "start": "11:30",
+   "first_needed": "14:00",
+   "deficit_mw": 1.89,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G9",
+   "start": "05:30",
+   "first_needed": "07:30",
+   "deficit_mw": 42,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+08:00",
+  "G1-16:30",
+  "G5-20:30",
+  "G7+11:30",
+  "G7-17:30",
+  "G9+05:30"
+ ],
+ "rows": 48,
+ "payload_hash": "9fe1aeb5fe33e91b88945eef",
+ "job_input_hash": "8196ca019534db97140237031c28d2463d5d0d53cc0b2fbaf36642e3dd7b50ee",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 54.55,
+ "cpu_s": 44.099999999999994,
+ "max_rss_kb": 253828,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.228
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.102
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.452
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.13
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.744
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.013
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.131
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.797
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.156
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 20.829
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.565
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.053
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.291
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.063
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 2.988
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 8.32
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 10.98
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 5.618
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 1.015
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.093
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.063
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.014
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 30.207
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.016
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.058
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.01
+  },
+  {
+   "stage": "gate",
+   "s": 0.104
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 31,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/9fe1aeb5fe33e91b88945eef.json"
+}

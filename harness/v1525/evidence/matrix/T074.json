@@ -1,0 +1,139 @@
+{
+ "id": "T074",
+ "group": "C",
+ "title": "Larangan Distillate -> Gas -> Distillate tanpa proof (IE +10)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK pola Distillate->Gas->Distillate: []"
+ ],
+ "cp": 100.8446,
+ "econ_cp": 101.3119,
+ "hr": 8497.1,
+ "gas_bbtud": 65.4555,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -10.0716,
+ "daily_export_mwh": 627.36,
+ "distillate_l": 279542,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "09:00",
+   "deficit_mw": 8.54,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G4",
+   "start": "10:30",
+   "first_needed": "14:00",
+   "deficit_mw": 34.95,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "09:00",
+   "deficit_mw": 8.54,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "07:30",
+   "first_needed": "09:30",
+   "deficit_mw": 2.87,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+block_sequence"
+  },
+  {
+   "unit": "G9",
+   "start": "03:30",
+   "first_needed": "05:00",
+   "deficit_mw": 4.64,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+08:00",
+  "G1-14:00",
+  "G4+10:30",
+  "G4-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+07:30",
+  "G9+03:30",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "2c5a42e82e93a40606596753",
+ "job_input_hash": "40861fe4813034bc1adee1dd97488ec348aabe79f931e2eb82107ed76a6a6154",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 25.18,
+ "cpu_s": 12.459999999999999,
+ "max_rss_kb": 155640,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.29
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 0.749
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.911
+  },
+  {
+   "stage": "event_proof",
+   "s": 19.862
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.016
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.012
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.075
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.048
+  },
+  {
+   "stage": "gate",
+   "s": 0.182
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/2c5a42e82e93a40606596753.json"
+}

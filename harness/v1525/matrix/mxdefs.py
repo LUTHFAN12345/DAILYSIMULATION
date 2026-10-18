@@ -510,8 +510,26 @@ def define(G):
     T('N', 'Backward scheduling S1 target first load 06:00: GTG start mundur 7 row (same day)', A0, tgt('s1', '06:00'), 'EITHER', std + [lambda r: (r.first_on('s1') == 12 and ((r.i.get('Startup Continuation') or {}).get('s1') or {}).get('mode') == 'BACKWARD_START_SAME_DAY', f"S1 first {r.first_on('s1')} info {json.dumps((r.i.get('Startup Continuation') or {}).get('s1'))[:200]}")])
     T('N', 'Backward scheduling S1 target 02:00 (sebelum lag): kelanjutan dari kemarin, S1 berbeban row 4', A0, tgt('s1', '02:00'), 'EITHER', std + [cont_ok('s1', 4)])
     T('N', 'Kelanjutan cross-day selesai kemarin (elapsed >= lag): unit & STG Running sejak row 1', A0, cont('s1', 9, ['g6'], {'G6': 'Start Up CC'}), 'EITHER', std + [lambda r: (r.on('s1', 1) and r.on('g6', 1), f"S1 row1 {r.mw('s1', 1)} G6 row1 {r.mw('g6', 1)}")])
-    T('M', 'Maximum Review tidak lebih buruk dari Fastest (A0): CP MR <= CP Fastest', A0, lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS',
-      std + [lambda r: (r.cp() is not None and base_res(A0) is not None and r.cp() <= base_res(A0).cp() + 1e-6, f"MR CP {r.cp()} vs Fastest CP {base_res(A0).cp() if base_res(A0) else None}")])
-    T('M', 'Maximum Review tidak lebih buruk dari Fastest (A3 G6->G4)', 'A3_cfg_G6_ke_G4', lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS',
-      std + [lambda r: (r.cp() is not None and base_res('A3_cfg_G6_ke_G4') is not None and r.cp() <= base_res('A3_cfg_G6_ke_G4').cp() + 1e-6, f"MR CP {r.cp()} vs Fastest CP {base_res('A3_cfg_G6_ke_G4').cp() if base_res('A3_cfg_G6_ke_G4') else None}")])
+    def cmp_final(a, b):   # reimplementasi pp_v1523_cmp (V15.24 + aturan 2+2 V15.25) untuk oracle
+        if a['bal3x1'] != b['bal3x1']:
+            lo, hi = (a, b) if a['bal3x1'] < b['bal3x1'] else (b, a)
+            if lo['econ_cp'] <= hi['econ_cp'] + 0.0002 * min(a['econ_cp'], b['econ_cp']): return -1 if a is lo else 1
+        for k in ('inv', 'startups_nm', 'new_blocks'):
+            if a[k] != b[k]: return -1 if a[k] < b[k] else 1
+        if abs(a['econ_cp'] - b['econ_cp']) > 0.0002 * min(a['econ_cp'], b['econ_cp']): return -1 if a['econ_cp'] < b['econ_cp'] else 1
+        if abs(a['hr'] - b['hr']) > 1e-6: return -1 if a['hr'] < b['hr'] else 1
+        return 0
+    def mr_ok(base):
+        def c(r):
+            x = r.i.get('Maximum Review vs Fastest') or {}; f = x.get('fastest') or {}; m = x.get('maximum_review') or {}; b = base_res(base)
+            if x.get('status') != 'COMPARED' or not f.get('publishable') or b is None: return False, f'perbandingan tidak tersedia {json.dumps(x)[:200]}'
+            fcp_ok = abs((f.get('cp') or 0) - (b.cp() or -1)) < 1e-6   # kandidat Fastest = hasil job Fastest mandiri
+            if m.get('publishable') and m.get('metrics') and f.get('metrics'):
+                w = 'MAXIMUM_REVIEW' if cmp_final(m['metrics'], f['metrics']) < 0 else 'FASTEST_CANDIDATE'
+            else: w = 'FASTEST_CANDIDATE'
+            ok = fcp_ok and x.get('winner') == w and abs((r.cp() or 0) - ((m if w == 'MAXIMUM_REVIEW' else f).get('cp') or -1)) < 1e-6
+            return ok, f"MR CP {m.get('cp')} (inv {(m.get('metrics') or {}).get('inv')}) vs Fastest CP {f.get('cp')} (inv {(f.get('metrics') or {}).get('inv')}; job Fastest mandiri {b.cp()}); pemenang comparator final {w}, dipublikasikan {x.get('winner')} CP {r.cp()}"
+        return c
+    T('M', 'Maximum Review tidak lebih buruk dari Fastest (A0): kandidat Fastest selalu dibandingkan, pemenang = comparator final', A0, lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS', std + [mr_ok(A0)])
+    T('M', 'Maximum Review tidak lebih buruk dari Fastest (A3 G6->G4): pemenang = comparator final', 'A3_cfg_G6_ke_G4', lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS', std + [mr_ok('A3_cfg_G6_ke_G4')])
     T('X', 'Prescreen batas atas kapasitas Export OFF (PP_V1525_CAPBOUND=0) -> output identik', A0, None, 'PASS', std + [same_as_base(A0)], env={'PP_V1525_CAPBOUND': '0', '__COLD': '1'})

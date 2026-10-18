@@ -1,0 +1,203 @@
+{
+ "id": "T119",
+ "group": "E",
+ "title": "Fix Spinning Reserve ON (15 MW)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.24 (d207780)",
+ "build": "V15.25",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK row SR < SR_Min: []"
+ ],
+ "cp": 95.9551,
+ "econ_cp": 96.4343,
+ "hr": 8561.44,
+ "gas_bbtud": 65.4598,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.151,
+ "daily_export_mwh": 576.24,
+ "distillate_l": 226235,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "06:00",
+   "first_needed": "09:30",
+   "deficit_mw": 9.95,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "07:30",
+   "first_needed": "10:30",
+   "deficit_mw": 2.23,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:spinning_reserve+startup_sequence"
+  },
+  {
+   "unit": "G5",
+   "start": "08:00",
+   "first_needed": "09:30",
+   "deficit_mw": 9.95,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+spinning_reserve+startup_sequence"
+  },
+  {
+   "unit": "G6",
+   "start": "14:30",
+   "first_needed": "23:30",
+   "deficit_mw": 20.2,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "05:30",
+   "deficit_mw": 6.97,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+06:00",
+  "G1-18:00",
+  "G4+07:30",
+  "G4-18:00",
+  "G5+08:00",
+  "G5-23:30",
+  "G6+14:30",
+  "G9+05:00",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "cb6a05536c1a45a1d7ef5c46",
+ "job_input_hash": "f038dd4d984e2e72c4d8d6aa600203cfd0c4d5e495d22236f6be67fa52363980",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 65.88,
+ "cpu_s": 42.620000000000005,
+ "max_rss_kb": 403292,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.033
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.121
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.131
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 3.295
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.5
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.357
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.413
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.179
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 6.596
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 22.744
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 10.745
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 5.692
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 1.089
+  },
+  {
+   "stage": "event_proof",
+   "s": 6.633
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.014
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.107
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.101
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 61.747
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.023
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.013
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.105
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.073
+  },
+  {
+   "stage": "gate",
+   "s": 0.303
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.008
+  }
+ ],
+ "tightening_evals": 62,
+ "evidence": "../../../../../../tmp/w/mx25h/runs/cb6a05536c1a45a1d7ef5c46.json"
+}
