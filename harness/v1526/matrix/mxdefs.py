@@ -537,3 +537,13 @@ def define(G):
     T('M', 'Maximum Review tidak lebih buruk dari Fastest (A0): kandidat Fastest selalu dibandingkan, pemenang = objective final (pp_sp_final_cmp)', A0, lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS', std + [mr_ok(A0)])
     T('M', 'Maximum Review tidak lebih buruk dari Fastest (A3 G6->G4): pemenang = objective final (pp_sp_final_cmp)', 'A3_cfg_G6_ke_G4', lambda i: i.update({'_maximum_review': True, '_fast_default': False}) or i, 'PASS', std + [mr_ok('A3_cfg_G6_ke_G4')])
     T('X', 'Prescreen batas atas kapasitas Export OFF (PP_V1525_CAPBOUND=0) -> output identik', A0, None, 'PASS', std + [same_as_base(A0)], env={'PP_V1525_CAPBOUND': '0', '__COLD': '1'})
+    # ---- V15.26 (grup P): konsolidasi blok mengevaluasi alternatif seperti pipeline utama; invariant prioritas sebagai gerbang ----
+    def starts(r): return sum(1 for u in ('G1','G2','G3','G4','G5','G6','G7','G8','G9','G10') for k in range(48) if r.mw(u, k + 1) > 0.01 and (k == 0 or r.mw(u, k) <= 0.01))
+    def inv_pass(): return lambda r: ((r.i.get('Priority Invariants') or {}).get('status') == 'PASS', f"invariants {(r.i.get('Priority Invariants') or {}).get('status')} {(r.i.get('Priority Invariants') or {}).get('failed')}")
+    T('P', 'A1 gas cukup: alternatif konsolidasi dengan latest legal start sendiri + fallback + pendaratan gas; tidak lebih buruk dari V15.25 (CP 68,4615 / 8 startup GTG)', 'A1_gas_cukup', None, 'PASS',
+      std + [inv_pass(), lambda r: ((r.cp() or 1e9) <= 68.4615 + 1e-6 and starts(r) <= 8, f"CP {r.cp()} startup GTG {starts(r)} (V15.25: 68,4615 / 8)")])
+    T('P', 'A1 konsolidasi V15.25 (PP_V1526_CONSOL_PLAN/FALLBACK/ALL/CMP=0): hasil valid, CP >= hasil V15.26', 'A1_gas_cukup', None, 'PASS',
+      std + [lambda r: ((r.cp() or 0) >= (base_res('A1_gas_cukup').cp() if base_res('A1_gas_cukup') else 1e9) - 1e-6, f"cp OFF {r.cp()} vs ON {base_res('A1_gas_cukup').cp() if base_res('A1_gas_cukup') else None}")],
+      env={'PP_V1526_CONSOL_PLAN': '0', 'PP_V1526_CONSOL_FALLBACK': '0', 'PP_V1526_CONSOL_ALL': '0', 'PP_V1526_CONSOL_CMP': '0', '__COLD': '1'})
+    T('P', 'Priority Invariants (7 invariant Rule 1) PASS dan menjadi gerbang publish (A0)', A0, None, 'PASS', std + [inv_pass()])
+    T('P', 'Priority Invariants PASS pada skenario LNG (A2)', 'A2_lng', None, 'PASS', std + [inv_pass()])

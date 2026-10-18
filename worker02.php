@@ -9158,16 +9158,11 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
          * jalur total membuat window pipe [q-0.04,q] dan window total mustahil dipuaskan bersamaan
          * (terukur: pipe 27.4893 OK tapi total efektif 64.5693 > 64.50). Penalty startup jam FUTURE
          * tetap konsumsi nyata; penalty jam ber-actual sudah di dalam meter (lihat atribusi di atas). */
-        $pipeEstV = $pipeUsed;
         $pipeUsed = max(0.0, $pgnTotal + $penaltyFuture - $lngUsed);
         /* V15.25: pada jalur distillate, energi gas yang digantikan distillate (row planning) tidak ditarik dari pipa PGN —
          * basis NETO yang sama dengan Total Gas Used / Effective Total Gas (V15.24). PP_V1525_ACT_DIST=0 -> lama. */
         if ((string)getenv('PP_V1525_ACT_DIST') !== '0' && pp_action_uses_distillate($action))
             $pipeUsed = max(0.0, $pipeUsed - (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0));
-        /* V15.26: pipa blended = pipa jalur estimasi + deviasi actual (rumus yang sama dengan Effective Total Gas). Pengurangan offset distillate
-         * diskret (V15.25) menggeser pipa 0,0038 BBTUD walau Actual = estimasi (A0: 24,4962 vs 24,5). PP_V1526_ACT_PIPE=0 -> V15.25. */
-        if ((string)getenv('PP_V1526_ACT_PIPE') !== '0' && (string)getenv('PP_V1525_ACT_DIST') !== '0')
-            $pipeUsed = max(0.0, $pipeEstV + ($pgnTotal + $penaltyFuture - ($estPGN_perrow + $startupGasPenalty)));
         if ($pipeUsed > $pgnPipeQuota + 0.0005)
             $warnings[] = sprintf('ACTUAL PGN terukur di atas rencana: PGN Pipe blended %.4f BBTUD melebihi quota pipe %.4f (overage %.4f) — deviasi historis dari actual jam terisi; row future tetap quota-consistent.', $pipeUsed, $pgnPipeQuota, $pipeUsed - $pgnPipeQuota);
     }
