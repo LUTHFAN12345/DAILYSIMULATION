@@ -3148,6 +3148,7 @@ function pp_sp_prof(string $k, float $t0, array $x = []): void {
  * + sidik jari engine, pp_cs_key) + vektor kandidat + hash dispatch mentah + versi semantik -> kandidat yang sama tidak dihitung ulang. */
 function pp_sp_bundle_dir(): string { $d = pp_job_root() . DIRECTORY_SEPARATOR . '_spbundle'; if (!is_dir($d)) @mkdir($d, 0777, true); return $d; }
 function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $oRaw, $cand): array {
+    unset($GLOBALS['ppV1525BalActive']);   // V15.25: preferensi 2+2 hanya sesudah tahap Auto Balance menerapkannya pada job ini
     $plan = $GLOBALS['ppV1518StartupPlan'] ?? null; $ctx = $inputAsli; unset($ctx['harness_tag']);
     $ck = (function_exists('pp_cs_key') ? pp_cs_key($ctx) : null) ?? hash('sha256', pp_engine_fingerprint() . json_encode(pp_v13f_clean($ctx)));
     $dh = function_exists('pp_v1517_candidate_hash') ? pp_v1517_candidate_hash((array)($oRaw['data'] ?? [])) : sha1(json_encode($oRaw['data'] ?? []));
@@ -4606,6 +4607,14 @@ function pp_v15_merit_proof(array $input, array $out): array {
                 $sole = true; foreach (pp_tl_gt_units() as $g4) if ($g4 !== $uL4 && pp_gtg_to_stg($d3, $g4) === $stg4) for ($q = $c4; $q <= $r4; $q++) if ((float)($rows[$q - 1][strtoupper($g4)] ?? 0) > 0.01) { $sole = false; break 2; }
                 $rs4 = (int)((pp_runtime_limits($m))['stg']['run_rows'] ?? 12);
                 if ($sole && $r4 < $c4 + $rs4) $ev[] = sprintf('STG_MIN_RUNTIME_SOLE_FEEDER: %s start row %d, runtime minimum STG %d row (sampai row %d); %s satu-satunya feeder HRSG', strtoupper($stg4), $c4, $rs4, $c4 + $rs4 - 1, strtoupper($uL4)); } }
+        /* V15.25: running (C4) pada row terakhir interval dibuktikan oleh bukti event FINAL (uji stop satu row lebih awal pada dispatch final
+         * tidak valid / tidak lebih baik); row beban minimum dibuktikan oleh defisit numerik interval beban minimum bukti event (defisit > 0). */
+        if ($k === 'C4' && (string)getenv('PP_V1525_C4_EVENT_PROOF') !== '0') { $uE4 = strtoupper((string)$f['unit']); $rE4 = (int)($f['row'] ?? 0); $EP4 = (array)($out['info']['Commitment Event Proof'] ?? []);
+            foreach ((array)($EP4['events'] ?? []) as $eE) { if (($eE['unit'] ?? '') !== $uE4 || ($eE['event'] ?? '') !== 'STOP' || $rE4 !== (int)(($eE['interval'] ?? [0, 0])[1])) continue;
+                $ns = (array)($eE['no_early_stop_test'] ?? []); if (in_array($ns['result'] ?? '', ['TIDAK_VALID', 'VALID_TIDAK_LEBIH_BAIK'], true))
+                    $ev[] = sprintf('EVENT_PROOF_FINAL: stop %s row %d (%s) — %s: %s', $uE4, (int)$eE['row'], (string)($eE['reason_code'] ?? ''), (string)($ns['test'] ?? ''), (string)$ns['result']); }
+            foreach ((array)($EP4['minimum_load_intervals'] ?? []) as $mi) { if (($mi['unit'] ?? '') !== $uE4 || $rE4 < (int)($mi['rows'][0] ?? 99) || $rE4 > (int)($mi['rows'][1] ?? -1)) continue;
+                $dfx = (float)(($mi['max_deficit_if_off'] ?? [])['deficit_mw'] ?? 0); if ($dfx > 0.01) $ev[] = sprintf('EVENT_PROOF_MIN_LOAD_INTERVAL: %s row %d-%d %s, defisit Export maks bila dilepas %.2f MW', $uE4, (int)$mi['rows'][0], (int)$mi['rows'][1], (string)($mi['reason_code'] ?? ''), $dfx); } }
         /* ADDENDUM A2: running (C4) dibuktikan oleh counterfactual STOP/EARLY_STOP V8 unit yang sama yang mematikan unit pada row ini */
         if ($k === 'C4' && (string)getenv('PP_SP_C4_CF') !== '0') { foreach ($cands as $c) { if (strtoupper((string)($c['unit'] ?? '')) !== strtoupper((string)$f['unit']) || empty($c['evaluated'])) continue;
             if (!preg_match('~^(STOP|EARLY_STOP):[A-Z0-9]+:(\d+)-(\d+):@(\d+)$~', (string)($c['id'] ?? ''), $mm)) continue;
@@ -4886,6 +4895,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
     $rf['mode'] = $r['mode'] ?? ($rf['mode'] ?? null); return $rf;
 }
 function pp_job_run_economic_review_v1524(string $id, array $input): array {
+    unset($GLOBALS['ppV1525BalActive']);
     $input = pp_v1517_engine_input($input);
     $GLOBALS['ppJobOwnerUid'] = (string)((pp_job_read($id) ?? [])['owner_uid'] ?? '');   // V15.21: scope basis warm per pemilik
     $inputAsli = $input;                          // identitas job turunan memakai input yang sama
@@ -8430,8 +8440,14 @@ function pp_v1523_metrics(array $orig, array $o, array $K): array {
  * -1 bila A lebih baik. Sidik jari commitment dipakai pemanggil sebagai tie-break terakhir. PP_V1524_CMP=0 -> comparator V15.23. */
 function pp_v1523_cmp(array $a, array $b): int {
     if ((string)getenv('PP_V1524_CMP') !== '0' && isset($a['inv'], $b['inv'])) {
-        /* V15.25: keseimbangan blok otomatis 2+2 sebelum 3+1 (lihat pp_v1525_bal3x1_rows) mendahului kriteria lain sesudah validitas */
-        if ((string)getenv('PP_V1525_BAL') !== '0' && isset($a['bal3x1'], $b['bal3x1']) && $a['bal3x1'] !== $b['bal3x1']) return $a['bal3x1'] <=> $b['bal3x1'];
+        /* V15.25: keseimbangan blok otomatis 2+2 sebelum 3+1 (lihat pp_v1525_bal3x1_rows) mendahului kriteria lain sesudah validitas
+         * (termasuk inversi prioritas yang memang ditimbulkan 2+2) di seluruh tahap (PP_V1525_BAL_GLOBAL=0 -> hanya tahap Auto Balance dan
+         * sesudahnya bila 2+2 diterapkan). Berlaku SELAMA kandidat yang lebih seimbang tidak lebih mahal di luar band CP
+         * ekonomi 0,02 %; 2+2 yang lebih mahal tidak lulus comparator ekonomi -> 3+1 dipertahankan dengan bukti (kriteria biasa). */
+        if ((string)getenv('PP_V1525_BAL') !== '0' && (!empty($GLOBALS['ppV1525BalActive']) || (string)getenv('PP_V1525_BAL_GLOBAL') !== '0') && isset($a['bal3x1'], $b['bal3x1']) && $a['bal3x1'] !== $b['bal3x1']) {
+            [$lo, $hi] = $a['bal3x1'] < $b['bal3x1'] ? [$a, $b] : [$b, $a];
+            if ((string)getenv('PP_V1525_BAL_CP') === '0' || $lo['econ_cp'] <= $hi['econ_cp'] + 0.0002 * min($a['econ_cp'], $b['econ_cp'])) {
+                return $a['bal3x1'] <=> $b['bal3x1']; } }
         foreach (['inv', 'startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
         $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
         if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
@@ -8743,10 +8759,11 @@ function pp_v1525_balance_2x2(array $input, array $out): array {
     if (!empty($m['change_over']['enabled'])) return $out;
     $K = pp_v1523_classes($orig); $rows = array_values((array)$out['data']); $hits = pp_v1525_bal3x1_rows($orig, $rows, $K);
     if (!$hits) { $out['info']['Block Balance 2x2'] = $GLOBALS['ppV1525Bal'] = ['status' => 'TIDAK_ADA_3X1_OTOMATIS', 's' => round(microtime(true) - $t0, 3)]; return $out; }
+    $GLOBALS['ppV1525BalActive'] = true;
     $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     $restore(); $aW = pp_sp_assess($orig, $out); $restore();
-    if (empty($aW['valid'])) { $out['info']['Block Balance 2x2'] = ['status' => 'SKIPPED', 'reason' => 'INCUMBENT_TIDAK_VALID']; return $out; }
+    if (empty($aW['valid'])) { unset($GLOBALS['ppV1525BalActive']); $out['info']['Block Balance 2x2'] = ['status' => 'SKIPPED', 'reason' => 'INCUMBENT_TIDAK_VALID']; return $out; }
     $W = $out; $XW = pp_v8_masks($rows); $mW = pp_v1523_metrics($orig, $out, $K); $log = []; $seen = []; $prio = pp_priority_flat($m, '/^g\d+$/');
     for ($it = 0; $it < 4 && $hits && microtime(true) - $t0 < 120.0; $it++) {
         $h = $hits[0]; $x = strtolower($h['block_3']); $y = strtolower($h['block_1']); $row = (int)$h['row'];
@@ -8763,7 +8780,7 @@ function pp_v1525_balance_2x2(array $input, array $out): array {
             $ok = is_array($R) && !empty($R['valid']); $bt = $ok && pp_v1523_cmp($R['met'], $mW) < 0;
             $log[] = ['row' => $row, 'from' => strtoupper($x) . ':' . strtoupper($u) . ' (3+1)', 'to' => strtoupper($y) . ':' . strtoupper($v) . ' (2+2)', 'interval' => array_map(fn($r) => pp_v1518_row_time($r), $iv), 'replacement_lead_rows' => $lead,
                       'valid' => $ok, 'better_by_final_comparator' => $bt, 'why' => $ok ? [] : array_slice((array)($R['why'] ?? ['EVAL_GAGAL']), 0, 4), 'metrics_2x2' => $ok ? $R['met'] : null, 'metrics_3x1' => $mW,
-                      'reason_code' => $bt ? 'AUTO_BALANCE_2X2_BEFORE_3X1' : ($ok ? 'AUTO_BALANCE_2X2_TIDAK_LEBIH_BAIK' : 'AUTO_BALANCE_2X2_TIDAK_LEGAL_3X1_DIPERTAHANKAN')];
+                      'reason_code' => $bt ? 'AUTO_BALANCE_2X2_BEFORE_3X1' : ($ok ? 'AUTO_BALANCE_2X2_VALID_TETAPI_CP_EKONOMI_LEBIH_BURUK_3X1_DIPERTAHANKAN' : 'AUTO_BALANCE_2X2_TIDAK_LEGAL_3X1_DIPERTAHANKAN')];
             if ($bt) { $W = $R['o']; $XW = pp_v8_masks((array)$W['data']); $mW = $R['met']; $done = true; break 2; }
             if ($ok) break;   // sah tetapi tidak lebih baik: lead lebih panjang tidak dicoba
         }
@@ -8772,6 +8789,7 @@ function pp_v1525_balance_2x2(array $input, array $out): array {
     }
     $W['info']['Block Balance 2x2'] = ['status' => $log ? 'EVALUATED' : 'TIDAK_ADA', 'decisions' => $log, 'remaining_3x1_rows' => array_column(pp_v1525_bal3x1_rows($orig, array_values((array)$W['data']), $K), 'row'),
         'rule' => 'S1 & S2 paralel, blok 2 GTG vs 1 GTG, startup tambahan OTOMATIS: uji 2+2 (unit legal berikut di blok lawan) sebelum 3+1; intent user dipertahankan', 's' => round(microtime(true) - $t0, 2)];
+    if (!array_filter($log, fn($d) => $d['reason_code'] === 'AUTO_BALANCE_2X2_BEFORE_3X1')) unset($GLOBALS['ppV1525BalActive']);
     $GLOBALS['ppV1525Bal'] = $W['info']['Block Balance 2x2'];
     return $W;
 }

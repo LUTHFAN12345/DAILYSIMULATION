@@ -1,0 +1,90 @@
+[
+ {
+  "id": "UI-DIST-MERGED",
+  "desc": "Block 1 dan Block 2 digabung menjadi Priority 1-6 (satu kartu, 6 baris)",
+  "status": "PASS",
+  "detail": {
+   "rows": 6,
+   "note": "Priority 1–6 lintas Block 1–2. Engine hanya memakai unit yang sedang Running & legal (unit Stop tidak distart demi distillate); bila plafon unit prioritas pertama tercapai, sisa ke unit eligible berikutnya. (dimigrasikan dari dua daftar Block 1 / Block 2)",
+   "sel": [
+    "g4",
+    "g6",
+    "g3",
+    "g5",
+    "g1",
+    "g2"
+   ]
+  }
+ },
+ {
+  "id": "UI-DIST-MIGRATE",
+  "desc": "Migrasi payload lama: urutan grup & unit dipertahankan (G4,G6,G3,G5,G1,G2) + keterangan migrasi",
+  "status": "PASS",
+  "detail": {
+   "rows": 6,
+   "note": "Priority 1–6 lintas Block 1–2. Engine hanya memakai unit yang sedang Running & legal (unit Stop tidak distart demi distillate); bila plafon unit prioritas pertama tercapai, sisa ke unit eligible berikutnya. (dimigrasikan dari dua daftar Block 1 / Block 2)",
+   "sel": [
+    "g4",
+    "g6",
+    "g3",
+    "g5",
+    "g1",
+    "g2"
+   ]
+  }
+ },
+ {
+  "id": "UI-DIST-PAYLOAD",
+  "desc": "Payload baru: satu daftar 6 unit di posisi pertama, blok lain tidak berubah",
+  "status": "PASS",
+  "detail": [
+   [
+    "g4",
+    "g6",
+    "g3",
+    "g5",
+    "g1",
+    "g2"
+   ],
+   [
+    "g9",
+    "g8"
+   ],
+   [
+    "g7"
+   ],
+   [
+    "g10"
+   ]
+  ]
+ },
+ {
+  "id": "UI-DIST-REORDER",
+  "desc": "Pilih G1 di Priority 1: urutan unik 6 unit, G1 pertama",
+  "status": "PASS",
+  "detail": [
+   "g1",
+   "g4",
+   "g6",
+   "g3",
+   "g5",
+   "g2"
+  ]
+ },
+ {
+  "id": "UI-DIST-RELOAD",
+  "desc": "Save/Reload: Priority 1-6 tersimpan (G1 pertama), tanpa label migrasi pada payload baru",
+  "status": "PASS",
+  "detail": {
+   "d0": [
+    "g1",
+    "g4",
+    "g6",
+    "g3",
+    "g5",
+    "g2"
+   ],
+   "note2": "Priority 1–6 lintas Block 1–2. Engine hanya memakai unit yang sedang Running & legal (unit Stop tidak distart demi distillate); bila plafon unit prioritas pertama tercapai, sisa ke unit eligible berikutnya."
+  }
+ }
+]
