@@ -138,7 +138,7 @@ if (!defined('PP_LIB_ONLY') && PHP_SAPI !== 'cli' && (string)getenv('PP_LIGHT_PO
     unset($__lpm);
 }
 /* V15.19 Report store MySQL (saved_data_store.php): endpoint ringan, dijawab SEBELUM engine dimuat. */
-if (!defined('PP_LIB_ONLY') && PHP_SAPI !== 'cli' && in_array((string)($_GET['mode'] ?? ''), ['report_status', 'report_save', 'report_save_actual', 'report_open', 'report_list', 'report_versions', 'report_integrity', 'report_delete'], true)) {
+if (!defined('PP_LIB_ONLY') && PHP_SAPI !== 'cli' && in_array((string)($_GET['mode'] ?? ''), ['report_status', 'report_save', 'report_save_actual', 'report_open', 'report_list', 'report_versions', 'report_integrity', 'report_delete', 'report_yesterday'], true)) {
     rs_http((string)$_GET['mode']);
 }
 require_once __DIR__ . '/worker02.php';   // defines pp_run_simulation(), pp_release_gate(), pp_validate_hard_constraints()

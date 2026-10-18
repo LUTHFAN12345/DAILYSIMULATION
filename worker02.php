@@ -6134,7 +6134,7 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
                         if ($soloX && (float)($genRows[$st][$stgX === 's1' ? 'S1' : ($stgX === 's2' ? 'S2' : 'S3')] ?? 0) >= 0
                             && !($st === 0 && ($lsX[$uX] ?? '') === 'running')) {
                             $modeX = strtolower((string)($model['stg_startup_mode'][$stgX] ?? ($model['stg_startup_mode'][$stgX . '_startup'] ?? 'warm')));
-                            $lagT = ($stgX === 's3') ? ['cold' => 11, 'warm' => 5, 'hot' => 1] : ['cold' => 7, 'warm' => 2, 'hot' => 1];
+                            $lagT = [$modeX => pp_stg_lag($stgX, $modeX)];
                             $effRunX = max($runX, (int)($limX['stg']['run_rows'] ?? 12) + ($lagT[$modeX] ?? 2));
                         }
                     }
@@ -6859,7 +6859,7 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
             $feedG = array_map('strtolower', array_values($d3[$sG]['hrsg'] ?? ($d3[$sG]['gtg'] ?? [])));
             if (!$feedG) continue;
             $modeG = strtolower((string)($model['stg_startup_mode'][$sG] ?? ($model['stg_startup_mode'][$sG . '_startup'] ?? 'warm')));
-            $lagG = ($sG === 's3') ? ['cold'=>11,'warm'=>5,'hot'=>1] : ['cold'=>7,'warm'=>2,'hot'=>1];
+            $lagG = [$modeG => pp_stg_lag($sG, $modeG)];
             $anchG = -1;
             for ($r = 0; $r < $nRows; $r++) { foreach ($feedG as $fG2)
                 if ((float)($genRows[$r][$fG2] ?? 0) > 0.01) { $anchG = $r; break 2; } }
@@ -9406,6 +9406,7 @@ $info = [
         'Dispatch (MWh)' => round($disp_total_MWh, 2),
         'Daily PLN Exp (MWh)' => round($exp_total_MWh, 2),
         'Daily Export Plan' => $GLOBALS['__pp_daily_export_plan'] ?? null,
+        'Startup Continuation' => $model['__v1525_continuation'] ?? ($model['startup_continuation_applied'] ?? null),
         'Distillate Unit Selection' => (pp_action_uses_distillate($action) && isset($GLOBALS['__pp_dist_selection'])) ? array_merge($GLOBALS['__pp_dist_selection'], ['used_litres_by_unit' => array_change_key_case($dist_units ?? [], CASE_UPPER)]) : null,
         /* §1/§3 IDENTITAS ENERGI: TOTAL FUEL = GAS FUEL TOTAL + DISTILLATE ENERGY.
          *   TOTAL FUEL        = gross total fuel energy (kebutuhan sebelum pemisahan jenis) = $gas_BBTUD.

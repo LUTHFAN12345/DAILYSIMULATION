@@ -1,0 +1,253 @@
+[
+ {
+  "id": "UI-YD-BTN",
+  "desc": "Tombol Check Yesterday Data terlihat di header Required & Commitment, tidak menutupi kontrol collapse",
+  "status": "PASS",
+  "detail": {
+   "r": [
+    908.75,
+    366.63153076171875,
+    1058.53125,
+    392.63153076171875
+   ],
+   "arrow": [
+    1308.4140625,
+    374.31121826171875,
+    1324.9140625,
+    384.95184326171875
+   ],
+   "vis": true
+  }
+ },
+ {
+  "id": "UI-YD-PREVIEW",
+  "desc": "Pratinjau: sumber Monitoring Daily Plan tanggal kemarin + versi + pembuat + waktu simpan",
+  "status": "PASS",
+  "detail": [
+   "success",
+   "Data ditemukan — sumber Monitoring Daily Plan Monitoring A tanggal 2026-10-04, versi 1 (aktif 1), disimpan yd_user 2026-10-18 05:34:02.055141 UTC · Report ID rpt_770d458a941b5ee2bc90dd5b · row 06-Oct-26 00:00"
+  ]
+ },
+ {
+  "id": "UI-YD-STARTUPCC",
+  "desc": "Status 00:00 G6 = Start Up CC (sequence blok S1 berjalan)",
+  "status": "PASS",
+  "detail": "Start Up CC"
+ },
+ {
+  "id": "UI-YD-CANCEL",
+  "desc": "Cancel tidak mengubah state",
+  "status": "PASS",
+  "detail": {
+   "G1": "Stop",
+   "G2": "Running",
+   "G3": "Stop",
+   "G4": "Stop",
+   "G5": "Stop",
+   "G6": "Running",
+   "G7": "Stop",
+   "G8": "Running",
+   "G9": "Running",
+   "G10": "Stop",
+   "S1": "Running",
+   "S2": "Running",
+   "S3": "Running",
+   "B1": "Stop",
+   "B2": "Running",
+   "GE1": "Stop",
+   "GE2": "Stop",
+   "GE3": "Stop",
+   "GE4": "Stop"
+  }
+ },
+ {
+  "id": "UI-YD-APPLY",
+  "desc": "Apply: G6 Start Up CC di UI & payload, kelanjutan S1 elapsed 5, provenance Report ID/versi",
+  "status": "PASS",
+  "detail": {
+   "selG6": "Start Up CC",
+   "uld": {
+    "G1": "Stop",
+    "G2": "Running",
+    "G3": "Stop",
+    "G4": "Stop",
+    "G5": "Stop",
+    "G6": "Start Up CC",
+    "G7": "Stop",
+    "G8": "Running",
+    "G9": "Running",
+    "G10": "Stop",
+    "S1": "Stop",
+    "S2": "Running",
+    "S3": "Running",
+    "B1": "Stop",
+    "B2": "Running",
+    "GE1": "Stop",
+    "GE2": "Stop",
+    "GE3": "Stop",
+    "GE4": "Stop"
+   },
+   "cont": {
+    "s1": {
+     "elapsed_rows": 5,
+     "units": [
+      "g6"
+     ],
+     "mode": "cold",
+     "source": "YESTERDAY_DATA:rpt_770d458a941b5ee2bc90dd5b"
+    }
+   },
+   "src": {
+    "report_key": "rpt_770d458a941b5ee2bc90dd5b",
+    "report_entry_id": 2,
+    "source_type": "MONITORING",
+    "source_label": "Monitoring Daily Plan",
+    "plan_name": "Monitoring A",
+    "plan_date": "2026-10-04",
+    "version_no": 1,
+    "active_version_no": 1,
+    "saved_by": "yd_user",
+    "saved_at_utc": "2026-10-18 05:34:02.055141",
+    "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
+    "applied_at": "2026-10-18T05:35:20.647Z",
+    "yesterday": "2026-10-04",
+    "units_skipped_explicit_commitment": [
+     "G2",
+     "G8",
+     "G9",
+     "S2",
+     "S3",
+     "B2"
+    ],
+    "continuation_skipped_explicit_stg": []
+   }
+  }
+ },
+ {
+  "id": "UI-YD-RELOAD",
+  "desc": "Save/Reload mempertahankan Start Up CC, kelanjutan, dan provenance",
+  "status": "PASS",
+  "detail": {
+   "selG6b": "Start Up CC",
+   "cont": {
+    "s1": {
+     "elapsed_rows": 5,
+     "units": [
+      "g6"
+     ],
+     "mode": "cold",
+     "source": "YESTERDAY_DATA:rpt_770d458a941b5ee2bc90dd5b"
+    }
+   },
+   "prov": "Target first STG loadS1-00:3001:0001:3002:0002:3003:0003:3004:0004:3005:0005:3006:0006:3007:0007:3008:0008:3009:0009:3010:0010:3011:0011:3012:0012:3013:0013:3014:0014:3015:0015:3016:0016:3017:0017:3018:0018:3019:0019:3020:0020:3021:0021:3022:0022:3023:0023:3000:00S2-00:3001:0001:3002:0002:3003:0003:3004:0004:3005:0005:3006:0006:3007:0007:3008:0008:3009:0009:3010:0010:3011:0011:3012:0012:3013:0013:3014:0014:3015:0015:3016:0016:3017:0017:3018:0018:3019:0019:3020:0020:3021:0021:3022:0022:3023:0023:3000:00S3-00:3001:0001:3002:0002:3003:0003:3004:0004:3005:0005:3006:0006:3007:0007:3008:0008:3009:0009:3010:0010:3011:0011:3012:0012:3013:0013:3014:0014:3015:0015:3016:0016:3017:0017:3018:0018:3019:0019:3020:0020:3021:0021:3022:0022:3023:0023:3000:00Yesterday data: Monitoring Daily Plan 2026-10-04 v1 (yd_user)"
+  }
+ },
+ {
+  "id": "UI-YD-OVERRIDE",
+  "desc": "Override user sesudah Apply (G6 -> Stop) melepas kelanjutan S1",
+  "status": "PASS",
+  "detail": {
+   "uld": "Stop"
+  }
+ },
+ {
+  "id": "UI-YD-EXPLICIT",
+  "desc": "Commitment eksplisit (G6 Required + Simulation) tidak ditimpa Apply",
+  "status": "PASS",
+  "detail": {
+   "uld": "Stop",
+   "rm": {
+    "mode": "based_on_sim"
+   },
+   "src": {
+    "report_key": "rpt_770d458a941b5ee2bc90dd5b",
+    "report_entry_id": 2,
+    "source_type": "MONITORING",
+    "source_label": "Monitoring Daily Plan",
+    "plan_name": "Monitoring A",
+    "plan_date": "2026-10-04",
+    "version_no": 1,
+    "active_version_no": 1,
+    "saved_by": "yd_user",
+    "saved_at_utc": "2026-10-18 05:34:02.055141",
+    "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
+    "applied_at": "2026-10-18T05:35:22.533Z",
+    "yesterday": "2026-10-04",
+    "units_skipped_explicit_commitment": [
+     "G2",
+     "G6",
+     "G8",
+     "G9",
+     "S2",
+     "S3",
+     "B2"
+    ],
+    "continuation_skipped_explicit_stg": []
+   }
+  }
+ },
+ {
+  "id": "UI-YD-EXPLICIT-STG",
+  "desc": "STG S1 dengan commitment eksplisit: kelanjutan S1 tidak dipaksakan, G6 = Running, alasan tercatat",
+  "status": "PASS",
+  "detail": {
+   "uld": "Running",
+   "src": {
+    "report_key": "rpt_770d458a941b5ee2bc90dd5b",
+    "report_entry_id": 2,
+    "source_type": "MONITORING",
+    "source_label": "Monitoring Daily Plan",
+    "plan_name": "Monitoring A",
+    "plan_date": "2026-10-04",
+    "version_no": 1,
+    "active_version_no": 1,
+    "saved_by": "yd_user",
+    "saved_at_utc": "2026-10-18 05:34:02.055141",
+    "result_sha256": "04f1ad94f5fb143adc9defcc29361d2266d8d4b92488360d664ce909cebf7ccf",
+    "applied_at": "2026-10-18T05:35:22.765Z",
+    "yesterday": "2026-10-04",
+    "units_skipped_explicit_commitment": [
+     "G2",
+     "G8",
+     "G9",
+     "S1",
+     "S2",
+     "S3",
+     "B2"
+    ],
+    "continuation_skipped_explicit_stg": [
+     "S1"
+    ]
+   }
+  }
+ },
+ {
+  "id": "UI-YD-NODATA",
+  "desc": "Tanpa data kemarin: No Yesterday Data, Apply nonaktif, input tidak berubah",
+  "status": "PASS",
+  "detail": [
+   "no-data",
+   "No Yesterday Data — No Yesterday Data — tidak ada Monitoring Daily Plan maupun Daily Plan aktif tanggal 2026-10-09; input tidak diubah."
+  ]
+ },
+ {
+  "id": "UI-YD-PARTIAL",
+  "desc": "Monitoring kemarin rusak -> dilewati dengan alasan, Daily Plan dipakai (state partial)",
+  "status": "PASS",
+  "detail": [
+   "partial",
+   "Data ditemukan (sebagian report kemarin dilewati: PARTIAL_OR_CORRUPT:RESULT_HASH_MISMATCH) — sumber Daily Plan Plan OK tanggal 2026-10-14, versi 1 (aktif 1), disimpan yd_user 2026-10-18 05:34:02.185331 UTC · Report ID rpt_f197a5c9d51d311fb25ef8a5 · row 06-Oct-26 00:00"
+  ]
+ },
+ {
+  "id": "UI-YD-MANUAL-SU",
+  "desc": "Start Up CC manual (G4) dan target first STG load S3 02:00 masuk payload",
+  "status": "PASS",
+  "detail": {
+   "g4": "Start Up CC",
+   "tg": {
+    "s3": "02:00"
+   }
+  }
+ }
+]

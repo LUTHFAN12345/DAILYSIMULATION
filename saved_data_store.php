@@ -847,6 +847,63 @@ function rs_integrity(): array {
             'note' => 'unreferenced_results bukan kerusakan: hasil run yang tidak (belum) disimpan ke Report.'];
 }
 /* ---------------- HTTP (dipanggil run.php SEBELUM engine dimuat) ---------------- */
+/* ===== V15.25 CHECK YESTERDAY DATA =============================================================================================
+ * Sumber (urutan prioritas, hanya project pemanggil, record aktif tidak terhapus, tanggal = Plan Date - 1 hari):
+ *   1) Report MONITORING (Monitoring Daily Plan) tanggal kemarin — versi aktif terbaru (updated_at terbaru);
+ *   2) bila tidak ada: Report PLANNING (Daily Plan) tanggal kemarin — versi aktif terbaru;
+ *   3) tidak ada keduanya: NO_DATA (input tidak diubah).
+ * Record yang snapshot/result-nya rusak (hash tidak cocok / 48 row tidak lengkap) dilewati dengan alasan (PARTIAL_OR_CORRUPT); bila
+ * seluruh kandidat rusak -> status CORRUPT. Status per unit dibaca dari row terakhir (00:00) DAN state sequence blok:
+ *   STG blok > 0 -> GTG berbeban = Running; STG blok = 0 dan GTG feeder CC berbeban -> Start Up CC (elapsed = row berturut-turut sampai
+ *   00:00, ditambah elapsed kelanjutan kemarin bila segmen dimulai row 1); unit 0 MW -> Stop; GTG mode SC / tanpa HRSG berbeban -> Running.
+ * Tidak mengubah apa pun di server; UI menampilkan pratinjau dan hanya menerapkan setelah Apply. */
+function rs_yesterday_status(array $in, array $out): array {
+    $d3 = (array)($in['data3'] ?? []); $m = (array)($d3['modeling'] ?? []); $rows = array_values((array)($out['data'] ?? []));
+    if (count($rows) !== 48) return ['ok' => false, 'error' => 'ROWS_NOT_48', 'rows' => count($rows)];
+    $last = $rows[47]; $units = []; $cont = [];
+    $sc = array_change_key_case((array)($m['sc_cc'] ?? []), CASE_LOWER); $applied = (array)($m['startup_continuation_applied'] ?? ($m['__v1525_continuation'] ?? []));
+    $lv = function (string $U) use ($last): float { $k = ['B1' => 'BB1', 'B2' => 'BB2'][$U] ?? $U; return (float)($last[$k] ?? 0); };
+    $feed = []; foreach (['s1', 's2', 's3'] as $s) foreach ((array)($d3[$s]['gtg_configured'] ?? ($d3[$s]['gtg'] ?? array_values((array)($d3[$s]['hrsg'] ?? [])))) as $g) $feed[strtolower((string)$g)] = $s;
+    foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3','B1','B2'] as $U) { $u = strtolower($U); $v = $lv($U);
+        $units[$U] = ['status' => $v > 0.01 ? 'Running' : 'Stop', 'load_mw_0000' => round($v, 2), 'reason' => $v > 0.01 ? 'BERBEBAN_ROW_00:00' : 'NOL_MW_ROW_00:00']; }
+    foreach ($feed as $g => $s) { $G = strtoupper($g); $S = strtoupper($s); if (!isset($units[$G]) || $units[$G]['status'] !== 'Running') continue;
+        if (strtoupper((string)($sc[$g] ?? 'CC')) === 'SC') { $units[$G]['reason'] = 'GTG_MODE_SC_BERBEBAN'; continue; }
+        if ($units[$S]['load_mw_0000'] > 0.01) continue;
+        $k = 0; for ($r = 47; $r >= 0 && (float)($rows[$r][$G] ?? 0) > 0.01; $r--) $k++;
+        if ($r < 0 && isset($applied[$s]['elapsed_rows'])) $k += (int)$applied[$s]['elapsed_rows'];
+        $units[$G]['status'] = 'Start Up CC'; $units[$G]['reason'] = 'STG_BLOK_BELUM_BERBEBAN_SEQUENCE_BERJALAN'; $units[$G]['sequence_rows_done'] = $k;
+        $mode = strtolower(preg_replace('/@\d+$/', '', (string)($m['stg_startup_mode'][$s . '_startup'] ?? ($m['stg_startup_mode'][$s] ?? 'warm'))));
+        if (!isset($cont[$s])) $cont[$s] = ['elapsed_rows' => $k, 'units' => [], 'mode' => $mode, 'source' => 'YESTERDAY_DATA'];
+        $cont[$s]['elapsed_rows'] = max($cont[$s]['elapsed_rows'], $k); $cont[$s]['units'][] = $g; }
+    return ['ok' => true, 'units' => $units, 'startup_continuation' => $cont, 'row_time' => (string)($last['Time'] ?? '')];
+}
+function rs_yesterday_data(string $projectKey, string $planDate): array {
+    if (!preg_match('~^\d{4}-\d{2}-\d{2}$~', $planDate)) return ['ok' => false, 'status' => 'ERROR', 'error' => 'PLAN_DATE_INVALID'];
+    $y = (new DateTime($planDate . ' 00:00:00', new DateTimeZone('UTC')))->modify('-1 day')->format('Y-m-d');
+    $p = rs_pdo(); if (!$p) return ['ok' => false, 'status' => 'ERROR', 'error' => rs_last_error() ?: 'DB_UNAVAILABLE', 'yesterday' => $y];
+    $skipped = [];
+    foreach (['MONITORING' => 'Monitoring Daily Plan', 'PLANNING' => 'Daily Plan'] as $type => $label) {
+        $q = $p->prepare('SELECT e.report_key, e.version_no, e.updated_at, e.plan_name, u.external_uid AS uid, u.display_name AS uname FROM report_entries e JOIN projects pr ON pr.id = e.project_id
+                          JOIN users u ON u.id = e.updated_by WHERE pr.project_key = ? AND e.plan_date = ? AND e.report_type = ? AND e.is_deleted = 0 AND e.active_marker = 0
+                          ORDER BY e.updated_at DESC, e.id DESC LIMIT 20');
+        $q->execute([$projectKey, $y, $type]);
+        foreach ($q->fetchAll() as $e) {
+            $o = rs_report_open((string)$e['report_key']);
+            if (empty($o['ok']) || $o['output_json'] === null) { $skipped[] = ['report_key' => $e['report_key'], 'type' => $type, 'reason' => 'PARTIAL_OR_CORRUPT:' . ($o['error'] ?? 'NO_RESULT')]; continue; }
+            $in = json_decode((string)$o['input_json'], true); $out = json_decode((string)$o['output_json'], true);
+            if (!is_array($in) || !is_array($out)) { $skipped[] = ['report_key' => $e['report_key'], 'type' => $type, 'reason' => 'PARTIAL_OR_CORRUPT:JSON']; continue; }
+            $st = rs_yesterday_status($in, $out);
+            if (empty($st['ok'])) { $skipped[] = ['report_key' => $e['report_key'], 'type' => $type, 'reason' => 'PARTIAL_OR_CORRUPT:' . ($st['error'] ?? '?')]; continue; }
+            return ['ok' => true, 'status' => $skipped ? 'FOUND_WITH_SKIPPED' : 'FOUND', 'plan_date' => $planDate, 'yesterday' => $y,
+                'source' => ['report_key' => $o['meta']['report_key'], 'report_entry_id' => $o['meta']['report_entry_id'], 'source_type' => $type, 'source_label' => $label,
+                             'plan_name' => $o['meta']['plan_name'], 'plan_date' => $o['meta']['plan_date'], 'version_no' => $o['meta']['version_no'], 'active_version_no' => $o['meta']['active_version_no'],
+                             'saved_by' => $o['meta']['saved_by'], 'saved_at_utc' => $o['meta']['saved_at_utc'], 'result_sha256' => $o['meta']['result_sha256'] ?? null],
+                'row_time' => $st['row_time'], 'units' => $st['units'], 'startup_continuation' => $st['startup_continuation'], 'skipped' => $skipped];
+        }
+    }
+    return ['ok' => true, 'status' => $skipped ? 'CORRUPT' : 'NO_DATA', 'plan_date' => $planDate, 'yesterday' => $y, 'skipped' => $skipped,
+            'message' => $skipped ? 'Report kemarin ditemukan tetapi rusak/tidak lengkap — input tidak diubah.' : 'No Yesterday Data — tidak ada Monitoring Daily Plan maupun Daily Plan aktif tanggal ' . $y . '; input tidak diubah.'];
+}
 function rs_http(string $mode): void {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8'); header('Cache-Control: no-store');
@@ -876,6 +933,7 @@ function rs_http(string $mode): void {
         $r = rs_report_delete($req, $ctx); $er = (string)($r['error'] ?? '');
         $j($r, !empty($r['ok']) ? 200 : ($er === 'NO_PERMISSION' ? 403 : ($er === 'REPORT_NOT_FOUND' ? 404 : ($er === 'DELETE_ROLLED_BACK' ? 409 : 422))));
     }
+    if ($mode === 'report_yesterday') $j(rs_yesterday_data(rs_project_key(), (string)($_GET['plan_date'] ?? '')));
     if ($mode === 'report_versions') $j(rs_report_versions((string)($_GET['key'] ?? '')));
     if ($mode === 'report_integrity') $j(rs_integrity());
     $j(['ok' => false, 'error' => 'UNKNOWN_MODE'], 400);

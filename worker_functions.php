@@ -2070,10 +2070,23 @@ function pp_fill_k_units(array $fill, int $k, $v, int $row1, ?string $stg, float
 /* Number of rows AFTER a feeding GTG's OFF->ON start during which the STG may NOT
  * yet be generated (calc_stg gatekeeping, Revisi Sec.4-7). Cold-block start uses
  * the full STG startup window; additional-HRSG uses the shorter HRSG delay. */
+/* V15.25 PROFIL COLD START BLOCK 3 (permintaan user): G8/G9 40 MW 3,5 jam (7 row) -> 50 MW 60 menit (2 row) -> 60 MW 2,5 jam (5 row)
+ * = 14 row (7,0 jam); S3 mulai berbeban pada row ke-15 sequence. Konvensi row engine: label row = AKHIR slot 30 menit; instant startup =
+ * AWAL slot GTG berbeban pertama. Maka row S3 pertama berlabel tepat startup + 7,5 jam (14 row profil + slot S3 pertama). Satu sumber untuk
+ * caps, hold STG, rebuild final, dan audit. PP_V1525_B3COLD=0 -> profil V15.24 (12 langkah, hold 11 row = 5,5 jam). */
+function pp_v1525_b3cold(): bool { return (string)getenv('PP_V1525_B3COLD') !== '0'; }
+/* V15.25 KELANJUTAN STARTUP: mode STG boleh membawa sisa hold eksplisit "<mode>@<n>" (mis. "cold@3": sequence dimulai kemarin, STG mulai
+ * berbeban pada row n+1 hari ini). Ditulis HANYA oleh pp_v1525_startup_continuation (normalisasi engine), bukan input user. */
+function pp_v1525_mode_parse(string $mode): array { $mode = strtolower(trim($mode)); if (preg_match('/^([a-z ]+)@(\d+)$/', $mode, $mm)) return [trim($mm[1]), (int)$mm[2]]; return [$mode, null]; }
+function pp_stg_lag(string $stg, string $mode): int {
+    [$mode, $ov] = pp_v1525_mode_parse($mode); if ($ov !== null) return $ov;
+    if ($stg === 's3') return ['cold' => pp_v1525_b3cold() ? 14 : 11, 'warm' => 5, 'hot' => 1][$mode] ?? 5;
+    return ['cold' => 7, 'warm' => 2, 'hot' => 1][$mode] ?? 2;
+}
 function pp_stg_release_rows(string $stg, string $mode): int {
-    $mode = strtolower(trim($mode));
+    [$mode, $ov] = pp_v1525_mode_parse($mode); if ($ov !== null) return $ov;
     if ($mode === 'none' || $mode === 'no start up sequence' || $mode === 'no startup') return 0;
-    if ($stg === 's3') { if ($mode === 'cold') return 11; if ($mode === 'warm') return 5; return 1; } // 5.5h / 2.5h / 30min
+    if ($stg === 's3') { if ($mode === 'cold') return pp_stg_lag('s3', 'cold'); if ($mode === 'warm') return 5; return 1; } // 7,0h(V15.25)/5,5h / 2.5h / 30min
     if ($mode === 'cold') return 7;                       // STG1/2 cold: 3.5h
     if ($mode === 'warm') return 2;                       // STG1/2 warm: 60min
     return 1;                                             // STG1/2 hot: 30min
@@ -2089,8 +2102,7 @@ function pp_stg_hold_from_rows(array $d3, array $model, array $rows): array {
         if (!isset($d3[$sR2])) continue;
         if (strtolower((string)($model['unit_last_data_status'][strtoupper($sR2)] ?? '')) !== 'stop') continue;
         $modeR = strtolower((string)($model['stg_startup_mode'][$sR2] ?? ($model['stg_startup_mode'][$sR2 . '_startup'] ?? 'warm')));
-        $lagR = ($sR2 === 's3') ? ['cold' => 11, 'warm' => 5, 'hot' => 1] : ['cold' => 7, 'warm' => 2, 'hot' => 1];
-        $dR = $lagR[$modeR] ?? 2;
+        $dR = pp_stg_lag($sR2, $modeR); $modeR = pp_v1525_mode_parse($modeR)[0];
         $feedR2 = array_map('strtolower', array_values($d3[$sR2]['hrsg'] ?? ($d3[$sR2]['gtg'] ?? [])));
         $anch = -1;
         for ($rS2 = 0; $rS2 < $n; $rS2++) { foreach ($feedR2 as $fR2) {
@@ -2217,9 +2229,63 @@ function pp_v1518_reorder_group(array $g, array $moveLast): array {
         if (preg_match('/^(g\d+|b\d|ge\d)$/', $lx)) { if (in_array($lx, $moveLast, true)) $tail[] = $x; else $units[] = $x; } else $tok[] = $x; }
     return array_merge($units, $tail, $tok);
 }
+/* ===== V15.25 KELANJUTAN STARTUP LINTAS HARI & BACKWARD SCHEDULING (satu mekanisme, generik per blok CC) ==========================
+ * Masukan (modeling):
+ *   unit_last_data_status[GTG] = 'Start Up CC'       GTG sedang dalam startup sequence blok pada 00:00 kemarin;
+ *   startup_continuation[stg] = {elapsed_rows, units, mode, source}   elapsed = jumlah row sequence yang SUDAH dijalani (dari Check
+ *                                                                     Yesterday Data; manual tanpa data = 0);
+ *   stg_first_load_target[stg] = 'HH:MM'              target row PERTAMA STG berbeban (backward scheduling).
+ * Normalisasi: lag = hold STG profil (pp_stg_lag), caps = langkah GTG profil (pp_startup_caps).
+ *   - elapsed >= lag: sequence sudah selesai -> GTG & STG Running.
+ *   - elapsed  < lag: GTG online dari row 1 (Last Data Running) dengan langkah sisa caps[elapsed..] dikunci pada row 1..; STG Stop dengan
+ *     sisa hold lag-elapsed (mode '<mode>@<n>') -> STG mulai berbeban row lag-elapsed+1. Sequence TIDAK diulang dari nol.
+ *   - target STG row t: t-1 >= lag -> GTG lead (prioritas blok) Start Based On Request pada row t-lag (start biasa);
+ *                       t-1  < lag -> kelanjutan dengan elapsed = lag-(t-1) (GTG sudah dalam fase startup sejak kemarin).
+ * Hasil dicatat pada modeling.__v1525_continuation (provenance). Idempoten. PP_V1525_CONT=0 -> nonaktif. */
+function pp_v1525_startup_continuation(array &$m, array $d3): void {
+    if (!empty($m['__v1525_cont_done']) || (string)getenv('PP_V1525_CONT') === '0') return;
+    $lds = (array)($m['unit_last_data_status'] ?? []); $cont = (array)($m['startup_continuation'] ?? []); $tg = (array)($m['stg_first_load_target'] ?? []); $info = [];
+    $feeders = function (string $stg) use ($d3): array { return array_values(array_filter(array_map('strtolower', (array)($d3[$stg]['gtg'] ?? array_values((array)($d3[$stg]['hrsg'] ?? [])))), fn($u) => isset($d3[$u]))); };
+    $modeOf = function (string $stg) use ($m): string { return strtolower((string)($m['stg_startup_mode'][$stg . '_startup'] ?? ($m['stg_startup_mode'][$stg] ?? 'warm'))); };
+    /* GTG berstatus 'Start Up CC' tanpa entri kelanjutan blok -> elapsed 0 (sequence mulai row 1; manual) */
+    foreach ($lds as $U => $st) { if (strtolower(trim((string)$st)) !== 'start up cc') continue; $u = strtolower((string)$U); $stg = pp_gtg_to_stg($d3, $u); if ($stg === '') continue;
+        if (!isset($cont[$stg])) $cont[$stg] = ['elapsed_rows' => 0, 'units' => [], 'source' => 'MANUAL_START_UP_CC'];
+        if (!in_array($u, (array)$cont[$stg]['units'], true)) $cont[$stg]['units'][] = $u; }
+    $prio = pp_priority_flat($m, '/^g\d+$/');
+    foreach ($tg as $stg => $at) { $stg = strtolower((string)$stg); if (!isset($d3[$stg]) || isset($cont[$stg]) || !preg_match('/^(\d{1,2}):(\d{2})$/', (string)$at, $mm)) continue;
+        $t = (int)(((int)$mm[1] * 60 + (int)$mm[2]) / 30); if ($t <= 0) $t = 48; $mode = $modeOf($stg); $lag = pp_stg_lag($stg, $mode);
+        $fd = $feeders($stg); usort($fd, fn($a, $b) => (array_search($a, $prio, true) ?: 99) <=> (array_search($b, $prio, true) ?: 99));
+        $lead = null; foreach ($fd as $u) if (pp_unit_present($d3, $u) && !pp_is_unit_stopped($d3, $m, $u, max(1, $t - $lag))) { $lead = $u; break; }
+        if ($lead === null) { $info[$stg] = ['target_first_load_row' => $t, 'status' => 'TIDAK_ADA_GTG_TERSEDIA']; continue; }
+        if ($t - 1 >= $lag) { $sr = $t - $lag; $m['required_mode'][$lead] = ['mode' => 'start_at', 'at' => sprintf('%02d:%02d', intdiv(($sr - 1) * 30, 60), (($sr - 1) * 30) % 60)];
+            if (!in_array($lead, array_map('strtolower', (array)($m['required_units'] ?? [])), true)) $m['required_units'][] = $lead;
+            if (!in_array($lead, array_map('strtolower', (array)($m['unit_cannot_stop'] ?? [])), true)) $m['unit_cannot_stop'][] = $lead;
+            $info[$stg] = ['mode' => 'BACKWARD_START_SAME_DAY', 'target_first_load_row' => $t, 'lag_rows' => $lag, 'gtg' => strtoupper($lead), 'gtg_first_load_row' => $sr, 'stg_first_load_row' => $t]; }
+        else $cont[$stg] = ['elapsed_rows' => $lag - ($t - 1), 'units' => [$lead], 'source' => 'BACKWARD_SCHEDULE_TARGET_' . $at, 'target_first_load_row' => $t]; }
+    foreach ($cont as $stg => $c) { $stg = strtolower((string)$stg); if (!isset($d3[$stg])) continue;
+        $mode = strtolower((string)($c['mode'] ?? $modeOf($stg))); $lag = pp_stg_lag($stg, $mode); $caps = pp_startup_caps($stg, $mode); $e = max(0, (int)($c['elapsed_rows'] ?? 0));
+        $units = array_values(array_filter(array_map('strtolower', (array)($c['units'] ?? [])), fn($u) => isset($d3[$u]))); if (!$units) $units = array_slice($feeders($stg), 0, 1);
+        $rec = ['stg' => strtoupper($stg), 'mode' => $mode, 'lag_rows' => $lag, 'profile_mw' => $caps, 'elapsed_rows' => $e, 'units' => array_map('strtoupper', $units), 'source' => $c['source'] ?? null];
+        /* commitment STG eksplisit user (Required/continuous/start_at) menang atas kelanjutan: sequence tidak dipaksakan, konflik dicatat */
+        if (isset($m['required_mode'][$stg]) || in_array($stg, array_map('strtolower', (array)($m['required_units'] ?? [])), true)) {
+            foreach ($units as $u) $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $rec['status'] = 'DIABAIKAN_KOMITMEN_STG_EKSPLISIT'; $rec['reason'] = 'USER_EXPLICIT_STG_COMMITMENT_WINS'; $info[$stg] = $rec; continue; }
+        if ($e >= $lag) { foreach ($units as $u) $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $m['unit_last_data_status'][strtoupper($stg)] = 'Running'; $rec['status'] = 'SEQUENCE_SELESAI_KEMARIN_RUNNING'; $info[$stg] = $rec; continue; }
+        foreach ($units as $u) { $m['unit_last_data_status'][strtoupper($u)] = 'Running'; $rules = (array)($m['unit_fix_load'][$u] ?? []); $rem = [];
+            for ($k = $e; $k < count($caps); $k++) { $r = $k - $e + 1; if ($r > 48) break; if (pp_is_unit_stopped($d3, $m, $u, $r)) break; $rules[] = ['start' => $r, 'stop' => $r, 'value' => (float)$caps[$k], 'source' => 'STARTUP_CONTINUATION']; $rem[] = (float)$caps[$k]; }
+            $m['unit_fix_load'][$u] = $rules; $rec['remaining_profile_mw'][strtoupper($u)] = $rem; }
+        $m['unit_last_data_status'][strtoupper($stg)] = 'Stop';
+        /* GTG lain di blok yang sama tidak boleh start sebelum STG berbeban (masuk sesudahnya sebagai Additional HRSG) — satu sequence blok */
+        foreach ($feeders($stg) as $u) if (!in_array($u, $units, true) && $lag - $e >= 1) { $m['unit_stop_time'][] = ['unit' => $u, 'start' => 1, 'stop' => $lag - $e, 'source' => 'STARTUP_CONTINUATION_BLOCK_SEQUENCE']; }
+        $m['stg_startup_mode'][$stg . '_startup'] = pp_v1525_mode_parse($mode)[0] . '@' . ($lag - $e); unset($m['stg_startup_mode'][$stg]);
+        $rec['stg_first_load_row'] = $lag - $e + 1; $rec['status'] = 'KELANJUTAN_SEQUENCE'; $info[$stg] = $rec; }
+    if ($info) { $m['__v1525_continuation'] = $info; $m['startup_continuation_applied'] = $info; }
+    unset($m['startup_continuation'], $m['stg_first_load_target']);   // sudah diterjemahkan ke primitif engine (idempoten untuk salinan bersih)
+    $m['__v1525_cont_done'] = true;
+}
 function pp_v1518_semantics(array &$input): void {
     if (!pp_v1518_on() || !isset($input['data3']['modeling']) || !is_array($input['data3']['modeling'])) return;
     $d3 = &$input['data3']; $m = &$d3['modeling'];
+    pp_v1525_startup_continuation($m, $d3);
     /* ---- 1. SC/CC ---- */
     $sc = pp_v1518_sc_map($m); $scU = array_keys(array_filter($sc, fn($v) => $v === 'SC'));
     foreach (['s1','s2','s3'] as $s) {
@@ -2900,13 +2966,13 @@ function pp_start_sequence(array $d3, array $model, string $u, array $genRows, i
 }
 
 function pp_startup_caps(string $stg, string $mode): array {
-    $mode = strtolower(trim($mode));
+    $mode = pp_v1525_mode_parse($mode)[0];
     if (function_exists('pp_v1518_is_sc') && pp_v1518_is_sc(strtolower($stg))) return [];   // V15.18 GTG SC: marker 0 MW lalu bebas [min_scload, max]
     // "No Start Up Sequence": no ramp caps at all — STG/unit load is taken directly
     // (STG computed from GTG load via calc_stg). (Revisi STG Start Up Mode Sec.3.2)
     if ($mode === 'none' || $mode === 'no start up sequence' || $mode === 'no startup') return [];
     if ($stg === 's3') {                              // STG3 / HRSG 8-9 (per KETENTUAN file)
-        if ($mode === 'cold') return [40, 40, 40, 50, 50, 60, 60, 60, 60, 60, 70, 80];
+        if ($mode === 'cold') return pp_v1525_b3cold() ? [40, 40, 40, 40, 40, 40, 40, 50, 50, 60, 60, 60, 60, 60] : [40, 40, 40, 50, 50, 60, 60, 60, 60, 60, 70, 80];
         if ($mode === 'warm') return [50, 50, 60, 60, 70];
         return [60];                                  // hot
     }

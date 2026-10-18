@@ -365,6 +365,15 @@ if (function_exists('rs_enabled') && rs_enabled()) {
   .fixpop{position:fixed;z-index:10070;background:#fff;border:1px solid #e2c0c4;border-radius:12px;box-shadow:0 10px 30px rgba(120,20,28,.18);padding:12px;min-width:200px;max-width:calc(100vw - 16px);box-sizing:border-box;font-family:var(--sans);display:flex;flex-direction:column;overflow:hidden}
   /* V15.25: popup Fix Load/Fixed Flow di portal <body>, posisi fixed terhadap viewport yang terlihat (clamp + flip); isi boleh scroll, footer OK/Cancel selalu terlihat */
   .fixpop-sc{overflow:auto;min-height:0;flex:1 1 auto}
+  /* V15.25 Check Yesterday Data + Start Up CC */
+  .yday-btn{margin-left:auto;margin-right:10px;padding:5px 12px;font-size:11.5px;font-weight:700;border-radius:8px;white-space:nowrap}
+  .uld-sel.uld-su{background:#fff1d6;color:#9a5b00;border-color:#f3c47a;font-weight:700}
+  #yday-modal{position:fixed;inset:0;z-index:10080;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:12px}
+  #yday-modal .yd-card{background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(15,23,42,.3);width:min(860px,100%);max-height:calc(100vh - 24px);display:flex;flex-direction:column;font-family:var(--sans)}
+  #yday-modal .yd-h{padding:14px 18px;font-weight:800;border-bottom:1px solid #eef1f6} #yday-modal .yd-b{padding:12px 18px;overflow:auto;font-size:12.5px}
+  #yday-modal .yd-f{padding:10px 18px;border-top:1px solid #eef1f6;display:flex;gap:8px;justify-content:flex-end;flex:0 0 auto}
+  #yday-modal table{border-collapse:collapse;width:100%;font-size:12px} #yday-modal td,#yday-modal th{border-bottom:1px solid #eef1f6;padding:4px 6px;text-align:left}
+  #yday-modal .yd-st{font-weight:800} #yday-modal .yd-state{padding:8px 10px;border-radius:8px;background:#f1f5f9;margin-bottom:8px}
   .fixpop .fixpop-b{flex:0 0 auto;background:#fff;padding-top:8px;border-top:1px solid #f1e3e5}
   .fixpop-h{font-weight:800;font-size:12px;color:#a3262e;margin-bottom:8px;letter-spacing:.02em}
   .fixpop-l{display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;color:#7a8294}
@@ -1330,9 +1339,10 @@ ul.csverr li{margin:2px 0}
         <!-- Required & Commitment (Revisi Commitment Start/Stop): Unit Cannot Stop column removed (replaced by
              Commitment Mode = Unit Continuous Running); Unit Last Data Status moved in (left of Required);
              STOP STATUS and STOP AT columns added (right of Start At). -->
-        <details class="acc" open><summary><span>Required &amp; Commitment (Start/Stop)</span><span class="achint">commitment flags per unit</span><span class="accv">▶</span></summary>
+        <details class="acc" open><summary><span>Required &amp; Commitment (Start/Stop)</span><span class="achint">commitment flags per unit</span><button type="button" id="btn-yday" class="btn ghost yday-btn" title="Baca status unit pukul 00:00 dari Monitoring Daily Plan / Daily Plan kemarin (pratinjau dulu, diterapkan setelah Apply)">Check Yesterday Data</button><span class="accv">▶</span></summary>
           <div class="accb">
             <table class="prio" id="tbl-unit-flags"></table>
+            <div id="stg-target-row" class="hint" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center"></div>
             <div class="hint" id="unit-flags-note" style="margin-top:10px;line-height:1.5">
               <b>Unit Last Data Status</b> — status slot terakhir hari sebelumnya. <b>Running</b> → row pertama (00:30) wajib load &gt; 0, runtime melanjutkan, bukan startup baru; <b>Stop</b> → row pertama wajib 0 MW dan start berikutnya wajib mengikuti startup sequence. Otomatis terkunci oleh Commitment Mode.<br>
               <b>Commitment Mode</b> (aktif saat <b>Required</b> dicentang; Required off → Mode = “-” dan disabled):<br>
@@ -1703,7 +1713,7 @@ let SIM_VIEW=null;
 
 /* ===== Unit Last Data Status (Revisi UI) ===== */
 const ULD_UNITS=[['G1','G1'],['G2','G2'],['G3','G3'],['G4','G4'],['G5','G5'],['G6','G6'],['G7','G7'],['G8','G8'],['G9','G9'],['G10','G10'],['S1','S1'],['S2','S2'],['S3','S3'],['B1','BBLN1'],['B2','BBLN2'],['GE1','Gas Engine 1'],['GE2','Gas Engine 2'],['GE3','Gas Engine 3'],['GE4','Gas Engine 4']];
-function uldColor(sel){ if(!sel) return; const run=/run/i.test(sel.value); sel.classList.toggle('uld-run',run); sel.classList.toggle('uld-stop',!run); }
+function uldColor(sel){ if(!sel) return; const run=/run/i.test(sel.value), su=/^start up cc$/i.test(sel.value); sel.classList.toggle('uld-run',run); sel.classList.toggle('uld-su',su); sel.classList.toggle('uld-stop',!run&&!su); }
 function buildUnitLastStatus(){
   // Revisi Commitment Start/Stop: the standalone Unit Last Data Status table was merged into the
   // Required & Commitment table (renderUnitFlags). This shim keeps old call sites working.
@@ -2742,6 +2752,63 @@ function uldStatusOf(u){
   const st=(INPUT&&INPUT.data3&&INPUT.data3.modeling&&INPUT.data3.modeling.unit_last_data_status)||{};
   return String(st[u.toUpperCase()]||st[u]||'Stop');
 }
+/* ===================== V15.25 CHECK YESTERDAY DATA · START UP CC · BACKWARD SCHEDULING ===================== */
+const YD_STG_OF=u=>{ const b=PRI_BLOCKS.find(x=>(x.gtg||[]).includes(u)); return b&&b.stg?b.stg:null; };
+function ydDropContinuation(u){
+  const m=INPUT&&INPUT.data3&&INPUT.data3.modeling; if(!m||!m.startup_continuation) return; const s=YD_STG_OF(u); const c=s&&m.startup_continuation[s]; if(!c) return;
+  c.units=(c.units||[]).filter(x=>x!==u); if(!c.units.length) delete m.startup_continuation[s];
+  if(!Object.keys(m.startup_continuation).length) delete m.startup_continuation;
+}
+function renderStgTargets(){
+  const host=$('stg-target-row'); if(!host) return;
+  const m=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{}; const tg=m.stg_first_load_target||{};
+  const times=(typeof STOPAT_TIMES!=='undefined'?STOPAT_TIMES:[]);
+  const yds=m.yesterday_data_source;
+  host.innerHTML='<b title="Backward scheduling: engine menghitung mundur startup sequence GTG blok dari target row pertama STG berbeban">Target first STG load</b>'+
+    ['s1','s2','s3'].map(st=>`<label style="display:flex;gap:4px;align-items:center">${st.toUpperCase()}<select data-stgt="${st}" style="width:90px"><option value="">-</option>${times.map(t=>`<option value="${t}"${tg[st]===t?' selected':''}>${t}</option>`).join('')}</select></label>`).join('')+
+    (yds?`<span id="yd-provenance" style="color:#475569">Yesterday data: <b>${String(yds.source_label||'')}</b> ${String(yds.plan_date||'')} v${yds.version_no||''} (${String(yds.saved_by||'')})</span>`:'');
+  host.querySelectorAll('[data-stgt]').forEach(el=>el.onchange=e=>{ const mm=INPUT.data3.modeling; mm.stg_first_load_target=mm.stg_first_load_target||{};
+    if(e.target.value) mm.stg_first_load_target[e.target.dataset.stgt]=e.target.value; else delete mm.stg_first_load_target[e.target.dataset.stgt];
+    if(!Object.keys(mm.stg_first_load_target).length) delete mm.stg_first_load_target; });
+}
+let YD_PREVIEW=null;
+function ydClose(){ const x=$('yday-modal'); if(x) x.remove(); document.removeEventListener('keydown',ydKey,true); YD_PREVIEW=null; }
+function ydKey(e){ if(e.key==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); ydClose(); } }
+async function ydOpen(){
+  ydClose(); const esc=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const pd=(($('f-plan_date')||{}).value)||((INPUT.data3.modeling||{}).plan_date)||'';
+  const box=document.createElement('div'); box.id='yday-modal'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+  box.innerHTML=`<div class="yd-card"><div class="yd-h">Check Yesterday Data · Plan Date ${esc(pd)}</div><div class="yd-b" id="yd-body"><div class="yd-state" id="yd-state" data-state="loading">Loading…</div></div>
+    <div class="yd-f"><button type="button" class="btn" id="yd-apply" disabled>Apply</button><button type="button" class="btn ghost" id="yd-cancel">Cancel</button></div></div>`;
+  document.body.appendChild(box); document.addEventListener('keydown',ydKey,true);
+  $('yd-cancel').onclick=ydClose; box.addEventListener('mousedown',e=>{ if(e.target===box) ydClose(); });
+  let j=null; try{ const r=await fetch('run.php?mode=report_yesterday&plan_date='+encodeURIComponent(pd),{cache:'no-store'}); j=await r.json(); }catch(e){ j={ok:false,status:'ERROR',error:String(e&&e.message||e)}; }
+  if(!$('yday-modal')) return;
+  const st=$('yd-state'), body=$('yd-body');
+  if(!j||!j.ok){ st.textContent='Error: '+((j&&j.error)||'?')+' — input tidak diubah.'; st.dataset.state='error'; return; }
+  if(j.status==='NO_DATA'||j.status==='CORRUPT'){ st.textContent=(j.status==='NO_DATA'?'No Yesterday Data':'Partial / corrupt data')+' — '+(j.message||'')+(j.skipped&&j.skipped.length?' ('+j.skipped.map(x=>x.reason).join(', ')+')':''); st.dataset.state=j.status==='NO_DATA'?'no-data':'partial'; return; }
+  YD_PREVIEW=j; const src=j.source||{}, cur=collectUnitLastStatus();
+  st.dataset.state=j.status==='FOUND'?'success':'partial';
+  st.innerHTML=`${j.status==='FOUND'?'Data ditemukan':'Data ditemukan (sebagian report kemarin dilewati: '+(j.skipped||[]).map(x=>esc(x.reason)).join(', ')+')'} — sumber <b>${esc(src.source_label)}</b> <b>${esc(src.plan_name)}</b> tanggal ${esc(src.plan_date)}, versi ${esc(src.version_no)} (aktif ${esc(src.active_version_no)}), disimpan ${esc(src.saved_by)} ${esc(src.saved_at_utc)} UTC · Report ID ${esc(src.report_key)} · row ${esc(j.row_time)}`;
+  const rowsH=Object.entries(j.units||{}).map(([U,x])=>`<tr data-yd-unit="${U}"><td>${U}</td><td>${esc(cur[U]||'-')}</td><td class="yd-st">${esc(x.status)}</td><td>${esc(x.load_mw_0000)}</td><td>${esc(x.reason)}${x.sequence_rows_done!=null?' · sequence '+x.sequence_rows_done+' row':''}</td></tr>`).join('');
+  const contH=Object.entries(j.startup_continuation||{}).map(([sg,c])=>`<li>${sg.toUpperCase()}: ${esc((c.units||[]).map(x=>x.toUpperCase()).join(', '))} melanjutkan startup ${esc(c.mode)} — ${esc(c.elapsed_rows)} row sudah dijalani kemarin</li>`).join('');
+  body.insertAdjacentHTML('beforeend',`<table><thead><tr><th>Unit</th><th>Status sekarang</th><th>Status 00:00 kemarin</th><th>Load 00:00 (MW)</th><th>Alasan</th></tr></thead><tbody>${rowsH}</tbody></table>${contH?'<ul style="margin:8px 0 0 16px">'+contH+'</ul>':''}
+    <div class="hint" style="margin-top:8px">Apply memperbarui Unit Last Data Status (unit dengan Commitment Mode eksplisit tidak diubah), kelanjutan startup sequence, dan provenance; cache hasil lama tidak dipakai karena payload berubah.</div>`);
+  $('yd-apply').disabled=false; $('yd-apply').onclick=ydApply;
+}
+function ydApply(){
+  const j=YD_PREVIEW; if(!j) return ydClose(); const m=INPUT.data3.modeling; const skipped=[];
+  Object.entries(j.units||{}).forEach(([U,x])=>{ const u=U.toLowerCase();
+    if(typeof COMMIT_MODE!=='undefined'&&COMMIT_MODE[u]&&COMMIT_MODE[u]!=='-'){ skipped.push(U); return; }   // explicit user commitment wins
+    if(x.status==='Start Up CC'&&!SC_ELIGIBLE.includes(u)) return;
+    const sg=x.status==='Start Up CC'?YD_STG_OF(u):null;   // STG blok dengan commitment eksplisit: kelanjutan tidak dipaksakan, GTG = Running
+    if(sg&&COMMIT_MODE[sg]&&COMMIT_MODE[sg]!=='-'){ setUnitLast(u,'Running'); return; } setUnitLast(u,x.status); });
+  const cont={}, contSkipped=[]; Object.entries(j.startup_continuation||{}).forEach(([sg,c])=>{ const us=(c.units||[]).filter(u=>!skipped.includes(u.toUpperCase())); if(skipped.includes(sg.toUpperCase())){ contSkipped.push(sg.toUpperCase()); return; } if(us.length) cont[sg]=Object.assign({},c,{units:us,source:'YESTERDAY_DATA:'+((j.source||{}).report_key||'')}); });
+  if(Object.keys(cont).length) m.startup_continuation=cont; else delete m.startup_continuation;
+  m.yesterday_data_source=Object.assign({},j.source||{},{applied_at:new Date().toISOString(),yesterday:j.yesterday,units_skipped_explicit_commitment:skipped,continuation_skipped_explicit_stg:contSkipped});
+  ydClose(); renderUnitFlags(); if(typeof toast==='function') toast('Yesterday data applied ('+((j.source||{}).source_label||'')+')'+(skipped.length?' — commitment eksplisit dipertahankan: '+skipped.join(', '):''));
+}
+document.addEventListener('click',e=>{ if(e.target&&e.target.id==='btn-yday'){ e.preventDefault(); e.stopPropagation(); ydOpen(); } },true);
 function renderUnitFlags(){
   if(!Object.keys(COMMIT_MODE).length) initUnitFlags();
   /* Columns (Revisi Commitment Start/Stop):
@@ -2758,7 +2825,7 @@ function renderUnitFlags(){
     const opts=COMMIT_MODES.map(([v,lbl])=>`<option value="${v}"${v===mode?' selected':''}>${lbl}</option>`).join('');
     const uldLocked=(mode!=='-');
     const uldV=isCont?'Running':(req?'Stop':uldStatusOf(u));
-    const uldRun=/run/i.test(uldV);
+    const uldRun=/run/i.test(uldV), uldSU=/^start up cc$/i.test(uldV);   // V15.25: Start Up CC = startup sequence blok masih berjalan pada 00:00 kemarin
     const smode=isCont?'continuous':(STOP_MODE[u]||'-');
     const scE=SC_ELIGIBLE.includes(u), scV=scE?(SC_CC[u]||'CC'):'';
     const scCell=scE?`<select data-flag="sccc" data-u="${u}" style="min-width:64px${scV==='SC'?';background:#ffe2bd;color:#a85b00;font-weight:700':''}"><option value="CC"${scV==='CC'?' selected':''}>CC</option><option value="SC"${scV==='SC'?' selected':''}>SC</option></select>`:'<select disabled style="min-width:64px;opacity:.45"><option></option></select>';
@@ -2767,8 +2834,8 @@ function renderUnitFlags(){
     const saOpts=['<option value=""'+((STOP_AT[u]||'')===''?' selected':'')+'>-</option>']
       .concat(STOPAT_TIMES.map(t=>`<option value="${t}"${t===(STOP_AT[u]||'')?' selected':''}>${t}</option>`)).join('');
     h+=`<tr><td>${UL(u)}</td>
-      <td style="text-align:center"><select id="uld-${u.toUpperCase()}" data-flag="uld" data-u="${u}" class="uld-sel ${uldRun?'uld-run':'uld-stop'}" ${uldLocked?'disabled':''}>
-        <option value="Running"${uldRun?' selected':''}>Running</option><option value="Stop"${uldRun?'':' selected'}>Stop</option></select></td>
+      <td style="text-align:center"><select id="uld-${u.toUpperCase()}" data-flag="uld" data-u="${u}" class="uld-sel ${uldRun?'uld-run':(uldSU?'uld-su':'uld-stop')}" ${uldLocked?'disabled':''}>
+        <option value="Running"${uldRun?' selected':''}>Running</option><option value="Stop"${(!uldRun&&!uldSU)?' selected':''}>Stop</option>${SC_ELIGIBLE.includes(u)?`<option value="Start Up CC"${uldSU?' selected':''}>Start Up CC</option>`:''}</select></td>
       <td style="text-align:center">${scCell}</td>
       <td style="text-align:center"><input type="checkbox" data-flag="req" data-u="${u}" ${req?'checked':''}></td>
       <td style="text-align:center"><select class="uld-sel" data-flag="mode" data-u="${u}" ${req?'':'disabled'} style="min-width:190px">${opts}</select></td>
@@ -2804,11 +2871,14 @@ function renderUnitFlags(){
       else if(typeof toast==='function') toast(`${UL(u)} kembali CC: Effective Priority kembali ke urutan configured (kecuali terkena stop/trip/unavailable).`);
     } else if(kind==='uld'){
       setUnitLast(u,e.target.value); if(typeof uldColor==='function')uldColor(e.target);
+      /* V15.25: unit yang tidak lagi Start Up CC dilepas dari kelanjutan sequence kemarin (tidak ada state basi) */
+      if(e.target.value!=='Start Up CC') ydDropContinuation(u);
     }
     if(kind==='req'||kind==='mode'||kind==='stopmode'||kind==='sccc') semStgAutoFollow(false);
     syncFlagArrays(); applyCommitToModel(); renderUnitFlags();
   }));
   try{ renderSemSummary(); }catch(e){}
+  try{ renderStgTargets(); }catch(e){}
 }
 
 /* ===================== tabs ===================== */
