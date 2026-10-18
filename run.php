@@ -3997,7 +3997,8 @@ function pp_v1517_ie_store(array $inputAsli, array $output): void {
             'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null,
             'fuel' => pp_v1518_fuel_decision($inputAsli), 'cold_s' => pp_v1521_cold_s($k), 'struct_hash' => pp_v1522_struct_hash($c),
             'event_proof' => (is_array($output['info']['Commitment Event Proof'] ?? null) && empty($output['info']['Commitment Event Proof']['reused_from_basis'])) ? $output['info']['Commitment Event Proof'] : ($output['info']['Commitment Event Proof']['basis_proof'] ?? null)]);
-        if (isset($GLOBALS['ppV1524IeExactPending'])) { @copy(pp_v1517_ie_base_file($k), $GLOBALS['ppV1524IeExactPending']); unset($GLOBALS['ppV1524IeExactPending']); } } catch (Throwable $e) {}
+        if (isset($GLOBALS['ppV1524IeExactPending'])) { @copy(pp_v1517_ie_base_file($k), $GLOBALS['ppV1524IeExactPending']); unset($GLOBALS['ppV1524IeExactPending']); }
+        if (pp_v1526_act_on() && !pp_v1526_act_rows($c)) @copy(pp_v1517_ie_base_file($k), pp_v1526_anchor_file($c)); } catch (Throwable $e) {}
 }
 /* V15.18 KLASIFIKASI RERUN IE ADJUSTMENT (dari STRUKTUR solusi, bukan waktu):
  *   A = redispatch jendela lokal: commitment, keputusan bahan bakar dan gas-window basis tetap feasible (tahap A valid);
@@ -4032,6 +4033,74 @@ function pp_v1518_ie_classification(array $inputAsli, array $output, float $engi
         'release_gate' => $gate, 'stages' => array_values($st), 'engine_s' => round($engineS, 3),
         'rule' => 'Kelas ditentukan dari struktur solusi (validitas jendela lokal / commitment basis), bukan dari waktu yang terpakai.'];
 }
+/* V15.26 ACTUAL-HOUR ANCHOR — dispatch jam ACTUAL immutable dan tidak bergantung jalur (warm / dingin / Maximum Review).
+ * AKAR MASALAH (uji Actual Gas dua arah, A0/A2 x PGN/FFJ, jam 1-4): run DINGIN dengan Actual Gas me-redispatch row jam actual (mis. G9
+ * start row 2, Export naik 297 MWh) padahal biaya gas jam itu digantikan nilai TERUKUR -> CP turun semu (93,15 vs 94,11) dan row actual
+ * berubah; run WARM mengunci dispatch basis terakhir (bergantung riwayat). Dengan jam actual dikunci, optimasi penuh row mendatang
+ * menghasilkan CP 94,1109 vs tahap 0 warm 94,1097 (A0 PGN +10%) dan 93,6680 vs 93,6667 (-10%): selisih seluruhnya berasal dari
+ * redispatch jam lampau. DEFINISI (fungsi state saja): dispatch jam actual = rencana JANGKAR D(S) = state yang sama tanpa Actual Gas
+ * (rencana yang dijalankan operator); row mendatang dioptimasi ulang. Jangkar diambil dari basis IE berkas jangkar (konteks + IE + Fix
+ * sama, Actual kosong) atau dihitung sekali dengan job yang sama atas D(S); jam actual dikunci lewat Fix Load internal (act_lock, bukan
+ * Fix Load user) + jendela stop untuk unit yang mati. PP_V1526_ACT_ANCHOR=0 -> perilaku V15.25. */
+function pp_v1526_act_on(): bool { return (string)getenv('PP_V1526_ACT_ANCHOR') !== '0'; }
+function pp_v1526_act_rows(array $in): array {
+    $m = (array)($in['data3']['modeling'] ?? []); $L = [];
+    foreach (['actual_pgn_total', 'actual_energy_jababeka', 'actual_energy_mm2100'] as $k) foreach ((array)($m[$k] ?? []) as $ix => $v)
+        if ($v !== '' && $v !== null && is_numeric($ix)) { $h = intdiv((int)$ix, 2); if ($h < 24) { $L[2 * $h + 1] = true; $L[2 * $h + 2] = true; } }
+    ksort($L); return $L;
+}
+function pp_v1526_act_anchor_input(array $in): array {
+    foreach (['actual_pgn_total', 'actual_energy_jababeka', 'actual_energy_mm2100'] as $k) if (isset($in['data3']['modeling'][$k])) $in['data3']['modeling'][$k] = array_fill(0, 48, '');
+    if (isset($in['data3']['modeling']['unit_fix_load']) && is_array($in['data3']['modeling']['unit_fix_load'])) $in['data3']['modeling']['unit_fix_load'] = pp_v1526_strip_lock($in['data3']['modeling']['unit_fix_load']);
+    foreach (['_op_kind', '_op_id', '_draft_op', '_prelim_skipped'] as $k) unset($in[$k]);
+    unset($in['data3']['modeling']['act_hour_ff_plan']);
+    return $in;
+}
+function pp_v1526_strip_lock(array $fx): array { foreach ($fx as $u => $rules) { $fx[$u] = array_values(array_filter((array)$rules, fn($r) => empty($r['act_lock']))); if (!$fx[$u]) unset($fx[$u]); } return $fx; }
+function pp_v1526_anchor_file(array $clean): string { $s = pp_ie_series($clean);
+    return substr(pp_v1517_ie_base_file(pp_v1517_ie_base_key($clean)), 0, -5) . '.a' . substr(md5(json_encode([$s['eff'], pp_v1517_fix_map($clean)])), 0, 12) . '.json'; }
+/* kunci jam actual pada dispatch $bd: Fix Load internal (act_lock) untuk unit menyala + jendela stop untuk unit GT yang mati */
+function pp_v1526_act_lock(array $in, array $bd, array $rows): array {
+    $m = (array)($in['data3']['modeling'] ?? []); $fx = (array)($m['unit_fix_load'] ?? []); $st = (array)($m['unit_stop_time'] ?? []);
+    foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $gt = $u[0] === 'g'; $r0 = null;
+        for ($r = 1; $r <= 49; $r++) { $inL = $r <= 48 && isset($rows[$r]);
+            $v = $inL ? (float)($bd[$r - 1][$U] ?? 0) : 0.0; $fixed = $inL && pp_get_fixed_load($m, $u, $r) >= 0;
+            if ($inL && !$fixed && $v > 0.01) $fx[$u][] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4), 'act_lock' => 1];
+            $off = $gt && $inL && !$fixed && $v <= 0.01;
+            if ($off && $r0 === null) $r0 = $r;
+            if (!$off && $r0 !== null) { $st[] = ['unit' => $u, 'start' => $r0, 'stop' => $r - 1, 'act_lock' => 1]; $r0 = null; } } }
+    $in['data3']['modeling']['unit_fix_load'] = $fx; $in['data3']['modeling']['unit_stop_time'] = $st;
+    /* Fixed Flow JBBK rencana jangkar pada jam actual (realokasi Min PGN Flow yang sudah dijalankan) -> akuntansi worker & pp_v1522_ff_postprocess */
+    $ffp = []; foreach (array_keys($rows) as $r) if (isset($bd[$r - 1]['FixedFlow_J']) && is_numeric($bd[$r - 1]['FixedFlow_J'])) $ffp[$r] = round((float)$bd[$r - 1]['FixedFlow_J'], 4);
+    if ($ffp) $in['data3']['modeling']['act_hour_ff_plan'] = $ffp; return $in;
+}
+/* jangkar D(S): berkas jangkar ada -> dipakai; tidak ada -> job yang sama dijalankan atas D(S) (simpan basis bila lolos gerbang). */
+function pp_v1526_ensure_act_anchor(string $id, array $input): ?array {
+    unset($GLOBALS['ppV1526ActAnchor']);
+    if (!pp_v1526_act_on() || !empty($input['_v1526_anchor_inner']) || !pp_v1526_act_rows($input)) return null;
+    $anc = pp_v1526_act_anchor_input(pp_v1517_engine_input($input)); $fa = pp_v1526_anchor_file(pp_v13f_clean($anc)); $t0 = microtime(true); $how = 'BERKAS_JANGKAR';
+    if (!is_file($fa)) {
+        if ((string)($input['_op_kind'] ?? '') === 'actual_gas_adjust') {   // Save Actual Gas tanpa jangkar: tidak ada full run tersembunyi (V15.22) -> incumbent basis terakhir
+            $fb = pp_v1517_ie_base_file(pp_v1517_ie_base_key(pp_v13f_clean($anc))); if (!is_file($fb)) { $GLOBALS['ppV1526ActAnchorRep'] = ['status' => 'TIDAK_TERSEDIA', 'alasan' => 'SAVE_ACTUAL_TANPA_JANGKAR_DAN_BASIS']; return null; }
+            $fa = $fb; $how = 'BASIS_INCUMBENT_SAVE_ACTUAL';
+        } else {
+            pp_job_progress($id, 'ACTUAL_GAS_JANGKAR_RENCANA', 3.0);
+            try { pp_job_run_economic_review($id, $anc + ['_v1526_anchor_inner' => 1]); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {}
+            pp_tl_clean_globals(); $how = 'DIHITUNG_JOB_D(S)';
+        }
+    }
+    $B = is_file($fa) ? json_decode((string)@file_get_contents($fa), true) : null;
+    if (!is_array($B) || count((array)($B['data'] ?? [])) !== 48) { $GLOBALS['ppV1526ActAnchorRep'] = ['status' => 'TIDAK_TERSEDIA', 'alasan' => 'JANGKAR_D(S)_TIDAK_LOLOS_GERBANG', 's' => round(microtime(true) - $t0, 3)]; return null; }
+    $rows = pp_v1526_act_rows($input);
+    return $GLOBALS['ppV1526ActAnchor'] = ['file' => $fa, 'data' => array_values((array)$B['data']), 'rows' => $rows, 'how' => $how, 's' => round(microtime(true) - $t0, 3),
+        'cp' => $B['cp'] ?? null, 'sig' => function_exists('pp_v1525_unit_sig') ? pp_v1525_unit_sig(array_values((array)$B['data'])) : null];
+}
+function pp_v1526_act_report(): ?array {
+    $A = $GLOBALS['ppV1526ActAnchor'] ?? null;
+    if (!is_array($A)) return isset($GLOBALS['ppV1526ActAnchorRep']) ? ['schema' => 'v1526-actual-hour-anchor-1'] + $GLOBALS['ppV1526ActAnchorRep'] : null;
+    return ['schema' => 'v1526-actual-hour-anchor-1', 'status' => 'TERKUNCI', 'sumber' => $A['how'], 'basis_file' => basename($A['file']), 'anchor_cp' => $A['cp'], 'anchor_s' => $A['s'],
+        'actual_rows_locked' => array_keys($A['rows']), 'rule' => 'dispatch row jam actual = rencana jangkar D(S) (state sama tanpa Actual Gas); row mendatang dioptimasi ulang; tidak bergantung cache/jalur'];
+}
 function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     $t0 = microtime(true);
     $rep = ['schema' => 'v1517-ie-incremental-v1', 'applied' => false];
@@ -4041,6 +4110,8 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     if ((string)getenv('PP_V1524_IE_EXACT') !== '0') { $mX = (array)($c['data3']['modeling'] ?? []);
         $actX = ['p' => array_values((array)($mX['actual_pgn_total'] ?? [])), 'j' => array_values((array)($mX['actual_energy_jababeka'] ?? [])), 'm' => array_values((array)($mX['actual_energy_mm2100'] ?? []))];
         $fX = pp_v1524_ie_exact_file($f, $s['eff'], $actX, pp_v1517_fix_map($c)); if (is_file($fX)) { $f = $fX; $rep['basis_exact'] = true; } }
+    /* V15.26: Actual Gas terisi -> basis = rencana jangkar D(S) (fungsi state, bukan basis terakhir yang bergantung riwayat) */
+    if (pp_v1526_act_on() && is_array($GLOBALS['ppV1526ActAnchor'] ?? null) && pp_v1526_act_rows($c)) { $f = $GLOBALS['ppV1526ActAnchor']['file']; $rep['basis_anchor'] = true; unset($rep['basis_exact']); }
     $B = is_file($f) ? json_decode((string)@file_get_contents($f), true) : null;
     if (!is_array($B) || count((array)($B['data'] ?? [])) !== 48) { $GLOBALS['__pp_ie_warm_rep'] = $GLOBALS['ppIeWarmInfo'] = $rep + ['cache' => 'MISS', 'alasan_invalidasi' => 'TIDAK_ADA_BASIS_FULLY_VALID_DENGAN_KONTEKS_SAMA']; return null; }
     $GLOBALS['ppIeBasisColdS'] = isset($B['cold_s']) && is_numeric($B['cold_s']) ? (float)$B['cold_s'] : null;   // V15.21: durasi commitment repair penuh terakhir (estimasi)
@@ -4458,7 +4529,8 @@ function pp_sp_unrequested_starts(array $input, array $out): array {
  * TERMINAL_INFEASIBLE_USER_FIXED_LOAD dengan bukti; Fix TIDAK dihapus/diubah, user yang Edit/Remove. PP_SP_USER_FIX=0 -> nonaktif. */
 function pp_sp_user_fix_rows(array $in): array {
     $m = (array)($in['data3']['modeling'] ?? []); $out = [];
-    foreach ((array)($m['unit_fix_load'] ?? []) as $u => $rules) foreach ((array)$rules as $ru) { $s = max(1, (int)($ru['start'] ?? 1)); $e = min(48, (int)($ru['stop'] ?? 48));
+    foreach ((array)($m['unit_fix_load'] ?? []) as $u => $rules) foreach ((array)$rules as $ru) { if (!empty($ru['act_lock'])) continue;   // V15.26: kunci jam actual internal, bukan Fix Load user
+        $s = max(1, (int)($ru['start'] ?? 1)); $e = min(48, (int)($ru['stop'] ?? 48));
         for ($r = $s; $r <= $e; $r++) $out[strtolower((string)$u) . '@' . $r] = ['unit' => strtoupper((string)$u), 'row' => $r, 'value' => round((float)($ru['value'] ?? 0), 4)]; }
     return array_values($out);
 }
@@ -4877,13 +4949,15 @@ function pp_v1517_engine_input(array $input): array {
  * pp_v1523_cmp) di antara hasil yang lolos validasi penuh dan boleh dipublikasikan; Maximum Review tidak pernah lebih buruk daripada
  * Fastest. Change Over (jalur non-Fastest khusus) tidak terdampak. PP_V1525_MR_FAST=0 -> perilaku V15.24. */
 function pp_job_run_economic_review(string $id, array $input): array {
+    if (empty($input['_v1526_anchor_inner'])) { unset($GLOBALS['ppV1526ActAnchorRep']); pp_v1526_ensure_act_anchor($id, $input); }
     if ((string)getenv('PP_V1525_MR_FAST') === '0' || !empty($input['_fast_default']) || !empty($input['data3']['modeling']['change_over']['enabled']) || !empty($input['_v1525_mr_inner']))
         return pp_job_run_economic_review_v1524($id, $input);
     /* kandidat Fastest dihitung LEBIH DULU pada state proses yang bersih (identik dengan job Fastest mandiri), lalu Maximum Review */
     $inF = $input; $inF['_fast_default'] = true; $inF['_maximum_review'] = false; $inF['_v1525_mr_inner'] = 1; $t0 = microtime(true); $rf = null; $errF = null;
     pp_job_progress($id, 'MAXIMUM_REVIEW_KANDIDAT_FASTEST', 5.0);
     /* kandidat Fastest dingin (tanpa basis warm IE): hasil tidak bergantung riwayat job lain pada konteks yang sama */
-    $wOld = getenv('PP_IE_WARM'); if ((string)getenv('PP_V1525_MR_FAST_COLD') !== '0') putenv('PP_IE_WARM=0');
+    /* V15.26: dengan jangkar Actual Gas, basis warm = jangkar D(S) (fungsi state) -> kandidat Fastest tidak bergantung riwayat walau warm */
+    $wOld = getenv('PP_IE_WARM'); if ((string)getenv('PP_V1525_MR_FAST_COLD') !== '0' && !is_array($GLOBALS['ppV1526ActAnchor'] ?? null)) putenv('PP_IE_WARM=0');
     try { $rf = pp_job_run_economic_review_v1524($id, $inF); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $errF = $e->getMessage(); }
     finally { if ($wOld === false) putenv('PP_IE_WARM'); else putenv('PP_IE_WARM=' . $wOld); }
     $tF = microtime(true) - $t0;
@@ -4911,6 +4985,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
 function pp_job_run_economic_review_v1524(string $id, array $input): array {
     unset($GLOBALS['ppV1525BalActive']);
     $input = pp_v1517_engine_input($input);
+    if (empty($input['_v1526_anchor_inner']) && is_array($A26 = $GLOBALS['ppV1526ActAnchor'] ?? null)) $input = pp_v1526_act_lock($input, $A26['data'], pp_v1526_act_rows($input));
     $GLOBALS['ppJobOwnerUid'] = (string)((pp_job_read($id) ?? [])['owner_uid'] ?? '');   // V15.21: scope basis warm per pemilik
     $inputAsli = $input;                          // identitas job turunan memakai input yang sama
     /* Pengamat TARGET SELESAI: mencatat kandidat valid yang ditemui pencarian exact ke kolam state
@@ -5116,6 +5191,13 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
         'catatan' => 'Job asinkron berjalan di luar PHP-FPM. Plafon 60 detik untuk request sinkron TIDAK diubah.'];
     if (isset($GLOBALS['ppIeWarmInfo']) && is_array($output['info'] ?? null)) { $output['info']['IE Incremental Redispatch'] = $GLOBALS['ppIeWarmInfo'] + ['total_job_s' => round(microtime(true) - $t, 3)]; }
     unset($GLOBALS['ppIeWarmInfo']);
+    /* V15.26: bukti jam actual immutable — dispatch row jam actual dibandingkan dengan rencana jangkar D(S) (toleransi 0,05 MW) */
+    if (is_array($output['info'] ?? null) && empty($inputAsli['_v1526_anchor_inner']) && ($ar = pp_v1526_act_report()) !== null) {
+        if (is_array($A26 = $GLOBALS['ppV1526ActAnchor'] ?? null) && count((array)($output['data'] ?? [])) === 48) { $dv = [];
+            foreach (array_keys($A26['rows']) as $r) foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u);
+                $x = (float)($output['data'][$r - 1][$U] ?? 0); $y = (float)($A26['data'][$r - 1][$U] ?? 0); if (abs($x - $y) > 0.05) $dv[] = ['row' => $r, 'unit' => $U, 'final_mw' => round($x, 3), 'anchor_mw' => round($y, 3)]; }
+            $ar['actual_rows_dispatch_identical'] = !$dv; $ar['deviations'] = array_slice($dv, 0, 12); }
+        $output['info']['Actual Hour Anchor'] = $ar; }
     /* ADDENDUM B: bukti konsolidasi block dipasang pada output yang dinilai gerbang (tahap sesudah pipeline mengganti info) */
     if (is_array($output['info'] ?? null) && is_array($GLOBALS['ppSpBlockConsol'] ?? null)) $output['info']['Block Consolidation Review'] = $GLOBALS['ppSpBlockConsol'];
     if (is_array($output['info'] ?? null) && is_array($GLOBALS['ppSpBlockFloor'] ?? null)) $output['info']['Block Required Floor Review'] = $GLOBALS['ppSpBlockFloor'];
@@ -5131,6 +5213,9 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
     $tSp = microtime(true); try { $review = pp_attach_or_reject_acceptance($input, $output); } finally { unset($GLOBALS['__pp_v15_job_gate']); pp_sp_prof('gate', $tSp); }
     $tSp = microtime(true); $V = pp_v1522_validate_final($input, $output); pp_sp_prof('validate_final', $tSp); $tSp2 = microtime(true);
     /* V15.17: rencana fully valid menjadi basis warm incremental IE Adjustment untuk konteks yang sama */
+    if (($output['info']['Actual Hour Anchor']['actual_rows_dispatch_identical'] ?? true) === false && !empty($output['release_gate']['release_allowed'])) {
+        $output['release_gate'] = array_merge((array)$output['release_gate'], ['release_allowed' => false, 'status' => 'FAIL', 'blocking_reasons' => array_values(array_merge((array)($output['release_gate']['blocking_reasons'] ?? []), ['ACTUAL_HOUR_DISPATCH_CHANGED']))]);
+        $output['publish_allowed'] = false; $output['save_allowed'] = false; $output['ok'] = false; $output['error_code'] = 'ACTUAL_HOUR_DISPATCH_CHANGED'; }
     if (strtoupper((string)($V['status'] ?? '')) === 'PASS' && strtoupper((string)($output['release_gate']['status'] ?? '')) === 'PASS' && function_exists('pp_v1517_ie_store')) pp_v1517_ie_store($inputAsli, $output);
     unset($GLOBALS['__pp_ie_warm_done'], $GLOBALS['__pp_ie_warm_rep']);
     /* ==========================================================================================

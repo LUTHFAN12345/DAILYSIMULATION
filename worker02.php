@@ -4316,8 +4316,15 @@ function pp_v1522_ff_postprocess(array $input, array &$output): void {
         $c = function ($k) use ($aPR) { $v = $aPR[$k] ?? ''; return ($v === '' || $v === null) ? null : (float)$v; };
         $a = $c($h0); $b = $c($h0 + 1); $s = ($a !== null && $b !== null) ? $a + $b : ($a !== null ? $a : $b);
         return ($s === null || (string)getenv('PP_ACT_PGN_FLOW') === '0') ? null : $s * 24.0 / max(1e-9, $ghvPgnR) * 1000.0; };
+    /* V15.26: jam historis (actual) memakai Fixed Flow RENCANA JANGKAR yang sudah dijalankan (act_hour_ff_plan, pp_v1526_act_lock) —
+     * bukan rencana asli sebelum realokasi. Selisih (asli - rencana jangkar) jam historis ikut pool yang diterima row planning, sehingga
+     * total harian tetap identik dan Actual = estimasi yang ditampilkan tidak menggeser akuntansi. PP_V1526_ACT_FF=0 -> perilaku V15.22. */
+    $planH = (string)getenv('PP_V1526_ACT_FF') === '0' ? [] : (array)($model['act_hour_ff_plan'] ?? []);
+    $histFix = []; foreach ($data as $i => $r) if ($histR($i) && !$manR($i) && isset($planH[$i + 1]) && is_numeric($planH[$i + 1])) $histFix[$i] = max(0.0, (float)$planH[$i + 1]);
     $red = []; $D = 0.0; $infeasRows = []; $lockedFail = [];
+    foreach ($histFix as $i => $ffH) { $red[$i] = $baseFF($i) - $ffH; $D += $red[$i]; }
     foreach ($flowR as $i => $f) {
+        if (isset($histFix[$i])) continue;
         if ($lockR($i) && ($fa = $actFlowR($i)) !== null) $f = $fa;                 // jam historis: aliran TERUKUR
         if ($f >= $minPgnR - 1e-6) continue;
         if ($lockR($i)) { $lockedFail[] = $i + 1; continue; }                          // historis/manual: evidence, tidak dikoreksi
@@ -4334,7 +4341,14 @@ function pp_v1522_ff_postprocess(array $input, array &$output): void {
         else $r['Flow_PGN_RT'] = round($e / max(1e-9, $ghvPgnR) * 1000.0, 4);
         $r['FF_J_Adjust_Delta'] = round($ff - (float)($r['FF_J_Plan_Original'] ?? $ff), 4); unset($r); };
     foreach ($data as $i => $r) if (abs((float)($r['FF_J_Adjust_Delta'] ?? 0)) > 1e-12) $setFF($i, $baseFF($i));
-    if (!$red && !$infeasRows) {
+    if (!$infeasRows && $D < -1e-9) {   // jam historis rencana jangkar MENERIMA lebih dari asli: row planning menyerahkan kembali (serata, ber-cap Fixed Flow >= 0)
+        $op = []; foreach ($data as $j => $r) if (!isset($red[$j]) && !$lockR($j) && $baseFF($j) > 1e-9) $op[] = $j; $rem0 = -$D; $itN = 0;
+        while ($rem0 > 1e-12 && $op && $itN < 96) { $itN++; $sh = $rem0 / count($op); $nx = [];
+            foreach ($op as $j) { $cap = $baseFF($j) - ($red[$j] ?? 0.0); $g = min($sh, $cap); $red[$j] = ($red[$j] ?? 0.0) + $g; $rem0 -= $g; if ($cap - $g > 1e-12) $nx[] = $j; }
+            $op = $nx; }
+        $D = 0.0; foreach ($red as $j => $v) $D += $v; }
+    if (!$infeasRows && !array_filter($red, fn($v) => abs($v) > 1e-9)) {
+        foreach ($histFix as $i => $ffH) $setFF($i, $ffH);
         $output['info']['Fixed Flow JBBK Redistribution'] = $lockedFail ? ['schema' => 'v1522-ff-jbbk-reallocation-v1', 'stage' => 'POST_DISPATCH_FINAL', 'status' => 'NO_PLANNING_ROW_BELOW_MIN',
             'policy' => 'FIXED_FLOW_ONLY', 'min_pgn_flow_mmscfd' => $minPgnR, 'historical_or_manual_rows_failing' => $lockedFail] : null;
         if ($output['info']['Fixed Flow JBBK Redistribution'] === null) unset($output['info']['Fixed Flow JBBK Redistribution']);
@@ -4343,7 +4357,7 @@ function pp_v1522_ff_postprocess(array $input, array &$output): void {
     $head = []; $tested = [];
     foreach ($flowR as $j => $f) {
         if (isset($red[$j])) continue;
-        if ($lockR($j)) { $tested[] = ['row' => $j + 1, 'time' => $tm($j), 'cap' => 0.0, 'excluded' => $manR($j) ? 'MANUAL_FIXED_FLOW' : 'HISTORICAL_ACTUAL']; continue; }
+        if ($lockR($j) || isset($histFix[$j])) { $tested[] = ['row' => $j + 1, 'time' => $tm($j), 'cap' => 0.0, 'excluded' => $manR($j) ? 'MANUAL_FIXED_FLOW' : 'HISTORICAL_ACTUAL']; continue; }
         $h = ($f - $tgtR) * $kR;
         $tested[] = ['row' => $j + 1, 'time' => $tm($j), 'cap' => round(max(0.0, $h), 6), 'excluded' => $h > 1e-9 ? null : 'FLOW_PGN_AT_MIN'];
         if ($h > 1e-9) $head[$j] = $h;
@@ -4958,6 +4972,8 @@ function pp_run_simulation_once(array $input): array {
 function pp_run_simulation_once_raw(array $input): array {
     if (($sf = (string)getenv('PP_SIMSTAT')) === '') return pp_v1525_sim_act_dist($input);
     if (empty($GLOBALS['__simstat_reg'])) { $GLOBALS['__simstat_reg'] = 1; register_shutdown_function(function () use ($sf) { @file_put_contents($sf, json_encode(($GLOBALS['__simstat'] ?? []) + ['snap_hits' => $GLOBALS['ppV1525ActSnapHits'] ?? 0]) . "\n", FILE_APPEND); }); }
+    if (($sdp = (string)getenv('PP_SIMDUP')) !== '') { $ci = $input; foreach (array_keys($ci) as $kk) if (is_string($kk) && $kk !== '' && $kk[0] === '_') unset($ci[$kk]);
+        @file_put_contents($sdp, md5(json_encode($ci)) . ' ' . md5(json_encode([$GLOBALS['__pp_budget']['states'] ?? null])) . ' ' . implode('<', array_map(fn($f) => $f['function'] ?? '?', array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 40), 3))) . "\n", FILE_APPEND); }
     $tS = microtime(true); $o = pp_v1525_sim_act_dist($input);
     $GLOBALS['__simstat']['n'] = ($GLOBALS['__simstat']['n'] ?? 0) + 1; $GLOBALS['__simstat']['s'] = ($GLOBALS['__simstat']['s'] ?? 0) + microtime(true) - $tS;
     return $o;
@@ -9093,6 +9109,20 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
         $aj = $hourCell($aJ, $h); if ($aj !== null) $actEnergyJsum += $aj;
         $am = $hourCell($aM, $h); if ($am !== null) $actEnergyMsum += $am;
     }
+    /* V15.26 ESTIMASI JAM ACTUAL = RENCANA JANGKAR YANG DITAMPILKAN: realokasi Fixed Flow JBBK (Min PGN Flow) pada jam historis sudah
+     * dijalankan menurut rencana jangkar (act_hour_ff_plan). Estimasi PGN jam actual = Est_PGN pra-realokasi + (FF asli - FF rencana) dan
+     * estimasi Jababeka jam actual = FF rencana (bukan rata-rata harian datar) -> Actual = nilai estimasi yang ditampilkan = delta nol;
+     * Actual lebih tinggi / lebih rendah menggeser Effective Total Gas tepat sebesar selisihnya. Tanpa jangkar: perilaku V15.25. */
+    $ffPlanH = (string)getenv('PP_V1526_ACT_FF') === '0' ? [] : (array)($model['act_hour_ff_plan'] ?? []);
+    if ($ffPlanH) {
+        $shiftR = fn(int $i): float => isset($ffPlanH[$i + 1]) && is_numeric($ffPlanH[$i + 1]) ? ((float)($data[$i]['FixedFlow_J'] ?? 0) - (float)$ffPlanH[$i + 1]) * $ghvJ / 48000.0 : 0.0;
+        $estJR = fn(int $i): float => isset($ffPlanH[$i + 1]) && is_numeric($ffPlanH[$i + 1]) ? (float)$ffPlanH[$i + 1] * $ghvJ / 48000.0 : (float)($data[$i]['Est_FF_J'] ?? 0);
+        $pgnShift = 0.0; $dJ = 0.0;
+        for ($h = 0; $h < $Hn; $h++) { $i0 = 2 * $h; $i1 = $i0 + 1;
+            if ($hourCell($aP, $h) !== null) $pgnShift += $shiftR($i0) + $shiftR($i1);
+            if (($aj = $hourCell($aJ, $h)) !== null) $dJ += $aj - ($estJR($i0) + $estJR($i1)); }
+        $pgnTotal -= $pgnShift; $actEnergyJ = $estEnergyJ + $dJ; $actualTotalGas = $actPGN + $actEnergyJ + $actEnergyM;
+    }
     /* PROMPT §6.2: identitas PGN TOTAL = PGN PIPE + LNG wajib tetap berlaku saat ACTUAL PGN
      * mengalahkan estimation. LNG adalah kontrak fixed (TIDAK boleh dikurangi diam-diam) —
      * maka PGN Pipe Used disesuaikan sbg residual dari total blended actual+estimation. */
@@ -9128,11 +9158,16 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
          * jalur total membuat window pipe [q-0.04,q] dan window total mustahil dipuaskan bersamaan
          * (terukur: pipe 27.4893 OK tapi total efektif 64.5693 > 64.50). Penalty startup jam FUTURE
          * tetap konsumsi nyata; penalty jam ber-actual sudah di dalam meter (lihat atribusi di atas). */
+        $pipeEstV = $pipeUsed;
         $pipeUsed = max(0.0, $pgnTotal + $penaltyFuture - $lngUsed);
         /* V15.25: pada jalur distillate, energi gas yang digantikan distillate (row planning) tidak ditarik dari pipa PGN —
          * basis NETO yang sama dengan Total Gas Used / Effective Total Gas (V15.24). PP_V1525_ACT_DIST=0 -> lama. */
         if ((string)getenv('PP_V1525_ACT_DIST') !== '0' && pp_action_uses_distillate($action))
             $pipeUsed = max(0.0, $pipeUsed - (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0));
+        /* V15.26: pipa blended = pipa jalur estimasi + deviasi actual (rumus yang sama dengan Effective Total Gas). Pengurangan offset distillate
+         * diskret (V15.25) menggeser pipa 0,0038 BBTUD walau Actual = estimasi (A0: 24,4962 vs 24,5). PP_V1526_ACT_PIPE=0 -> V15.25. */
+        if ((string)getenv('PP_V1526_ACT_PIPE') !== '0' && (string)getenv('PP_V1525_ACT_DIST') !== '0')
+            $pipeUsed = max(0.0, $pipeEstV + ($pgnTotal + $penaltyFuture - ($estPGN_perrow + $startupGasPenalty)));
         if ($pipeUsed > $pgnPipeQuota + 0.0005)
             $warnings[] = sprintf('ACTUAL PGN terukur di atas rencana: PGN Pipe blended %.4f BBTUD melebihi quota pipe %.4f (overage %.4f) — deviasi historis dari actual jam terisi; row future tetap quota-consistent.', $pipeUsed, $pgnPipeQuota, $pipeUsed - $pgnPipeQuota);
     }
