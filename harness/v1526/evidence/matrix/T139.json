@@ -1,0 +1,220 @@
+{
+ "id": "T139",
+ "group": "F",
+ "title": "Kombinasi ketiga Actual Gas",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "FAIL",
+ "published": false,
+ "terminal_proof": null,
+ "engine_status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+ "checks": [
+  "NG tidak dipublikasikan; terminal proof: None; status FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW; msg Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=69.3579 di luar window [65.4200,65.4600] (deviasi 3.8979 BB"
+ ],
+ "cp": 94.5378,
+ "econ_cp": 94.9751,
+ "hr": 8566.6,
+ "gas_bbtud": 66.1004,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -4.3517,
+ "daily_export_mwh": 532.42,
+ "distillate_l": 211315,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 1.15,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota+unit_ramp"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 1.9,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota+unit_ramp"
+  },
+  {
+   "unit": "G6",
+   "start": "04:30",
+   "first_needed": "08:30",
+   "deficit_mw": 0.18,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota+unit_ramp"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "06:30",
+   "deficit_mw": 23.98,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota"
+  }
+ ],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+04:30",
+  "G9+04:30",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "5dfcebf0c23798d935c570c7",
+ "job_input_hash": "8caa17225660d6f18424ba95cf9fd92828b98d17bcded18efa3c4519cd06e11a",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 171.69,
+ "cpu_s": 85.77,
+ "max_rss_kb": 516564,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.391
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.196
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 13.603
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.819
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_gas_land",
+   "s": 12.972
+  },
+  {
+   "stage": "cand_run",
+   "s": 32.103
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.592
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_run",
+   "s": 32.972
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.668
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.016
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.789
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 120.353
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.022
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 0.016
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 19.141
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 4.352
+  },
+  {
+   "stage": "event_proof",
+   "s": 10.004
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.022
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.015
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.167
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.075
+  },
+  {
+   "stage": "gate",
+   "s": 0.315
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.007
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/5dfcebf0c23798d935c570c7.json"
+}

@@ -1,0 +1,237 @@
+{
+ "id": "T014",
+ "group": "A",
+ "title": "Initial Running + Stop-or-Continuous G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 97.709,
+ "econ_cp": 98.0987,
+ "hr": 8549.1,
+ "gas_bbtud": 65.4515,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.7659,
+ "daily_export_mwh": 645.58,
+ "distillate_l": 243302,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G3",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 3.97,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:00",
+   "first_needed": "10:30",
+   "deficit_mw": 11.85,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+min_load+startup_sequence"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "07:30",
+   "deficit_mw": 27.51,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:startup_sequence"
+  }
+ ],
+ "events": [
+  "G3+05:30",
+  "G3-16:30",
+  "G5-18:30",
+  "G6+10:00",
+  "G9+04:30",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "d38adfc048520a8301890280",
+ "job_input_hash": "6c2376bf50833676c80e1b520d3c10cde03035bb49de5686f2e41e30fd9c5977",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 187.19,
+ "cpu_s": 120.04,
+ "max_rss_kb": 614732,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.587
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.151
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.408
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.128
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.112
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.094
+  },
+  {
+   "stage": "cand_run",
+   "s": 15.91
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.101
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.264
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.107
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 52.993
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.951
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.455
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.161
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 11.596
+  },
+  {
+   "stage": "consol_run",
+   "s": 4.022
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.687
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.65
+  },
+  {
+   "stage": "consol_run",
+   "s": 8.31
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.554
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 11.174
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.016
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 31.426
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 21.058
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.982
+  },
+  {
+   "stage": "event_proof",
+   "s": 35.766
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.164
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.033
+  }
+ ],
+ "tightening_evals": 69,
+ "evidence": "../../../../../../tmp/w/mx26/runs/d38adfc048520a8301890280.json"
+}

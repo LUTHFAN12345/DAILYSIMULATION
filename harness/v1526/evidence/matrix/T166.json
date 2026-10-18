@@ -1,0 +1,215 @@
+{
+ "id": "T166",
+ "group": "H",
+ "title": "Ctrl+Click Plan -> Fix Load satu cell (G8 80 MW row 30) [payload]",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g8 fix 80 MW rows 30-30; bad=[]"
+ ],
+ "cp": 100.3881,
+ "econ_cp": 100.8585,
+ "hr": 8537.23,
+ "gas_bbtud": 65.4573,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.781,
+ "daily_export_mwh": 791.55,
+ "distillate_l": 271478,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "03:30",
+   "first_needed": "09:30",
+   "deficit_mw": 9.95,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "11:30",
+   "first_needed": "15:30",
+   "deficit_mw": 28.75,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "08:00",
+   "first_needed": "09:30",
+   "deficit_mw": 9.95,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G6",
+   "start": "07:30",
+   "first_needed": "10:30",
+   "deficit_mw": 2.37,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:00",
+   "first_needed": "07:00",
+   "deficit_mw": 2.9,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  }
+ ],
+ "events": [
+  "G1+03:30",
+  "G1-18:30",
+  "G4+11:30",
+  "G4-17:30",
+  "G5+08:00",
+  "G5-15:30",
+  "G6+07:30",
+  "G9+04:00",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "07c90223ffb5b7636c248650",
+ "job_input_hash": "e40fa600a9fb73734f4bbb99e0aa34f93a0c39475d18b91bb0430001b527f5e8",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 43.77,
+ "cpu_s": 43.12,
+ "max_rss_kb": 394372,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.842
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.101
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.439
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.143
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.562
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.136
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.13
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 13.374
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.669
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 8.43
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 10.337
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 3.71
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 1.256
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.428
+  },
+  {
+   "stage": "event_proof",
+   "s": 3.132
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.048
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.023
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 29.296
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.009
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.048
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.023
+  },
+  {
+   "stage": "gate",
+   "s": 0.105
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 49,
+ "evidence": "../../../../../../tmp/w/mx26/runs/07c90223ffb5b7636c248650.json"
+}

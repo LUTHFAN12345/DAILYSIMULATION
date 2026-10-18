@@ -1,0 +1,1301 @@
+[
+ {
+  "tag": "A2_lng__PGN_eq0_h1-4",
+  "base": "A2_lng",
+  "kind": "PGN",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 1.0,
+  "direction": "EQUAL",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.19808
+   },
+   "delta": {
+    "PGN": 0.0
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1103.12,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 77.4239,
+   "total_gas_used_bbtud": 77.424,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0361,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9968,
+   "basis_cp": 73.9968,
+   "hr": 8363.45,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "ce187bf1ed0a073c",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 0.62,
+   "cpu_s": 0.5800000000000001,
+   "payload_hash": "812d73e4adc052e9"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.19808
+   },
+   "delta": {
+    "PGN": 0.0
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1103.12,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 77.4239,
+   "total_gas_used_bbtud": 77.424,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0361,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9968,
+   "basis_cp": 73.9968,
+   "hr": 8363.45,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "ce187bf1ed0a073c",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 0.67,
+   "cpu_s": 0.61,
+   "payload_hash": "812d73e4adc052e9"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.19808
+   },
+   "delta": {
+    "PGN": 0.0
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1103.12,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 77.4239,
+   "total_gas_used_bbtud": 77.424,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0361,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9968,
+   "basis_cp": 73.9968,
+   "hr": 8363.45,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "ce187bf1ed0a073c",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 80.27,
+   "cpu_s": 79.44,
+   "payload_hash": "812d73e4adc052e9"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A2_lng__PGN_hi10_h1-4",
+  "base": "A2_lng",
+  "kind": "PGN",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 1.1,
+  "direction": "HIGHER",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.317888
+   },
+   "delta": {
+    "PGN": 0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1145.13,
+   "future_rows_adjusted": 10,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4322,
+   "total_gas_used_bbtud": 77.3124,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0278,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9988,
+   "basis_cp": 73.9968,
+   "hr": 8367.73,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "404d556b61608cdb",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0b_ACTUAL_GAS_TRIM_ROW_PLANNING",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 4.02,
+   "cpu_s": 3.9099999999999997,
+   "payload_hash": "41f4203af6151bd3"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.317888
+   },
+   "delta": {
+    "PGN": 0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1145.13,
+   "future_rows_adjusted": 10,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4322,
+   "total_gas_used_bbtud": 77.3124,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0278,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9988,
+   "basis_cp": 73.9968,
+   "hr": 8367.73,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "404d556b61608cdb",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0b_ACTUAL_GAS_TRIM_ROW_PLANNING",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 3.61,
+   "cpu_s": 3.56,
+   "payload_hash": "41f4203af6151bd3"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.317888
+   },
+   "delta": {
+    "PGN": 0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1145.13,
+   "future_rows_adjusted": 10,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4322,
+   "total_gas_used_bbtud": 77.3124,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0278,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.9988,
+   "basis_cp": 73.9968,
+   "hr": 8367.73,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "404d556b61608cdb",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "0b_ACTUAL_GAS_TRIM_ROW_PLANNING",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 86.91,
+   "cpu_s": 85.85,
+   "payload_hash": "41f4203af6151bd3"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A2_lng__PGN_lo10_h1-4",
+  "base": "A2_lng",
+  "kind": "PGN",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 0.9,
+  "direction": "LOWER",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.078272
+   },
+   "delta": {
+    "PGN": -0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1168.41,
+   "future_rows_adjusted": 17,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.42,
+   "total_gas_used_bbtud": 77.5398,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.04,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.7954,
+   "basis_cp": 73.9968,
+   "hr": 8360.11,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "66b5aeb34c9f4fe2",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "A_JENDELA_LOKAL",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 5.35,
+   "cpu_s": 5.2700000000000005,
+   "payload_hash": "cf53e0ba174ca3c3"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.078272
+   },
+   "delta": {
+    "PGN": -0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1168.41,
+   "future_rows_adjusted": 17,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.42,
+   "total_gas_used_bbtud": 77.5398,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.04,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.7954,
+   "basis_cp": 73.9968,
+   "hr": 8360.11,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "66b5aeb34c9f4fe2",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "A_JENDELA_LOKAL",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 5.44,
+   "cpu_s": 5.33,
+   "payload_hash": "cf53e0ba174ca3c3"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 1.19808
+   },
+   "actual_value": {
+    "PGN": 1.078272
+   },
+   "delta": {
+    "PGN": -0.119808
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1168.41,
+   "future_rows_adjusted": 17,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.42,
+   "total_gas_used_bbtud": 77.5398,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.04,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.7954,
+   "basis_cp": 73.9968,
+   "hr": 8360.11,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "66b5aeb34c9f4fe2",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": "A_JENDELA_LOKAL",
+   "reconciliation": null,
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 88.21,
+   "cpu_s": 87.02,
+   "payload_hash": "cf53e0ba174ca3c3"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A2_lng__FFJ_hi10_h1-4",
+  "base": "A2_lng",
+  "kind": "FFJ",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 1.1,
+  "direction": "HIGHER",
+  "warm": {
+   "status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+   "publish": false,
+   "hard": "VALID-INFEASIBLE",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 6.042696
+   },
+   "delta": {
+    "FFJ": 0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1121.87,
+   "future_rows_adjusted": 32,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.9754,
+   "total_gas_used_bbtud": 77.4261,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": 0.5154,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 74.108,
+   "basis_cp": 73.9968,
+   "hr": 8394.8,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "085b14596c721def",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=77.9754 di luar window [77.4200,77.4600] (deviasi 0.5154 BBTUD). Masih tersedia penurunan gas yang ",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 111.57,
+   "cpu_s": 110.35,
+   "payload_hash": "a7e07abebe06eb81"
+  },
+  "warm_repeat": {
+   "status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+   "publish": false,
+   "hard": "VALID-INFEASIBLE",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 6.042696
+   },
+   "delta": {
+    "FFJ": 0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1121.87,
+   "future_rows_adjusted": 32,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.9754,
+   "total_gas_used_bbtud": 77.4261,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": 0.5154,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 74.108,
+   "basis_cp": 73.9968,
+   "hr": 8394.8,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "085b14596c721def",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=77.9754 di luar window [77.4200,77.4600] (deviasi 0.5154 BBTUD). Masih tersedia penurunan gas yang ",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 113.19,
+   "cpu_s": 111.86,
+   "payload_hash": "a7e07abebe06eb81"
+  },
+  "cold": {
+   "status": "FUEL_ACTION_NOT_APPLIED_INCUMBENT_FOR_REVIEW",
+   "publish": false,
+   "hard": "VALID-INFEASIBLE",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 6.042696
+   },
+   "delta": {
+    "FFJ": 0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1121.87,
+   "future_rows_adjusted": 32,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.9754,
+   "total_gas_used_bbtud": 77.4261,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": 0.5154,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 74.108,
+   "basis_cp": 73.9968,
+   "hr": 8394.8,
+   "distillate_l": 0,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "085b14596c721def",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "Gas consumption remains outside the target window after bounded automatic correction. Total Gas Used=77.9754 di luar window [77.4200,77.4600] (deviasi 0.5154 BBTUD). Masih tersedia penurunan gas yang ",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 210.2,
+   "cpu_s": 207.74,
+   "payload_hash": "a7e07abebe06eb81"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A2_lng__FFJ_lo10_h1-4",
+  "base": "A2_lng",
+  "kind": "FFJ",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 0.9,
+  "direction": "LOWER",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": false,
+   "hard": "PASS",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 4.944024
+   },
+   "delta": {
+    "FFJ": -0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1169.78,
+   "future_rows_adjusted": 36,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4382,
+   "total_gas_used_bbtud": 77.9875,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0218,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.8543,
+   "basis_cp": 73.9968,
+   "hr": 8415.41,
+   "distillate_l": 14640,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "84f7e8b8398872e3",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 75.18,
+   "cpu_s": 74.11999999999999,
+   "payload_hash": "260bf24c736d1758"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": false,
+   "hard": "PASS",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 4.944024
+   },
+   "delta": {
+    "FFJ": -0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1169.78,
+   "future_rows_adjusted": 36,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4382,
+   "total_gas_used_bbtud": 77.9875,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0218,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.8543,
+   "basis_cp": 73.9968,
+   "hr": 8415.41,
+   "distillate_l": 14640,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "84f7e8b8398872e3",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 75.49,
+   "cpu_s": 74.54,
+   "payload_hash": "260bf24c736d1758"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": false,
+   "hard": "PASS",
+   "sim_value": {
+    "FFJ": 5.49336
+   },
+   "actual_value": {
+    "FFJ": 4.944024
+   },
+   "delta": {
+    "FFJ": -0.549336
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 1169.78,
+   "future_rows_adjusted": 36,
+   "future_rows_first": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "effective_total_gas_bbtud": 77.4382,
+   "total_gas_used_bbtud": 77.9875,
+   "quota_bbtud": 77.46,
+   "window": [
+    77.42,
+    77.46
+   ],
+   "residual_bbtud": -0.0218,
+   "basis_effective_gas_bbtud": 77.424,
+   "cp": 73.8543,
+   "basis_cp": 73.9968,
+   "hr": 8415.41,
+   "distillate_l": 14640,
+   "basis_distillate_l": 0,
+   "lng_used": 20,
+   "dispatch_hash": "84f7e8b8398872e3",
+   "basis_dispatch_hash": "ce187bf1ed0a073c",
+   "warm_stage": null,
+   "reconciliation": null,
+   "terminal_or_decision": "",
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 73.9968
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 166.51,
+   "cpu_s": 164.58999999999997,
+   "payload_hash": "260bf24c736d1758"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A0_fixload__PGN_hi10_h1-4",
+  "base": "A0_fixload",
+  "kind": "PGN",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 1.1,
+  "direction": "HIGHER",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.573936
+   },
+   "delta": {
+    "PGN": 0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4253,
+   "total_gas_used_bbtud": 65.3732,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0347,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 93.0136,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 203210,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": 0.0602,
+    "effective_before_bbtud": 65.5002,
+    "effective_after_bbtud": 65.4253,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 203210,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 0.97,
+   "cpu_s": 0.91,
+   "payload_hash": "9a26d310edf9b1db"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.573936
+   },
+   "delta": {
+    "PGN": 0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4253,
+   "total_gas_used_bbtud": 65.3732,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0347,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 93.0136,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 203210,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": 0.0602,
+    "effective_before_bbtud": 65.5002,
+    "effective_after_bbtud": 65.4253,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 203210,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 0.91,
+   "cpu_s": 0.88,
+   "payload_hash": "9a26d310edf9b1db"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.573936
+   },
+   "delta": {
+    "PGN": 0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4253,
+   "total_gas_used_bbtud": 65.3732,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0347,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 93.0136,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 203210,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": 0.0602,
+    "effective_before_bbtud": 65.5002,
+    "effective_after_bbtud": 65.4253,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 203210,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 36.86,
+   "cpu_s": 36.26,
+   "payload_hash": "9a26d310edf9b1db"
+  },
+  "repeatable_warm": true
+ },
+ {
+  "tag": "A0_fixload__PGN_lo10_h1-4",
+  "base": "A0_fixload",
+  "kind": "PGN",
+  "rows": [
+   1,
+   8
+  ],
+  "factor": 0.9,
+  "direction": "LOWER",
+  "warm": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.469584
+   },
+   "delta": {
+    "PGN": -0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4332,
+   "total_gas_used_bbtud": 65.4854,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0268,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 92.5844,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 200313,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": -0.0442,
+    "effective_before_bbtud": 65.3958,
+    "effective_after_bbtud": 65.4332,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 200313,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 1.12,
+   "cpu_s": 1.04,
+   "payload_hash": "18bef8e07048577c"
+  },
+  "warm_repeat": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.469584
+   },
+   "delta": {
+    "PGN": -0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4332,
+   "total_gas_used_bbtud": 65.4854,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0268,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 92.5844,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 200313,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": -0.0442,
+    "effective_before_bbtud": 65.3958,
+    "effective_after_bbtud": 65.4332,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 200313,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "BERKAS_JANGKAR",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 0.93,
+   "cpu_s": 0.91,
+   "payload_hash": "18bef8e07048577c"
+  },
+  "cold": {
+   "status": "FASTEST_FINAL",
+   "publish": true,
+   "hard": "PASS",
+   "sim_value": {
+    "PGN": 0.52176
+   },
+   "actual_value": {
+    "PGN": 0.469584
+   },
+   "delta": {
+    "PGN": -0.052176
+   },
+   "actual_rows_immutable": true,
+   "immutable_issues": [],
+   "actual_hour_dispatch_changed_rows": [],
+   "export_mwh": 552.53,
+   "future_rows_adjusted": 0,
+   "future_rows_first": [],
+   "effective_total_gas_bbtud": 65.4332,
+   "total_gas_used_bbtud": 65.4854,
+   "quota_bbtud": 65.46,
+   "window": [
+    65.42,
+    65.46
+   ],
+   "residual_bbtud": -0.0268,
+   "basis_effective_gas_bbtud": 65.448,
+   "cp": 92.5844,
+   "basis_cp": 92.7498,
+   "hr": 8481.35,
+   "distillate_l": 200313,
+   "basis_distillate_l": 201539,
+   "lng_used": 8,
+   "dispatch_hash": "e4c09849abb8e151",
+   "basis_dispatch_hash": "e4c09849abb8e151",
+   "warm_stage": "0_ACTUAL_GAS_DISPATCH_TERKUNCI",
+   "reconciliation": {
+    "delta_bbtud": -0.0442,
+    "effective_before_bbtud": 65.3958,
+    "effective_after_bbtud": 65.4332,
+    "quota_bbtud": 65.46,
+    "distillate_before_l": 201539,
+    "distillate_after_l": 200313,
+    "applied": true,
+    "iterations": 1,
+    "rule": "shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah"
+   },
+   "terminal_or_decision": null,
+   "priority_invariants": "PASS",
+   "anchor": {
+    "status": "TERKUNCI",
+    "sumber": "DIHITUNG_JOB_D(S)",
+    "actual_rows_dispatch_identical": true,
+    "anchor_cp": 92.7498
+   },
+   "event_proof": "TERBUKTI",
+   "wall_s": 36.61,
+   "cpu_s": 35.95,
+   "payload_hash": "18bef8e07048577c"
+  },
+  "repeatable_warm": true
+ }
+]

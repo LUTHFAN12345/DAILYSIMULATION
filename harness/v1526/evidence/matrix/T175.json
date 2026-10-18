@@ -1,0 +1,248 @@
+{
+ "id": "T175",
+ "group": "H",
+ "title": "Fix pada row setelah Stop Request (G5 stop 12:00, fix row 30)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "PRECHECK_REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G5 row 30 = 25 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (4 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G5 row 30 = 25 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (4 pelanggaran tersisa). Fixed Load tidak diubah/dihapus ; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_USER_FIXED_LOAD: Dengan 1 Fixed Load user (G5 row 30 = 25 MW), rencana 48 row tidak dapat memenuhi seluruh hard constraint (4 pelanggaran te",
+  "OK fix_precheck: {\"ok\": false, \"unit\": \"G5\", \"row\": 30, \"value\": 25, \"mode\": \"CC\", \"min_mw\": 20, \"max_mw\": 31, \"reasons\": [{\"code\": \"SESUDAH_STOP_REQUEST\", \"text\": \"G5 Stop Based On Request 12:00: 0 MW mulai row 24; Fixed Load 25.00 MW pada row 30 bertentangan dengan Stop Request.\"}]}"
+ ],
+ "cp": 110.2201,
+ "econ_cp": 110.6768,
+ "hr": 8627.42,
+ "gas_bbtud": 65.9757,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -13.7813,
+ "daily_export_mwh": 1141.1,
+ "distillate_l": 382508,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G3",
+   "start": "10:30",
+   "first_needed": "13:30",
+   "deficit_mw": 5.16,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota+export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 1.15,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:gas_quota+export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "01:00",
+   "first_needed": "08:30",
+   "deficit_mw": 2.21,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:gas_quota+stop_at+runtime_downtime+startup_sequence"
+  },
+  {
+   "unit": "G9",
+   "start": "01:00",
+   "first_needed": "07:30",
+   "deficit_mw": 6.75,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G3+10:30",
+  "G3-17:30",
+  "G4+09:30",
+  "G4-19:30",
+  "G5-12:00",
+  "G5+15:00",
+  "G5-15:30",
+  "G6+01:00",
+  "G9+01:00",
+  "S1+04:30"
+ ],
+ "rows": 48,
+ "payload_hash": "51a432d34f3006edf587a8ae",
+ "job_input_hash": "0e93789fedec643dfeddbee8e87ab167f6aa5246dbf179d87227c580fa5cd695",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 151.44,
+ "cpu_s": 105.39,
+ "max_rss_kb": 491568,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.591
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.208
+  },
+  {
+   "stage": "cand_run",
+   "s": 18.697
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.218
+  },
+  {
+   "stage": "cand_run",
+   "s": 15.961
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.015
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.182
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.005
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.207
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.654
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.206
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 76.237
+  },
+  {
+   "stage": "consol_run",
+   "s": 4.278
+  },
+  {
+   "stage": "consol_run",
+   "s": 5.706
+  },
+  {
+   "stage": "consol_run",
+   "s": 5.701
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 15.786
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.391
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.012
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.227
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 0.677
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.677
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 12.98
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.503
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 25.798
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.069
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.587
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.7
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 7.471
+  },
+  {
+   "stage": "v8_priority_review",
+   "s": 0.009
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/51a432d34f3006edf587a8ae.json"
+}

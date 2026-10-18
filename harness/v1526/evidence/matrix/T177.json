@@ -1,0 +1,130 @@
+{
+ "id": "T177",
+ "group": "H",
+ "title": "Fix + Actual Gas lebih tinggi",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g2 fix 25 MW rows 20-20; bad=[]"
+ ],
+ "cp": 93.0334,
+ "econ_cp": 93.1863,
+ "hr": 8481.35,
+ "gas_bbtud": 65.3732,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.2612,
+ "daily_export_mwh": 552.53,
+ "distillate_l": 203378,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 0.44,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 4.01,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G6",
+   "start": "05:00",
+   "first_needed": "08:30",
+   "deficit_mw": 1.43,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 23.81,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+09:30",
+  "G4-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "8eebb097f769fbba998d3b57",
+ "job_input_hash": "6c141824f74246fad4430a2ba83ca08ba5c67f07ab3891196afff493d98c87cd",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t0",
+ "wall_s": 0.99,
+ "cpu_s": 0.97,
+ "max_rss_kb": 41672,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.069
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 0.284
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.05
+  },
+  {
+   "stage": "event_proof",
+   "s": 0
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.029
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.021
+  },
+  {
+   "stage": "gate",
+   "s": 0.07
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/8eebb097f769fbba998d3b57.json"
+}

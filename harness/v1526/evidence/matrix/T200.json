@@ -1,0 +1,130 @@
+{
+ "id": "T200",
+ "group": "X",
+ "title": "Running higher-priority unit sudah maksimum (IE +8) -> startup dengan proof first-needed",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "payload = E006",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK event proof TERBUKTI not_proven=[]"
+ ],
+ "cp": 98.0003,
+ "econ_cp": 98.4265,
+ "hr": 8437.29,
+ "gas_bbtud": 65.4423,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.2212,
+ "daily_export_mwh": 637.62,
+ "distillate_l": 255941,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "09:00",
+   "deficit_mw": 8.59,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "09:00",
+   "deficit_mw": 8.59,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "06:00",
+   "first_needed": "09:30",
+   "deficit_mw": 1.55,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "05:30",
+   "deficit_mw": 1.48,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+08:00",
+  "G1-17:00",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+06:00",
+  "G9+05:00",
+  "S1+09:30"
+ ],
+ "rows": 48,
+ "payload_hash": "92f3d4d105eef89643a7432f",
+ "job_input_hash": "90de88d65cf2b8c578ee81a8c0da7b5c48b86d0f4e6cd766872c35725c3a3fca",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 7.38,
+ "cpu_s": 7.3,
+ "max_rss_kb": 86024,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.095
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 3.117
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 0.067
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.58
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.034
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.019
+  },
+  {
+   "stage": "gate",
+   "s": 0.075
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/92f3d4d105eef89643a7432f.json"
+}

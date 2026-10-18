@@ -1,0 +1,223 @@
+{
+ "id": "T034",
+ "group": "B",
+ "title": "Block 1 Required OFF (G6 bebas, S1 bebas)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK event proof TERBUKTI not_proven=[]"
+ ],
+ "cp": 93.4273,
+ "econ_cp": 93.8623,
+ "hr": 8472.53,
+ "gas_bbtud": 65.4583,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.5324,
+ "daily_export_mwh": 593.46,
+ "distillate_l": 209066,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "07:30",
+   "first_needed": "09:00",
+   "deficit_mw": 0.84,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "08:00",
+   "first_needed": "09:00",
+   "deficit_mw": 0.84,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "07:00",
+   "first_needed": "11:00",
+   "deficit_mw": 9.59,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:00",
+   "first_needed": "05:30",
+   "deficit_mw": 14.34,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  }
+ ],
+ "events": [
+  "G1+07:30",
+  "G1-16:30",
+  "G5+08:00",
+  "G6+07:00",
+  "G6-18:30",
+  "G9+04:00",
+  "S1+10:30",
+  "S1-18:30"
+ ],
+ "rows": 48,
+ "payload_hash": "f237782b0126c55c0aad0c1d",
+ "job_input_hash": "c6ca0c100da6d543564e4e1723e8c57ce03217647c1c278408a9229a350e41c6",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 47.92,
+ "cpu_s": 47.32,
+ "max_rss_kb": 414172,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.788
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.162
+  },
+  {
+   "stage": "cand_run",
+   "s": 9.909
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.127
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.896
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.107
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.095
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 20.113
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.658
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.389
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 0.419
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.336
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 0.361
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 5.617
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 7.321
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 5.952
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.706
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.907
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.196
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.03
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.023
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 27.267
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.009
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.029
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.025
+  },
+  {
+   "stage": "gate",
+   "s": 0.088
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 40,
+ "evidence": "../../../../../../tmp/w/mx26/runs/f237782b0126c55c0aad0c1d.json"
+}

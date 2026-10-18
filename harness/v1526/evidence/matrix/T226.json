@@ -1,0 +1,169 @@
+{
+ "id": "T226",
+ "group": "N",
+ "title": "Kelanjutan cross-day selesai kemarin (elapsed >= lag): unit & STG Running sejak row 1",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK S1 row1 11.19 G6 row1 20.0"
+ ],
+ "cp": 94.0978,
+ "econ_cp": 94.3602,
+ "hr": 8540.39,
+ "gas_bbtud": 65.4593,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.5716,
+ "daily_export_mwh": 529.6,
+ "distillate_l": 210155,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "09:30",
+   "first_needed": "10:00",
+   "deficit_mw": 0.89,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "09:00",
+   "deficit_mw": 33.95,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 8.02,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+09:30",
+  "G4-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G9+05:00"
+ ],
+ "rows": 48,
+ "payload_hash": "40becda0ac2bfc0bd34daf8d",
+ "job_input_hash": "9cc8eac724663e3f3bf729a67a11e8442699393bf60e9075bf9c13a2bc540635",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 16.52,
+ "cpu_s": 16.32,
+ "max_rss_kb": 194600,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.607
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.074
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.041
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 3.732
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 3.514
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 4.612
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 1.604
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.051
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.473
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.032
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.012
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 12.366
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.032
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.011
+  },
+  {
+   "stage": "gate",
+   "s": 0.062
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 29,
+ "evidence": "../../../../../../tmp/w/mx26/runs/40becda0ac2bfc0bd34daf8d.json"
+}

@@ -1,0 +1,237 @@
+{
+ "id": "T012",
+ "group": "A",
+ "title": "Initial Running + Continuous Running (hold) G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 online 48/48"
+ ],
+ "cp": 96.0684,
+ "econ_cp": 96.459,
+ "hr": 8530.72,
+ "gas_bbtud": 65.4344,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.2459,
+ "daily_export_mwh": 618.33,
+ "distillate_l": 228870,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "10:00",
+   "first_needed": "10:00",
+   "deficit_mw": 0.66,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 12.65,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:30",
+   "first_needed": "07:30",
+   "deficit_mw": 52.9,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+10:00",
+  "G4-16:30",
+  "G6+05:30",
+  "G9+05:30",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "c49af63137503bfe65874b56",
+ "job_input_hash": "e19cd4b8e972d8c90bb1c8be1becb170ea63c268426197d00e1385a8aa14632f",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 78.85,
+ "cpu_s": 77.94,
+ "max_rss_kb": 473168,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.714
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.088
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.073
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.07
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.568
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.08
+  },
+  {
+   "stage": "cand_run",
+   "s": 13.891
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.087
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.6
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.086
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 44.877
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.79
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.06
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.123
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 5.989
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.801
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 1.003
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.142
+  },
+  {
+   "stage": "consol_run",
+   "s": 4.441
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 1.23
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 3.171
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 3.477
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.183
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.305
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.073
+  },
+  {
+   "stage": "event_proof",
+   "s": 10.168
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.055
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.014
+  }
+ ],
+ "tightening_evals": 19,
+ "evidence": "../../../../../../tmp/w/mx26/runs/c49af63137503bfe65874b56.json"
+}

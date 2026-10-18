@@ -1,0 +1,216 @@
+{
+ "id": "T116",
+ "group": "E",
+ "title": "Follow PV naik tajam",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "RESERVE_INFEASIBILITY_CERTIFICATE",
+ "engine_status": null,
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: RESERVE_INFEASIBILITY_CERTIFICATE; status None; msg Economic review incomplete: the selected dispatch is not proven as the minimum Cost Production among all eligible candidates actually evaluated."
+ ],
+ "cp": 99.5013,
+ "econ_cp": 99.9778,
+ "hr": 8615.04,
+ "gas_bbtud": 65.4216,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -9.1762,
+ "daily_export_mwh": 641.74,
+ "distillate_l": 254689,
+ "hard_validation": "PASS",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "09:00",
+   "first_needed": "09:30",
+   "deficit_mw": 4.74,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G3",
+   "start": "04:30",
+   "first_needed": "08:30",
+   "deficit_mw": 1.94,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime+spinning_reserve"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 4.27,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:00",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 24.59,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+export_ramp"
+  }
+ ],
+ "events": [
+  "G1+09:00",
+  "G1-18:00",
+  "G3+04:30",
+  "G3-18:00",
+  "G5+07:30",
+  "G6+10:00",
+  "G9+05:00",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "168c40c4872bfeb2fcd1bf54",
+ "job_input_hash": "9905c9a8f625570ced765a936edfaaf2a32c6a315be0e31c4fa6e20fe2643ce6",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 66.35,
+ "cpu_s": 65.84,
+ "max_rss_kb": 539020,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.264
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.009
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.135
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.099
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 3.509
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.472
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.943
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 3.082
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.363
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.425
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.775
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.36
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 7.786
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 16.022
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 2.312
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 7.727
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 2.138
+  },
+  {
+   "stage": "event_proof",
+   "s": 3.681
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.006
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.065
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.044
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.129
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 62.273
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.011
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.006
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.066
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.032
+  },
+  {
+   "stage": "gate",
+   "s": 0.144
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.003
+  }
+ ],
+ "tightening_evals": 71,
+ "evidence": "../../../../../../tmp/w/mx26/runs/168c40c4872bfeb2fcd1bf54.json"
+}

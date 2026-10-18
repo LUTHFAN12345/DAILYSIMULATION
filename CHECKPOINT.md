@@ -1,30 +1,26 @@
-# CHECKPOINT V15.25 — Remediasi UI + Logic + Full Regression
+# CHECKPOINT V15.26 — Prioritas per row, Actual Gas dua arah, konsolidasi blok, runtime
 
-**Baseline:** V15.24 (`d207780`, XAMPP_FINAL_VALIDATED_FULL_DEPLOYMENT V15.24 — direproduksi identik: 14 FAIL, A0 CP 93,4567).
-**Engine build:** `V15.25-REMEDIATION-UI-LOGIC-FULL-REGRESSION-20261018`. **Branch:** `claude/keen-galileo-sjjhsk`.
-**File diubah terhadap V15.24:** `index.php`, `run.php`, `saved_data_store.php`, `worker02.php`, `worker_functions.php` (+ CHECKPOINT/DEPLOYMENT_MANIFEST/SHA256SUMS).
+**Baseline:** V15.25 (`debf01f`, release candidate runtime gate open). **Engine build:** `V15.26-PRIORITY-ACTUALGAS-CONSOLIDATION-20261018`.
+**Branch:** `claude/keen-galileo-sjjhsk`. **File runtime diubah terhadap V15.25:** `run.php`, `worker02.php` (+ CHECKPOINT/DEPLOYMENT_MANIFEST/SHA256SUMS).
 
-## Ringkasan perubahan (detail: REPORT.md di paket dokumentasi)
-1. 14 FAIL V15.24 ditutup: Export harian REQUIRED sebagai batas kumulatif + sertifikat terminal; pita dispatch-dev vs langkah Export; rekonsiliasi Actual Gas + distillate (jam actual immutable); SC last resort hanya pada kekurangan kapasitas nyata; sertifikat kapasitas Export; sertifikat terminal di jalur non-Fastest.
-2. Maximum Review selalu membandingkan kandidat Fastest (dingin) dengan comparator final yang sama.
-3. Popup Ctrl+Click / Fix Load selalu terlihat (portal, clamp/flip, footer sticky, Esc/Enter, focus trap).
-4. Distillate Unit Priority Block 1–2 -> Priority 1–6 (migrasi payload lama; hanya unit Running & legal).
-5. 2+2 sebelum 3+1 otomatis (S1 & S2 paralel), dibatasi comparator ekonomi, intent user dipertahankan.
-6. Actual Gas rerun inkremental (dispatch terkunci, rekonsiliasi akuntansi; bukti event basis dipakai ulang).
-7. Check Yesterday Data, Start Up CC, kelanjutan startup lintas tanggal, backward scheduling dari target first STG load, profil cold Block 3 (40/50/60 MW, S3 tepat 7,5 jam).
-8. Runtime: prescreen kapasitas Export di tightening; rekonsiliasi Actual Gas tanpa ulang dispatch.
-9. Integritas: sidik jari engine memuat flag env `PP_*`; `publish_allowed` job konsisten dengan kontrak hasil; 2+2 mempertahankan metadata pipeline.
+## Ringkasan perubahan (detail: REPORT.md)
+1. Rule 1 per row: biaya marginal (EKONOMIS) bukan lagi pengecualian prioritas; Unit Priority Fix memindah beban ke unit Running prioritas tinggi;
+   7 invariant Rule 1 dihitung pada setiap hasil dan menjadi gerbang publish; metrik inversi tanpa false positive (bukti kapasitas/event).
+2. Satu objective final (`pp_sp_final_cmp`) untuk seleksi final Fastest, Maximum Review, dan konsolidasi blok.
+3. Konsolidasi blok: alternatif dievaluasi dengan jendela tahan incumbent lalu fallback start aturan lama + pendaratan gas (superset V15.25); semua alternatif tak-dominated dinilai; permintaan start user tidak boleh bergeser; bukti lintas blok / DECOMMIT di batas Export dilengkapi.
+4. Actual Gas: jangkar jam actual (dispatch jam lampau = rencana state tanpa Actual Gas; dingin == warm), estimasi jam actual = estimasi per row yang
+   ditampilkan (Jababeka, MM2100, realokasi FF JBBK), GE1–GE4 ikut dikunci, kuota MM2100 menyerap deviasi actual (tahap 0c).
+5. Tightening: ADVANCE_REPLACE+PEER mencoba peer satu blok dan lintas blok.
 
-## Validasi (PHP 7.4.33, worker dipin 1 logical CPU)
-- Matrix engine 229 test: 193 PASS, 36 EXPECTED_REJECTION (bukti terminal), 0 FAIL; grup I/H15/H16 MySQL 14/14; UI smoke 26/26, popup 203/203, distillate 5/5, yesterday 12/12 + backend 9/9.
-- A0: CP 93,4567 / HR 8481,93 (identik V15.24), Event Proof TERBUKTI.
-- Benchmark 1 CPU before/after: REPORT.md bagian 3.
+## Validasi (PHP 7.4.33, 1 logical CPU per run)
+- Matrix engine 236 test: 199 PASS, 35 EXPECTED_REJECTION, 2 FAIL (T139, T236 — lihat REPORT.md).
+- Audit 48 row: A0, A1, A3, T154, T214, T034 — 48/48 row, invariant PASS.
+- Actual Gas dua arah: 29 kasus, 24 publish, dingin == warm 29/29, actual immutable 29/29, median inkremental 1,1 s.
+- Benchmark 1 CPU before/after: REPORT.md bagian 4.
 
 ## Status paket
-Gate runtime 1 CPU belum lulus -> paket dibangun sebagai release candidate `XAMPP_V1525_RC_RUNTIME_GATE_OPEN_*` (bukan FINAL/VALIDATED).
-
-## Keterbatasan
-Runtime cold 1 CPU di atas target 30 s / 40 s (normal / sulit); Actual Gas cold tanpa basis > 40 s (jalur inkremental < 1 s); Fix Load warm ~27 s (target 10 s); T139 keputusan operator gas-window; detail di REPORT.md bagian 6.
+Runtime dingin 1 CPU dan Fix Load inkremental masih di atas target; kombinasi ketiga Actual Gas bersamaan masih terbuka -> paket release candidate
+`XAMPP_V1526_RC_RUNTIME_GATE_OPEN_*` (bukan FINAL/VALIDATED). Limitation menunggu keputusan user.
 
 ## Flag rollback (env)
-Lihat DEPLOYMENT_MANIFEST.md (`PP_V1525_*`; flag V15.24 tetap berlaku).
+Lihat DEPLOYMENT_MANIFEST.md (`PP_V1526_*`; flag V15.25/V15.24 tetap berlaku).

@@ -1,0 +1,78 @@
+{
+ "id": "T162",
+ "group": "G",
+ "title": "Change Over tidak legal (Block 2 stop 01:00 sebelum Block 1 siap)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "REJECT",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 8 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 8 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 8 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop"
+ ],
+ "cp": 110.9373,
+ "econ_cp": null,
+ "hr": 9113.58,
+ "gas_bbtud": 66.01,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -12.4508,
+ "daily_export_mwh": 527.12,
+ "distillate_l": 345580,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G2-01:00",
+  "G6+07:00",
+  "G7+08:00",
+  "G9+01:00",
+  "S1+10:30",
+  "S2-01:00"
+ ],
+ "rows": 48,
+ "payload_hash": "75695c1601de08de91fab9bc",
+ "job_input_hash": "2ea6ca424aab4122797be3de86baa0de6617178284bd16343e0cee84f19dea38",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 0.78,
+ "cpu_s": 0.75,
+ "max_rss_kb": 41772,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.01
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.019
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.01
+  },
+  {
+   "stage": "gate",
+   "s": 0.056
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/75695c1601de08de91fab9bc.json"
+}

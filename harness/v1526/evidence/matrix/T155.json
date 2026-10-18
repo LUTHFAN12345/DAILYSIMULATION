@@ -1,0 +1,82 @@
+{
+ "id": "T155",
+ "group": "G",
+ "title": "Trip unit prioritas tertinggi GT (G8, plus B2 tetap)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "payload = G003",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b"
+ ],
+ "cp": 119.128,
+ "econ_cp": null,
+ "hr": 9453.17,
+ "gas_bbtud": 66.1204,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -14.3979,
+ "daily_export_mwh": 426.04,
+ "distillate_l": 399622,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+01:00",
+  "G3+04:30",
+  "G4+01:00",
+  "G5+06:00",
+  "G6+01:00",
+  "G7+09:00",
+  "G7-17:00",
+  "G9+01:30",
+  "S1+04:30",
+  "S3+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "a20ce69adf24e93da7a06aee",
+ "job_input_hash": "9e44d822e1b62f4fda68fb9a7e655ebfcb1f988c57534d969adf9bab62734b55",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t0",
+ "wall_s": 1.07,
+ "cpu_s": 1.04,
+ "max_rss_kb": 41780,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.017
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.005
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.159
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.045
+  },
+  {
+   "stage": "gate",
+   "s": 0.321
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx26/runs/a20ce69adf24e93da7a06aee.json"
+}
