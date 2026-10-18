@@ -3710,6 +3710,110 @@ function pp_v15_row1_export_cert(array $input): ?array {
             (string)($in['data1'][0]['time'] ?? ''), implode(', ', array_map(function ($k, $v) { return $k . ' ' . $v . ' MW'; }, array_keys($on), $on)), $exMax, $lo, $lo - $exMax),
         'feasible_if' => ['unit lain tersedia/Running pada Last Data', 'Range Min row 1 diturunkan', 'IE row 1 lebih rendah']];
 }
+/* V15.25 SERTIFIKAT TERMINAL KAPASITAS EXPORT PER ROW (generik, row >= 2; row 1 = pp_v15_row1_export_cert). Batas atas Export row r =
+ * seluruh unit Jababeka/Babelan yang TERSEDIA pada row itu (tidak stop/trip/unavailable, termasuk stop window hasil normalisasi
+ * Stop At dan Change Over yang sama dengan worker) pada beban maksimum efektif, STG lewat kopling engine (termasuk STG yang belum
+ * berjalan), dikurangi MM2100, house load (semua unit on = house load terbesar; tiap unit menambah beban jauh di atas tambahan house
+ * load-nya sehingga konfigurasi ini memaksimalkan Export) dan IE efektif. Bila < lantai Export row itu (Range, Range rule, pita dispatch,
+ * tangga ramp), tidak ada dispatch/commitment/bahan bakar yang memenuhinya. Lead time startup diabaikan (batas atas tetap sah). */
+function pp_v1525_capacity_cert(array $input): ?array {
+    if ((string)getenv('PP_V1525_CAP_CERT') === '0') return null;
+    $in = pp_normalize_copy($input); if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($in);
+    $d3 = (array)$in['data3']; $m = (array)$d3['modeling'];
+    if (function_exists('pp_normalize_unit_stop_time')) { $e = []; pp_normalize_unit_stop_time($m, $e); }
+    foreach ((array)($m['stop_mode'] ?? []) as $u => $cfg) { if (!is_array($cfg) || strtolower((string)($cfg['mode'] ?? '')) !== 'stop_at') continue;
+        if (!preg_match('/^(\d{1,2}):(\d{2})$/', (string)($cfg['at'] ?? $cfg['stop_at'] ?? ''), $mm)) continue;
+        $sr = (int)(((int)$mm[1] * 60 + (int)$mm[2]) / 30); if ($sr <= 0) $sr = 48; $m['unit_stop_time'][] = ['unit' => strtolower((string)$u), 'start' => $sr, 'stop' => 48]; }
+    pp_normalize_change_over($m); $d3['modeling'] = $m;
+    $n = count((array)$in['data1']); $pep = (array)($m['pln_export_priority'] ?? []);
+    $pt = pp_compute_pln_targets(array_merge($m, ['pln_export_priority' => array_merge($pep, ['daily_target' => ['value' => 0, 'required' => false]])]), (array)($in['data2'] ?? []));
+    $ie = array_map('floatval', (array)pp_ie_series($in)['eff']);
+    $U = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4']; $bad = [];
+    for ($r = 1; $r < $n; $r++) {
+        $gen = array_fill_keys($U, 0.0); $on = [];
+        foreach ($U as $u) { if (!isset($d3[$u]) || $u[0] === 's' || pp_is_mm2100_unit($u)) continue;
+            if (!pp_unit_present($d3, $u) || pp_is_unit_stopped($d3, $m, $u, $r + 1)) continue;
+            $mx = pp_effective_maxload($d3, $m, $u, $r + 1); if ($mx <= 0) $mx = (float)($d3[$u]['max_load'] ?? 0); if ($mx <= 0) continue;
+            $gen[$u] = $mx; $on[strtoupper($u)] = round($mx, 2); }
+        try { pp_recompute_stgs($gen, $d3, $m, $r + 1); } catch (Throwable $e) {}
+        foreach (['s1','s2','s3'] as $sx) if ($gen[$sx] > 0) $on[strtoupper($sx)] = round($gen[$sx], 2);
+        $exMax = array_sum($gen) - calc_house_load($gen) - ($ie[$r] ?? 0.0); $lo = (float)($pt['lo'][$r] ?? 0);
+        if ($exMax < $lo - 1e-6) $bad[] = ['row' => $r + 1, 'time' => $in['data1'][$r]['time'] ?? null, 'export_max_mw' => round($exMax, 2), 'export_min_mw' => round($lo, 2), 'deficit_mw' => round($lo - $exMax, 2), 'ie_mw' => round($ie[$r] ?? 0, 2), 'house_load_mw' => round(calc_house_load($gen), 2), 'units_at_max' => $on];
+    }
+    if (!$bad) return null;
+    $f = $bad[0]; usort($bad, fn($a, $b) => $b['deficit_mw'] <=> $a['deficit_mw']); $w = $bad[0];
+    return ['schema' => 'v1525-terminal-export-capacity-v1', 'code' => 'TERMINAL_INFEASIBLE_EXPORT_CAPACITY', 'rows_infeasible' => count($bad), 'first_row' => $f['row'], 'worst' => $w, 'rows' => array_slice($bad, 0, 48),
+        'proof' => sprintf('%d row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; STG lewat kopling engine). Terburuk row %d (%s): Export maksimum %.2f MW < lantai %.2f MW (kurang %.2f MW; IE %.2f MW, house load %.2f MW). Tidak ada dispatch, commitment, LNG, maupun distillate yang dapat memenuhinya.',
+            count($bad), $w['row'], (string)$w['time'], $w['export_max_mw'], $w['export_min_mw'], $w['deficit_mw'], $w['ie_mw'], $w['house_load_mw']),
+        'feasible_if' => ['unit tambahan tersedia (trip/stop/Change Over)', 'Range Min / pita dispatch row tersebut diturunkan', 'IE lebih rendah']];
+}
+/* V15.25 SERTIFIKAT KONTRADIKSI PITA EXPORT (generik). Batas Export efektif per row (Range, Range rule, pita Dispatch ± deviasi)
+ * bersama batas langkah Export antar row (pp_export_step_limit, hard constraint export_step): bila untuk dua row bersebelahan
+ * lo[r+1] - hi[r] > langkah (atau lo[r] - hi[r+1] > langkah), TIDAK ADA deret Export yang memenuhi keduanya, apa pun dispatch,
+ * commitment, maupun bahan bakarnya -> kontradiksi input dengan bukti numerik. */
+function pp_v1525_export_band_cert(array $input): ?array {
+    if ((string)getenv('PP_V1525_BAND_CERT') === '0') return null;
+    $in = pp_normalize_copy($input); $m = (array)$in['data3']['modeling']; $pep = (array)($m['pln_export_priority'] ?? []);
+    $n = count((array)$in['data1']); $step = pp_export_step_limit($m);
+    $lo = array_fill(0, $n, (float)($pep['range']['min'] ?? 0)); $hi = array_fill(0, $n, (float)($pep['range']['max'] ?? 1e9));
+    foreach ((array)($pep['range_rules'] ?? []) as $rr) { if (!is_array($rr)) continue; $a = max(1, (int)($rr['start'] ?? 1)); $b = min($n, (int)($rr['stop'] ?? $n));
+        for ($r = $a - 1; $r <= $b - 1; $r++) { $lo[$r] = max($lo[$r], (float)($rr['min'] ?? $lo[$r])); $hi[$r] = min($hi[$r], (float)($rr['max'] ?? $hi[$r])); } }
+    $pt = pp_compute_pln_targets(array_merge($m, ['pln_export_priority' => array_merge($pep, ['daily_target' => ['value' => 0, 'required' => false]])]), (array)($in['data2'] ?? []));
+    foreach ((array)$pt['hi'] as $r => $h) $hi[$r] = min($hi[$r], (float)$h);
+    /* lantai pita dispatch (tanpa tangga ramp): disp - |dev-| per rule required */
+    $rules = (array)($pep['dispatch_dev_rules'] ?? []);
+    foreach ($rules as $dd) { if (!is_array($dd) || (array_key_exists('required', $dd) && !$dd['required'])) continue;
+        $a = max(1, (int)($dd['start'] ?? 1)); $b = min($n, (int)($dd['stop'] ?? $n)); $mn = abs((float)($dd['min'] ?? 0));
+        for ($r = $a - 1; $r <= $b - 1; $r++) $lo[$r] = max($lo[$r], (float)($in['data2'][$r]['dispatch'] ?? 0) - $mn); }
+    $bad = [];
+    for ($r = 0; $r + 1 < $n; $r++) {
+        if ($lo[$r + 1] - $hi[$r] > $step + 1e-6) $bad[] = ['row' => $r + 1, 'next_row' => $r + 2, 'max_mw' => round($hi[$r], 2), 'next_min_mw' => round($lo[$r + 1], 2), 'step_needed_mw' => round($lo[$r + 1] - $hi[$r], 2)];
+        if ($lo[$r] - $hi[$r + 1] > $step + 1e-6) $bad[] = ['row' => $r + 1, 'next_row' => $r + 2, 'min_mw' => round($lo[$r], 2), 'next_max_mw' => round($hi[$r + 1], 2), 'step_needed_mw' => round($lo[$r] - $hi[$r + 1], 2)];
+        if ($lo[$r] > $hi[$r] + 1e-6) $bad[] = ['row' => $r + 1, 'min_mw' => round($lo[$r], 2), 'max_mw' => round($hi[$r], 2), 'empty_band' => true];
+    }
+    if (!$bad) return null;
+    $f = $bad[0];
+    return ['schema' => 'v1525-export-band-contradiction-v1', 'code' => 'INPUT_CONTRADICTION_EXPORT_BAND_STEP', 'step_limit_mw' => $step, 'conflicts' => array_slice($bad, 0, 12),
+        'proof' => isset($f['empty_band']) ? sprintf('Row %d: batas bawah Export %.2f MW > batas atas %.2f MW (pita kosong).', $f['row'], $f['min_mw'], $f['max_mw'])
+            : sprintf('Row %d -> row %d: Export harus %s, perubahan minimum %.2f MW > batas langkah Export %.0f MW per 30 menit (hard constraint export_step). Pita Dispatch ± deviasi / Range rule bertentangan dengan batas langkah; tidak ada dispatch, commitment, maupun bahan bakar yang dapat memenuhinya.',
+                $f['row'], $f['next_row'], isset($f['max_mw']) ? sprintf('<= %.2f lalu >= %.2f MW', $f['max_mw'], $f['next_min_mw']) : sprintf('>= %.2f lalu <= %.2f MW', $f['min_mw'], $f['next_max_mw']), $f['step_needed_mw'], $step),
+        'feasible_if' => ['lebarkan deviasi dispatch pada row transisi', 'samakan Dispatch row bersebelahan', 'pindahkan batas periode rule']];
+}
+/* V15.25 SERTIFIKAT TERMINAL TARGET EXPORT HARIAN (generik). Batas atas energi Export harian yang TIDAK dapat dilampaui
+ * dispatch / commitment / bahan bakar apa pun: E_r <= min(RangeMax_r (+range rule, dispatch-dev), kapasitas fisik_r, E_{r-1} + langkah
+ * Export maksimum). Kapasitas fisik row 1 = unit Last Data Running & tersedia pada beban maksimum (STG lewat kopling engine); row >= 2
+ * = seluruh unit tersedia (tidak stop/trip) pada beban maksimum. MM2100 dan house load dikurangkan, IE efektif per row. Bila target
+ * harian REQUIRED > sum(E_r)/2, target terbukti infeasible -> keputusan terminal dengan energi maksimum per row. */
+function pp_v1525_daily_export_cert(array $input): ?array {
+    if ((string)getenv('PP_V1525_DAILY_CUM') === '0') return null;
+    $in = pp_normalize_copy($input); $d3 = (array)$in['data3']; $m = (array)$d3['modeling']; $pep = (array)($m['pln_export_priority'] ?? []);
+    $dt = (array)($pep['daily_target'] ?? []); if (empty($dt['required']) || (float)($dt['value'] ?? 0) <= 0) return null;
+    $need = (float)$dt['value']; $lds = (array)($m['unit_last_data_status'] ?? []); $n = count((array)$in['data1']);
+    $pt = pp_compute_pln_targets($m, (array)($in['data2'] ?? [])); $hi = array_map('floatval', (array)$pt['hi']); $ie = array_map('floatval', (array)pp_ie_series($in)['eff']);
+    $U = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','s1','s2','s3','b1','b2','ge1','ge2','ge3','ge4']; $step = pp_export_step_limit($m);
+    $prev = null; $tot = 0.0; $rows = [];
+    for ($r = 0; $r < $n; $r++) {
+        $gen = array_fill_keys($U, 0.0);
+        foreach ($U as $u) { if (!isset($d3[$u]) || in_array($u, ['s1','s2','s3'], true)) continue;
+            if ($r === 0 && strtolower(trim((string)($lds[strtoupper($u)] ?? ''))) !== 'running') continue;
+            if (pp_is_unit_stopped($d3, $m, $u, $r + 1)) continue;
+            $mx = pp_effective_maxload($d3, $m, $u, $r + 1); if ($mx <= 0) $mx = (float)($d3[$u]['max_load'] ?? 0); $gen[$u] = max(0.0, $mx); }
+        try { pp_recompute_stgs($gen, $d3, $m, $r + 1); } catch (Throwable $e) {}
+        if ($r === 0) foreach (['s1','s2','s3'] as $sx) if (strtolower(trim((string)($lds[strtoupper($sx)] ?? ''))) !== 'running') $gen[$sx] = 0.0;
+        $mm = 0.0; foreach (['ge1','ge2','ge3','ge4','g10'] as $u) $mm += $gen[$u];
+        $cap = array_sum($gen) - $mm - calc_house_load($gen) - ($ie[$r] ?? 0.0);
+        $ub = min($hi[$r] ?? INF, $cap); if ($prev !== null) $ub = min($ub, $prev + $step); $ub = max($ub, -INF);
+        $rows[] = ['row' => $r + 1, 'range_max_mw' => round($hi[$r] ?? 0, 2), 'capacity_export_mw' => round($cap, 2), 'upper_bound_mw' => round($ub, 2)];
+        $tot += max(0.0, $ub) / 2.0; $prev = $ub;
+    }
+    if ($need <= $tot + 1e-6) return null;
+    $rmax = array_sum(array_map(fn($x) => $x / 2.0, $hi));
+    return ['schema' => 'v1525-terminal-daily-export-v1', 'code' => 'TERMINAL_INFEASIBLE_DAILY_EXPORT_TARGET', 'target_mwh' => $need, 'max_energy_mwh' => round($tot, 2),
+        'range_max_energy_mwh' => round($rmax, 2), 'deficit_mwh' => round($need - $tot, 2), 'rows' => $rows,
+        'proof' => sprintf('Target Export harian REQUIRED %.2f MWh > energi Export maksimum %.2f MWh (batas atas per row = min(RangeMax, kapasitas fisik seluruh unit tersedia pada beban maksimum - IE - MM2100 - house load, Export row sebelumnya + %.0f MW); jumlah RangeMax saja %.2f MWh). Kurang %.2f MWh: tidak ada dispatch, commitment, LNG, maupun distillate yang dapat memenuhinya.',
+            $need, $tot, $step, $rmax, $need - $tot),
+        'feasible_if' => ['target harian <= ' . round($tot, 2) . ' MWh', 'RangeMax dinaikkan', 'unit tambahan tersedia']];
+}
 /* V15.20 SERTIFIKAT TERMINAL WINDOW SUPPLIER (generik, Fastest DAN Maximum Review).
  * Validator menuntut DUA window sekaligus: Effective Total Gas di [Q-0,04 ; Q] dan Effective PGN Pipe di [P-0,04 ; P].
  * Bila semua supplier selain PGN Pipe adalah take tetap (LNG kontrak fixed = kuota, Fixed Flow JBBK/PEP fixed take = kuota,
@@ -3850,6 +3954,11 @@ function pp_v1524_fuel_cap_terminal(array $input, array $output, array $fr): ?ar
             'rule' => 'residual sesudah LNG yang diotorisasi (Export sudah di Range Min, lever habis) > 0 -> shortage tidak dapat ditutup dengan otorisasi saat ini'];
         return ['proof' => $proof, 'message' => sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi %.4f BBTUD masih tersisa kebutuhan %.4f BBTUD (Export sudah di Range Min, lever habis). Opsi: tambahan LNG total %.4f BBTUD, atau LNG %.4f BBTUD + distillate %.4f BBTUD.', $lng, $res, $lng + $res, $lng, $res)]; }
     if (($fr['action'] ?? '') !== 'use_distillate' || empty($fr['user_cap_applied'])) return null;
+    /* V15.25: dengan target Export harian REQUIRED, lantai energi adalah target harian (bukan Range Min per row). */
+    $dtF = (array)($input['data3']['modeling']['pln_export_priority']['daily_target'] ?? []);
+    $basis = (!empty($dtF['required']) && (float)($dtF['value'] ?? 0) > 0)
+        ? sprintf('Export harian %.2f MWh = target harian REQUIRED %.2f MWh, lever habis', (float)($i['Daily PLN Exp (MWh)'] ?? 0), (float)$dtF['value'])
+        : 'Export sudah di Range Min, lever habis';
     $req = (float)($du['required_bbtud'] ?? ($ex['residual_bbtud'] ?? 0)); $capB = (float)($du['bbtud'] ?? 0); $capL = (float)($du['litres'] ?? ($fr['requested_litres'] ?? 0));
     if (!$ex || $req <= 0 || $capB < 0 || $req <= $capB + 0.04) return null;
     $lPerB = $capB > 1e-9 ? $capL / $capB : ((float)($fr['reported_litres'] ?? 0) > 0 && (float)($fr['gas_offset'] ?? 0) > 0 ? (float)$fr['reported_litres'] / (float)$fr['gas_offset'] : null);
@@ -3859,8 +3968,9 @@ function pp_v1524_fuel_cap_terminal(array $input, array $output, array $fr): ?ar
         'options' => [['action' => 'use_distillate', 'distillate_user_limit_litres' => $need, 'note' => 'naikkan plafon distillate (perlu dijalankan ulang untuk validasi)'],
                       ['action' => 'use_distillate+add_lng', 'additional_lng_bbtud' => round($req - $capB, 4), 'distillate_user_limit_litres' => $capL, 'note' => 'tambahan LNG untuk sisa kebutuhan (perlu dijalankan ulang untuk validasi)']],
         'rule' => 'kebutuhan bahan bakar sesudah Export diturunkan ke Range Min (lever habis) > energi plafon distillate user -> shortage tidak dapat ditutup tanpa melanggar plafon'];
-    $msg = sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD (Export sudah di Range Min, lever habis) > plafon distillate user %s l = %.4f BBTUD; sisa %.4f BBTUD tidak dapat ditutup. Opsi: plafon distillate %s l, atau tambahan LNG %.4f BBTUD dengan plafon tetap.',
-        $req, number_format($capL, 0, ',', '.'), $capB, $req - $capB, $need !== null ? number_format($need, 0, ',', '.') : '-', $req - $capB);
+    if (!empty($dtF['required'])) $proof['daily_export_target'] = ['target_mwh' => (float)($dtF['value'] ?? 0), 'daily_export_mwh' => (float)($i['Daily PLN Exp (MWh)'] ?? 0), 'plan' => $i['Daily Export Plan']['final_topup'] ?? null];
+    $msg = sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD (%s) > plafon distillate user %s l = %.4f BBTUD; sisa %.4f BBTUD tidak dapat ditutup. Opsi: plafon distillate %s l, atau tambahan LNG %.4f BBTUD dengan plafon tetap.',
+        $req, $basis, number_format($capL, 0, ',', '.'), $capB, $req - $capB, $need !== null ? number_format($need, 0, ',', '.') : '-', $req - $capB);
     return ['proof' => $proof, 'message' => $msg];
 }
 /* V15.24 BASIS EKSAK per (konteks, profil IE efektif, Actual Gas, Fix Load): rerun dengan profil yang PERNAH dihitung penuh (mis. adjustment
@@ -4026,6 +4136,9 @@ function pp_v13f_fast_job(string $id, array $inputAsli): array {
     $tr = function (string $k, array $x = []) use ($t0) { $GLOBALS['ppV13fTrace'][] = ['step' => $k, 'at_s' => round(microtime(true) - $t0, 3)] + $x; };
     $act = strtolower(trim((string)($inputAsli['data3']['modeling']['gas_shortage_action'] ?? 'none')));
     $cert = null; try { $cert = pp_v15_row1_export_cert($inputAsli); } catch (Throwable $e) { $cert = null; }
+    if (!is_array($cert)) { try { $cert = pp_v1525_export_band_cert($inputAsli); } catch (Throwable $e) { $cert = null; } }
+    if (!is_array($cert)) { try { $cert = pp_v1525_capacity_cert($inputAsli); } catch (Throwable $e) { $cert = null; } }
+    if (!is_array($cert)) { try { $cert = pp_v1525_daily_export_cert($inputAsli); } catch (Throwable $e) { $cert = null; } }
     if (is_array($cert)) {
         /* keputusan terminal: satu core run (baris pratinjau bukti), tanpa pencarian */
         pp_job_progress($id, 'FASTEST_KEPUTUSAN_TERMINAL', 50.0); $tr('terminal_certificate', ['code' => $cert['code']]);
@@ -4738,6 +4851,20 @@ function pp_job_run_economic_review(string $id, array $input): array {
         goto pp_v13f_after;
     }
     if ($fastJ) { $output = pp_v13f_fast_job($id, $inputAsli); goto pp_v13f_after; }
+    /* V15.25: sertifikat terminal generik (pita Export vs langkah, target harian, kapasitas per row) juga untuk jalur non-Fastest
+     * (Maximum Review / Change Over) — keputusan sama dengan Fastest, satu core run pratinjau. */
+    $certV = null;
+    foreach (['pp_v1525_export_band_cert', 'pp_v1525_daily_export_cert', 'pp_v1525_capacity_cert'] as $cfn) { try { $certV = $cfn($inputAsli); } catch (Throwable $e) { $certV = null; } if (is_array($certV)) break; }
+    if (is_array($certV)) {
+        pp_job_progress($id, 'KEPUTUSAN_TERMINAL', 50.0);
+        $c = pp_v13f_clean($inputAsli); pp_tl_clean_globals(); pp_budget_start(60.0, true, true);
+        try { $output = pp_run_simulation_core($c); } catch (Throwable $e) { $output = ['data' => [], 'info' => []]; }
+        $output['info']['Fastest Terminal Certificate'] = $certV; $output['terminal_decision'] = $certV;
+        $output['info']['Run Status'] = ['completed' => true, 'converged' => true, 'deadline_reached' => false, 'budget_truncated' => false, 'stages_truncated' => [],
+            'economic_review_skipped' => null, 'economic_review_completed' => false, 'status' => 'CERTIFIED_INFEASIBLE', 'mode' => 'MAXIMUM_REVIEW_TERMINAL_CERTIFICATE',
+            'fastest' => false, 'fastest_shortage_proven' => false, 'global_optimum_proven' => false, 'elapsed_s' => round(microtime(true) - $t, 3)];
+        goto pp_v13f_after;
+    }
     $memoAv = pp_memo_available($input);
     if (!$memoAv) $v7R = pp_v7_route_certificate($id, $inputAsli);             // V7: sertifikat envelope gas lebih dulu
     /* V7: pilihan bahan bakar SELALU melanjutkan rencana exact basis bila valid (juga bila hasil tersimpan
@@ -4867,6 +4994,7 @@ function pp_job_run_economic_review(string $id, array $input): array {
                 $gaJ = null; try { $gaJ = pp_gas_feasibility_audit($input, $output); } catch (Throwable $e) {}
                 $ubJ = is_array($gaJ) ? (float)($gaJ['headroom']['gas_reduction_upper_bound_bbtud'] ?? INF) : INF;
                 $output['info']['Fuel Capacity Terminal Proof']['gas_reduction_upper_bound_bbtud'] = is_finite($ubJ) ? round($ubJ, 4) : null;
+                if (is_array($gaJ) && !empty($gaJ['daily_export_target_cap'])) $output['info']['Fuel Capacity Terminal Proof']['gas_reduction_daily_target_cap'] = $gaJ['daily_export_target_cap'];
                 $output['info']['Fuel Capacity Terminal Proof']['terminal'] = is_finite($ubJ) && (float)$tc['proof']['uncovered_bbtud'] > $ubJ + 0.04;
                 if ($output['info']['Fuel Capacity Terminal Proof']['terminal']) { $output['status'] = 'TERMINAL_INFEASIBLE'; $output['error_code'] = 'TERMINAL_INFEASIBLE_FUEL_CAP'; $output['message'] = $tc['message'];
                     $output['release_gate']['blocking_reasons'] = array_values(array_unique(array_merge((array)($output['release_gate']['blocking_reasons'] ?? []), ['TERMINAL_INFEASIBLE_FUEL_CAP']))); } }
@@ -6647,6 +6775,7 @@ function pp_constraint_failure_message(array $review, ?array $audit = null): arr
     $templates=[
       'export_range'=>['PLN Export is outside the configured range.','Keep the source block running longer or increase legal output from units already running.'],
       'export_step'=>['PLN Export changes by more than 35 MW between adjacent 30-minute slots.','Shift the start/stop event or redistribute load across running units.'],
+      'export_daily'=>['Daily PLN Export energy is below the required daily target.','Raise legal Export on rows with physical headroom, or start additional legal capacity; if the maximum achievable energy stays below target, the target is infeasible (terminal proof).'],
       'max_load'=>['A unit exceeds its effective maximum load.','Clamp the unit and redistribute the residual requirement to legal running-fleet headroom.'],
       'min_load'=>['A running unit is below its legal minimum load.','Consolidate commitment or stop the unnecessary unit if all constraints remain valid.'],
       'runtime_downtime'=>['Minimum runtime or downtime is violated.','Move the start/stop event to the next legal row.'],
@@ -9811,7 +9940,8 @@ function pp_attach_or_reject_acceptance_v0(array $input,array &$output): array {
          * dispatch yang tersisa pun tidak dapat menutup selisihnya, tidak ada rencana sah di bawah plafon */
         $ubR=is_array($gasAudit)?(float)($gasAudit['headroom']['gas_reduction_upper_bound_bbtud']??INF):INF;
         if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&isset($fct['code'])){$output['info']['Fuel Capacity Terminal Proof']['gas_reduction_upper_bound_bbtud']=is_finite($ubR)?round($ubR,4):null;
-            $output['info']['Fuel Capacity Terminal Proof']['terminal']=is_finite($ubR)&&(float)$fct['uncovered_bbtud']>$ubR+0.04;}
+            $output['info']['Fuel Capacity Terminal Proof']['terminal']=is_finite($ubR)&&(float)$fct['uncovered_bbtud']>$ubR+0.04;
+            if(is_array($gasAudit)&&!empty($gasAudit['daily_export_target_cap']))$output['info']['Fuel Capacity Terminal Proof']['gas_reduction_daily_target_cap']=$gasAudit['daily_export_target_cap'];}
         if(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])&&($fct['code']??'')==='LNG_AUTHORIZED_INSUFFICIENT'){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
             $msg=sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: sesudah LNG yang diotorisasi %.4f BBTUD masih tersisa kebutuhan %.4f BBTUD > batas atas penurunan gas yang masih dapat dipakai %.4f BBTUD. Opsi: tambahan LNG total %.4f BBTUD, atau LNG %.4f BBTUD + distillate %.4f BBTUD.',
                 (float)$fct['authorized_lng_bbtud'],(float)$fct['uncovered_bbtud'],$ubR,(float)$fct['authorized_lng_bbtud']+(float)$fct['uncovered_bbtud'],(float)$fct['authorized_lng_bbtud'],(float)$fct['uncovered_bbtud']);
@@ -9819,6 +9949,7 @@ function pp_attach_or_reject_acceptance_v0(array $input,array &$output): array {
         elseif(is_array($fct=$output['info']['Fuel Capacity Terminal Proof']??null)&&!empty($fct['terminal'])){$code='TERMINAL_INFEASIBLE_FUEL_CAP';$details=['fuel_capacity_terminal_proof'=>$fct,'acceptance_review'=>$review];
             $msg=sprintf('TERMINAL_INFEASIBLE_FUEL_CAP: kebutuhan bahan bakar terbukti %.4f BBTUD > plafon distillate user %s l (%.4f BBTUD); sisa %.4f BBTUD > batas atas penurunan gas yang masih dapat dipakai %.4f BBTUD, sehingga tidak dapat ditutup tanpa melanggar plafon. Opsi: plafon %s l atau tambahan LNG %.4f BBTUD.',
                 (float)$fct['required_fuel_bbtud'],number_format((float)$fct['user_cap_litres'],0,',','.'),(float)$fct['user_cap_bbtud'],(float)$fct['uncovered_bbtud'],$ubR,$fct['litres_required_without_cap']!==null?number_format((float)$fct['litres_required_without_cap'],0,',','.'):'-',(float)$fct['uncovered_bbtud']);
+            if(!empty($fct['daily_export_target']))$msg.=sprintf(' Target Export harian REQUIRED %.2f MWh (dispatch %.2f MWh) membatasi penurunan Export; batas atas gas yang dapat dibebaskan dihitung dari slack energi harian.',(float)$fct['daily_export_target']['target_mwh'],(float)$fct['daily_export_target']['daily_export_mwh']);
             $output['status']='TERMINAL_INFEASIBLE';}
         $output['ok']=false;$output['result']='rejected';$output['error_code']=$code;
         $output['message']=$msg;$output['error_message']=$msg;
@@ -10073,6 +10204,8 @@ function pp_reconcile_selected_fuel(array $input, array $output): array {
      * validator: pemakaian gas terhadap kuota efektif. */
     $gasUsedR=(float)($i['Total Gas Used (BBTUD)']??0);
     $gasQuotaR=(float)($i['Total Gas Quota (BBTUD)']??0);
+    /* V15.25: dengan Actual Gas, metrik validator adalah Effective Total Gas (pp_gs_used_quota) — residual dihitung pada basis yang sama. */
+    if((string)getenv('PP_V1525_ACT_DIST')!=='0'&&function_exists('pp_gs_used_quota')){[$gasUsedR,$gasQuotaR]=pp_gs_used_quota($i);}
     $short=($gasQuotaR>1.0)
         ? max(0.0,$gasUsedR-$gasQuotaR)
         : max(0.0,(float)($i['Gas Shortage (BBTUD)']??0));

@@ -4949,7 +4949,33 @@ function pp_run_simulation_once(array $input): array {
     }
     return $out;
 }
+/* V15.25 ACTUAL GAS + DISTILLATE: Actual PGN / Fixed Flow Jababeka / MM2100 yang menyimpang dari estimasi mengubah Effective
+ * Total Gas (actual immutable + estimasi future) sebesar delta = Effective - Total Gas Used. Pada skenario distillate, shortage
+ * (dan jumlah liter) dulu dihitung dari kebutuhan estimasi saja, sehingga delta itu tidak pernah direkonsiliasi -> Effective
+ * Total Gas keluar window (FAIL T134-T137, T139). Bila delta membuat Effective keluar window, simulasi diulang SEKALI dengan
+ * shortage digeser delta (actual tetap apa adanya; hanya substitusi distillate pada row planning yang berubah, dibatasi plafon
+ * liter user). Hasil kedua dipakai hanya bila Effective Total Gas lebih dekat ke window. PP_V1525_ACT_DIST=0 -> nonaktif. */
 function pp_run_simulation_once_raw(array $input): array {
+    $o = pp_run_simulation_once_raw_v1524($input);
+    $m = (array)($input['data3']['modeling'] ?? []);
+    if ((string)getenv('PP_V1525_ACT_DIST') === '0' || isset($m['__act_dist_delta'])) return $o;
+    $i = (array)($o['info'] ?? []);
+    if ((int)($i['Actual Hours Provided'] ?? 0) <= 0 || !isset($i['Effective Total Gas (BBTUD)'], $i['Total Gas Used (BBTUD)'])) return $o;
+    if (!function_exists('pp_action_uses_distillate') || !pp_action_uses_distillate(strtolower((string)($m['gas_shortage_action'] ?? 'none')))) return $o;
+    [$used, $quota] = pp_gs_used_quota($i); $eff = (float)$i['Effective Total Gas (BBTUD)'];
+    if ($quota <= 0 || pp_gas_in_window($eff, $quota)) return $o;
+    $delta = $eff - ($quota - PP_GAS_WINDOW_WIDTH / 2.0);
+    $in2 = $input; $in2['data3']['modeling']['__act_dist_delta'] = round($delta, 6);
+    $o2 = pp_run_simulation_once_raw_v1524($in2); $i2 = (array)($o2['info'] ?? []);
+    $eff2 = (float)($i2['Effective Total Gas (BBTUD)'] ?? INF);
+    $dist1 = abs($eff - min(max($eff, $quota - PP_GAS_WINDOW_WIDTH), $quota)); $dist2 = abs($eff2 - min(max($eff2, $quota - PP_GAS_WINDOW_WIDTH), $quota));
+    $rec = ['delta_bbtud' => round($delta, 4), 'effective_before_bbtud' => round($eff, 4), 'effective_after_bbtud' => round($eff2, 4), 'quota_bbtud' => round($quota, 4),
+            'distillate_before_l' => $i['Required Distillate (l/day)'] ?? null, 'distillate_after_l' => $i2['Required Distillate (l/day)'] ?? null,
+            'applied' => $dist2 < $dist1 - 1e-6, 'rule' => 'shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah'];
+    if (!$rec['applied']) { $o['info']['Actual Gas Distillate Reconciliation'] = $rec; return $o; }
+    $o2['info']['Actual Gas Distillate Reconciliation'] = $rec; return $o2;
+}
+function pp_run_simulation_once_raw_v1524(array $input): array {
     $GLOBALS['__ppx_once_calls'] = (int)($GLOBALS['__ppx_once_calls'] ?? 0) + 1;
     if (isset($GLOBALS['ppTlHook']) && function_exists('pp_tl_abort_poll')) pp_tl_abort_poll();   // penghentian kooperatif TARGET SELESAI
     if (pp_budget_exceeded('simulation_once_entry')) return is_array($GLOBALS['__pp_best_feasible_output']??null)?$GLOBALS['__pp_best_feasible_output']:($GLOBALS['__pp_last_core_output']??['result'=>'error','error_code'=>'GLOBAL_BUDGET_LATCHED','data'=>[],'info'=>[]]);
@@ -5107,6 +5133,21 @@ function pp_run_simulation_once_raw(array $input): array {
     $ieVals  = pp_apply_ie_adjustment($input['data1'], is_array($ieAdj) ? $ieAdj : []);
     $plnInfo = pp_compute_pln_targets($model, $input['data2']);
     $warnings = array_merge($warnings, $plnInfo['warn']);
+    /* V15.25 DISPATCH-DEV PER ROW: pita Dispatch ± deviasi (rule required) hanya masuk ke target awal; pass hilir
+     * (range redispatch, repair lantai, penurunan gas) membaca range + range_rules sehingga pita itu hilang dan Export
+     * kembali ke Range Min. Bila ada rule dispatch-dev aktif, batas efektif per row (lo/hi = range + range rule + pita
+     * dispatch + tangga ramp) dipasang sebagai range rule per row (sintetis) pada model worker -> semua pass memakai
+     * batas yang sama dengan validator (pln_lo/pln_hi). Tanpa rule dispatch-dev: tidak aktif (identik). */
+    $ddAct = false;
+    foreach ((array)($model['pln_export_priority']['dispatch_dev_rules'] ?? []) as $ddr) if (is_array($ddr) && (!array_key_exists('required', $ddr) || $ddr['required'])) { $ddAct = true; break; }
+    if (!$ddAct && is_array($model['pln_export_priority']['dispatch_dev'] ?? null) && !empty($model['pln_export_priority']['dispatch_dev']['required']) && empty($model['pln_export_priority']['dispatch_dev_rules'])) $ddAct = true;
+    if ($ddAct && (string)getenv('PP_V1525_DD_ROWS') !== '0') {
+        $synthD = [];
+        foreach ($plnInfo['lo'] as $ri => $lv) $synthD[] = ['min' => (float)$lv, 'max' => (float)$plnInfo['hi'][$ri], 'start' => $ri + 1, 'stop' => $ri + 1, 'synthetic' => 'DISPATCH_DEV_ROW_BAND'];
+        $model['pln_export_priority']['range_rules_user'] = $model['pln_export_priority']['range_rules'] ?? [];
+        $model['pln_export_priority']['range_rules'] = $synthD; $d3['modeling'] = $model;
+        $GLOBALS['__pp_dd_row_band'] = true;
+    }
 
     $blocks  = $model['block_priority'];
     $busUnit = $model['bus_unit'] ?? [];
@@ -5313,10 +5354,15 @@ function pp_run_simulation_once_raw(array $input): array {
     };
 
     /* per-row PLN band: effLo = daily-target-lifted minimum, effHi = capped max */
-    $effHiArr = []; $baseLoArr = [];
+    $effHiArr = []; $baseLoArr = []; $floorLoArr = [];
     for ($row = 0; $row < $nRows; $row++) {
         $effHiArr[$row]  = (float)$plnInfo['hi'][$row];
         $baseLoArr[$row] = (float)$plnInfo['target'][$row];
+        /* V15.25 DAILY EXPORT: lantai Export SESAAT per row = range + range rule + dispatch-dev + tangga ramp (lo),
+         * BUKAN target harian yang di-lift. Target energi harian (MWh) adalah batasan KUMULATIF yang divalidasi
+         * terhadap total harian (pp_validate_hard_constraints: export_daily); lift hanya menjadi AIM dispatch.
+         * Tanpa target harian required: target == lo -> identik. PP_V1525_DAILY_CUM=0 = perilaku V15.24. */
+        $floorLoArr[$row] = ((string)getenv('PP_V1525_DAILY_CUM') === '0') ? $baseLoArr[$row] : (float)($plnInfo['lo'][$row] ?? $baseLoArr[$row]);
     }
 
     /* dispatch all rows aiming each export at $aimLo[row] (clamped <= effHi). */
@@ -5364,6 +5410,48 @@ function pp_run_simulation_once_raw(array $input): array {
         foreach ($baseLoArr as $i => $b) $aim[$i] = $b + $L;
         return $finalForAim($aim);
     };
+
+    /* ===== V15.25 DAILY EXPORT TARGET — PERENCANAAN KUMULATIF (tahap 1: AIM commitment) ======
+     * Akar FAIL grup E: lift target harian dibagi sebanding headroom RangeMax ke SEMUA row (termasuk
+     * row awal yang hanya punya unit Last Data Running), lalu dijadikan lantai Export sesaat
+     * (pln_lo) -> row 1 mustahil; sementara pass hilir (shed / penurunan gas) tidak melindungi lift,
+     * sehingga total harian kembali ke lantai Range Min. Perbaikan generik:
+     *   1) amplop fisik per row = Export yang benar-benar tercapai bila dispatch awal + startup
+     *      enforcement diarahkan ke RangeMax (unit Last Data Running, lead time startup, ramp, kapasitas);
+     *   2) water-filling: lantai_r = max(lo_r, min(amplop_r, lambda)), lambda dibagi-dua sampai
+     *      sum(lantai)/2 = target harian (energi sisa direncanakan pada row yang memang mampu);
+     *   3) lantai itu menjadi AIM dispatch dan batas bawah internal pass hilir (range rule per row
+     *      sintetis pada model worker), sedangkan validasi = lantai sesaat (range) + total harian.
+     * Bila sum(amplop)/2 < target, lantai = amplop (upaya maksimum) dan bukti dicatat. */
+    $dailyPlan = null; $GLOBALS['__pp_daily_export_plan'] = null;
+    $dtW = (array)($model['pln_export_priority']['daily_target'] ?? []);
+    if (!empty($dtW['required']) && (float)($dtW['value'] ?? 0) > 0 && (string)getenv('PP_V1525_DAILY_CUM') !== '0') {
+        $needW = (float)$dtW['value']; $loW = array_map('floatval', $plnInfo['lo']);
+        $probe = $finalForAim($effHiArr);
+        $envW = [];
+        foreach ($probe['enf']['gen'] as $ri => $g) { $envW[$ri] = max($loW[$ri], min((float)$effHiArr[$ri], (float)$realised_export($g, (float)$ieVals[$ri])['export'])); }
+        /* energi yang SUDAH terjadi tanpa lift (dispatch pada lantai range: row dengan must-run / IE rendah
+         * berada di atas lantai) dihitung, sehingga lift hanya menambah kekurangan sebenarnya. */
+        $baseP = $finalForAim($loW); $baseW = [];
+        foreach ($baseP['enf']['gen'] as $ri => $g) $baseW[$ri] = max($loW[$ri], min((float)$effHiArr[$ri], (float)$realised_export($g, (float)$ieVals[$ri])['export']));
+        $sumAt = function (float $lam) use ($loW, $envW, $baseW): float { $t = 0.0; foreach ($envW as $ri => $e) $t += max($baseW[$ri], max($loW[$ri], min($e, $lam))) / 2.0; return $t; };
+        $envMWh = $sumAt(INF); $loMWh = $sumAt(-INF);
+        if ($envMWh + 1e-9 < $needW) $lam = INF;
+        elseif ($loMWh >= $needW) $lam = -INF;
+        else { $a = min($loW); $b = max($envW); for ($it = 0; $it < 60; $it++) { $c = ($a + $b) / 2; if ($sumAt($c) < $needW) $a = $c; else $b = $c; } $lam = $b; }
+        $floorW = []; foreach ($envW as $ri => $e) $floorW[$ri] = round(max($loW[$ri], min($e, $lam)) + 1e-6, 4);
+        foreach ($floorW as $ri => $f) $baseLoArr[$ri] = max($f, $loW[$ri]);
+        $finalForLift = function (float $L) use ($baseLoArr, $finalForAim): array {
+            $aim = []; foreach ($baseLoArr as $i => $b) $aim[$i] = $b + $L; return $finalForAim($aim);
+        };
+        /* AIM awal di atas hanya menggerakkan commitment (unit yang distart dispatch awal); pass hilir tetap
+         * memakai lantai range. Energi harian ditutup pada TOP-UP FINAL (re-assertion lantai Export di bawah)
+         * dari dispatch final sehingga lift tidak berlebih dan tidak memboroskan bahan bakar. */
+        $dailyPlan = ['target_mwh' => $needW, 'envelope_mwh' => round($envMWh, 2), 'floor_only_mwh' => round($loMWh, 2), 'level_mw' => is_finite($lam) ? round($lam, 3) : null,
+                      'planned_mwh' => round($sumAt($lam), 2), 'envelope_short' => $envMWh + 1e-9 < $needW,
+                      'rows' => array_map(fn($ri) => ['row' => $ri + 1, 'floor_range' => round($loW[$ri], 2), 'base_export' => round($baseW[$ri], 2), 'envelope' => round($envW[$ri], 2), 'planned_floor' => $floorW[$ri]], array_keys($floorW))];
+        $GLOBALS['__pp_daily_export_plan'] = $dailyPlan;
+    }
 
     /* ---- Dispatch each row at the cheapest valid export (PLN-band minimum,
      *      priority order). Gas quota is maximised later by a dedicated back-end
@@ -7424,6 +7512,65 @@ function pp_run_simulation_once_raw(array $input): array {
      * merapikan ramp, dan perapian itu secara teoretis dapat mengembalikan sebuah unit ke dalam
      * band. Putaran kedua bersifat idempoten — bila putaran pertama sudah bersih, ia tidak
      * mengubah apa pun. */
+    /* ===== V15.25 DAILY EXPORT TARGET — TOP-UP FINAL (tahap 2) ===============================
+     * Dari dispatch final: E0 = sum(Export)/2. Bila E0 < target harian required, amplop per row =
+     * Export bila seluruh unit yang SUDAH berbeban pada row itu dinaikkan ke max efektif (STG dihitung
+     * ulang, dibatasi RangeMax; row actual dikunci). Water-filling: lantai_r = max(lo_r, min(amplop_r,
+     * lambda)) dengan lambda terkecil yang menutup kekurangan; lantai dipasang sebagai range rule per
+     * row (sintetis) lalu repair lantai Export final (ramp, BusFlow, window gas / distillate) di bawah
+     * menaikkan dispatch. Tanpa target harian required: blok tidak aktif (hasil identik). */
+    $dailyTopUp = null;
+    if ($dailyPlan !== null) {
+        $expRow = function (array $g, int $r) use ($ieVals): float {
+            $mm = 0.0; foreach (['ge1','ge2','ge3','ge4','g10'] as $u) $mm += (float)($g[$u] ?? 0);
+            $tot = 0.0; foreach ($g as $k => $v) if (is_numeric($v)) $tot += (float)$v;
+            return $tot - $mm - calc_house_load($g) - (float)$ieVals[$r]; };
+        $needT = (float)$dailyPlan['target_mwh']; $E0 = []; $env2 = []; $lo2 = array_map('floatval', $plnInfo['lo']);
+        for ($r = 0; $r < $nRows; $r++) {
+            $E0[$r] = $expRow($genRows[$r], $r);
+            if (isset($actualRows[$r])) { $env2[$r] = $E0[$r]; continue; }
+            $gx = $genRows[$r];
+            foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9','b1','b2'] as $u) if ((float)($gx[$u] ?? 0) > 0.01 && !pp_is_unit_stopped($d3, $model, $u, $r + 1))
+                $gx[$u] = max((float)$gx[$u], pp_effective_maxload($d3, $model, $u, $r + 1));
+            pp_recompute_stgs($gx, $d3, $model, $r + 1);
+            $env2[$r] = max($E0[$r], min((float)$effHiArr[$r], $expRow($gx, $r)));
+        }
+        $e0MWh = array_sum($E0) / 2.0;
+        $sumT = function (float $lam) use ($E0, $env2, $lo2): float { $t = 0.0; foreach ($E0 as $r => $e) $t += max($e, max($lo2[$r], min($env2[$r], $lam))) / 2.0; return $t; };
+        $envT = $sumT(INF);
+        $dailyTopUp = ['before_mwh' => round($e0MWh, 2), 'running_fleet_envelope_mwh' => round($envT, 2), 'target_mwh' => $needT];
+        if ($e0MWh < $needT - 1e-6) {
+            if ($envT < $needT) $lamT = INF;
+            else { $a = min($E0); $b = max($env2); for ($it = 0; $it < 60; $it++) { $c = ($a + $b) / 2; if ($sumT($c) < $needT + 0.25) $a = $c; else $b = $c; } $lamT = $b; }
+            $synth = [];
+            for ($r = 0; $r < $nRows; $r++) {
+                $f = isset($actualRows[$r]) ? $lo2[$r] : max($lo2[$r], min($env2[$r], $lamT));
+                $synth[] = ['min' => round($f, 4), 'max' => (float)$effHiArr[$r], 'start' => $r + 1, 'stop' => $r + 1, 'synthetic' => 'DAILY_TARGET_TOPUP'];
+            }
+            $dailyTopUp['level_mw'] = is_finite($lamT) ? round($lamT, 3) : null; $dailyTopUp['planned_mwh'] = round($sumT($lamT), 2);
+            $dailyTopUp['envelope_short'] = $envT < $needT;
+            $flT = array_map(fn($x) => (float)$x['min'], $synth);
+            $addT = pp_v1525_daily_topup($genRows, $d3, $model, $ieVals, $actualRows, $flT, array_map('floatval', $effHiArr));
+            /* iterasi: row yang tertahan (ramp unit/Export, startup window, BusFlow) dibatasi pada nilai
+             * yang tercapai; kekurangan dialihkan ke row lain lewat lambda baru (maks 6 iterasi). */
+            for ($itT = 0; $itT < 6; $itT++) {
+                $E1 = []; for ($r = 0; $r < $nRows; $r++) $E1[$r] = $expRow($genRows[$r], $r);
+                if (array_sum($E1) / 2.0 >= $needT - 1e-6) break;
+                $stuck = false; foreach ($E1 as $r => $e) if ($e < $flT[$r] - 0.05) { $env2[$r] = $e; $stuck = true; }
+                if (!$stuck) break;
+                $E0 = $E1; $sumT = function (float $lam) use ($E0, $env2, $lo2): float { $t = 0.0; foreach ($E0 as $r => $e) $t += max($e, max($lo2[$r], min($env2[$r], $lam))) / 2.0; return $t; };
+                $envT = $sumT(INF); if ($envT < $needT) { $lamT = INF; }
+                else { $a = min($E0); $b = max($env2); for ($it = 0; $it < 60; $it++) { $c = ($a + $b) / 2; if ($sumT($c) < $needT + 0.25) $a = $c; else $b = $c; } $lamT = $b; }
+                for ($r = 0; $r < $nRows; $r++) $flT[$r] = isset($actualRows[$r]) ? $lo2[$r] : max($lo2[$r], min($env2[$r], $lamT));
+                $add2 = pp_v1525_daily_topup($genRows, $d3, $model, $ieVals, $actualRows, $flT, array_map('floatval', $effHiArr));
+                $addT += $add2; if ($add2 < 0.05) break;
+            }
+            $dailyTopUp['iterations'] = $itT + 1; $dailyTopUp['final_level_mw'] = is_finite($lamT) ? round($lamT, 3) : null;
+            $dailyTopUp['added_mw_rows'] = round($addT, 3);
+        }
+        $GLOBALS['__pp_daily_export_plan']['final_topup'] = $dailyTopUp;
+    }
+
     /* ===== RE-ASSERTION LANTAI EXPORT DI TITIK PALING AKHIR ==================================
      * TERUKUR, INILAH SEBABNYA. Pada skenario dua stop schedule (G2 rows 5-10, G3 rows 30-40),
      * row 27 tersisa pada Export 24,77 vs Range Min 25,00 — kurang 0,23 MW — dan `Export Floor
@@ -7441,7 +7588,7 @@ function pp_run_simulation_once_raw(array $input): array {
     {
         $__efNeed = false;
         for ($__r = 0; $__r < $nRows; $__r++) {
-            $__lo = (float)($baseLoArr[$__r] ?? 0);
+            $__lo = (float)($floorLoArr[$__r] ?? 0);
             $__hi = (float)($effHiArr[$__r] ?? 0);
             if ($__lo <= 0 && $__hi <= 0) continue;
             $__g = $genRows[$__r];
@@ -7637,7 +7784,7 @@ function pp_run_simulation_once_raw(array $input): array {
     for ($row = 0; $row < $nRows; $row++) {
         $ie    = (float)$ieVals[$row];
         $disp  = (float)($input['data2'][$row]['dispatch'] ?? 0);
-        $effLo = (float)$baseLoArr[$row];
+        $effLo = (float)$floorLoArr[$row];
         $effHi = (float)$effHiArr[$row];
         if (isset($sim['flags'][$row])) $warnings[] = 'Row ' . ($row + 1) . ': ' . $sim['flags'][$row];
         $data[] = $account_row($genRows[$row], $ie, $disp, $input['data1'][$row]['time'], $effLo, $effHi);
@@ -7927,6 +8074,7 @@ function pp_run_simulation_once_raw(array $input): array {
      *   PGN need = daily Jababeka PGN (sum of per-row ENERGY PGN REAL TIME / 48)
      *   plus the startup gas penalty. MM2100 residual is intentionally excluded. */
     $pgnNeed = $estPGN_perrow + $startupGasPenalty;
+    $actDistDelta = (float)($model['__act_dist_delta'] ?? 0.0);   // V15.25: rekonsiliasi Actual Gas pada jalur distillate (0 = identik)
 
     $pgnPipeQuota = (float)($q['pgn_pipe'] ?? 0);
     $lngQuota     = (float)($q['lng'] ?? 0) + (in_array($action, ['add_lng','mixed_lng_distillate'], true) ? $addLng : 0);
@@ -7936,7 +8084,7 @@ function pp_run_simulation_once_raw(array $input): array {
     $GLOBALS['__pp_dist_gas_offset'] = 0.0;   /* V15.17: offset hanya milik simulasi ini (sebelumnya dapat basi dari simulasi sebelumnya bila blok distillate tidak berjalan) */
     $gasTol = 0.05;   // Revisi Sec.2.1: small rounding tolerance, not a target inflation
 
-    if ($pgnNeed <= $pgnTotalQuota + $gasTol) {
+    if ($pgnNeed + $actDistDelta <= $pgnTotalQuota + $gasTol) {
         /* PROMPT LNG_FIXED (koreksi user): LNG = FIXED CONTRACT must-take sesuai input —
          * TIDAK dikurangi/di-residualkan. LNG Used = LNG quota (incl. Additional LNG);
          * PGN Pipe = kebutuhan sisa, dan ENGINE wajib menaikkan pemakaian gas (final top-up)
@@ -7945,7 +8093,7 @@ function pp_run_simulation_once_raw(array $input): array {
         $pipeUsed = max(0.0, $pgnNeed - $lngUsed);
         if ($pipeUsed > $pgnPipeQuota + 1e-9) $pipeUsed = $pgnPipeQuota;   // safety clamp
     } else {
-        $shortage = $pgnNeed - $pgnTotalQuota;
+        $shortage = $pgnNeed + $actDistDelta - $pgnTotalQuota;
         $pipeUsed = $pgnPipeQuota;
         $lngUsed  = $lngQuota;
         if ($action === 'use_distillate' || $action === 'mixed_lng_distillate') {
@@ -8579,10 +8727,10 @@ function pp_run_simulation_once_raw(array $input): array {
     /* V15.17: Distillate MENGGANTIKAN energi gas — status kuota dinilai pada gas NETO (gross − offset distillate),
      * basis yang sama dengan 'Total Gas Used (BBTUD)' dan validator. Sebelumnya rencana distillate yang valid
      * tetap berlabel SHORTAGE di UI (pill/badge) karena gas GROSS dibandingkan dengan kuota. */
-    $gasNetQ = $gas_BBTUD - (pp_action_uses_distillate($action) ? (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0) : 0.0);
+    $gasNetQ = $gas_BBTUD + $actDistDelta - (pp_action_uses_distillate($action) ? (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0) : 0.0);
     if ($gasNetQ > $effTotalQuota + 0.04) {
         $gas_ok = false;
-        $shortage = max($shortage, $gas_BBTUD - $effTotalQuota);
+        $shortage = max($shortage, $gas_BBTUD + $actDistDelta - $effTotalQuota);
         if ($action !== 'use_distillate')
             $warnings[] = sprintf('Gas quota exceeded: Total Gas Used %.3f BBTUD > Gas Quota %.3f BBTUD (over by %.3f). Candidate not within quota — reduce export or add LNG/distillate (no auto-add).',
                 $gas_BBTUD, $effTotalQuota, $gas_BBTUD - $effTotalQuota);
@@ -8924,6 +9072,10 @@ function pp_run_simulation_once_raw(array $input): array {
          * (terukur: pipe 27.4893 OK tapi total efektif 64.5693 > 64.50). Penalty startup jam FUTURE
          * tetap konsumsi nyata; penalty jam ber-actual sudah di dalam meter (lihat atribusi di atas). */
         $pipeUsed = max(0.0, $pgnTotal + $penaltyFuture - $lngUsed);
+        /* V15.25: pada jalur distillate, energi gas yang digantikan distillate (row planning) tidak ditarik dari pipa PGN —
+         * basis NETO yang sama dengan Total Gas Used / Effective Total Gas (V15.24). PP_V1525_ACT_DIST=0 -> lama. */
+        if ((string)getenv('PP_V1525_ACT_DIST') !== '0' && pp_action_uses_distillate($action))
+            $pipeUsed = max(0.0, $pipeUsed - (float)($GLOBALS['__pp_dist_gas_offset'] ?? 0.0));
         if ($pipeUsed > $pgnPipeQuota + 0.0005)
             $warnings[] = sprintf('ACTUAL PGN terukur di atas rencana: PGN Pipe blended %.4f BBTUD melebihi quota pipe %.4f (overage %.4f) — deviasi historis dari actual jam terisi; row future tetap quota-consistent.', $pipeUsed, $pgnPipeQuota, $pipeUsed - $pgnPipeQuota);
     }
@@ -8975,6 +9127,9 @@ function pp_run_simulation_once_raw(array $input): array {
      * Kini pemakaian MM2100 dialokasikan berurutan ke tiap sumber sebesar kuotanya sendiri,
      * dan setiap bucket dihargai family-nya sendiri. Sisa yang tak terpetakan (kuota nol tetapi
      * ada pemakaian) tetap masuk bucket PEP dan ditandai pada info agar dapat diaudit. */
+    /* V15.25: Actual Energy MM2100 yang terukur adalah pemakaian NYATA -> dibiayai (basis efektif = actual jam terisi + estimasi
+     * jam lain, sama dengan MM2100 Daily Used / Effective Total Gas). Tanpa actual MM2100: identik. */
+    if ((string)getenv('PP_V1525_ACT_DIST') !== '0' && (int)($nAem ?? 0) > 0) $usedM = max(0.0, (float)$mmDailyUsed);
     $akasiaKpU   = min((float)($q['akasia_kp72']   ?? 0), $usedM);
     $baskaraKpU  = min((float)($q['baskara_kp72']  ?? 0), max(0.0, $usedM - $akasiaKpU));
     $pertagasKpU = min((float)($q['pertagas_kp72'] ?? 0), max(0.0, $usedM - $akasiaKpU - $baskaraKpU));
@@ -9234,6 +9389,7 @@ $info = [
         'Babelan CF (%)' => round($babelanCF, 2),
         'Dispatch (MWh)' => round($disp_total_MWh, 2),
         'Daily PLN Exp (MWh)' => round($exp_total_MWh, 2),
+        'Daily Export Plan' => $GLOBALS['__pp_daily_export_plan'] ?? null,
         /* §1/§3 IDENTITAS ENERGI: TOTAL FUEL = GAS FUEL TOTAL + DISTILLATE ENERGY.
          *   TOTAL FUEL        = gross total fuel energy (kebutuhan sebelum pemisahan jenis) = $gas_BBTUD.
          *   DISTILLATE ENERGY = energi gas yang digantikan distillate (row-level: Σ fuel×fraksi) = offset.

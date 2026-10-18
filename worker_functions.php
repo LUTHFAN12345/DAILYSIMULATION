@@ -222,7 +222,15 @@ function pp_compute_pln_targets(array $model, array $data2): array {
     foreach ($ddRules as $rr) {
         if (!is_array($rr)) continue;
         if (array_key_exists('required', $rr) && !$rr['required']) continue;
-        $rules[] = ['min' => (float)($rr['min'] ?? 0), 'max' => (float)($rr['max'] ?? 0),
+        /* V15.25: field UI "Dispatch dev −" dan "Dispatch dev +" adalah BESARAN deviasi (MW) di bawah / di atas Dispatch.
+         * Nilai bertanda negatif (mis. −10 pada kolom "−") berarti besaran yang sama, bukan pergeseran pita ke atas
+         * (sebelumnya disp − (−10) = disp + 10 sehingga pita menyempit menjadi titik disp + 10). Dinormalisasi |x|. */
+        $ddMin = (float)($rr['min'] ?? 0); $ddMax = (float)($rr['max'] ?? 0);
+        if ((string)getenv('PP_V1525_DD_ABS') !== '0' && ($ddMin < 0 || $ddMax < 0)) {
+            $ddNormWarn[] = sprintf('Dispatch deviation rule rows %d-%d: nilai negatif (%.1f / %.1f) dibaca sebagai besaran deviasi |x| (−%.1f / +%.1f MW).', (int)($rr['start'] ?? 1), (int)($rr['stop'] ?? 48), $ddMin, $ddMax, abs($ddMin), abs($ddMax));
+            $ddMin = abs($ddMin); $ddMax = abs($ddMax);
+        }
+        $rules[] = ['min' => $ddMin, 'max' => $ddMax,
                     'start' => max(1, (int)($rr['start'] ?? 1)), 'stop' => min(48, (int)($rr['stop'] ?? 48))];
     }
 
@@ -239,11 +247,11 @@ function pp_compute_pln_targets(array $model, array $data2): array {
                'start' => max(1, (int)($rr['start'] ?? 1)), 'stop' => min(48, (int)($rr['stop'] ?? 48))];
         if ($rl['start'] > $rl['stop']) continue;
         $rangeRules[] = $rl;
-        if (count($rangeRules) >= 4) break;
+        if (count($rangeRules) >= 4 && empty($rr['synthetic'])) break;   // V15.25: rule sintetis rencana target harian (per row) tidak dibatasi 4
     }
 
     $n = count($data2);
-    $lo = []; $hi = []; $target = []; $warn = [];
+    $lo = []; $hi = []; $target = []; $warn = $ddNormWarn ?? [];
 
     // validate additional range rules: within main range + no overlap
     foreach ($rangeRules as $rl) {
@@ -7777,6 +7785,24 @@ function pp_gas_feasibility_audit(array $input, array $output): array {
         $slotStat[] = $slot;
     }
 
+    /* V15.25 DAILY EXPORT REQUIRED: penurunan Export total tidak boleh membuat energi harian < target.
+     * Slack energi = sum(Export)/2 - target (MWh) = 2x slack MW-slot. Gas yang dapat dibebaskan lewat
+     * penurunan Export dibatasi slack itu (ditambah substitusi non-gas yang netral Export) dikali laju
+     * gas per MW-slot TERTINGGI unit gas yang berbeban (batas atas). */
+    $dtA = (array)($model['pln_export_priority']['daily_target'] ?? []); $dailyCap = null;
+    if ($dir === 'OVER_QUOTA' && !empty($dtA['required']) && (float)($dtA['value'] ?? 0) > 0 && (string)getenv('PP_V1525_DAILY_CUM') !== '0') {
+        $eSum = 0.0; foreach ((array)($output['data'] ?? []) as $rw) $eSum += (float)($rw['Export_PLN'] ?? 0) / 2.0;
+        $slackMWs = max(0.0, $eSum - (float)$dtA['value']) * 2.0; $maxRate = 0.0;
+        foreach ((array)($output['data'] ?? []) as $ri => $rw) foreach ($sets['gas'] as $u) {
+            $mw = (float)($rw[pp_gas_audit_row_key($u)] ?? 0); if ($mw <= 0.001) continue;
+            $mn = pp_effective_min_load($d3, $model, $u, $ri + 1); if ($mw - $mn <= 1e-6) continue;
+            $maxRate = max($maxRate, (calc_fuel($d3, $u, $mw) - calc_fuel($d3, $u, $mn)) / 2.0 / ($mw - $mn), (calc_fuel($d3, $u, $mw) - calc_fuel($d3, $u, max($mn, $mw - 1.0))) / 2.0 / max(1e-9, min(1.0, $mw - $mn)));
+        }
+        $ubDaily = ($slackMWs + $nonGasUp) * $maxRate;
+        $dailyCap = ['daily_export_mwh' => round($eSum, 2), 'daily_target_mwh' => (float)$dtA['value'], 'export_slack_mw_slot' => round($slackMWs, 2),
+                     'non_gas_up_mw_slot' => round($nonGasUp, 2), 'max_gas_rate_bbtu_per_mw_slot' => round($maxRate, 6), 'upper_bound_bbtud' => round($ubDaily, 4), 'upper_bound_before_bbtud' => round($ubTotal, 4)];
+        $ubTotal = min($ubTotal, $ubDaily);
+    }
     $rowsExpAtMin = 0; $expRedTotal = 0.0; $usableTotal = 0.0;
     foreach ($slotStat as $s) {
         if ($s['export_at_minimum']) $rowsExpAtMin++;
@@ -7820,6 +7846,7 @@ function pp_gas_feasibility_audit(array $input, array $output): array {
             $nonGasUp, $nonGasUp <= 0.05 ? ' (Babelan berada di applicable maximum pada seluruh slot, sehingga redispatch ke non-gas tidak mungkin)' : '');
         $blockers[] = sprintf('Penurunan gas yang benar-benar dapat dipakai (dibatasi Export Range Min dan headroom non-gas) = %.1f MW-slot dari %.1f MW-slot headroom turun mentah.',
             $usableTotal, $gasDown);
+        if ($dailyCap !== null) $blockers[] = sprintf('Target Export harian REQUIRED %.2f MWh: Export harian %.2f MWh hanya menyisakan %.2f MW-slot penurunan; gas yang dapat dibebaskan dibatasi %.4f BBTUD.', $dailyCap['daily_target_mwh'], $dailyCap['daily_export_mwh'], $dailyCap['export_slack_mw_slot'], $dailyCap['upper_bound_bbtud']);
         $blockers[] = sprintf('BATAS ATAS gas yang dapat dibebaskan seluruh lever dispatch = %.4f BBTUD, sedangkan yang dibutuhkan %.4f BBTUD (kurang %.4f BBTUD). Batas atas ini belum memperhitungkan kopling GTG->STG yang membuat kemampuan nyata lebih kecil lagi.',
             $ubTotal, $dev, max(0.0, $dev - $ubTotal));
     } elseif ($dir === 'UNDER_TARGET') {
@@ -7862,6 +7889,7 @@ function pp_gas_feasibility_audit(array $input, array $output): array {
                        'gas_increase_upper_bound_bbtud' => round($ubUpTotal, 4)],
         'units' => array_values($unitStat),
         'blockers' => $blockers,
+        'daily_export_target_cap' => $dailyCap,
         'worst_slots' => $worst,
         'required_bbtud' => round($need, 4),
         'note' => 'Analisis murni atas rencana final; tidak menjalankan core run dan tidak mengubah dispatch.',
@@ -8391,6 +8419,15 @@ function pp_validate_hard_constraints(array $input, array $output): array {
         if ($e > $hi + 0.51) { if (!$isActRow($i)) $expOver++;  $addV('export_range', 'row ' . ($i + 1) . ": Export $e > RangeMax $hi", $i); }
     }
 
+    /* V15.25 DAILY EXPORT (kumulatif): target energi harian REQUIRED divalidasi terhadap total harian
+     * (sum Export/2 MWh), bukan sebagai lantai sama per row. */
+    $dtV = (array)($model['pln_export_priority']['daily_target'] ?? []);
+    if (!empty($dtV['required']) && (float)($dtV['value'] ?? 0) > 0 && (string)getenv('PP_V1525_DAILY_CUM') !== '0') {
+        $dExp = 0.0; foreach ($rows as $r) $dExp += (float)($r['Export_PLN'] ?? 0) / 2.0;
+        if ($dExp < (float)$dtV['value'] - 0.5)
+            $V[] = ['export_daily', sprintf('Daily PLN Export %.2f MWh < target harian required %.2f MWh (kurang %.2f MWh)', $dExp, (float)$dtV['value'], (float)$dtV['value'] - $dExp)];
+    }
+
     // A unit with an explicit STOP schedule (full-day unit_stop or a unit_stop_time window) legitimately sits
     // at 0 MW — the stop overrides last-status-Running and cannot-stop for the covered rows.
     $stoppedFull = array_map('strtolower', (array)($model['unit_stop'] ?? []));
@@ -8841,6 +8878,9 @@ function pp_validate_hard_constraints(array $input, array $output): array {
             $pvV = 0; $fpV = 0; $wv = 0.0;
             foreach ($rows as $i => $r) {
                 $flow = isset($r['Flow_PGN_RT']) ? (float)$r['Flow_PGN_RT'] : ((float)($r['EnergyPGN_RT'] ?? 0) / $ghvPv * 1000.0);
+                /* V15.25: jam dengan Actual PGN terisi = aliran TERUKUR (historis, immutable) -> deviasi historis, bukan pelanggaran optimizer */
+                $evI = $i - ($i % 2); $actGasHr = (($rows[$evI]['Act_PGN'] ?? null) !== null && ($rows[$evI]['Act_PGN'] ?? '') !== '') || (($rows[$evI]['Act_FF_J'] ?? null) !== null && ($rows[$evI]['Act_FF_J'] ?? '') !== '');
+                if ($flow < $minPgnV - 0.001 && (($r['Flow_PGN_RT_Source'] ?? '') === 'ACTUAL' || $actGasHr) && (string)getenv('PP_V1525_ACT_DIST') !== '0') { $histV[] = ['pgn_rt_min', sprintf('HISTORICAL VIOLATION / ACTUAL DEVIATION (jam Actual Gas terukur): row %d FLOW PGN REAL TIME %.3f < Min PGN Flow %.2f MMSCFD', $i + 1, $flow, $minPgnV)]; continue; }
                 if ($flow < $minPgnV - 0.001) { $pvV++; if (!$fpV) { $fpV = $i + 1; $wv = $flow; } }
             }
             if ($pvV > 0) $V[] = ['pgn_rt_min', sprintf('FLOW PGN REAL TIME below Min PGN Flow %.2f MMSCFD on %d row(s), first row %d (%.3f MMSCFD)', $minPgnV, $pvV, $fpV, $wv)];
@@ -13414,6 +13454,18 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                         if ($blocked) continue;
                         $startCands[] = $us;
                     }
+                    /* V15.25 KONTINGENSI (generik): sesudah seluruh GTG ber-HRSG habis, GTG simple-cycle Jababeka (tanpa HRSG,
+                     * bukan MM2100 — mis. unit standby) menjadi kandidat start terakhir menurut Unit Priority user. Sebelumnya
+                     * daftar kandidat hanya ^g[1-6]$ sehingga trip unit besar (G9) berakhir tanpa commitment sah walau unit
+                     * standby tersedia. PP_V1525_SC_LASTRESORT=0 -> lama. */
+                    if ((string)getenv('PP_V1525_SC_LASTRESORT') !== '0') foreach (pp_priority_flat($model, '/^g\d+$/') as $us) {
+                        if (!isset($d3[$us]) || preg_match('/^g[1-6]$/', $us) || pp_is_mm2100_unit($us) || pp_gtg_to_stg($d3, $us) !== '' || !pp_unit_present($d3, $us)) continue;
+                        if (($lastStatus[$us] ?? '') === 'running') continue;
+                        $anyOn = false; for ($r = 0; $r < $n; $r++) if ((float)($genRows[$r][$us] ?? 0) > 0.01) { $anyOn = true; break; }
+                        if ($anyOn) continue;
+                        $blocked = true; for ($r = 0; $r < $n; $r++) if (!pp_is_unit_stopped($d3, $model, $us, $r + 1)) { $blocked = false; break; }
+                        if (!$blocked) $startCands[] = $us;
+                    }
                     foreach ($startCands as $us) {
                         $mcc = (float)($d3[$us]['min_ccload'] ?? ($d3[$us]['min_scload'] ?? 20));
                         $started = false;
@@ -13480,6 +13532,26 @@ function pp_shape_final_dispatch(array &$genRows, array $d3, array $model, array
                                 if ($isFixed($us, $r) || isset($suCap[$us][$r]) || pp_is_unit_stopped($d3, $model, $us, $r + 1)) continue;
                                 $cg = (float)($genRows[$r][$us] ?? 0); if ($cg < 0.01) continue;
                                 $em = pp_effective_maxload($d3, $model, $us, $r + 1); $cap = $em > 0 ? $em : (float)($d3[$us]['max_load'] ?? 31);
+                                if ($cg >= $cap - 1e-6) continue;
+                                $sv = $genRows[$r]; $genRows[$r][$us] = min($cap, $cg + 0.5);
+                                pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                                if (($needBus && $busOf($genRows[$r], $ieVals[$r]) < $busMin - 1e-6) || $expOf($genRows[$r], $ieVals[$r]) > $rMaxR[$r] + 1e-6) { $genRows[$r] = $sv; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1); continue; }
+                                $mv = true;
+                            }
+                        }
+                        if (!$mv) break;
+                    }
+                    /* V15.25: unit simple-cycle last resort (kapasitas besar) dinaikkan sampai lantai Export tercapai / max
+                     * efektif / RangeMax — loop di atas hanya 8 x 0,5 MW (memadai untuk GTG 31 MW, tidak untuk unit 105 MW). */
+                    $scC = array_values(array_filter($startCands, fn($x) => !preg_match('/^g[1-6]$/', $x)));
+                    if ($scC) for ($sw = 0; $sw < 240; $sw++) { $mv = false;
+                        for ($r = 0; $r < $n; $r++) {
+                            if (isset($actualRows[$r]) || $expOf($genRows[$r], $ieVals[$r]) >= $rMinR[$r] + 0.5) continue;
+                            foreach ($scC as $us) {
+                                if ($isFixed($us, $r) || isset($suCap[$us][$r]) || pp_is_unit_stopped($d3, $model, $us, $r + 1)) continue;
+                                $cg = (float)($genRows[$r][$us] ?? 0); if ($cg < 0.01) continue;
+                                $em = pp_effective_maxload($d3, $model, $us, $r + 1); $cap = $em > 0 ? $em : (float)($d3[$us]['max_load'] ?? 31);
+                                $rl = pp_unit_ramp_limit($us) ?? 55.0; foreach ([$r - 1, $r + 1] as $nb) if ($nb >= 0 && $nb < $n && (float)($genRows[$nb][$us] ?? 0) > 0.01) $cap = min($cap, (float)$genRows[$nb][$us] + $rl);
                                 if ($cg >= $cap - 1e-6) continue;
                                 $sv = $genRows[$r]; $genRows[$r][$us] = min($cap, $cg + 0.5);
                                 pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
@@ -14593,4 +14665,50 @@ function pp_v1518_latest_legal_starts(array $c): array {
             'old_rule_latest_start_row' => $oldLatest + 1, 'constraint_that_requires_start' => $why];
     }
     return $plan;
+}
+
+/* ===== V15.25 DAILY EXPORT TOP-UP (target energi harian REQUIRED) ============================
+ * Menaikkan Export pada row non-actual menuju lantai rencana $floors[r] (hasil water-filling
+ * kumulatif), bertahap 2 MW per sapuan pada SEMUA row sekaligus sehingga ramp Export antar row
+ * (<= pp_export_step_limit) dan ramp unit (GTG 30 MW / Babelan pp_babelan_ramp_limit per row)
+ * tetap sah. Hanya unit yang SUDAH berbeban pada row itu yang dinaikkan (tidak ada start baru;
+ * commitment tetap milik pipeline). Urutan lever: Babelan (non-gas) lalu GTG menurut Unit
+ * Priority user. Guard: max efektif per row, RangeMax per row, startup window beku, fixed load,
+ * stop/trip, actual row, BusFlow minimum. Mengembalikan jumlah MW yang ditambahkan. */
+function pp_v1525_daily_topup(array &$genRows, array $d3, array $model, array $ieVals, array $actualRows, array $floors, array $his): float {
+    $n = count($genRows); if ($n === 0) return 0.0;
+    $busUnit = $model['bus_unit'] ?? []; $busMin = (float)($model['busflow_min'] ?? 0); $step = pp_export_step_limit($model);
+    $exp = function (array $g, int $r) use ($ieVals): float { $mm = 0.0; foreach (['ge1','ge2','ge3','ge4','g10'] as $u) $mm += (float)($g[$u] ?? 0);
+        $t = 0.0; foreach ($g as $v) if (is_numeric($v)) $t += (float)$v; return $t - $mm - calc_house_load($g) - (float)$ieVals[$r]; };
+    $lock = [];
+    $order = array_merge(['b2','b1'], array_values(array_filter(pp_priority_flat($model, '/^g\d+$/'), fn($u) => !in_array($u, ['g10'], true) && isset($d3[$u]))));
+    foreach ($order as $u) { $prevOn = strtolower((string)($model['unit_last_data_status'][strtoupper($u)] ?? '')) === 'running';
+        for ($r = 0; $r < $n; $r++) { $on = (float)($genRows[$r][$u] ?? 0) > 0.01;
+            if ($on && !$prevOn) { $sq = pp_start_sequence($d3, $model, $u, $genRows, $r); for ($k = 0; $k < count($sq) && $r + $k < $n; $k++) $lock[$u][$r + $k] = true; }
+            $prevOn = $on; } }
+    $E = []; for ($r = 0; $r < $n; $r++) $E[$r] = $exp($genRows[$r], $r);
+    $added = 0.0;
+    for ($sweep = 0; $sweep < 200; $sweep++) {
+        $ch = false;
+        for ($r = 0; $r < $n; $r++) {
+            if (isset($actualRows[$r])) continue;
+            $need = (float)$floors[$r] - $E[$r]; if ($need <= 0.05) continue;
+            foreach ($order as $u) {
+                $cur = (float)($genRows[$r][$u] ?? 0); if ($cur <= 0.01 || !empty($lock[$u][$r])) continue;
+                if (pp_get_fixed_load($model, $u, $r + 1) >= 0 || pp_is_unit_stopped($d3, $model, $u, $r + 1)) continue;
+                $lim = ($u === 'b1' || $u === 'b2') ? pp_babelan_ramp_limit($model) : 30.0;
+                $cap = pp_effective_maxload($d3, $model, $u, $r + 1); if ($cap <= 0) $cap = (float)($d3[$u]['max_load'] ?? 0);
+                foreach ([$r - 1, $r + 1] as $nb) if ($nb >= 0 && $nb < $n) $cap = min($cap, (float)($genRows[$nb][$u] ?? 0) + $lim);
+                $d = min(2.0, $need, $cap - $cur); if ($d < 0.05) continue;
+                $sv = $genRows[$r]; $genRows[$r][$u] = $cur + $d; pp_recompute_stgs($genRows[$r], $d3, $model, $r + 1);
+                $e = $exp($genRows[$r], $r); $ok = $e <= (float)$his[$r] + 1e-6;
+                foreach ([$r - 1, $r + 1] as $nb) if ($ok && $nb >= 0 && $nb < $n && abs($e - $E[$nb]) > $step + 1e-6 && abs($e - $E[$nb]) > abs($E[$r] - $E[$nb])) $ok = false;
+                if ($ok && $busMin > 0 && calc_busflow($genRows[$r], $busUnit, (float)$ieVals[$r]) < $busMin - 1e-6) $ok = false;
+                if (!$ok) { $genRows[$r] = $sv; continue; }
+                $added += $e - $E[$r]; $E[$r] = $e; $ch = true; break;
+            }
+        }
+        if (!$ch) break;
+    }
+    return $added;
 }
