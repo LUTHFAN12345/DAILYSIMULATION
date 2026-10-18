@@ -9,4 +9,4 @@ for u in ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3']:
 print('status',o.get('status'),'pub',r.get('publish_allowed'),'CP',i.get('Cost Production (USD/MWh)'),'HR',i.get('JBBK MM Heat Rate (BTU/kWh)'),'daily',i.get('Daily PLN Exp (MWh)'),'gas',i.get('Total Gas Used (BBTUD)'),'dist',i.get('Required Distillate (l/day)'))
 print('events',' '.join(ev))
 print('msg',str(o.get('message') or r.get('error') or '')[:600])
-hv=(r.get('hard_validation') or {}); print('hard',hv.get('status'),[ (v.get('type') if isinstance(v,dict) else v[0], (v.get('message') if isinstance(v,dict) else v[1])[:120]) for v in (hv.get("violations") or [])[:4] if isinstance(v,(dict,list))])
+hv=(r.get('hard_validation') or {}); print('hard',hv.get('status'),[ (v.get('type') if isinstance(v,dict) else v[0], (v.get('message') if isinstance(v,dict) else v[1])[:120]) for v in (hv.get("violations") if isinstance(hv.get("violations"),list) else [])[:4] if isinstance(v,(dict,list))])

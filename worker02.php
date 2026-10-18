@@ -4956,7 +4956,27 @@ function pp_run_simulation_once(array $input): array {
  * shortage digeser delta (actual tetap apa adanya; hanya substitusi distillate pada row planning yang berubah, dibatasi plafon
  * liter user). Hasil kedua dipakai hanya bila Effective Total Gas lebih dekat ke window. PP_V1525_ACT_DIST=0 -> nonaktif. */
 function pp_run_simulation_once_raw(array $input): array {
-    $o = pp_run_simulation_once_raw_v1524($input);
+    if (($sf = (string)getenv('PP_SIMSTAT')) === '') return pp_v1525_sim_act_dist($input);
+    if (empty($GLOBALS['__simstat_reg'])) { $GLOBALS['__simstat_reg'] = 1; register_shutdown_function(function () use ($sf) { @file_put_contents($sf, json_encode(($GLOBALS['__simstat'] ?? []) + ['snap_hits' => $GLOBALS['ppV1525ActSnapHits'] ?? 0]) . "\n", FILE_APPEND); }); }
+    $tS = microtime(true); $o = pp_v1525_sim_act_dist($input);
+    $GLOBALS['__simstat']['n'] = ($GLOBALS['__simstat']['n'] ?? 0) + 1; $GLOBALS['__simstat']['s'] = ($GLOBALS['__simstat']['s'] ?? 0) + microtime(true) - $tS;
+    return $o;
+}
+function pp_v1525_snap_gkey($k): bool {
+    if (!is_string($k) || $k === 'GLOBALS' || $k === 'argv' || $k === 'argc' || preg_match('/^_[A-Z]/', $k)) return false;
+    return !in_array($k, ['__ppx_once_calls', '__pp_core_runs', '__pp_core_runs_total', '__pp_fuel_epoch', '__pp_budget', '__pp_budget_aborts', '__ppx_once_memo', '__ppx_once_depth',
+        '__ppx_once_memo_hits', '__simstat', '__simstat_reg', 'ppV1525ActSnap', 'ppV1525WantSnap', 'ppV1525ActSnapHits', 'ppTlHook'], true);
+}
+function pp_v1525_sim_act_dist(array $input): array {
+    $m0 = (array)($input['data3']['modeling'] ?? []);
+    $want = (string)getenv('PP_V1525_ACT_SNAP') !== '0' && (string)getenv('PP_V1525_ACT_DIST') !== '0' && !isset($m0['__act_dist_delta'])
+        && function_exists('pp_action_uses_distillate') && pp_action_uses_distillate(strtolower((string)($m0['gas_shortage_action'] ?? 'none')))
+        && array_filter(array_merge((array)($m0['actual_pgn_total'] ?? []), (array)($m0['actual_energy_jababeka'] ?? []), (array)($m0['actual_energy_mm2100'] ?? [])), fn($v) => $v !== '' && $v !== null);
+    if ($want) $GLOBALS['ppV1525WantSnap'] = true;
+    try { $o = pp_run_simulation_once_raw_v1524($input); } finally { unset($GLOBALS['ppV1525WantSnap']); }
+    try { return pp_v1525_sim_act_dist_rec($input, $o); } finally { unset($GLOBALS['ppV1525ActSnap']); }
+}
+function pp_v1525_sim_act_dist_rec(array $input, array $o): array {
     $m = (array)($input['data3']['modeling'] ?? []);
     if ((string)getenv('PP_V1525_ACT_DIST') === '0' || isset($m['__act_dist_delta'])) return $o;
     $i = (array)($o['info'] ?? []);
@@ -4964,14 +4984,16 @@ function pp_run_simulation_once_raw(array $input): array {
     if (!function_exists('pp_action_uses_distillate') || !pp_action_uses_distillate(strtolower((string)($m['gas_shortage_action'] ?? 'none')))) return $o;
     [$used, $quota] = pp_gs_used_quota($i); $eff = (float)$i['Effective Total Gas (BBTUD)'];
     if ($quota <= 0 || pp_gas_in_window($eff, $quota)) return $o;
-    $delta = $eff - ($quota - PP_GAS_WINDOW_WIDTH / 2.0); $tgt = $quota - PP_GAS_WINDOW_WIDTH / 2.0; $iters = 0;
+    $delta = $eff - ($quota - PP_GAS_WINDOW_WIDTH / 2.0); $tgt = $quota - PP_GAS_WINDOW_WIDTH / 2.0; $iters = 0; $dP = 0.0; $eP = $eff;
     /* substitusi distillate memakai level diskret (30/50/75/100%) sehingga satu koreksi dapat meleset beberapa milli-BBTUD dari window:
      * koreksi diulang (maks 4) dengan delta yang diperbarui sebesar sisa deviasi terhadap titik tengah window */
     do { $in2 = $input; $in2['data3']['modeling']['__act_dist_delta'] = round($delta, 6);
-        $o2 = pp_run_simulation_once_raw_v1524($in2); $i2 = (array)($o2['info'] ?? []);
+        $o2 = pp_run_simulation_once_raw_v1524($in2); $i2 = (array)($o2['info'] ?? []); if (isset($GLOBALS['__simstat_reg'])) $GLOBALS['__simstat']['re'] = ($GLOBALS['__simstat']['re'] ?? 0) + 1;
         $eff2 = (float)($i2['Effective Total Gas (BBTUD)'] ?? INF); $iters++;
         if (!is_finite($eff2) || pp_gas_in_window($eff2, $quota)) break;
-        $delta += $eff2 - $tgt;
+        /* secant pada (delta, Effective): respons Effective terhadap delta tidak 1:1 (level distillate diskret) -> konvergensi lebih cepat */
+        $sl = isset($dP) && abs($delta - $dP) > 1e-9 ? ($eff2 - $eP) / ($delta - $dP) : null; $dP = $delta; $eP = $eff2;
+        if ((string)getenv('PP_V1525_ACT_SECANT') !== '0' && $sl !== null && $sl < -0.2 && $sl > -5.0) $delta -= ($eff2 - $tgt) / $sl; else $delta += $eff2 - $tgt;
     } while ($iters < 4);
     $dist1 = abs($eff - min(max($eff, $quota - PP_GAS_WINDOW_WIDTH), $quota)); $dist2 = abs($eff2 - min(max($eff2, $quota - PP_GAS_WINDOW_WIDTH), $quota));
     $rec = ['delta_bbtud' => round($delta, 4), 'effective_before_bbtud' => round($eff, 4), 'effective_after_bbtud' => round($eff2, 4), 'quota_bbtud' => round($quota, 4),
@@ -4991,6 +5013,20 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
      * Epoch tetap dinaikkan di tiap pintu masuk simulasi agar memo TIDAK PERNAH menyeberang antar
      * $d3 yang berbeda seandainya suatu pass di masa depan mengganti kurva unit. */
     $GLOBALS['__pp_fuel_epoch'] = (int)($GLOBALS['__pp_fuel_epoch'] ?? 0) + 1;
+    /* V15.25 REKONSILIASI ACTUAL GAS TANPA ULANG DISPATCH: __act_dist_delta hanya dibaca pada blok akuntansi bahan bakar/distillate
+     * (sesudah dispatch selesai). Rerun rekonsiliasi untuk input yang sama (selain delta) memulihkan state lokal + global pada titik itu
+     * dari simulasi polos yang baru saja dijalankan (deterministik, input identik) lalu hanya menjalankan blok akuntansi.
+     * PP_V1525_ACT_SNAP=0 -> simulasi penuh setiap rerun. */
+    $__snapK = null;
+    if (!empty($GLOBALS['ppV1525WantSnap']) || isset($input['data3']['modeling']['__act_dist_delta'])) { $__ki = $input; unset($__ki['data3']['modeling']['__act_dist_delta']); $__snapK = md5(serialize($__ki)); unset($__ki); }
+    if (isset($input['data3']['modeling']['__act_dist_delta']) && is_array($__S = $GLOBALS['ppV1525ActSnap'] ?? null)) {
+        if ($__S['k'] === $__snapK) { $__dl = $input['data3']['modeling']['__act_dist_delta'];
+            foreach ($__S['g'] as $__gk => $__gv) $GLOBALS[$__gk] = $__gv;
+            foreach ($GLOBALS as $__gk => $__gv) if (pp_v1525_snap_gkey($__gk) && !array_key_exists($__gk, $__S['g'])) unset($GLOBALS[$__gk]);
+            extract($__S['v'], EXTR_OVERWRITE); $input['data3']['modeling']['__act_dist_delta'] = $__dl; $model['__act_dist_delta'] = $__dl; unset($__S, $__ki, $__dl, $__gk, $__gv);
+            $GLOBALS['ppV1525ActSnapHits'] = ($GLOBALS['ppV1525ActSnapHits'] ?? 0) + 1;
+            goto pp_v1525_fuel_tail; } }
+    unset($__S);
     $GLOBALS['__pp_seq_ctx'] = [];
     $GLOBALS['__pp_reserve_commit'] = [];        // reset shared startup context tiap simulasi
     /* MIGRASI FORMAT di pintu masuk engine: seluruh pass hilir hanya melihat canonical list
@@ -8079,6 +8115,11 @@ function pp_run_simulation_once_raw_v1524(array $input): array {
      *   PGN need = daily Jababeka PGN (sum of per-row ENERGY PGN REAL TIME / 48)
      *   plus the startup gas penalty. MM2100 residual is intentionally excluded. */
     $pgnNeed = $estPGN_perrow + $startupGasPenalty;
+    if (!empty($GLOBALS['ppV1525WantSnap']) && $__snapK !== null && !isset($model['__act_dist_delta'])) {
+        $__g = []; foreach ($GLOBALS as $__gk => $__gv) if (pp_v1525_snap_gkey($__gk)) $__g[$__gk] = $__gv;
+        $GLOBALS['ppV1525ActSnap'] = ['k' => $__snapK, 'g' => $__g, 'v' => null]; unset($__g, $__gk, $__gv);
+        $GLOBALS['ppV1525ActSnap']['v'] = get_defined_vars(); }
+    pp_v1525_fuel_tail:
     $actDistDelta = (float)($model['__act_dist_delta'] ?? 0.0);   // V15.25: rekonsiliasi Actual Gas pada jalur distillate (0 = identik)
 
     $pgnPipeQuota = (float)($q['pgn_pipe'] ?? 0);
