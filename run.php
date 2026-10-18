@@ -3329,11 +3329,13 @@ function pp_sp_block_floor_candidates(array $input, array $o): array {
 }
 function pp_v1526_consol_cmp(array $a, array $b): int {
     if ((int)($a['priority_unresolved'] ?? 0) !== (int)($b['priority_unresolved'] ?? 0)) return (int)$a['priority_unresolved'] <=> (int)$b['priority_unresolved'];
-    $ha = (float)($a['unused_high_priority_headroom_mw'] ?? 0); $hb = (float)($b['unused_high_priority_headroom_mw'] ?? 0); if (abs($ha - $hb) > 0.05) return $ha <=> $hb;
+    $ha = (float)($a['unused_high_priority_headroom_mw'] ?? 0); $hb = (float)($b['unused_high_priority_headroom_mw'] ?? 0); $ef = pp_v1527_econ_first();
+    if (!$ef && abs($ha - $hb) > 0.05) return $ha <=> $hb;
     if (abs((float)$a['econ_cp'] - (float)$b['econ_cp']) > 1e-4) return (float)$a['econ_cp'] <=> (float)$b['econ_cp'];
     $ca = (float)$a['cp']; $cb = (float)$b['cp']; if (abs($ca - $cb) > 0.002 * min($ca, $cb)) return $ca <=> $cb;
     if (abs((float)$a['hr'] - (float)$b['hr']) > 1e-6) return (float)$a['hr'] <=> (float)$b['hr'];
     if (abs($ca - $cb) > 1e-6) return $ca <=> $cb;
+    if ($ef && abs($ha - $hb) > 0.05) return $ha <=> $hb;
     foreach (['startups', 'online_unit_rows', 'low_load_fragmentation'] as $k) if ((int)($a[$k] ?? 0) !== (int)($b[$k] ?? 0)) return (int)($a[$k] ?? 0) <=> (int)($b[$k] ?? 0);
     if ((int)($a['start_rows_sum'] ?? 0) !== (int)($b['start_rows_sum'] ?? 0)) return (int)$b['start_rows_sum'] <=> (int)$a['start_rows_sum'];
     return strcmp((string)($a['fingerprint'] ?? ''), (string)($b['fingerprint'] ?? ''));
@@ -4121,6 +4123,10 @@ function pp_v1518_ie_classification(array $inputAsli, array $output, float $engi
  * (rencana yang dijalankan operator); row mendatang dioptimasi ulang. Jangkar diambil dari basis IE berkas jangkar (konteks + IE + Fix
  * sama, Actual kosong) atau dihitung sekali dengan job yang sama atas D(S); jam actual dikunci lewat Fix Load internal (act_lock, bukan
  * Fix Load user) + jendela stop untuk unit yang mati. PP_V1526_ACT_ANCHOR=0 -> perilaku V15.25. */
+/* V15.27 OBJECTIVE EKONOMI DULU (keputusan user): sesudah hard constraint, intent user eksplisit, dan gerbang bukti, pemenang = CP ekonomi
+ * terendah -> CP resmi -> HR; Unit Priority membentuk kandidat & alokasi beban, dan menjadi tie-break / diagnostic, bukan pengalah CP.
+ * Bukti EKONOMIS numerik (pemindahan beban ke unit prioritas tinggi menaikkan biaya) kembali sah. PP_V1527_ECON_FIRST=0 -> objective V15.26. */
+function pp_v1527_econ_first(): bool { return (string)getenv('PP_V1527_ECON_FIRST') !== '0'; }
 function pp_v1526_act_on(): bool { return (string)getenv('PP_V1526_ACT_ANCHOR') !== '0'; }
 /* unit yang dikunci pada jam actual / tahap dispatch terkunci: GTG + Babelan + unit MM2100 (GE1-GE4). Tanpa GE, core me-redispatch GE pada jam
  * actual (MM2100 aktif: GE2 row 2 3,5 -> 12,5 MW) sehingga pemakaian MM2100 jam lampau berubah. PP_V1526_LOCK_GE=0 -> tanpa GE (V15.25). */
@@ -4352,6 +4358,17 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     return $o;
 }
 
+/* V15.27: Actual Gas terisi dan tahap warm tidak valid -> sertifikat envelope gas (window total vs window PGN Pipe, tidak bergantung dispatch)
+ * diuji sebelum commitment repair penuh; konflik terbukti -> keputusan operator dengan envelope feasible dan residual masing-masing target. */
+function pp_v1527_env_cert_fast(string $id, array $inputAsli): ?array {
+    if ((string)getenv('PP_V1527_ENV_FAST') === '0' || !pp_v1526_act_rows($inputAsli)) return null;
+    $r = null; try { $r = pp_v7_route_certificate($id, $inputAsli); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $r = null; }
+    if (!is_array($r) || !is_array($r['output'] ?? null)) return null;
+    $o = $r['output']; $o['info']['Run Status'] = array_merge((array)($o['info']['Run Status'] ?? []), ['completed' => true, 'converged' => true, 'economic_review_completed' => false,
+        'status' => 'CERTIFIED_GAS_WINDOW_CONFLICT', 'mode' => 'FASTEST_GAS_ENVELOPE_CERTIFICATE', 'fastest' => true]);
+    if (isset($GLOBALS['__pp_ie_warm_rep'])) $o['info']['IE Incremental Redispatch'] = $GLOBALS['__pp_ie_warm_rep'];
+    return $o;
+}
 function pp_v13f_fast_job(string $id, array $inputAsli): array {
     $t0 = microtime(true); $GLOBALS['ppV13fTrace'] = []; unset($GLOBALS['__pp_ie_warm_done'], $GLOBALS['__pp_ie_warm_rep'], $GLOBALS['ppIeWarmInfo']);
     unset($GLOBALS['ppActAdjDl'], $GLOBALS['ppIeWarmLastOut'], $GLOBALS['ppIeBasisColdS'], $GLOBALS['ppFastPipelineWall']);
@@ -4396,6 +4413,7 @@ function pp_v13f_fast_job(string $id, array $inputAsli): array {
             }
             $GLOBALS['ppIeWarmInfo']['fuel_prelim'] = 'DILEWATI_KONTEKS_BAHAN_BAKAR_SAMA';
         }
+        if ($v7 === null && ($cE = pp_v1527_env_cert_fast($id, $inputAsli)) !== null) { $cE['info']['Fastest Trace'] = ['schema' => 'co15-fastest-trace-v1', 'steps' => $GLOBALS['ppV13fTrace'], 'wall_s' => round(microtime(true) - $t0, 3)]; return $cE; }
         if ($v7 === null) try { $v7 = pp_v7_fuel_rerun_from_basis($id, $inputAsli); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $v7 = null; }
         if (is_array($v7) && is_array($v7['output'] ?? null)) { $o = $v7['output']; $tr('v7_frozen_basis_valid', ['cp' => $o['info']['Cost Production (USD/MWh)'] ?? null]); }
         else { $tr('v7_not_applicable', ['reason' => $GLOBALS['ppV7FuelRerun']['reason'] ?? null, 'violations' => $GLOBALS['ppV7FuelRerun']['violations'] ?? null]); pp_job_progress($id, 'FASTEST_PIPELINE_STATE_BAHAN_BAKAR', 30.0);
@@ -4413,6 +4431,7 @@ function pp_v13f_fast_job(string $id, array $inputAsli): array {
             $tr('adjust_budget_released', ['reason' => 'TIDAK_ADA_BASIS_WARM:' . (string)($GLOBALS['__pp_ie_warm_rep']['cache'] ?? '?')]);
             $GLOBALS['ppActAdjBudgetReleased'] = (string)($GLOBALS['__pp_ie_warm_rep']['cache'] ?? '?'); unset($GLOBALS['ppActAdjDl']);
         }
+        if (($cE = pp_v1527_env_cert_fast($id, $inputAsli)) !== null) { $cE['info']['Fastest Trace'] = ['schema' => 'co15-fastest-trace-v1', 'steps' => $GLOBALS['ppV13fTrace'], 'wall_s' => round(microtime(true) - $t0, 3)]; return $cE; }
         /* V15.21: konflik window supplier terbukti -> keputusan terminal cepat, sebelum commitment repair (pipeline Fastest). */
         $tCf = microtime(true); $certF = pp_v1521_supplier_cert_guarded($inputAsli, $GLOBALS['ppIeWarmLastOut'] ?? null); pp_sp_prof('supplier_cert_guard', $tCf);
         if (is_array($certF)) {
@@ -4613,12 +4632,14 @@ function pp_sp_final_rank(array $input, array $out): array {
 function pp_sp_final_cmp(array $a, array $b): int {
     foreach (['hard_pass', 'release_pass', 'stg_pass'] as $k) if ($a[$k] !== $b[$k]) return $b[$k] <=> $a[$k];                    // 1-3, 5: PASS lebih dulu
     foreach (['c1_c4_fail', 'hpa_unresolved', 'priority_penalty'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];        // 4, 6, 7
-    if (abs($a['unused_legal_hp_headroom_mw'] - $b['unused_legal_hp_headroom_mw']) > 0.05) return $a['unused_legal_hp_headroom_mw'] <=> $b['unused_legal_hp_headroom_mw'];   // 8
+    $ef = pp_v1527_econ_first();   // V15.27: headroom prioritas tinggi tak terpakai = tie-break sesudah CP ekonomi / CP resmi / HR
+    if (!$ef && abs($a['unused_legal_hp_headroom_mw'] - $b['unused_legal_hp_headroom_mw']) > 0.05) return $a['unused_legal_hp_headroom_mw'] <=> $b['unused_legal_hp_headroom_mw'];   // 8
     if (abs((float)$a['econ_cp'] - (float)$b['econ_cp']) > 1e-4) return (float)$a['econ_cp'] <=> (float)$b['econ_cp'];             // 9 ekonomi termasuk startup
     $ca = (float)$a['cp']; $cb = (float)$b['cp'];
     if (abs($ca - $cb) > 0.002 * min($ca, $cb)) return $ca <=> $cb;                                                             // 10 CP resmi di luar band 0,2%
     if (abs((float)$a['hr'] - (float)$b['hr']) > 1e-6) return (float)$a['hr'] <=> (float)$b['hr'];                                // 11 HR dalam band
     if (abs($ca - $cb) > 1e-6) return $ca <=> $cb;
+    if ($ef && abs($a['unused_legal_hp_headroom_mw'] - $b['unused_legal_hp_headroom_mw']) > 0.05) return $a['unused_legal_hp_headroom_mw'] <=> $b['unused_legal_hp_headroom_mw'];
     foreach (['startups', 'online_unit_rows', 'fragmentation'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];            // 12-14
     if ($a['start_rows_sum'] !== $b['start_rows_sum']) return $b['start_rows_sum'] <=> $a['start_rows_sum'];                         // 15 startup lebih lambat
     return strcmp((string)$a['fingerprint'], (string)$b['fingerprint']);                                                         // 16
@@ -4786,7 +4807,7 @@ function pp_sp_cross_block_proof(array $orig, array $out, string $u, int $a, int
 /* Rujukan bukti satu finding audit Unit Priority (jenis + kutipan bukti kuat). Urutan: counterfactual/validasi penuh 48 row lebih dulu. */
 function pp_sp_proof_ref(array $ev): array {
     $kinds = ['COUNTERFACTUAL_48ROW' => '~^(COUNTERFACTUAL|STARTUP_PROOF|BUKTI_COUNTERFACTUAL)~', 'CAPACITY_OR_EVENT_PROOF' => '~^(CAPACITY_NEED_PROOF|EVENT_PROOF_FINAL|EVENT_PROOF_MIN_LOAD_INTERVAL|EXPORT_PRESCREEN)~', 'PROVEN_START_OBLIGATION' => '~^(HOLD_TO_END_AFTER_START|MIN_RUNTIME_AFTER_PROVEN_START|STG_MIN_RUNTIME_SOLE_FEEDER|MIN_RUNTIME_NUMERIC)~',
-              'NUMERIC_BOUND' => (string)getenv('PP_V1526_ECON_PROOF') === '1' ? '~(GAS_WINDOW|EKONOMIS|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~' : '~(GAS_WINDOW|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~',
+              'NUMERIC_BOUND' => ((string)getenv('PP_V1526_ECON_PROOF') === '1' || pp_v1527_econ_first()) ? '~(GAS_WINDOW|EKONOMIS|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~' : '~(GAS_WINDOW|RAMP|BATUBARA|BIOMASSA|SPINNING|EXPORT|FIXED|SKIP|KOPLING|STG)~',
               'USER_CONTINUOUS_COMMITMENT' => '~^REQUIRED_MODE_CONTINUOUS~', 'USER_BLOCK_REQUIRED_COMMITMENT' => '~^BLOCK_REQUIRED_FLOOR_USER~', 'INITIAL_STATE_ROW1' => '~^LAST_DATA_RUNNING~', 'CHANGE_OVER_OR_MANUAL' => '~^(CHANGE_OVER_DESTINATION|MANUAL_START)~'];
     foreach ($kinds as $kd => $re) { $hit = array_values(array_filter($ev, fn($x) => preg_match($re, (string)$x))); if ($hit) return ['kind' => $kd, 'evidence' => array_map(fn($x) => substr((string)$x, 0, 220), array_slice($hit, 0, 2))]; }
     return ['kind' => 'OTHER_NUMERIC', 'evidence' => array_map(fn($x) => substr((string)$x, 0, 220), array_slice($ev, 0, 2))];
@@ -4868,7 +4889,7 @@ function pp_v15_merit_proof(array $input, array $out): array {
             elseif (($e4['decision'] ?? '') === 'CONTINUE_NEEDED_FOR_EXPORT') $ev[] = sprintf('EXPORT_PRESCREEN: tanpa unit Export maks %s MW < Range Min %s MW', is_scalar($e4['export_max_without_unit_mw'] ?? null) ? (string)$e4['export_max_without_unit_mw'] : '-', (string)($e4['export_range_min_mw'] ?? '-')); }
         /* HOTFIX START-PRIORITY: hanya bukti numerik yang menyelesaikan temuan (Required/EXEMPT/ALLOW_NO_FULL_HORIZON bukan bukti);
          * REKONSILIASI HPA: status review V8 (mis. DISPATCH_BERBEDA = bukti V8 tidak berlaku untuk dispatch ini) dan 'tidak eligible' juga bukan bukti. */
-        $strongEv = (string)getenv('PP_SP_STRICT_REASON') === '0' ? $ev : array_values(array_filter($ev, fn($x) => !preg_match('~^(REQUIRED$|REQUIRED_MODE_BASED_ON_SIM|CANNOT_STOP$|EXEMPT_|UNIVERSAL_HEADROOM_REVIEW:ALLOW_NO_FULL_HORIZON_COUNTERFACTUAL_PROOF|EARLY_START_NO_PROOF|V8_REVIEW_|UNIT_TIDAK_ELIGIBLE_DIUBAH' . ((string)getenv('PP_V1526_ECON_PROOF') === '1' ? '' : '|EKONOMIS') . ')~', (string)$x)));
+        $strongEv = (string)getenv('PP_SP_STRICT_REASON') === '0' ? $ev : array_values(array_filter($ev, fn($x) => !preg_match('~^(REQUIRED$|REQUIRED_MODE_BASED_ON_SIM|CANNOT_STOP$|EXEMPT_|UNIVERSAL_HEADROOM_REVIEW:ALLOW_NO_FULL_HORIZON_COUNTERFACTUAL_PROOF|EARLY_START_NO_PROOF|V8_REVIEW_|UNIT_TIDAK_ELIGIBLE_DIUBAH' . (((string)getenv('PP_V1526_ECON_PROOF') === '1' || pp_v1527_econ_first()) ? '' : '|EKONOMIS') . ')~', (string)$x)));
         if ($k === 'C4' && empty($f['resolved']) && $strongEv && (string)getenv('PP_SP_STRICT_REASON') !== '0') $f['resolved'] = true;   // C4 terbukti numerik walau audit mentah tanpa alasan
         $ok = (!empty($f['resolved']) || ($k === 'C2' && $strongEv)) && $strongEv; if (!$ok) $C[$k]['fail']++;
         /* REKONSILIASI HPA: verdict kanonik per finding audit = verdict merit (hanya bukti kuat); dipakai gerbang untuk menulis ulang HPA */
@@ -7331,7 +7352,7 @@ function pp_v5_headroom_priority_audit(array $input, array $output, bool $useEvi
                       'shiftable_mw' => round($slack, 2), 'incremental_cost_usd_per_mw_row' => $inc === null ? null : round($inc, 3), 'reasons' => $why,
                       /* V15.26 RUNNING_HIGH_PRIORITY_FIRST: biaya marginal (EKONOMIS) bukan pengecualian Unit Priority — hanya constraint numerik
                        * (ramp, bus flow, fixed/skip, kopling STG, Babelan) atau bukti counterfactual 48 row yang me-resolve. PP_V1526_ECON_PROOF=1 -> lama. */
-                      'resolved' => (string)getenv('PP_V1526_ECON_PROOF') === '1' ? (bool)$why : (bool)array_filter($why, fn($x) => strpos((string)$x, 'EKONOMIS') !== 0)];
+                      'resolved' => ((string)getenv('PP_V1526_ECON_PROOF') === '1' || pp_v1527_econ_first()) ? (bool)$why : (bool)array_filter($why, fn($x) => strpos((string)$x, 'EKONOMIS') !== 0)];
                 $flags[] = $f; $row['flags'][] = $f['type'] . ':' . $col($w) . '<' . $col($v);
             }
         }
@@ -8705,10 +8726,17 @@ function pp_v1523_cmp(array $a, array $b): int {
             [$lo, $hi] = $a['bal3x1'] < $b['bal3x1'] ? [$a, $b] : [$b, $a];
             if ((string)getenv('PP_V1525_BAL_CP') === '0' || $lo['econ_cp'] <= $hi['econ_cp'] + 0.0002 * min($a['econ_cp'], $b['econ_cp'])) {
                 return $a['bal3x1'] <=> $b['bal3x1']; } }
+        if (pp_v1527_econ_first()) {   // V15.27: startup tak-wajib / blok baru dieliminasi -> CP ekonomi (band 0,02 %) -> HR -> inversi prioritas (tie-break)
+            foreach (['startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
+            $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
+            if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
+            if (abs($a['hr'] - $b['hr']) > 1e-6) return $a['hr'] <=> $b['hr'];
+            if ($a['inv'] !== $b['inv']) return $a['inv'] <=> $b['inv'];
+        } else {
         foreach (['inv', 'startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
         $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
         if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
-        if (abs($a['hr'] - $b['hr']) > 1e-6) return $a['hr'] <=> $b['hr'];
+        if (abs($a['hr'] - $b['hr']) > 1e-6) return $a['hr'] <=> $b['hr']; }
         if (abs($a['econ_cp'] - $b['econ_cp']) > 1e-4) return $a['econ_cp'] <=> $b['econ_cp'];
         foreach (['startups', 'online_rows'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
         if ($a['start_sum'] !== $b['start_sum']) return $b['start_sum'] <=> $a['start_sum'];
@@ -8829,7 +8857,7 @@ function pp_v1523_stage_guard(string $stage, array $input, array $before, array 
     /* V15.26 RUNNING_HIGH_PRIORITY_FIRST: Unit Priority Fix hanya memindah MW dari unit prioritas rendah ke unit Running prioritas tinggi
      * (commitment tetap, tervalidasi 48 row). Kenaikan CP akibat pemindahan itu adalah konsekuensi aturan prioritas, bukan pemburukan:
      * diterima bila keseimbangan blok, inversi, startup tak-wajib dan blok baru tidak memburuk. PP_V1526_FIX_GUARD=0 -> comparator penuh. */
-    if ($c > 0 && strpos($stage, 'UNIT_PRIORITY_FIX') === 0 && (string)getenv('PP_V1526_FIX_GUARD') !== '0') {
+    if ($c > 0 && strpos($stage, 'UNIT_PRIORITY_FIX') === 0 && (string)getenv('PP_V1526_FIX_GUARD') !== '0' && !pp_v1527_econ_first()) {
         $wr = false; foreach (['bal3x1', 'inv', 'startups_nm', 'new_blocks', 'startups'] as $kk) if (($ma[$kk] ?? 0) > ($mb[$kk] ?? 0)) { $wr = true; break; }
         if (!$wr) $c = 0; }
     $rec = ['stage' => $stage, 'before' => $mb, 'after' => $ma, 'decision' => $c > 0 ? 'DITOLAK_MEMBURUK_KEMBALI_KE_SEBELUM' : 'DITERIMA'];
@@ -9753,7 +9781,9 @@ function pp_v7_gas_envelope(array $in, ?array $obsOut = null): array {
     if ((string)getenv('PP_V7_ENVELOPE') === '0') return $R + ['reason' => 'PP_V7_ENVELOPE=0'];
     $m = (array)($in['data3']['modeling'] ?? []); $q = (array)($m['gas_quota'] ?? []);
     $act = strtolower(trim((string)($m['gas_shortage_action'] ?? 'none')));
-    if ($act === 'use distillate to cover' || $act === 'use_distillate' || $act === 'mixed_lng_distillate' || strpos($act, 'distillate') !== false)
+    /* V15.27: Distillate menurunkan pipe dan total efektif (neto, V15.24) sama besar -> D tidak berubah; sertifikat berlaku juga untuk aksi
+     * Distillate (T139: actual Jababeka +3,15 BBTUD di jam lampau). PP_V1527_ENV_DIST=0 -> aksi Distillate dikecualikan (V15.25). */
+    if ((string)getenv('PP_V1527_ENV_DIST') === '0' && ($act === 'use distillate to cover' || $act === 'use_distillate' || $act === 'mixed_lng_distillate' || strpos($act, 'distillate') !== false))
         return $R + ['reason' => 'AKSI_DISTILLATE_TIDAK_DICAKUP'];
     $addLng = ($act === 'add_lng' || $act === 'add lng to cover') ? (float)($m['additional_lng'] ?? 0) : 0.0;
     $ghvJ = (float)($m['ghv_jababeka'] ?? 0); $ghvM = (float)($m['ghv_mm2100'] ?? 1000);
@@ -9835,7 +9865,7 @@ function pp_v7_gas_envelope(array $in, ?array $obsOut = null): array {
     if ($R['conflict'] !== null) {
         $floor = $R['conflict'] === 'PGN_PIPE_CEILING_VS_TOTAL_GAS_FLOOR';
         $needJ = $nJ > 0 ? ($floor ? ($D_lo - 0.04) : (-0.04 - $D_hi)) / ($nJ / 24.0) : null;   // perubahan kuota fixed flow Jababeka (energi)
-        $R['pipe_range_total_window'] = [round($Pq + $D_lo - 0.04, 4), round($Pq + $D_hi, 4)];
+        $R['pipe_range_total_window'] = [is_finite($D_lo) ? round(max(0.0, $Pq + $D_lo - 0.04), 4) : 0.0, round($Pq + $D_hi, 4)];
         $R['pipe_window'] = [round($Pq - 0.04, 4), round($Pq, 4)];
         $R['kuota_fixed_flow_jababeka_konsisten_mmscfd'] = ($needJ !== null)
             ? round(($qJ + ($floor ? -1 : 1) * $needJ) * 1000.0 / $ghvJ, 3) : null;
@@ -9854,6 +9884,13 @@ function pp_v7_certificate_decision(array $orig, array $cert, array $prev, array
                                        'kelebihan' => round($pu > $Pq ? $pu - $Pq : 0.0, 4), 'kekurangan' => round($pu < $Pq - 0.04 ? $Pq - 0.04 - $pu : 0.0, 4)],
         'window_gas_total' => ['min' => round($Q - 0.04, 4), 'max' => round($Q, 4), 'tercapai' => round($tu, 4)],
         'pipe_yang_dituntut_window_total' => $cert['pipe_range_total_window'],
+        /* V15.27 envelope feasible + residual masing-masing target (bukan shortage 0,0000): bila pipe dijaga di window-nya, total efektif
+         * berada pada [Pq-0,04+K ; Pq+K]; bila total dijaga di window-nya, pipe berada pada rentang yang dituntut window total. */
+        'envelope_feasible' => [
+            'jika_pipe_di_window' => ['pipe' => [round($Pq - 0.04, 4), round($Pq, 4)], 'total_efektif' => [round($Pq - 0.04 + (float)$cert['K_lo'], 4), $cert['K_hi'] === null ? null : round($Pq + (float)$cert['K_hi'], 4)],
+                                      'residual_total_bbtud' => round($floor ? ($Q - 0.04) - ($Pq + (float)$cert['K_hi']) : ($Pq - 0.04 + (float)$cert['K_lo']) - $Q, 4)],
+            'jika_total_di_window' => ['total_efektif' => [round($Q - 0.04, 4), round($Q, 4)], 'pipe' => [$cert['pipe_range_total_window'][0] === null ? 0.0 : max(0.0, (float)$cert['pipe_range_total_window'][0]), $cert['pipe_range_total_window'][1]],
+                                      'residual_pipe_bbtud' => round($floor ? (float)$cert['pipe_range_total_window'][0] - $Pq : (float)$cert['pipe_range_total_window'][1] - ($Pq - 0.04), 4)]],
         'langkah_legal_terkecil_bbtud' => null,
         'bukti' => [
             sprintf('Effective Total - PGN Pipe = K (LNG + Jababeka + MM2100) tidak dikendalikan dispatch Jababeka; K dalam [%.4f ; %.4f] untuk seluruh dispatch dengan MM2100 di envelope kuotanya (actual %d jam Jababeka = %.4f BBTUD, %d jam MM2100 = %.4f BBTUD)',
