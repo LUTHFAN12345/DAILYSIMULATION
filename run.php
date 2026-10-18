@@ -9082,10 +9082,16 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
                     $add(sprintf('ADVANCE_REPLACE:%s@%d>%s:%d-%d', strtoupper($h), $na, $U, $a, $b), 'ADVANCE_REPLACE', $X, true, true);
                     $R0 = $ev($X, false, true, false); $fr = []; if (is_array($R0) && empty($R0['valid']) && is_array($R0['o'] ?? null)) foreach (array_values((array)$R0['o']['data']) as $kk => $rw) if ((float)($rw['Export_PLN'] ?? 0) < (float)($rw['pln_lo'] ?? -INF) - 1e-6) $fr[] = $kk + 1;
                     if (!$fr) continue;
-                    foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $busy = false;
+                    /* V15.26: peer = unit prioritas lebih tinggi pertama SATU BLOK dan pertama LINTAS BLOK (pola yang sama dengan SWAP), bukan hanya
+                     * peer pertama global. A0: G6@10 menggantikan G3 + peer satu blok G4 -> CP 92,7498 vs peer lintas blok G1 saja (final 93,4046).
+                     * PP_V1526_ARP_BOTH=0 -> peer pertama saja (V15.25). */
+                    $sS = false; $sC = false; $both = (string)getenv('PP_V1526_ARP_BOTH') !== '0';
+                    foreach ($peers as $p) { if ($p === $u || ($K['rank'][$p] ?? 99) >= ($K['rank'][$u] ?? 99)) continue; $sameP = $blockOf($p) === $blockOf($u);
+                        if ($both && (($sameP && $sS) || (!$sameP && $sC))) continue; $busy = false;
                         for ($r = max(1, min($fr) - 6); $r <= min(48, max($fr) + 4); $r++) if (!empty($X[$p][$r])) { $busy = true; break; } if ($busy) continue;
                         $pa = max(2, min($fr) - 2); $pb = min(48, max(max($fr) + 1, $pa + $runRows($p) - 1)); $X2 = $X; for ($r = $pa; $r <= $pb; $r++) $X2[$p][$r] = true;
-                        $add(sprintf('ADVANCE_REPLACE+PEER:%s@%d>%s:%d-%d+%s:%d-%d', strtoupper($h), $na, $U, $a, $b, strtoupper($p), $pa, $pb), 'ADVANCE_REPLACE_PEER', $X2, true, true); break; } } } }
+                        $add(sprintf('ADVANCE_REPLACE+PEER:%s@%d>%s:%d-%d+%s:%d-%d', strtoupper($h), $na, $U, $a, $b, strtoupper($p), $pa, $pb), 'ADVANCE_REPLACE_PEER', $X2, true, true);
+                        if (!$both) break; if ($sameP) $sS = true; else $sC = true; if ($sS && $sC) break; } } } }
         return $C;
     };
     $rounds = []; $stopReason = null; $maxRounds = (int)(getenv('PP_V1523_ROUNDS') ?: 6);
