@@ -3989,7 +3989,8 @@ function pp_v1517_ie_store(array $inputAsli, array $output): void {
         pp_tl_write(pp_v1517_ie_base_file($k), ['key' => $k, 'at' => microtime(true), 'ie_eff' => $s['eff'], 'ie_hash' => md5(json_encode($s['eff'])), 'act' => $act, 'act_hash' => md5(json_encode($act)), 'fix' => $fxS, 'fix_hash' => md5(json_encode($fxS)),
             'data' => array_values((array)$output['data']), 'supplier_target' => pp_tl_supplier_target($output),
             'cp' => $output['info']['Cost Production (USD/MWh)'] ?? null, 'hr' => $output['info']['JBBK MM Heat Rate (BTU/kWh)'] ?? null,
-            'fuel' => pp_v1518_fuel_decision($inputAsli), 'cold_s' => pp_v1521_cold_s($k), 'struct_hash' => pp_v1522_struct_hash($c)]);
+            'fuel' => pp_v1518_fuel_decision($inputAsli), 'cold_s' => pp_v1521_cold_s($k), 'struct_hash' => pp_v1522_struct_hash($c),
+            'event_proof' => (is_array($output['info']['Commitment Event Proof'] ?? null) && empty($output['info']['Commitment Event Proof']['reused_from_basis'])) ? $output['info']['Commitment Event Proof'] : ($output['info']['Commitment Event Proof']['basis_proof'] ?? null)]);
         if (isset($GLOBALS['ppV1524IeExactPending'])) { @copy(pp_v1517_ie_base_file($k), $GLOBALS['ppV1524IeExactPending']); unset($GLOBALS['ppV1524IeExactPending']); } } catch (Throwable $e) {}
 }
 /* V15.18 KLASIFIKASI RERUN IE ADJUSTMENT (dari STRUKTUR solusi, bukan waktu):
@@ -4068,7 +4069,56 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
     /* TAHAP A — jendela lokal: row di luar affected window (+/- 2 row ramp/lead-in) dikunci pada dispatch basis (sudah
      * ter-review Unit Priority & merit), commitment basis dipertahankan, hanya jendela yang di-redispatch. */
     $a = null;
-    if ((string)getenv('PP_IE_WARM_LOCAL') !== '0') {
+    /* V15.25 TAHAP 0 — HANYA Actual Gas yang berubah (IE & Fix Load sama dengan basis): seluruh 48 row dispatch basis dipertahankan
+     * (commitment & beban dikunci; row actual immutable), engine hanya merekonsiliasi akuntansi gas: Effective Total Gas = actual +
+     * estimasi row mendatang, substitusi distillate / sisa kuota digeser sebesar deviasi actual (pp_run_simulation_once_raw), lalu
+     * divalidasi PENUH 48 row. Gagal (deviasi harus diserap redispatch) -> tahap A/B seperti sebelumnya. PP_V1525_ACT_LOCK=0 -> nonaktif. */
+    $ieSame = true; foreach ($s['eff'] as $i => $v) if (abs($v - (float)($B['ie_eff'][$i] ?? NAN)) > 1e-6 || !isset($B['ie_eff'][$i])) { $ieSame = false; break; }
+    if ($actChanged && !$fixChanged && $ieSame && (string)getenv('PP_V1525_ACT_LOCK') !== '0') {
+        $in0 = json_decode(json_encode($c), true); $m0 = &$in0['data3']['modeling'];
+        $m0['unit_stop_time'] = array_merge((array)($m0['unit_stop_time'] ?? []), $stops); $fx0 = (array)($m0['unit_fix_load'] ?? []);
+        foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0[$u] ?? []);
+            for ($r = 1; $r <= 48; $r++) { if (pp_get_fixed_load($m0, $u, $r) >= 0) continue; $v = (float)($bd[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+            if ($rules) $fx0[$u] = $rules; }
+        $m0['unit_fix_load'] = $fx0; $m0['__tl_no_auto_start'] = true; $m0['time_budget_seconds'] = 30.0; $m0['time_budget_max_seconds'] = 30.0; unset($m0);
+        $t00 = microtime(true); $a0 = null;
+        try { pp_tl_clean_globals(); pp_budget_start(30.0, true, true); $o0 = pp_run_simulation_core($in0); $a0 = pp_tl_assess($c, $o0); $a0['output'] = $o0; }
+        catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a0 = null; } finally { pp_tl_clean_globals(); }
+        $stages[] = ['tahap' => '0_ACTUAL_GAS_DISPATCH_TERKUNCI', 's' => round(microtime(true) - $t00, 3), 'valid' => is_array($a0) && !empty($a0['valid']),
+                     'gagal' => is_array($a0) ? array_keys(array_filter((array)($a0['checks'] ?? []), fn($x) => $x === false)) : ['EVAL_GAGAL'], 'violations' => is_array($a0) ? ($a0['violations'] ?? []) : [],
+                     'rekonsiliasi' => is_array($a0) ? ($a0['output']['info']['Actual Gas Distillate Reconciliation'] ?? null) : null,
+                     'detail' => (is_array($a0) && empty($a0['valid'])) ? array_slice(pp_v1523_viol_detail($c, $a0['output'] ?? null, $a0), 0, 4) : []];
+        /* V15.25 TAHAP 0b — Actual Gas di ATAS rencana tanpa distillate (jalur gas murni): kelebihan Effective Total Gas diserap row
+         * PLANNING mendatang dengan commitment basis tetap — beban unit gas diturunkan pada row ber-margin Export (lantai Range, ramp,
+         * BusFlow, startup window, fixed/stop dihormati; repair kanonik pp_export_floor_repair dengan jangkar gas), row jam actual
+         * immutable; hasil dikunci 48 row lalu divalidasi penuh. */
+        if (is_array($a0) && empty($a0['valid']) && (string)getenv('PP_V1525_ACT_TRIM') !== '0' && is_array($a0['output'] ?? null)) {
+            $iO = (array)($a0['output']['info'] ?? []); [$uO, $qO] = pp_gs_used_quota($iO); $dO = $uO - ($qO - PP_GAS_WINDOW_WIDTH / 2.0);
+            if ($qO > 0 && $dO > 0.001) { $t0b = microtime(true); $cN = pp_normalize_copy($c); $d3N = (array)$cN['data3']; $mN = (array)$d3N['modeling']; $a0b = null; $dTot = 0.0;
+                $gen = []; foreach ($bd as $ri => $rw) { $g = []; foreach (['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','ge1','ge2','ge3','ge4','s1','s2','s3'] as $u) $g[$u] = (float)($rw[strtoupper($u)] ?? 0);
+                    $g['b1'] = (float)($rw['BB1'] ?? 0); $g['b2'] = (float)($rw['BB2'] ?? 0); $gen[$ri] = $g; }
+                $lock = []; foreach (['actual_pgn_total', 'actual_energy_jababeka', 'actual_energy_mm2100'] as $ka) foreach ((array)($mN[$ka] ?? []) as $ix => $v) if ($v !== '' && $v !== null) { $h0 = intdiv((int)$ix, 2); $lock[2 * $h0] = true; $lock[2 * $h0 + 1] = true; }
+                $rngN = (array)($mN['pln_export_priority']['range'] ?? []); $evd = [];
+                for ($itT = 0; $itT < 3; $itT++) { $dTot += $dO;
+                try { pp_tl_clean_globals(); pp_export_floor_repair($gen, $d3N, $mN, array_map('floatval', pp_ie_series($cN)['eff']), $lock, (float)($rngN['min'] ?? 0), (float)($rngN['max'] ?? INF), $evd, $dO, true); } catch (Throwable $e) {}
+                $rowsT = []; foreach ($gen as $ri => $g) { $rw = $bd[$ri]; foreach ($g as $u => $v) { if ($u === 'b1') $rw['BB1'] = $v; elseif ($u === 'b2') $rw['BB2'] = $v; else $rw[strtoupper($u)] = $v; } $rowsT[] = $rw; }
+                $in0b = json_decode(json_encode($c), true); $m0b = &$in0b['data3']['modeling']; $m0b['unit_stop_time'] = array_merge((array)($m0b['unit_stop_time'] ?? []), $stops); $fx0b = (array)($m0b['unit_fix_load'] ?? []);
+                foreach (array_merge(pp_tl_gt_units(), ['b1', 'b2']) as $u) { $U = ['b1' => 'BB1', 'b2' => 'BB2'][$u] ?? strtoupper($u); $rules = (array)($fx0b[$u] ?? []);
+                    for ($r = 1; $r <= 48; $r++) { if (pp_get_fixed_load($m0b, $u, $r) >= 0) continue; $v = (float)($rowsT[$r - 1][$U] ?? 0); if ($v > 0.01) $rules[] = ['start' => $r, 'stop' => $r, 'value' => round($v, 4)]; }
+                    if ($rules) $fx0b[$u] = $rules; }
+                $m0b['unit_fix_load'] = $fx0b; $m0b['__tl_no_auto_start'] = true; $m0b['time_budget_seconds'] = 30.0; $m0b['time_budget_max_seconds'] = 30.0; unset($m0b);
+                $a0b = null; try { pp_tl_clean_globals(); pp_budget_start(30.0, true, true); $o0b = pp_run_simulation_core($in0b); $a0b = pp_tl_assess($c, $o0b); $a0b['output'] = $o0b; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $a0b = null; } finally { pp_tl_clean_globals(); }
+                if (!is_array($a0b) || !empty($a0b['valid'])) break;
+                [$uO, $qO] = pp_gs_used_quota((array)($a0b['output']['info'] ?? [])); $dO = $uO - ($qO - PP_GAS_WINDOW_WIDTH / 2.0); if ($dO <= 0.0005) break; }
+                $stages[] = ['tahap' => '0b_ACTUAL_GAS_TRIM_ROW_PLANNING', 's' => round(microtime(true) - $t0b, 3), 'kelebihan_bbtud' => round($dTot, 4), 'iterasi' => $itT + 1, 'valid' => is_array($a0b) && !empty($a0b['valid']),
+                             'detail' => (is_array($a0b) && empty($a0b['valid'])) ? array_slice(pp_v1523_viol_detail($c, $a0b['output'] ?? null, $a0b), 0, 4) : [], 'row_terkunci_actual' => array_map(fn($x) => $x + 1, array_keys($lock))];
+                if (is_array($a0b) && !empty($a0b['valid'])) $a0 = $a0b; } }
+        if (is_array($a0) && !empty($a0['valid'])) { $a = $a0;
+            /* dispatch 48 row identik dengan basis -> bukti event basis berlaku (lihat pp_v1524_event_closure) */
+            if (is_array($B['event_proof'] ?? null) && pp_v1525_unit_sig((array)$a0['output']['data']) === pp_v1525_unit_sig($bd))
+                $GLOBALS['ppV1525ProofReuse'] = ['sig' => pp_v1525_unit_sig($bd), 'proof' => $B['event_proof']]; }
+    }
+    if ((!is_array($a) || empty($a['valid'])) && (string)getenv('PP_IE_WARM_LOCAL') !== '0') {
         $in = json_decode(json_encode($c), true); $m = &$in['data3']['modeling'];
         $m['unit_stop_time'] = array_merge((array)($m['unit_stop_time'] ?? []), $stops);
         $fx = (array)($m['unit_fix_load'] ?? []);
@@ -8507,8 +8557,18 @@ function pp_v1523_start_context(array $orig, array $W, string $u, int $a, array 
  * Fix / pelengkap bukti sesudah Tightening — atau basis warm yang dipertahankan — dapat menyisakan tunda-start / stop-lebih-awal / swap yang
  * VALID dan LEBIH BAIK. Langkah terbaik (comparator + nama uji, deterministik) diterapkan, melewati Unit Priority Fix + pelengkap bukti C4 yang
  * sama, lalu stage guard; bukti dihitung ulang (maks. PP_V1524_CLOSURE_MAX = 3 iterasi). Seluruh langkah dicatat di 'closure'. */
+/* sidik jari commitment + beban unit (GTG/STG/Babelan/GE) 48 row — kolom bahan bakar/distillate/gas tidak termasuk */
+function pp_v1525_unit_sig(array $rows): string { $x = []; foreach (array_values($rows) as $r) { $y = []; foreach (['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','S1','S2','S3','BB1','BB2','GE1','GE2','GE3','GE4'] as $U) $y[] = round((float)($r[$U] ?? 0), 2); $x[] = $y; } return md5(json_encode($x)); }
 function pp_v1524_event_closure(array $inputAsli, array $o, float $em = 600.0): array {
     $clean = function () { pp_tl_clean_globals(); if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
+    /* V15.25 PAKAI ULANG BUKTI EVENT BASIS (Actual Gas incremental): IE, Fix Load dan seluruh beban unit 48 row IDENTIK dengan basis yang
+     * buktinya dihitung penuh; perubahan hanya deviasi Actual Gas yang diserap rekonsiliasi substitusi distillate / sisa kuota (akuntansi),
+     * sehingga uji kontrafaktual (tunda / stop / swap / decommit) per row tidak berubah. Selain kondisi ini bukti dihitung penuh. */
+    $RU = $GLOBALS['ppV1525ProofReuse'] ?? null; unset($GLOBALS['ppV1525ProofReuse']);
+    if (is_array($RU) && (string)getenv('PP_V1525_PROOF_REUSE') !== '0' && pp_v1525_unit_sig((array)($o['data'] ?? [])) === $RU['sig'] && in_array((string)($RU['proof']['status'] ?? ''), ['TERBUKTI'], true)) {
+        $ep = $RU['proof']; $ep['reused_from_basis'] = true; $ep['basis_proof'] = $RU['proof'];
+        $ep['reuse_rule'] = 'Actual Gas incremental: IE, Fix Load, commitment & beban 48 row identik dengan basis; deviasi actual diserap akuntansi bahan bakar -> uji kontrafaktual per row sama';
+        $o['info']['Commitment Event Proof'] = $ep; if (function_exists('pp_sp_prof')) pp_sp_prof('event_proof', microtime(true), ['closure' => 0, 'reused' => true]); return $o; }
     $tV = microtime(true); $closure = [];
     try { $ep = pp_v1524_event_proof($inputAsli, $o);
         for ($it = 0; $it < (int)(getenv('PP_V1524_CLOSURE_MAX') ?: 3) && (string)getenv('PP_V1524_CLOSURE') !== '0' && is_array($ep['_improve'] ?? null); $it++) {

@@ -4964,14 +4964,19 @@ function pp_run_simulation_once_raw(array $input): array {
     if (!function_exists('pp_action_uses_distillate') || !pp_action_uses_distillate(strtolower((string)($m['gas_shortage_action'] ?? 'none')))) return $o;
     [$used, $quota] = pp_gs_used_quota($i); $eff = (float)$i['Effective Total Gas (BBTUD)'];
     if ($quota <= 0 || pp_gas_in_window($eff, $quota)) return $o;
-    $delta = $eff - ($quota - PP_GAS_WINDOW_WIDTH / 2.0);
-    $in2 = $input; $in2['data3']['modeling']['__act_dist_delta'] = round($delta, 6);
-    $o2 = pp_run_simulation_once_raw_v1524($in2); $i2 = (array)($o2['info'] ?? []);
-    $eff2 = (float)($i2['Effective Total Gas (BBTUD)'] ?? INF);
+    $delta = $eff - ($quota - PP_GAS_WINDOW_WIDTH / 2.0); $tgt = $quota - PP_GAS_WINDOW_WIDTH / 2.0; $iters = 0;
+    /* substitusi distillate memakai level diskret (30/50/75/100%) sehingga satu koreksi dapat meleset beberapa milli-BBTUD dari window:
+     * koreksi diulang (maks 4) dengan delta yang diperbarui sebesar sisa deviasi terhadap titik tengah window */
+    do { $in2 = $input; $in2['data3']['modeling']['__act_dist_delta'] = round($delta, 6);
+        $o2 = pp_run_simulation_once_raw_v1524($in2); $i2 = (array)($o2['info'] ?? []);
+        $eff2 = (float)($i2['Effective Total Gas (BBTUD)'] ?? INF); $iters++;
+        if (!is_finite($eff2) || pp_gas_in_window($eff2, $quota)) break;
+        $delta += $eff2 - $tgt;
+    } while ($iters < 4);
     $dist1 = abs($eff - min(max($eff, $quota - PP_GAS_WINDOW_WIDTH), $quota)); $dist2 = abs($eff2 - min(max($eff2, $quota - PP_GAS_WINDOW_WIDTH), $quota));
     $rec = ['delta_bbtud' => round($delta, 4), 'effective_before_bbtud' => round($eff, 4), 'effective_after_bbtud' => round($eff2, 4), 'quota_bbtud' => round($quota, 4),
             'distillate_before_l' => $i['Required Distillate (l/day)'] ?? null, 'distillate_after_l' => $i2['Required Distillate (l/day)'] ?? null,
-            'applied' => $dist2 < $dist1 - 1e-6, 'rule' => 'shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah'];
+            'applied' => $dist2 < $dist1 - 1e-6, 'iterations' => $iters, 'rule' => 'shortage distillate = kebutuhan estimasi + (Effective - Total Gas Used); actual row tidak diubah'];
     if (!$rec['applied']) { $o['info']['Actual Gas Distillate Reconciliation'] = $rec; return $o; }
     $o2['info']['Actual Gas Distillate Reconciliation'] = $rec; return $o2;
 }
