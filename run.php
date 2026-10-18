@@ -5344,7 +5344,7 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
         'deadline_reached' => ($rs['deadline_reached'] ?? null) === true,
         'stages_truncated' => array_keys((array)($rs['stages_truncated'] ?? [])),
         'hard_validation' => ['status' => (string)($V['status'] ?? ''), 'violations' => count((array)($V['violations'] ?? []))],
-        'publish_allowed' => (bool)($review['publish_allowed'] ?? false),
+        'publish_allowed' => (bool)($review['publish_allowed'] ?? false) && ($output['preliminary'] ?? null) !== true && ($output['publish_allowed'] ?? null) !== false,   // V15.25: konsisten dengan kontrak hasil output
         'state_reuse' => pp_memo_log(),
         'output' => $output,
         'mode' => is_array($v7R) ? ((string)($v7R['report']['route'] ?? '') === 'SERTIFIKAT_ENVELOPE_GAS' ? 'DELTA_CERTIFICATE' : 'DELTA_FUEL') : ((is_array($incR) && is_array($incR['output'] ?? null)) ? 'INCREMENTAL' : 'EXACT'),
@@ -5611,7 +5611,7 @@ function pp_job_run_legal_branch_exact(string $id, array $input): array {
         'selected' => $win,
         'comparison' => $rows,
         'branch_evidence' => $ev,
-        'publish_allowed' => (bool)($review['publish_allowed'] ?? false),
+        'publish_allowed' => (bool)($review['publish_allowed'] ?? false) && ($output['preliminary'] ?? null) !== true && ($output['publish_allowed'] ?? null) !== false,   // V15.25: konsisten dengan kontrak hasil output
         'output' => $winOut,
     ];
 }
@@ -8798,6 +8798,9 @@ function pp_v1525_balance_2x2(array $input, array $out): array {
     $W['info']['Block Balance 2x2'] = ['status' => $log ? 'EVALUATED' : 'TIDAK_ADA', 'decisions' => $log, 'remaining_3x1_rows' => array_column(pp_v1525_bal3x1_rows($orig, array_values((array)$W['data']), $K), 'row'),
         'rule' => 'S1 & S2 paralel, blok 2 GTG vs 1 GTG, startup tambahan OTOMATIS: uji 2+2 (unit legal berikut di blok lawan) sebelum 3+1; intent user dipertahankan', 's' => round(microtime(true) - $t0, 2)];
     if (!array_filter($log, fn($d) => $d['reason_code'] === 'AUTO_BALANCE_2X2_BEFORE_3X1')) unset($GLOBALS['ppV1525BalActive']);
+    /* 2+2 diterapkan: output redispatch lokal hanya membawa info simulasi; metadata pipeline incumbent (Run Status, Commitment Tightening,
+     * review, registry, dsb.) dibawa agar kontrak hasil final tidak hilang (bukti event/merit dihitung ulang pada tahap berikutnya). */
+    elseif ($W !== $out) foreach ((array)($out['info'] ?? []) as $kI => $vI) if (!array_key_exists($kI, (array)($W['info'] ?? []))) $W['info'][$kI] = $vI;
     $GLOBALS['ppV1525Bal'] = $W['info']['Block Balance 2x2'];
     return $W;
 }

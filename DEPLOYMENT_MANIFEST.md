@@ -1,8 +1,9 @@
-# Deployment Manifest — XAMPP_START_PRIORITY RC V15.24 (Order-Independent Tightening + Final-Dispatch Event Proof)
+# Deployment Manifest — XAMPP_START_PRIORITY V15.25 (Remediation UI + Logic + Full Regression)
 
-Source runtime lengkap, basis XAMPP_START_PRIORITY_RC_V1523_COMMITMENT_TIGHTENING (V15.23, di atas V15.22). Tidak termasuk: config/db.php, secret, jobs/, saved/, input_data.json, output_data.json, profiler, fixture, harness, test evidence.
-Diubah terhadap V15.23: run.php, worker02.php (basis neto Effective Total Gas), CHECKPOINT.md, DEPLOYMENT_MANIFEST.md, SHA256SUMS.txt. index.php / weekly_ui.php / worker_functions.php / saved_data_store.php tidak diubah.
-Engine build: V15.24-ORDER-INDEPENDENT-TIGHTENING-FINAL-PROOF-20261017. Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah); folder jobs/ boleh dibersihkan (install/clean_stale_jobs.php).
-Server 1 vCPU: jumlah core kini dibaca dari affinity/cgroup -> helper_slots 0 (tidak ada helper time-slicing). Tidak ada perubahan konfigurasi Apache/PHP-FPM.
-Flag rollback (env): PP_V1524_CMP=0 (comparator V15.23), PP_V1524_CLOSURE=0 (penutupan bukti event), PP_V1524_EVENT_PROOF=0, PP_V1524_IE_EXACT=0, PP_V1524_FUEL_CAP_TERMINAL=0, PP_V1524_MONO=0, PP_V1524_REUSE=0, PP_V1524_C2_EVENT_PROOF=0, PP_V1523_TIGHTEN=0.
+Source runtime lengkap, basis V15.24 (`d207780`, XAMPP_FINAL_VALIDATED_FULL_DEPLOYMENT V15.24). Tidak termasuk: config/db.php, secret, jobs/, saved/, input_data.json, output_data.json, profiler, fixture, harness, test evidence.
+Diubah terhadap V15.24: `index.php`, `run.php`, `saved_data_store.php`, `worker02.php`, `worker_functions.php`, `CHECKPOINT.md`, `DEPLOYMENT_MANIFEST.md`, `SHA256SUMS.txt`. `weekly.php`, `weekly_ui.php`, `database/*`, `install/*`, `config/*` tidak diubah (skema MySQL tetap `pp-report-mysql-1`; endpoint baru `run.php?mode=report_yesterday` hanya membaca).
+Engine build: `V15.25-REMEDIATION-UI-LOGIC-FULL-REGRESSION-20261018`. Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah; sidik jari kini juga memuat flag env `PP_*` yang aktif). Folder jobs/ boleh dibersihkan (`install/clean_stale_jobs.php`).
+Tidak ada perubahan konfigurasi Apache/PHP. Target platform tetap PHP 7.4.33.
+
+Flag rollback (env) V15.25: `PP_V1525_CAPBOUND=0` (prescreen kapasitas tightening), `PP_V1525_ACT_SNAP=0` (rekonsiliasi Actual Gas tanpa ulang dispatch), `PP_V1525_ACT_DIST=0` (rekonsiliasi Actual Gas + distillate), `PP_V1525_BAL=0` (2+2 sebelum 3+1), `PP_V1525_BAL_GLOBAL=0`, `PP_V1525_BAL_CP=0`, `PP_V1525_MR_FAST=0` (Maximum Review >= Fastest), `PP_V1525_MR_FAST_COLD=0`, `PP_V1525_CONT=0` (kelanjutan startup / backward), `PP_V1525_B3COLD=0` (profil cold Block 3 V15.24), `PP_V1525_ADDL_LEADIN=0`, `PP_V1525_C4_EVENT_PROOF=0`, `PP_V1525_DAILY_CUM=0`, `PP_V1525_DD_ROWS=0`, `PP_V1525_SC_LASTRESORT=0`, `PP_V1525_PROOF_REUSE=0`; flag V15.24 tetap berlaku.
 Lihat CHECKPOINT.md dan REPORT.md (paket dokumentasi) untuk root cause, perbaikan, matrix, benchmark, dan keterbatasan.

@@ -1,0 +1,187 @@
+[
+    {
+        "id": "I01",
+        "title": "Run selalu autosave input UI terbaru",
+        "status": "PASS",
+        "detail": {
+            "a1": {
+                "ok": true,
+                "scoped": true,
+                "record_id": "rec_20261018110049_094046d768",
+                "version": 1,
+                "error": null,
+                "skipped_identical": false,
+                "ms": 3.3,
+                "backend": "sqlite-wal"
+            },
+            "a2": {
+                "ok": true,
+                "scoped": true,
+                "record_id": "rec_20261018110049_271727f3bb",
+                "version": 2,
+                "error": null,
+                "skipped_identical": false,
+                "ms": 0.6,
+                "backend": "sqlite-wal"
+            },
+            "latest_note": "autosave-2"
+        }
+    },
+    {
+        "id": "I02",
+        "title": "Nilai false\/empty membersihkan state lama",
+        "status": "PASS",
+        "detail": {
+            "fix": [],
+            "b1": false,
+            "stop_g6": null
+        }
+    },
+    {
+        "id": "I03",
+        "title": "Stop lama tidak terbawa ke Run baru",
+        "status": "PASS",
+        "detail": {
+            "old": {
+                "mode": "stop_at",
+                "at": "12:00"
+            },
+            "new": null
+        }
+    },
+    {
+        "id": "I04",
+        "title": "Block Required lama tidak terbawa",
+        "status": "PASS",
+        "detail": {
+            "new": {
+                "Block 1": false,
+                "Block 2": false,
+                "Block 3": false,
+                "Gas Engine": false,
+                "Block Babelan": false,
+                "Standby Unit Jababeka": false,
+                "Standby Unit MM2100": false
+            }
+        }
+    },
+    {
+        "id": "I05",
+        "title": "Start\/Stop Mode lama tidak terbawa",
+        "status": "PASS",
+        "detail": {
+            "new_req": null
+        }
+    },
+    {
+        "id": "I06",
+        "title": "Save Planning dan buka exact snapshot\/result",
+        "status": "PASS",
+        "detail": {
+            "save": {
+                "ok": true
+            },
+            "key": "rpt_423d765794ee4c3ce35b7b47",
+            "open_ok": true,
+            "cp": 93.4567
+        }
+    },
+    {
+        "id": "I07",
+        "title": "Same-name menambah versi dan active version benar",
+        "status": "FAIL",
+        "detail": {
+            "versions": 1,
+            "active": 1,
+            "save2": false
+        }
+    },
+    {
+        "id": "I08",
+        "title": "Different-name membuat report baru",
+        "status": "PASS",
+        "detail": {
+            "k1": "rpt_423d765794ee4c3ce35b7b47",
+            "k3": "rpt_42b0ea71c7ec4e76fb835425"
+        }
+    },
+    {
+        "id": "I09",
+        "title": "Monitoring mempunyai 48 row",
+        "status": "PASS",
+        "detail": {
+            "monitoring_key": "rpt_e1234622acc095e449a28ce2",
+            "rows": 48,
+            "save": true
+        }
+    },
+    {
+        "id": "I10",
+        "title": "Delete sesuai creator \/ project owner \/ report_admins",
+        "status": "PASS",
+        "detail": {
+            "creator": true,
+            "admin": true
+        }
+    },
+    {
+        "id": "I11",
+        "title": "User tanpa permission mendapat penolakan",
+        "status": "PASS",
+        "detail": {
+            "ok": false,
+            "error": "NO_PERMISSION",
+            "report_key": "rpt_ceacdedbf6572bc036c17e97"
+        }
+    },
+    {
+        "id": "I12",
+        "title": "MySQL: schema idempoten, transaksi rollback (entry rusak -> tidak ada yang tersimpan), request_id idempoten, isolasi multi-user",
+        "status": "PASS",
+        "detail": {
+            "bad": "BAD_INPUT_SNAPSHOT",
+            "entries_before": 6,
+            "entries_after": 6,
+            "replay": true,
+            "migrations": 2,
+            "isolation": [
+                "autosave-2",
+                "autosave-2"
+            ]
+        }
+    },
+    {
+        "id": "H15",
+        "title": "Fix Save\/Reload\/Report exact (snapshot + user_fixed_loads)",
+        "status": "FAIL",
+        "detail": {
+            "fix": null,
+            "db": []
+        }
+    },
+    {
+        "id": "H16",
+        "title": "Dua user\/tab mempunyai Fix berbeda (terisolasi)",
+        "status": "PASS",
+        "detail": {
+            "a": {
+                "g2": [
+                    {
+                        "start": 20,
+                        "stop": 20,
+                        "value": 25
+                    }
+                ]
+            },
+            "b": {
+                "g8": [
+                    {
+                        "start": 30,
+                        "stop": 30,
+                        "value": 80
+                    }
+                ]
+            }
+        }
+    }
+]

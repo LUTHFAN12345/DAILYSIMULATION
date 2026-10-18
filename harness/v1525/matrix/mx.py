@@ -95,7 +95,7 @@ class R:
         return iv
     def first_on(self, u):
         x = self.rows_on(u); return x[0] if x else None
-    def published(self): return bool(self.r.get('publish_allowed')) and (self.r.get('hard_validation') or {}).get('status') == 'PASS' and self.ok48()
+    def published(self): return bool(self.r.get('publish_allowed')) and (self.r.get('hard_validation') or {}).get('status') == 'PASS' and self.ok48() and self.o.get('preliminary') is not True and self.o.get('publish_allowed') is not False
     def status(self): return self.o.get('status')
     def cp(self): return self.i.get('Cost Production (USD/MWh)')
     def hr(self): return self.i.get('JBBK MM Heat Rate (BTU/kWh)')
