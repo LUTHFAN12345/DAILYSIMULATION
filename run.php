@@ -4556,6 +4556,30 @@ function pp_sp_proof_completion(array $input, array $out, float $dl): array {
                         $log[] = ['id' => $id, 'method' => 'COUNTERFACTUAL_48ROW', 'result' => $better ? 'LEBIH_BAIK_TIDAK_DITERAPKAN' : ($valid ? 'VALID_TIDAK_LEBIH_BAIK' : 'TIDAK_VALID'), 'cp' => $valid ? round((float)$a2['key']['cp'], 4) : null, 'violations' => $valid ? [] : $viol, 's' => round(microtime(true) - $tC, 2)];
                         if ($better || !is_array($a2)) continue;
                         $add[] = ['id' => $id, 'unit' => $U, 'peer' => $G, 'evaluated' => true, 'valid' => $valid, 'cp' => $valid ? round((float)$a2['key']['cp'], 4) : null, 'violations' => $valid ? [] : $viol, 'method' => 'COUNTERFACTUAL_48ROW', 'source' => 'SP_PROOF_COMPLETION']; } } } }
+        /* V15.26 BUKTI KEBUTUHAN START DI BATAS: start otomatis yang tanpa unit itu Export maks TEPAT = Range Min (defisit 0, T218 G7) tidak
+         * memiliki bukti defisit numerik; Aturan A lalu membutuhkan counterfactual DECOMMIT full horizon (DISPATCH_48_ROW_ENGINE). Dilengkapi di
+         * sini bila belum ada (maks. 2). PP_V1526_DECOMMIT_COMPLETE=0 -> tanpa. */
+        if ((string)getenv('PP_V1526_DECOMMIT_COMPLETE') !== '0') {
+            $d3y = (array)$orig['data3']; $my = (array)$d3y['modeling']; $haveD = [];
+            foreach ((array)(($out['info']['V8 Priority Review'] ?? [])['final_candidates'] ?? []) as $c) if (!empty($c['evaluated']) && preg_match('~^DECOMMIT:(G\d+):(\d+)-(\d+)$~', (string)($c['id'] ?? ''), $mm)) $haveD[] = [$mm[1], (int)$mm[2], (int)$mm[3]];
+            foreach ($add as $c) if (preg_match('~^DECOMMIT:(G\d+):(\d+)-(\d+)$~', (string)($c['id'] ?? ''), $mm)) $haveD[] = [$mm[1], (int)$mm[2], (int)$mm[3]];
+            $reqY = array_map('strtolower', (array)($my['required_units'] ?? [])); $ldY = array_change_key_case((array)($my['unit_last_data_status'] ?? []), CASE_LOWER); $nD = 0;
+            foreach (pp_tl_gt_units() as $u) { if (in_array($u, $reqY, true) || isset($my['required_mode'][$u])) continue; $U = strtoupper($u);
+                foreach (pp_v8_intervals((array)($Mk[$u] ?? [])) as [$a, $b]) { if ($a <= 1 && preg_match('/run/i', (string)($ldY[$u] ?? ''))) continue;
+                    $cov = false; foreach ($haveD as [$hu, $ha, $hb]) if ($hu === $U && $ha <= $a && $hb >= $b) $cov = true; if ($cov || $nD >= 2 || microtime(true) > $dl) continue;
+                    $pr = pp_v8_export_prescreen($orig, $rows, $u, range($a, $b));
+                    if ($pr === null || (float)($pr['export_max_mw'] ?? -INF) < (float)($pr['range_min_mw'] ?? INF) - 1e-6) continue;   // defisit numerik > 0 sudah membuktikan kebutuhan
+                    $X = $Mk; for ($r = $a; $r <= $b; $r++) $X[$u][$r] = false; $nD++; $tC = microtime(true);
+                    $origN = $orig; $origN['data3']['modeling']['__v9_nopolish'] = true;
+                    $L = pp_tl_land_commitment($origN, [], pp_v8_stops($X), max($dl, microtime(true) + 20.0), 3); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv;
+                    $a2 = $L['a'] ?? null; if ($aW === null) { $aW = pp_tl_assess($orig, $out); pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
+                    $valid = is_array($a2) && !empty($a2['valid']);
+                    $better = $valid && is_array($a2['key'] ?? null) && is_array($aW['key'] ?? null) && pp_global_commitment_better($a2['key'], (array)$aW['key']);
+                    $viol = is_array($a2) ? array_values(array_unique(array_map(fn($v) => pp_v8_viol_code(is_array($v) ? (string)($v[0] ?? ($v['type'] ?? '?')) : (string)$v), (array)($a2['violations'] ?? [])))) : ['EVAL_GAGAL'];
+                    $id = sprintf('DECOMMIT:%s:%d-%d', $U, $a, $b);
+                    $log[] = ['id' => $id, 'method' => 'DISPATCH_48_ROW_ENGINE', 'result' => $better ? 'LEBIH_BAIK_TIDAK_DITERAPKAN' : ($valid ? 'VALID_TIDAK_LEBIH_BAIK' : 'TIDAK_VALID'), 'cp' => $valid ? round((float)$a2['key']['cp'], 4) : null, 'violations' => $valid ? [] : $viol, 's' => round(microtime(true) - $tC, 2)];
+                    if ($better || !is_array($a2)) continue;
+                    $add[] = ['id' => $id, 'unit' => $U, 'evaluated' => true, 'valid' => $valid, 'cp' => $valid ? round((float)$a2['key']['cp'], 4) : null, 'violations' => $valid ? [] : $viol, 'method' => 'DISPATCH_48_ROW_ENGINE', 'source' => 'SP_PROOF_COMPLETION']; } } }
     } catch (Throwable $e) { $log[] = ['status' => 'ERROR', 'error' => $e->getMessage()]; }
     finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
     if ($add) { $out['info']['V8 Priority Review'] = (array)($out['info']['V8 Priority Review'] ?? []); $out['info']['V8 Priority Review']['final_candidates'] = array_merge((array)($out['info']['V8 Priority Review']['final_candidates'] ?? []), $add); }
