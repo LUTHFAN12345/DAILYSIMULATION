@@ -1,4 +1,17 @@
-# REPORT RECOVERY — V15.28 RC (sprint hemat credit)
+# REPORT RECOVERY — V15.29 RC
+
+## V15.29 (sprint ini)
+| item | V15.28 | V15.29 |
+|---|---|---|
+| T236 CP / distillate | 68,294 / 0 l | 68,294 / 0 l |
+| T236 runtime (1 CPU) | 345 s (dua job serial) | 144,9 s (satu job; pre-check gas-only 0,27 s) |
+| A0 (liter user) | 93,0321 | 93,0321 (wrapper dilewati) |
+
+Lima CP regression (T017 +0,3347, T046/T057/T199/T202 +0,1474, T115 +0,0221, T174 +0,2147, T136 +0,0931): winner V15.25 lolos seluruh validator
+V15.27/V15.28 (bukti `chk.php`: assess valid, 0 pelanggaran hard, Priority Invariants PASS) — belum diperbaiki; injeksi winner V15.25 secara generik
+memerlukan seeding pencarian baru (tidak sempat). Runtime A0/gas-cukup/Fix Load: belum dioptimasi pada sprint ini (target belum tercapai).
+
+# Riwayat V15.28
 
 ## Root cause diperbaiki
 1. **T236 — Use Distillate diperlakukan sebagai kewajiban.** Tanpa liter user, shaper memakai distillate begitu shortage lokal muncul dan kandidat
@@ -47,4 +60,4 @@ kecil): satu job gas-only tambahan (T236 345 s). Target 30/40/10 s belum tercapa
 4. Full matrix 236 belum dijalankan pada V15.28 (ditunda ke sesi berikutnya).
 
 ## Paket
-`dist/v1528/XAMPP_V1528_RC_FULL_DEPLOYMENT.zip` — SHA-256 `ab8fa3fa2cd13409342d4d11e86636ec544a939f21a100149efb2468d9088552`. Clean install dari ZIP: sha256/lint OK, schema MySQL OK, HTTP 200, A0 CP 93,0321 publish (43,4 s). (Salinan REPORT di dalam ZIP dibuat sebelum baris SHA ini ditambahkan.)
+V15.28: `XAMPP_V1528_RC_FULL_DEPLOYMENT.zip` SHA-256 `ab8fa3fa2cd13409342d4d11e86636ec544a939f21a100149efb2468d9088552`. V15.29: `dist/v1529/XAMPP_V1529_RC_FULL_DEPLOYMENT.zip` (SHA di SHA256SUMS_ZIP.txt). Clean install dari ZIP: sha256/lint OK, schema MySQL OK, HTTP 200, A0 CP 93,0321 publish (43,4 s). (Salinan REPORT di dalam ZIP dibuat sebelum baris SHA ini ditambahkan.)

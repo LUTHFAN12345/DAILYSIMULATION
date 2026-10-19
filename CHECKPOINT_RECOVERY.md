@@ -1,4 +1,13 @@
-# CHECKPOINT RECOVERY — V15.28 RC (sprint hemat credit, basis V15.27 `d689988`)
+# CHECKPOINT RECOVERY — V15.29 RC (basis V15.28 `0da0397`; riwayat V15.28 di bawah)
+
+## V15.29
+- Engine build `V15.29-RC-GASONLY-FIRST-20261019`; file berubah: `run.php` (`pp_job_run_economic_review_v1524` saja).
+- Use Distillate tanpa liter user: satu core run gas-only (~0,3 s) memeriksa shortage. Shortage > 0,5 BBTUD -> langsung job distillate (satu job). Selain itu job gas-only lebih dulu; bila publish tanpa shortage, job distillate TIDAK dijalankan (kebutuhan distillate tidak ada). Bila gas-only tidak publish / masih shortage -> job distillate + perbandingan objective final (perilaku V15.28).
+- T236: CP 68,294, 0 l, satu job 144,9 s (V15.28: dua job 345 s; sama dengan baseline gas-cukup A1 pada mesin yang sama). A0 (liter user ada): tidak terdampak, CP 93,0321.
+- Frozen (tidak diuji ulang, jalur tidak berubah): T118, T121, Actual Gas 29/29 (fixture memakai liter user -> wrapper dilewati), exact rerun, Maximum Review targeted, UI/DB.
+- Belum: seeding winner V15.25 untuk T017/T046 grup/T115/T174/T136; optimasi runtime A0/gas-cukup/Fix Load; full matrix.
+
+# Riwayat V15.28 (sprint hemat credit, basis V15.27 `d689988`)
 
 Branch `claude/keen-galileo-sjjhsk`. Engine build `V15.28-RC-GASONLY-STARTUP-ORDER-20261019`. File runtime diubah terhadap V15.27: `run.php` saja.
 
