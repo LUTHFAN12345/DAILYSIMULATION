@@ -1,0 +1,302 @@
+{
+    "pass": 21,
+    "fail": 1,
+    "tests": [
+        {
+            "id": "T01",
+            "test": "S1 Stop + seluruh GTG blok Stop + STG Simulation -> GTG prioritas tertinggi legal (G6) mengikuti Simulation; GTG lain tidak",
+            "status": "PASS",
+            "detail": {
+                "auto": [
+                    {
+                        "unit": "g6",
+                        "reason": "STG_S1_LEAD_GTG_CC",
+                        "stg": "s1",
+                        "lead": "g6",
+                        "auto_dependency_source": "STG_S1_REQUIRES_LEAD_GTG",
+                        "lead_fallback": null
+                    }
+                ],
+                "lead": "g6"
+            }
+        },
+        {
+            "id": "T02",
+            "test": "S2 Stop + seluruh GTG blok Stop + STG Simulation -> GTG prioritas tertinggi legal (G2) mengikuti Simulation; GTG lain tidak",
+            "status": "PASS",
+            "detail": {
+                "auto": [
+                    {
+                        "unit": "g2",
+                        "reason": "STG_S2_LEAD_GTG_CC",
+                        "stg": "s2",
+                        "lead": "g2",
+                        "auto_dependency_source": "STG_S2_REQUIRES_LEAD_GTG",
+                        "lead_fallback": null
+                    }
+                ],
+                "lead": "g2"
+            }
+        },
+        {
+            "id": "T03",
+            "test": "S3 Stop + seluruh GTG blok Stop + STG Simulation -> GTG prioritas tertinggi legal (G8) mengikuti Simulation; GTG lain tidak",
+            "status": "PASS",
+            "detail": {
+                "auto": [
+                    {
+                        "unit": "g8",
+                        "reason": "STG_S3_LEAD_GTG_CC",
+                        "stg": "s3",
+                        "lead": "g8",
+                        "auto_dependency_source": "STG_S3_REQUIRES_LEAD_GTG",
+                        "lead_fallback": null
+                    }
+                ],
+                "lead": "g8"
+            }
+        },
+        {
+            "id": "T04",
+            "test": "STG Start Based On Request -> lead GTG Required (Simulation: engine memajukan start lead sesuai sequence agar STG masuk 12:00); request STG dipertahankan",
+            "status": "PASS",
+            "detail": {
+                "lead": "g6",
+                "rm_lead": {
+                    "mode": "based_on_sim"
+                },
+                "rm_stg": {
+                    "mode": "start_at",
+                    "at": "12:00"
+                }
+            }
+        },
+        {
+            "id": "T05",
+            "test": "STG Unit Continuous Running dari Initial Stop -> lead tidak dipalsukan Running (startup legal)",
+            "status": "FAIL",
+            "detail": {
+                "lead_last": "Running",
+                "lead_com": "CONTINUOUS_FULL_HORIZON",
+                "stg_last": "Running"
+            }
+        },
+        {
+            "id": "T06",
+            "test": "STG Stop Status Continuous -> lead GTG hold sesudah actual start",
+            "status": "PASS",
+            "detail": {
+                "pol": "HOLD_TO_END_AFTER_START"
+            }
+        },
+        {
+            "id": "T07",
+            "test": "GTG prioritas-1 unavailable -> fallback prioritas berikutnya + reason code",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "g4",
+                    "reason": "STG_S1_LEAD_GTG_CC",
+                    "stg": "s1",
+                    "lead": "g4",
+                    "auto_dependency_source": "STG_S1_REQUIRES_LEAD_GTG",
+                    "lead_fallback": [
+                        {
+                            "unit": "G6",
+                            "reason": "UNAVAILABLE_ALL_DAY"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "T08",
+            "test": "satu GTG blok sudah Running -> dipakai, tidak ada start GTG lain tanpa kebutuhan",
+            "status": "PASS",
+            "detail": []
+        },
+        {
+            "id": "T09-S1",
+            "test": "GTG G6 Simulation + CC, S1 Stop -> STG mengikuti Simulation\/sequence (tidak Running palsu)",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "s1",
+                    "reason": "GTG_G6_CC_REQUIRES_STG_S1",
+                    "stg": "s1",
+                    "lead": "g6",
+                    "auto_dependency_source": "GTG_G6_CC_REQUIRES_STG",
+                    "stg_commitment": "START_BASED_ON_SIMULATION",
+                    "stg_stop_status": null,
+                    "cc_gtgs": [
+                        "G6"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "T09-S2",
+            "test": "GTG G2 Simulation + CC, S2 Stop -> STG mengikuti Simulation\/sequence (tidak Running palsu)",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "s2",
+                    "reason": "GTG_G2_CC_REQUIRES_STG_S2",
+                    "stg": "s2",
+                    "lead": "g2",
+                    "auto_dependency_source": "GTG_G2_CC_REQUIRES_STG",
+                    "stg_commitment": "START_BASED_ON_SIMULATION",
+                    "stg_stop_status": null,
+                    "cc_gtgs": [
+                        "G2"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "T09-S3",
+            "test": "GTG G8 Simulation + CC, S3 Stop -> STG mengikuti Simulation\/sequence (tidak Running palsu)",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "s3",
+                    "reason": "GTG_G8_CC_REQUIRES_STG_S3",
+                    "stg": "s3",
+                    "lead": "g8",
+                    "auto_dependency_source": "GTG_G8_CC_REQUIRES_STG",
+                    "stg_commitment": "START_BASED_ON_SIMULATION",
+                    "stg_stop_status": null,
+                    "cc_gtgs": [
+                        "G8"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "T10",
+            "test": "GTG Request + CC -> STG Simulation (first STG load ditentukan profil blok sesudah GTG)",
+            "status": "PASS",
+            "detail": {
+                "stg_com": "START_BASED_ON_SIMULATION"
+            }
+        },
+        {
+            "id": "T11",
+            "test": "GTG Unit Continuous Running + CC -> STG dependency legal (Simulation + hold), STG tidak dipalsukan Running",
+            "status": "PASS",
+            "detail": {
+                "pol": "HOLD_TO_END_AFTER_START"
+            }
+        },
+        {
+            "id": "T12",
+            "test": "GTG Stop Status Continuous + CC, sole lead -> STG Stop Status Continuous sesudah start",
+            "status": "PASS",
+            "detail": {
+                "pol": "HOLD_TO_END_AFTER_START"
+            }
+        },
+        {
+            "id": "T13",
+            "test": "GTG mode SC -> STG tidak ikut",
+            "status": "PASS",
+            "detail": {
+                "ru": [
+                    "g6",
+                    "g9"
+                ]
+            }
+        },
+        {
+            "id": "T14",
+            "test": "GTG CC -> SC: hanya dependency otomatis hilang; request STG eksplisit user tetap",
+            "status": "PASS",
+            "detail": {
+                "mode": "start_at",
+                "at": "15:00"
+            }
+        },
+        {
+            "id": "T15",
+            "test": "GTG kedua\/ketiga tidak otomatis mengikuti",
+            "status": "PASS",
+            "detail": {
+                "ru": [
+                    "g6",
+                    "g9",
+                    "s1"
+                ]
+            }
+        },
+        {
+            "id": "T16",
+            "test": "explicit user request unit lain (G4 Request 07:00) tidak dioverride; tidak ada lead tambahan",
+            "status": "PASS",
+            "detail": {
+                "mode": "start_at",
+                "at": "07:00"
+            }
+        },
+        {
+            "id": "T17",
+            "test": "dua GTG CC kandidat, satu unavailable -> lead = GTG CC legal",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "g4",
+                    "reason": "STG_S1_LEAD_GTG_CC",
+                    "stg": "s1",
+                    "lead": "g4",
+                    "auto_dependency_source": "STG_S1_REQUIRES_LEAD_GTG",
+                    "lead_fallback": [
+                        {
+                            "unit": "G6",
+                            "reason": "UNAVAILABLE_ALL_DAY"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "T18",
+            "test": "Block Required + dependency -> lead GTG CC + STG continuous dari resolver yang sama",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "G6+S1",
+                    "reason": "BLOCK_REQUIRED_CONTINUOUS",
+                    "block": "Block 1",
+                    "lead": "g6",
+                    "stg": "s1"
+                }
+            ]
+        },
+        {
+            "id": "T19",
+            "test": "Check Yesterday Data Start Up CC tidak direset resolver",
+            "status": "NOT_RUN",
+            "detail": "tidak diuji pada sprint ini (perlu fixture Check Yesterday)"
+        },
+        {
+            "id": "T20",
+            "test": "resolver idempoten (Save\/Reload: dijalankan ulang menghasilkan state yang sama, tanpa penggandaan)",
+            "status": "PASS",
+            "detail": null
+        },
+        {
+            "id": "T21",
+            "test": "perubahan Unit Priority sebelum startup -> lead dievaluasi ulang",
+            "status": "PASS",
+            "detail": [
+                {
+                    "unit": "g4",
+                    "reason": "STG_S1_LEAD_GTG_CC",
+                    "stg": "s1",
+                    "lead": "g4",
+                    "auto_dependency_source": "STG_S1_REQUIRES_LEAD_GTG",
+                    "lead_fallback": null
+                }
+            ]
+        }
+    ]
+}

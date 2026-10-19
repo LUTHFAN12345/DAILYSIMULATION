@@ -11635,6 +11635,13 @@ if (($_GET['mode'] ?? '') === 'shortage_probe') {
 /* V15.22 PRECHECK ADJUSTMENT ACTUAL GAS (tanpa simulasi): apakah pemanggil (uid) memiliki hasil FINAL untuk structural payload
  * yang sama (basis warm = incumbent)? Kunci identik dengan job (pp_v1517_ie_base_key atas input bersih; aksi bahan bakar
  * dinormalisasi seperti runSim). Tidak ada -> klien menyimpan DRAFT saja, tanpa job/simulasi tersembunyi. */
+/* V15.31 PREVIEW DEPENDENCY GTG–STG: resolver semantik engine (pp_v1518_semantics) atas pilihan UI saat ini, tanpa simulasi/penyimpanan. */
+if (($_GET['mode'] ?? '') === 'sem_preview') {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    header('Content-Type: application/json'); $sp = $input; pp_v1518_semantics($sp); $mS = (array)($sp['data3']['modeling'] ?? []);
+    echo json_encode(['ok' => true, 'auto' => array_values((array)($mS['auto_semantics'] ?? [])), 'commitment' => (array)($mS['commitment_semantics'] ?? []), 'stop_policy' => (array)($mS['stop_policy'] ?? []),
+        'required_units' => array_values((array)($mS['required_units'] ?? []))], JSON_UNESCAPED_SLASHES); exit;
+}
 if (($_GET['mode'] ?? '') === 'ag_precheck') {
     if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
     header('Content-Type: application/json');

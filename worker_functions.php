@@ -2396,6 +2396,7 @@ function pp_v1518_semantics(array &$input): void {
     $dayLast = array_values(array_unique(array_merge($scU, (array)$m['v1518_unavailable_all_day'])));
     /* reorder diterapkan pada urutan SAAT INI (idempoten): pass engine yang sengaja mengubah unit_priority pada salinan kandidat
      * (mis. SWAP) tidak boleh ditimpa kembali ke konfigurasi awal oleh panggilan semantik berikutnya. */
+    $upCfg = (array)($m['unit_priority'] ?? []);   // V15.31: urutan prioritas sebelum unit Stop All Day/SC dipindah ke belakang (reason code fallback lead)
     if (is_array($m['unit_priority'] ?? null)) $m['unit_priority'] = array_map(fn($g) => pp_v1518_reorder_group((array)$g, $dayLast), $m['unit_priority']);
     /* ---- 4. Block Required: wajib di-start sesuai mode, BUKAN full-horizon (§2) + STG -> lead GTG CC (§6) ---- */
     $lds = fn($u) => strtolower((string)($m['unit_last_data_status'][strtoupper($u)] ?? ''));
@@ -2464,16 +2465,47 @@ function pp_v1518_semantics(array &$input): void {
         $feed = array_map('strtolower', array_values((array)($d3[$s]['gtg'] ?? []))); if (!$feed) { $auto[] = ['unit' => $s, 'reason' => 'STG_TANPA_GTG_CC', 'lead' => null]; continue; }
         $hasLead = false; foreach ($feed as $g) if (in_array($g, $ru, true) || in_array($g, $cs, true) || isset($rm[$g]) || $lds($g) === 'running') $hasLead = true;
         if ($hasLead) continue;
-        /* lead = GTG CC effective-priority pertama yang available (urutan grup unit_priority yang memuat STG) */
+        /* lead = GTG CC effective-priority pertama yang LEGAL (urutan grup unit_priority yang memuat STG): available, mode CC (GTG SC tidak
+         * memberi steam ke STG), bukan Stop All Day. V15.31: kandidat prioritas lebih tinggi yang dilewati dicatat dengan reason code. */
         $order = []; foreach ((array)($m['unit_priority'] ?? []) as $g) { $lg = array_map(fn($x) => strtolower((string)$x), (array)$g); if (in_array($s, $lg, true)) $order = $lg; }
-        $lead = null; foreach ($order as $g) if (in_array($g, $feed, true) && count(pp_v1518_unavailable_rows($d3, $m, $g)) < 48) { $lead = $g; break; }
-        if ($lead === null) { $auto[] = ['unit' => $s, 'reason' => 'TIDAK_ADA_GTG_CC_AVAILABLE', 'lead' => null]; continue; }
+        foreach ($feed as $g) if (!in_array($g, $order, true)) $order[] = $g;   // feeder di luar grup prioritas: sesudahnya (konfigurasi tetap generik)
+        $lead = null; $skipped = [];
+        foreach ($order as $g) { if (!in_array($g, $feed, true)) continue;
+            if ((string)getenv('PP_V1531_DEP') !== '0' && ($sc[$g] ?? 'CC') === 'SC') { $skipped[] = ['unit' => strtoupper($g), 'reason' => 'MODE_SC']; continue; }
+            if (count(pp_v1518_unavailable_rows($d3, $m, $g)) >= 48) { $skipped[] = ['unit' => strtoupper($g), 'reason' => 'UNAVAILABLE_ALL_DAY']; continue; }
+            $lead = $g; break; }
+        if ((string)getenv('PP_V1531_DEP') !== '0') { $skipped = []; $oc = []; foreach ($upCfg as $g) { $lg = array_map(fn($x) => strtolower((string)$x), (array)$g); if (in_array($s, $lg, true)) $oc = $lg; }
+            foreach ($oc as $g) { if ($g === $lead) break; if (!in_array($g, $feed, true)) continue;
+                $skipped[] = ['unit' => strtoupper($g), 'reason' => ($sc[$g] ?? 'CC') === 'SC' ? 'MODE_SC' : (count(pp_v1518_unavailable_rows($d3, $m, $g)) >= 48 ? 'UNAVAILABLE_ALL_DAY' : 'NOT_LEGAL')]; } }
+        if ($lead === null) { $auto[] = ['unit' => $s, 'reason' => 'TIDAK_ADA_GTG_CC_AVAILABLE', 'lead' => null, 'skipped' => $skipped]; continue; }
         if (!in_array($lead, $ru, true)) $ru[] = $lead;
         $sCom = $com[$s] ?? 'START_BASED_ON_SIMULATION';
         if ($sCom === 'CONTINUOUS_FULL_HORIZON') { $m['required_mode'][$lead] = ['mode' => 'continuous']; $com[$lead] = 'CONTINUOUS_FULL_HORIZON'; if (!in_array($lead, $cs, true)) $cs[] = $lead; $m['unit_last_data_status'][strtoupper($lead)] = 'Running'; }
         else { if (!isset($m['required_mode'][$lead])) $m['required_mode'][$lead] = ['mode' => 'based_on_sim']; $com[$lead] = $com[$lead] ?? 'START_BASED_ON_SIMULATION';
                if (($pol[$s] ?? '') === 'HOLD_TO_END_AFTER_START') { $pol[$lead] = 'HOLD_TO_END_AFTER_START'; if (!in_array($lead, $cs, true)) $cs[] = $lead; } }
-        $auto[] = ['unit' => $lead, 'reason' => 'STG_' . strtoupper($s) . '_LEAD_GTG_CC', 'stg' => $s];
+        $auto[] = ['unit' => $lead, 'reason' => 'STG_' . strtoupper($s) . '_LEAD_GTG_CC', 'stg' => $s, 'lead' => $lead, 'auto_dependency_source' => 'STG_' . strtoupper($s) . '_REQUIRES_LEAD_GTG',
+                   'lead_fallback' => $skipped ?: null];
+    }
+    /* V15.31 GTG CC -> STG (dependency Combined Cycle, generik per blok dari data3[stg].gtg): GTG yang diminta (Simulation / Request / Continuous)
+     * dengan mode CC sementara STG blok belum diminta dan tidak ada GTG blok lain yang Running -> STG mengikuti sequence CC sebagai Start Based On
+     * Simulation (first STG load = profil blok, tidak dipalsukan Running pada row awal). Stop Status Continuous GTG itu, bila ia satu-satunya lead,
+     * diteruskan ke STG (berlaku sesudah actual start). GTG SC tidak memicu STG. Explicit request STG user tidak pernah ditimpa. PP_V1531_DEP=0 -> mati. */
+    if ((string)getenv('PP_V1531_DEP') !== '0') foreach (['s1','s2','s3'] as $s) {
+        if (!isset($d3[$s])) continue; $feed = array_map('strtolower', array_values((array)($d3[$s]['gtg'] ?? []))); if (!$feed) continue;
+        $stgReq = in_array($s, $ru, true) || isset($rm[$s]) || in_array($s, $cs, true) || $lds($s) === 'running';
+        if ($stgReq || count(pp_v1518_unavailable_rows($d3, $m, $s)) >= 48) continue;
+        $reqCC = []; $runOther = false;
+        foreach ($feed as $g) { $isReq = in_array($g, $ru, true) || isset($rm[$g]) || in_array($g, $cs, true);
+            if ($lds($g) === 'running' && !$isReq) $runOther = true;
+            if ($isReq && ($sc[$g] ?? 'CC') !== 'SC' && count(pp_v1518_unavailable_rows($d3, $m, $g)) < 48) $reqCC[] = $g; }
+        if (!$reqCC || $runOther) continue;
+        $order = []; foreach ((array)($m['unit_priority'] ?? []) as $g) { $lg = array_map(fn($x) => strtolower((string)$x), (array)$g); if (in_array($s, $lg, true)) $order = $lg; }
+        usort($reqCC, fn($a, $b) => [array_search($a, $order, true) === false ? 99 : array_search($a, $order, true), $a] <=> [array_search($b, $order, true) === false ? 99 : array_search($b, $order, true), $b]);
+        $lead = $reqCC[0]; if (!in_array($s, $ru, true)) $ru[] = $s; $com[$s] = $com[$s] ?? 'START_BASED_ON_SIMULATION';
+        $hold = count($reqCC) === 1 && (($pol[$lead] ?? '') === 'HOLD_TO_END_AFTER_START' || ($com[$lead] ?? '') === 'CONTINUOUS_FULL_HORIZON');
+        if ($hold) $pol[$s] = 'HOLD_TO_END_AFTER_START';
+        $auto[] = ['unit' => $s, 'reason' => 'GTG_' . strtoupper($lead) . '_CC_REQUIRES_STG_' . strtoupper($s), 'stg' => $s, 'lead' => $lead, 'auto_dependency_source' => 'GTG_' . strtoupper($lead) . '_CC_REQUIRES_STG',
+                   'stg_commitment' => 'START_BASED_ON_SIMULATION', 'stg_stop_status' => $hold ? 'CONTINUOUS_AFTER_START' : null, 'cc_gtgs' => array_map('strtoupper', $reqCC)];
     }
     $m['unit_cannot_stop'] = array_values(array_unique($cs)); $m['required_units'] = array_values(array_unique($ru));
     $m['stop_policy'] = $pol; $m['commitment_semantics'] = $com; $m['auto_semantics'] = $auto ?: (array)($m['auto_semantics'] ?? []);

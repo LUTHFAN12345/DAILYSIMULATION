@@ -2592,7 +2592,22 @@ function renderSemSummary(){
     (req.length?`<div>Block Required: <b>${esc2(req.join(', '))}</b> — blok continuous 00:30–00:00: lead GTG CC menurut Unit Priority + STG online 48 row (diturunkan engine, tidak ditulis ke pilihan unit).</div>`:'')+
     (lines.length?'<div>'+lines.join('<br>')+'</div>':'<div>Tidak ada commitment khusus.</div>')+
     (notes.length?'<div style="margin-top:6px;color:#9a3412">'+notes.map(n=>'⚠ '+esc2(n.text)).join('<br>')+'</div>':'')+
-    (SEM_AUTO_NOTES.length?'<div style="margin-top:6px;color:#1e40af">'+SEM_AUTO_NOTES.map(x=>'ℹ '+esc2(x)).join('<br>')+'</div>':'');
+    (SEM_AUTO_NOTES.length?'<div style="margin-top:6px;color:#1e40af">'+SEM_AUTO_NOTES.map(x=>'ℹ '+esc2(x)).join('<br>')+'</div>':'')+
+    (DEP_PREVIEW.length?'<div id="sem-dep-preview" style="margin-top:6px;color:#0f766e"><b>Dependency GTG–STG (auto-derived engine, belum disimpan):</b><br>'+DEP_PREVIEW.map(x=>'⇄ '+esc2(x)).join('<br>')+'</div>':'');
+}
+/* V15.31 PREVIEW DEPENDENCY GTG–STG: hasil resolver engine yang SAMA (pp_v1518_semantics, mode=sem_preview) untuk pilihan saat ini — field
+ * user tidak ditulis (state ownership); perubahan otomatis pada unit pasangan + reason/auto_dependency_source ditampilkan sebelum Save. */
+let DEP_PREVIEW=[]; let DEP_PREVIEW_SEQ=0;
+async function ppDepPreview(){
+  const seq=++DEP_PREVIEW_SEQ;
+  try{ const p=assembleInput(); const r=await fetch('run.php?mode=sem_preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    const j=await r.json().catch(()=>null); if(seq!==DEP_PREVIEW_SEQ||!j||!j.ok) return;
+    const L=[]; (j.auto||[]).forEach(a=>{ const rs=String(a.reason||'');
+      if(/_LEAD_GTG_CC$/.test(rs)) L.push(String(a.stg||'').toUpperCase()+' memerlukan lead GTG CC → '+String(a.lead||a.unit||'').toUpperCase()+' ('+((j.commitment||{})[a.lead]||'START_BASED_ON_SIMULATION')+((j.stop_policy||{})[a.lead]==='HOLD_TO_END_AFTER_START'?', Stop Status Continuous sesudah start':'')+')'
+        +(a.lead_fallback&&a.lead_fallback.length?' · dilewati: '+a.lead_fallback.map(x=>x.unit+'='+x.reason).join(', '):'')+' [source '+(a.auto_dependency_source||rs)+']');
+      else if(/_CC_REQUIRES_STG_/.test(rs)) L.push(String(a.lead||'').toUpperCase()+' CC → '+String(a.stg||'').toUpperCase()+' mengikuti sequence CC (Start Based On Simulation'+(a.stg_stop_status?', Stop Status Continuous sesudah start':'')+') [source '+(a.auto_dependency_source||rs)+']');
+      else if(rs==='TIDAK_ADA_GTG_CC_AVAILABLE') L.push(String(a.unit||'').toUpperCase()+': tidak ada GTG CC legal pada block — konflik input'+(a.skipped&&a.skipped.length?' ('+a.skipped.map(x=>x.unit+'='+x.reason).join(', ')+')':'')); });
+    DEP_PREVIEW=L; if(typeof renderSemSummary==='function') renderSemSummary(); }catch(e){}
 }
 function buildRequiredModeObj(){
   const rm={};
@@ -2874,7 +2889,7 @@ function renderUnitFlags(){
       /* V15.25: unit yang tidak lagi Start Up CC dilepas dari kelanjutan sequence kemarin (tidak ada state basi) */
       if(e.target.value!=='Start Up CC') ydDropContinuation(u);
     }
-    if(kind==='req'||kind==='mode'||kind==='stopmode'||kind==='sccc') semStgAutoFollow(false);
+    if(kind==='req'||kind==='mode'||kind==='stopmode'||kind==='sccc'){ semStgAutoFollow(false); ppDepPreview(); }
     syncFlagArrays(); applyCommitToModel(); renderUnitFlags();
   }));
   try{ renderSemSummary(); }catch(e){}
