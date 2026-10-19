@@ -1,0 +1,82 @@
+{
+ "id": "T161",
+ "group": "G",
+ "title": "Change Over legal (Block 1 start 08:00, Block 2 stop 12:00)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 6 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 6 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop window Stop At/Change Over dihormati; S; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_CAPACITY: 6 row tidak dapat memenuhi lantai Export walau SELURUH unit yang tersedia berbeban maksimum (stop/trip/unavailable dan stop"
+ ],
+ "cp": 109.1954,
+ "econ_cp": null,
+ "hr": 9020.9,
+ "gas_bbtud": 66.7647,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -13.1689,
+ "daily_export_mwh": 694.57,
+ "distillate_l": 365511,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+08:00",
+  "G1-12:00",
+  "G2-12:00",
+  "G5+07:30",
+  "G5-12:00",
+  "G6+09:30",
+  "G7+12:00",
+  "G9+01:00",
+  "S1+13:00",
+  "S2-12:00"
+ ],
+ "rows": 48,
+ "payload_hash": "df052b81d9b545bc0555c1e7",
+ "job_input_hash": "2deb2728d66403d9bfc7c3c637e2da2d12cc277853aa83db1145dd00779a359b",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 0.72,
+ "cpu_s": 0.7000000000000001,
+ "max_rss_kb": 41996,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.01
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.03
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.013
+  },
+  {
+   "stage": "gate",
+   "s": 0.073
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/df052b81d9b545bc0555c1e7.json"
+}

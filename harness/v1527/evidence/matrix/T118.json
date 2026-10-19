@@ -1,0 +1,214 @@
+{
+ "id": "T118",
+ "group": "E",
+ "title": "Follow PV flat (10 MW)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK row SR < SR_Min: []"
+ ],
+ "cp": 93.6094,
+ "econ_cp": 94.046,
+ "hr": 8505.93,
+ "gas_bbtud": 65.4234,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.4539,
+ "daily_export_mwh": 550.39,
+ "distillate_l": 206887,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 2.84,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:babelan_ramp+spinning_reserve"
+  },
+  {
+   "unit": "G5",
+   "start": "09:00",
+   "first_needed": "11:00",
+   "deficit_mw": 12.64,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:spinning_reserve"
+  },
+  {
+   "unit": "G6",
+   "start": "04:30",
+   "first_needed": "08:30",
+   "deficit_mw": 2.84,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:block_sequence+spinning_reserve+startup_sequence"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 11.77,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+07:30",
+  "G4-17:30",
+  "G5+09:00",
+  "G5-18:30",
+  "G6+04:30",
+  "G9+05:00",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "4912eee03b27698372448921",
+ "job_input_hash": "63e2ebe65b73c9156a8584139f24645d9d3c0f7d40b1b250253b66116ee743de",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 70.67,
+ "cpu_s": 61.94,
+ "max_rss_kb": 665132,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.733
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.114
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.118
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 2.975
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.262
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.7
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.447
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.361
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 1.951
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.391
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 7.177
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 7.167
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 0.016
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 11.572
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 5.809
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.075
+  },
+  {
+   "stage": "event_proof",
+   "s": 24.452
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.009
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.08
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.033
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 67.063
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.018
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.009
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.086
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.037
+  },
+  {
+   "stage": "gate",
+   "s": 0.168
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 72,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/4912eee03b27698372448921.json"
+}

@@ -1,0 +1,79 @@
+{
+ "id": "T139",
+ "group": "F",
+ "title": "Kombinasi ketiga Actual Gas",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION",
+ "engine_status": "USER_ACTION_REQUIRED",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: GAS_WINDOW_CONFLICT_PROOF_OPERATOR_DECISION; status USER_ACTION_REQUIRED; msg Window kuota gas total dan window supplier PGN Pipe tidak dapat dipenuhi bersamaan oleh dispatch, commitment, LNG, maupun Distillate mana pun (sertifikat envelo"
+ ],
+ "cp": 106.405,
+ "econ_cp": null,
+ "hr": 8567.76,
+ "gas_bbtud": 62.1864,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.2266,
+ "daily_export_mwh": 578.41,
+ "distillate_l": 319174,
+ "hard_validation": "VALID-INFEASIBLE",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G4+09:30",
+  "G4-17:30",
+  "G5+07:30",
+  "G5-19:30",
+  "G6+04:30",
+  "G9+04:30",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "5dfcebf0c23798d935c570c7",
+ "job_input_hash": "e47639760362be60822253ba68c8d46e478d719c2c5c0817a287f83a5c9fa5e9",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 4.58,
+ "cpu_s": 3.22,
+ "max_rss_kb": 56488,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.02
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.009
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.123
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.047
+  },
+  {
+   "stage": "gate",
+   "s": 0.221
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/5dfcebf0c23798d935c570c7.json"
+}

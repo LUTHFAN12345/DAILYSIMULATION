@@ -1,0 +1,219 @@
+{
+ "id": "T001",
+ "group": "A",
+ "title": "Initial Stop + Start Based On Simulation + Continuous Running (Hold after start) G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 start row 15 (07:30)",
+  "OK g5 interval [(15, 48)] (harus ON sampai 00:00 setelah start)",
+  "OK event proof TERBUKTI not_proven=[]"
+ ],
+ "cp": 93.982,
+ "econ_cp": 94.4195,
+ "hr": 8538.72,
+ "gas_bbtud": 65.4521,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.5272,
+ "daily_export_mwh": 526.07,
+ "distillate_l": 208921,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "07:30",
+   "first_needed": "09:30",
+   "deficit_mw": 10.2,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "09:30",
+   "deficit_mw": 10.2,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "06:30",
+   "first_needed": "11:00",
+   "deficit_mw": 9.59,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "05:30",
+   "deficit_mw": 8.16,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+07:30",
+  "G1-17:00",
+  "G5+07:30",
+  "G6+06:30",
+  "G9+05:00",
+  "S1+10:00"
+ ],
+ "rows": 48,
+ "payload_hash": "307f2409533e377607b0dccc",
+ "job_input_hash": "982e063cb9fbe431ae2833c4d0fed75630483731c373bc87889797e54b9cd9b9",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 87.61,
+ "cpu_s": 58.73,
+ "max_rss_kb": 629076,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.003
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.988
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.106
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.697
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.084
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.084
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 9.976
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.843
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 0.087
+  },
+  {
+   "stage": "consol_run",
+   "s": 10.197
+  },
+  {
+   "stage": "consol_gas_land",
+   "s": 1.511
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.152
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 5.971
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 29.582
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 7.381
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 14.261
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.147
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.408
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.098
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.058
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 77.126
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.022
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.098
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.061
+  },
+  {
+   "stage": "gate",
+   "s": 0.194
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.006
+  }
+ ],
+ "tightening_evals": 78,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/307f2409533e377607b0dccc.json"
+}

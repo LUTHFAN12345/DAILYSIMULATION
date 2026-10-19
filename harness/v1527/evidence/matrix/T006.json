@@ -1,0 +1,239 @@
+{
+ "id": "T006",
+ "group": "A",
+ "title": "Initial Stop + Start Based On Request 08:00 G5",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 first_on=17 expected 17 (08:30)"
+ ],
+ "cp": 92.8424,
+ "econ_cp": 93.2791,
+ "hr": 8487.9,
+ "gas_bbtud": 65.4527,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.2807,
+ "daily_export_mwh": 548.19,
+ "distillate_l": 202081,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G4",
+   "start": "08:00",
+   "first_needed": "11:00",
+   "deficit_mw": 13.86,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:00",
+   "first_needed": "11:00",
+   "deficit_mw": 13.86,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+block_sequence+startup_sequence"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 23.81,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G4+08:00",
+  "G4-16:30",
+  "G5+08:30",
+  "G5-19:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "31acbfdb4e3b9b9007c8614d",
+ "job_input_hash": "b8f9fdbf67d4a093d8c5db6ea0265cbacac2a4d3a7ac9bcac90c66f39ef11699",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 72.13,
+ "cpu_s": 71.15,
+ "max_rss_kb": 588852,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.771
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.086
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.31
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.096
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.987
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.111
+  },
+  {
+   "stage": "cand_run",
+   "s": 4.305
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.007
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.089
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.888
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.104
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 25.129
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.114
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.076
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.003
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.06
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 2.268
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.132
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 1.124
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.052
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.416
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 4.663
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0.326
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 3.315
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 4.688
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 10.774
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 10.066
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.045
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.312
+  }
+ ],
+ "tightening_evals": 24,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/31acbfdb4e3b9b9007c8614d.json"
+}

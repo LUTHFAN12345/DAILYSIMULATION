@@ -9,7 +9,7 @@ Flag rollback (env) V15.27:
 - `PP_V1527_ECON_FIRST=0` — objective V15.26 (inversi prioritas / headroom sebelum CP ekonomi; EKONOMIS bukan pengecualian).
 - `PP_V1527_TIGHT_INV=0` — tanpa titik awal tightening urutan prioritas; `PP_V1527_TIGHT_PREV8=0` — tanpa titik awal sebelum V8.
 - `PP_V1527_CLOSURE_INV=0` / `PP_V1527_CLOSURE_PRIO=0` — closure bukti event hanya langkah ekonomi terbaik (V15.26).
-- `PP_V1527_FIX_COLD=0` — Fix Load berubah memakai jalur warm V15.26.
+- `PP_V1527_FIX_COLD=0` — Fix Load berubah memakai jalur warm V15.26; `PP_V1527_IE_COLD=0` — IE berubah memakai jalur warm V15.26.
 - `PP_V1527_ENV_FAST=0` — sertifikat envelope gas tidak dicoba di jalur Fastest; `PP_V1527_ENV_DIST=0` — envelope mengecualikan kasus distillate (V15.26).
 - `PP_V1527_SUP_STAG1=0` — pencarian window supplier PGN berhenti sesudah dua langkah stagnan (V15.26).
 - `PP_V1527_OFF_DUP=0` — pencarian offset kuota JBBK tanpa penghentian probe berulang; `PP_V1527_HS_SKIP=0` — pemeriksaan HRSG stop per feeder selalu dipanggil.

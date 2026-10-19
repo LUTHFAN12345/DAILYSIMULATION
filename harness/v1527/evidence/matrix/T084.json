@@ -1,0 +1,201 @@
+{
+ "id": "T084",
+ "group": "D",
+ "title": "KP72 -1 (dibatasi >= 0)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "KP72 fixture = 0; -1 tidak sah -> 0 (setara A0)",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 93.0321,
+ "econ_cp": 93.4682,
+ "hr": 8481.88,
+ "gas_bbtud": 65.458,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.3697,
+ "daily_export_mwh": 564.79,
+ "distillate_l": 204551,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G3",
+   "start": "05:30",
+   "first_needed": "08:30",
+   "deficit_mw": 3.48,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 22.39,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:00",
+   "first_needed": "10:30",
+   "deficit_mw": 11.77,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 12.37,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G3+05:30",
+  "G3-16:30",
+  "G5+07:30",
+  "G5-18:30",
+  "G6+10:00",
+  "G9+05:00",
+  "S1+09:00"
+ ],
+ "rows": 48,
+ "payload_hash": "49c02edc54b266284c0ca345",
+ "job_input_hash": "c7ca1632c854d1d5a43287c0ea4f5dceeb1ccfd23fe4623ad933e988249b68fe",
+ "run_cached": true,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 36.61,
+ "cpu_s": 35.99,
+ "max_rss_kb": 485228,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.463
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.005
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.091
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.071
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 2.631
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.026
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.188
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.277
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.913
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.418
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 4.295
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 14.952
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 0.123
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.986
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.659
+  },
+  {
+   "stage": "event_proof",
+   "s": 4.278
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.032
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.013
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 33.571
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.007
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.029
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.014
+  },
+  {
+   "stage": "gate",
+   "s": 0.062
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 84,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/49c02edc54b266284c0ca345.json"
+}

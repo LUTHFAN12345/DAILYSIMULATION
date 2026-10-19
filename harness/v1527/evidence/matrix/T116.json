@@ -1,0 +1,226 @@
+{
+ "id": "T116",
+ "group": "E",
+ "title": "Follow PV naik tajam",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK row SR < SR_Min: []"
+ ],
+ "cp": 96.0489,
+ "econ_cp": 96.5298,
+ "hr": 8593.68,
+ "gas_bbtud": 65.4552,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.084,
+ "daily_export_mwh": 536.19,
+ "distillate_l": 224377,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G3",
+   "start": "04:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G4",
+   "start": "08:00",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G6",
+   "start": "10:30",
+   "first_needed": null,
+   "deficit_mw": null,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 24.59,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range+export_ramp"
+  }
+ ],
+ "events": [
+  "G3+04:30",
+  "G3-17:30",
+  "G4+08:00",
+  "G4-18:00",
+  "G5+07:30",
+  "G6+10:30",
+  "G9+05:00",
+  "S1+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "168c40c4872bfeb2fcd1bf54",
+ "job_input_hash": "1b1a17a87ffc14e3a59ccbbf5228b1ef7244418d80424a6c89f84b50969084ca",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 88.01,
+ "cpu_s": 86.39999999999999,
+ "max_rss_kb": 796548,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.852
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.008
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.117
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.081
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 3.059
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.296
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.886
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.067
+  },
+  {
+   "stage": "consol_run",
+   "s": 0.359
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 2.091
+  },
+  {
+   "stage": "consol_run",
+   "s": 1.689
+  },
+  {
+   "stage": "consol_run_fallback",
+   "s": 1.9
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 7.18
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 12.094
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 7.238
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 24.838
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 13.104
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 1.524
+  },
+  {
+   "stage": "event_proof",
+   "s": 5.45
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.005
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.09
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.062
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 84.398
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.012
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.005
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.069
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.04
+  },
+  {
+   "stage": "gate",
+   "s": 0.15
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.003
+  }
+ ],
+ "tightening_evals": 59,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/168c40c4872bfeb2fcd1bf54.json"
+}

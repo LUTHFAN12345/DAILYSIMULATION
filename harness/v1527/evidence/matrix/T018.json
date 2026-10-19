@@ -1,0 +1,246 @@
+{
+ "id": "T018",
+ "group": "A",
+ "title": "Initial Stop, diperlukan akhir horizon (Range Min 50 MW row 40-48) G1 sim+hold",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g1 start row 15 (07:30)",
+  "OK g1 interval [(15, 48)] (harus ON sampai 00:00 setelah start)"
+ ],
+ "cp": 97.1638,
+ "econ_cp": 97.595,
+ "hr": 8511.26,
+ "gas_bbtud": 65.4537,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -8.7125,
+ "daily_export_mwh": 692.93,
+ "distillate_l": 241822,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "07:30",
+   "first_needed": "09:00",
+   "deficit_mw": 34.64,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G4",
+   "start": "10:00",
+   "first_needed": "10:30",
+   "deficit_mw": 11.69,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "03:30",
+   "first_needed": "09:00",
+   "deficit_mw": 34.13,
+   "reason": "START_SEKARANG_LEBIH_EKONOMIS"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 24.35,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+07:30",
+  "G4+10:00",
+  "G4-16:30",
+  "G6+03:30",
+  "G9+05:00",
+  "S1+07:00"
+ ],
+ "rows": 48,
+ "payload_hash": "69b630609a8e8e9adda51f35",
+ "job_input_hash": "358239416184853e8acf2e6280ce23c536860dc02166645e22e69568ee258977",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 117.69,
+ "cpu_s": 58.64,
+ "max_rss_kb": 666028,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.493
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.241
+  },
+  {
+   "stage": "cand_run",
+   "s": 8.805
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.16
+  },
+  {
+   "stage": "cand_run",
+   "s": 10.085
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.149
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.374
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.011
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.168
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.985
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.161
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 41.124
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 0
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.002
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.109
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.138
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.122
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.01
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.121
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 4.516
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 4.345
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 21.961
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 16.011
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 18.032
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 4.303
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.12
+  },
+  {
+   "stage": "event_proof",
+   "s": 6.358
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.088
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.04
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 71.401
+  }
+ ],
+ "tightening_evals": 60,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/69b630609a8e8e9adda51f35.json"
+}

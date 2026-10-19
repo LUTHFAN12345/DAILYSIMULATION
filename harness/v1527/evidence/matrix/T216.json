@@ -1,0 +1,121 @@
+{
+ "id": "T216",
+ "group": "L",
+ "title": "S1 & S2 paralel IE +15: keputusan 2+2/3+1 dicatat dengan alasan",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 102.5194,
+ "econ_cp": 102.7733,
+ "hr": 8511.96,
+ "gas_bbtud": 65.4251,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -10.5898,
+ "daily_export_mwh": 732.74,
+ "distillate_l": 293925,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G3",
+   "start": "12:00",
+   "first_needed": "14:00",
+   "deficit_mw": 40.57,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:runtime_downtime"
+  },
+  {
+   "unit": "G4",
+   "start": "08:00",
+   "first_needed": "09:30",
+   "deficit_mw": 6.33,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range+runtime_downtime"
+  },
+  {
+   "unit": "G9",
+   "start": "05:30",
+   "first_needed": "07:30",
+   "deficit_mw": 41.13,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G3+12:00",
+  "G3-18:00",
+  "G4+08:00",
+  "G4-14:00",
+  "G5-18:30",
+  "G9+05:30"
+ ],
+ "rows": 48,
+ "payload_hash": "13dbb6e71b3dc5cdf17a2867",
+ "job_input_hash": "5b1007b3185097f2af7e8f15de37052197fc3fee5ffa3f550d9f24fc6c7fda43",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 30.57,
+ "cpu_s": 14.99,
+ "max_rss_kb": 194332,
+ "phase_timing": [
+  {
+   "stage": "v8_priority_review",
+   "s": 0.235
+  },
+  {
+   "stage": "family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "priority_fix",
+   "s": 5.53
+  },
+  {
+   "stage": "proof_completion_c4",
+   "s": 1.592
+  },
+  {
+   "stage": "event_proof",
+   "s": 19.4
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.015
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.052
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.015
+  },
+  {
+   "stage": "gate",
+   "s": 0.093
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/13dbb6e71b3dc5cdf17a2867.json"
+}

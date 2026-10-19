@@ -1,0 +1,205 @@
+{
+ "id": "T110",
+ "group": "E",
+ "title": "IE Adjustment negatif (-10 MW 08:00-12:00)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []"
+ ],
+ "cp": 93.0022,
+ "econ_cp": 93.4365,
+ "hr": 8446.9,
+ "gas_bbtud": 65.4545,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.4538,
+ "daily_export_mwh": 655.31,
+ "distillate_l": 206884,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 2.66,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 2.66,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "10:30",
+   "first_needed": "11:00",
+   "deficit_mw": 5.44,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "04:30",
+   "first_needed": "06:00",
+   "deficit_mw": 12.69,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+08:00",
+  "G1-18:30",
+  "G5+07:30",
+  "G5-16:30",
+  "G6+10:30",
+  "G9+04:30",
+  "S1+14:00"
+ ],
+ "rows": 48,
+ "payload_hash": "dbc4056501b567ea0bc93447",
+ "job_input_hash": "c5b652b8cbae40961643f47ddb79194155e7bb3decd0cb813842d5424ff7003c",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 58.38,
+ "cpu_s": 33.839999999999996,
+ "max_rss_kb": 409528,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 7.488
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.014
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.202
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.15
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 7.856
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.072
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.364
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.287
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.862
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 9.123
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 4.276
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 0.023
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 16.398
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 7.169
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.043
+  },
+  {
+   "stage": "event_proof",
+   "s": 2.279
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.023
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.018
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 49.801
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.023
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.017
+  },
+  {
+   "stage": "gate",
+   "s": 0.058
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 10,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/dbc4056501b567ea0bc93447.json"
+}

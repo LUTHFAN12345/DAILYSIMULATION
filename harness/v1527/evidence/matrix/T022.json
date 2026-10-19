@@ -1,0 +1,249 @@
+{
+ "id": "T022",
+ "group": "A",
+ "title": "Startup dengan minimum runtime (G5 request 16:00 + stop wajib)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g5 first_on=33 expected 33 (16:30)",
+  "OK g5 interval < 4 row: []"
+ ],
+ "cp": 94.5262,
+ "econ_cp": 95.0057,
+ "hr": 8524.69,
+ "gas_bbtud": 65.4569,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.7601,
+ "daily_export_mwh": 567.47,
+ "distillate_l": 215386,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "10:00",
+   "first_needed": "10:00",
+   "deficit_mw": 0.78,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "08:00",
+   "first_needed": "08:30",
+   "deficit_mw": 13.86,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "05:00",
+   "first_needed": "08:30",
+   "deficit_mw": 13.86,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "06:30",
+   "deficit_mw": 24.6,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+10:00",
+  "G1-17:30",
+  "G4+08:00",
+  "G4-17:30",
+  "G5+16:30",
+  "G5-22:30",
+  "G6+05:00",
+  "G9+05:00",
+  "S1+08:30"
+ ],
+ "rows": 48,
+ "payload_hash": "99d67d67958605d53e07cb5b",
+ "job_input_hash": "d4f3140cafa6e8ada8a64aade91cdd70cde435190c91a8f408be706f9083180a",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 80.31,
+ "cpu_s": 79.1,
+ "max_rss_kb": 573100,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.459
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.086
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.658
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.113
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.769
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.095
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.573
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.121
+  },
+  {
+   "stage": "cand_run",
+   "s": 3.005
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.005
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.088
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 24.933
+  },
+  {
+   "stage": "consol_run",
+   "s": 2.504
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.387
+  },
+  {
+   "stage": "consol_run",
+   "s": 3.778
+  },
+  {
+   "stage": "block_consolidation_total",
+   "s": 9.793
+  },
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.359
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 2.388
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_run",
+   "s": 1.489
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.069
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 6.326
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 3.388
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 2.51
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 0.01
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 9.889
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 14.703
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0.001
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 1.162
+  },
+  {
+   "stage": "event_proof",
+   "s": 6.883
+  }
+ ],
+ "tightening_evals": 69,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/99d67d67958605d53e07cb5b.json"
+}

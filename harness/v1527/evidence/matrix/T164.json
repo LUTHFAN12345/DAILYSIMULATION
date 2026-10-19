@@ -1,0 +1,218 @@
+{
+ "id": "T164",
+ "group": "G",
+ "title": "Gas/Export/Bus Flow setelah trip (G9 trip + busflow_min 20)",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK g9 online 0/48"
+ ],
+ "cp": 108.0163,
+ "econ_cp": 108.5411,
+ "hr": 8958.01,
+ "gas_bbtud": 65.456,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -11.1542,
+ "daily_export_mwh": 530.87,
+ "distillate_l": 309590,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 20.44,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G3",
+   "start": "07:30",
+   "first_needed": "08:30",
+   "deficit_mw": 20.41,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "06:30",
+   "first_needed": "08:30",
+   "deficit_mw": 20.41,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "06:00",
+   "first_needed": "08:30",
+   "deficit_mw": 20.44,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G6",
+   "start": "03:00",
+   "first_needed": "08:30",
+   "deficit_mw": 20.41,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G7",
+   "start": "09:00",
+   "first_needed": "09:30",
+   "deficit_mw": 11.27,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+07:30",
+  "G1-22:30",
+  "G3+07:30",
+  "G4+06:30",
+  "G5+06:00",
+  "G6+03:00",
+  "G7+09:00",
+  "G7-17:00",
+  "S1+06:30"
+ ],
+ "rows": 48,
+ "payload_hash": "33d8d2f1a8b821a4be611a69",
+ "job_input_hash": "42a3c844679795d9fa83f3359a731ebfc050a0c02ff9ba3860490667bbf6b363",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t2",
+ "wall_s": 38.86,
+ "cpu_s": 38.3,
+ "max_rss_kb": 451388,
+ "phase_timing": [
+  {
+   "stage": "plan_latest_legal_starts",
+   "s": 0.001
+  },
+  {
+   "stage": "cand_run",
+   "s": 6.294
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.102
+  },
+  {
+   "stage": "cand_run",
+   "s": 5.335
+  },
+  {
+   "stage": "cand_assess",
+   "s": 0.006
+  },
+  {
+   "stage": "cand_fuel_assess",
+   "s": 0.122
+  },
+  {
+   "stage": "cand_rank",
+   "s": 0.124
+  },
+  {
+   "stage": "pipeline_core_total",
+   "s": 11.989
+  },
+  {
+   "stage": "bundle_v8_priority_review",
+   "s": 5.345
+  },
+  {
+   "stage": "bundle_family_evidence",
+   "s": 0
+  },
+  {
+   "stage": "commitment_tightening",
+   "s": 4.729
+  },
+  {
+   "stage": "commitment_tightening_prio_order",
+   "s": 0.014
+  },
+  {
+   "stage": "commitment_tightening_pre_v8",
+   "s": 9.275
+  },
+  {
+   "stage": "tightening_start_points_score",
+   "s": 0.888
+  },
+  {
+   "stage": "block_balance_2x2",
+   "s": 0
+  },
+  {
+   "stage": "bundle_priority_fix",
+   "s": 0
+  },
+  {
+   "stage": "bundle_proof_completion",
+   "s": 0.113
+  },
+  {
+   "stage": "event_proof",
+   "s": 5.589
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.052
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.06
+  },
+  {
+   "stage": "final_bundle_comparator",
+   "s": 26.31
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.003
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.051
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.059
+  },
+  {
+   "stage": "gate",
+   "s": 0.181
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 53,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/33d8d2f1a8b821a4be611a69.json"
+}

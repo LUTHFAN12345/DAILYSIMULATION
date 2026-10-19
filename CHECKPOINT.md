@@ -1,26 +1,27 @@
-# CHECKPOINT V15.26 — Prioritas per row, Actual Gas dua arah, konsolidasi blok, runtime
+# CHECKPOINT V15.27 — Objective ekonomi dulu, audit CP 41 test, envelope gas T139, runtime
 
-**Baseline:** V15.25 (`debf01f`, release candidate runtime gate open). **Engine build:** `V15.26-PRIORITY-ACTUALGAS-CONSOLIDATION-20261018`.
-**Branch:** `claude/keen-galileo-sjjhsk`. **File runtime diubah terhadap V15.25:** `run.php`, `worker02.php` (+ CHECKPOINT/DEPLOYMENT_MANIFEST/SHA256SUMS).
+**Baseline:** V15.26 (`6e03d39`, release candidate runtime gate open). **Engine build:** `V15.27-ECON-OBJECTIVE-START-POINTS-20261019`.
+**Branch:** `claude/keen-galileo-sjjhsk`. **File runtime diubah terhadap V15.26:** `run.php`, `worker02.php`, `worker_functions.php` (+ CHECKPOINT/DEPLOYMENT_MANIFEST/SHA256SUMS).
 
 ## Ringkasan perubahan (detail: REPORT.md)
-1. Rule 1 per row: biaya marginal (EKONOMIS) bukan lagi pengecualian prioritas; Unit Priority Fix memindah beban ke unit Running prioritas tinggi;
-   7 invariant Rule 1 dihitung pada setiap hasil dan menjadi gerbang publish; metrik inversi tanpa false positive (bukti kapasitas/event).
-2. Satu objective final (`pp_sp_final_cmp`) untuk seleksi final Fastest, Maximum Review, dan konsolidasi blok.
-3. Konsolidasi blok: alternatif dievaluasi dengan jendela tahan incumbent lalu fallback start aturan lama + pendaratan gas (superset V15.25); semua alternatif tak-dominated dinilai; permintaan start user tidak boleh bergeser; bukti lintas blok / DECOMMIT di batas Export dilengkapi.
-4. Actual Gas: jangkar jam actual (dispatch jam lampau = rencana state tanpa Actual Gas; dingin == warm), estimasi jam actual = estimasi per row yang
-   ditampilkan (Jababeka, MM2100, realokasi FF JBBK), GE1–GE4 ikut dikunci, kuota MM2100 menyerap deviasi actual (tahap 0c).
-5. Tightening: ADVANCE_REPLACE+PEER mencoba peer satu blok dan lintas blok.
+1. Objective final satu urutan untuk search, stage guard, konsolidasi, Fastest dan Maximum Review: hard -> intent -> tanpa blocking -> startup otomatis
+   tak perlu -> CP ekonomi -> CP resmi -> HR -> headroom prioritas (tie-break). Unit Priority tetap untuk alokasi, tunda start, stop awal, eliminasi start tak perlu.
+2. Local search: titik awal tightening ganda (urutan ekonomi, urutan prioritas, sebelum V8) dinilai sesudah 2+2 + Unit Priority Fix; closure bukti event
+   menilai langkah terbaik kedua urutan sesudah fix.
+3. warm == dingin: IE atau Fix Load berubah -> review commitment penuh; Actual Gas saja tetap warm (rencana jangkar).
+4. T139: sertifikat envelope gas di jalur Fastest dengan feasible envelope + residual setiap target.
+5. Runtime eksak: offset kuota JBBK tanpa probe berulang, lewati pemeriksaan HRSG stop kosong; window supplier berhenti sesudah satu langkah stagnan.
 
 ## Validasi (PHP 7.4.33, 1 logical CPU per run)
-- Matrix engine 236 test: 199 PASS, 35 EXPECTED_REJECTION, 2 FAIL (T139, T236 — lihat REPORT.md).
-- Audit 48 row: A0, A1, A3, T154, T214, T034 — 48/48 row, invariant PASS.
-- Actual Gas dua arah: 29 kasus, 24 publish, dingin == warm 29/29, actual immutable 29/29, median inkremental 1,1 s.
-- Benchmark 1 CPU before/after: REPORT.md bagian 4.
+- Matrix engine 236 test: 200 PASS, 35 EXPECTED_REJECTION, 1 FAIL (T236, identik V15.25).
+- CP vs V15.25 (229 test): 163 lebih rendah, 54 sama, 11 lebih tinggi (E/G, REPORT.md bagian 1); 41 test V15.26: 36 FIXED.
+- Fastest vs Maximum Review: objective sama, sensitivitas 0/101 pemenang berubah.
+- Audit 48 row A0, A1, T034, T154, T214: 48/48, HPA PASS_ALL_FINDINGS_PROVEN.
+- Actual Gas dua arah: 29 kasus, 23 publish, dingin == warm 29/29, actual immutable 29/29, warm ulang identik 29/29, CP(lebih tinggi) > CP(lebih rendah) 10/10 pasangan, warm median 0,83 s.
+- Benchmark 1 CPU V15.25 vs V15.27 (CPU sama, berurutan): REPORT.md bagian 7.
 
 ## Status paket
-Runtime dingin 1 CPU dan Fix Load inkremental masih di atas target; kombinasi ketiga Actual Gas bersamaan masih terbuka -> paket release candidate
-`XAMPP_V1526_RC_RUNTIME_GATE_OPEN_*` (bukan FINAL/VALIDATED). Limitation menunggu keputusan user.
+Runtime dingin 1 CPU dan Fix Load masih di atas target -> paket release candidate `XAMPP_V1527_RC_RUNTIME_GATE_OPEN_*` (bukan FINAL/VALIDATED).
 
 ## Flag rollback (env)
-Lihat DEPLOYMENT_MANIFEST.md (`PP_V1526_*`; flag V15.25/V15.24 tetap berlaku).
+Lihat DEPLOYMENT_MANIFEST.md (`PP_V1527_*`; flag V15.26/V15.25 tetap berlaku).

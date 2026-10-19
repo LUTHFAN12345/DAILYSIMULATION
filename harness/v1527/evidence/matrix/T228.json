@@ -1,0 +1,114 @@
+{
+ "id": "T228",
+ "group": "M",
+ "title": "Maximum Review tidak lebih buruk dari Fastest (A3 G6->G4): pemenang = objective final (pp_sp_final_cmp)",
+ "fixture": "A3_cfg_G6_ke_G4",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "PASS",
+ "note": "",
+ "env": {},
+ "status": "PASS",
+ "published": true,
+ "terminal_proof": null,
+ "engine_status": "FASTEST_FINAL",
+ "checks": [
+  "OK rows 48",
+  "OK row di luar band export: []",
+  "OK MR CP 93.6196 vs Fastest CP 93.2509 (job Fastest mandiri 93.2509); objective final: pemenang FASTEST_CANDIDATE, dipublikasikan FASTEST_CANDIDATE CP 93.2509"
+ ],
+ "cp": 93.2509,
+ "econ_cp": 93.6868,
+ "hr": 8484.01,
+ "gas_bbtud": 65.4393,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -7.4139,
+ "daily_export_mwh": 567.82,
+ "distillate_l": 205776,
+ "hard_validation": "PASS",
+ "release_gate": "PASS",
+ "c1_c4_stg": "PASS",
+ "proof_binding": true,
+ "event_proof_status": "TERBUKTI",
+ "first_needed": [
+  {
+   "unit": "G1",
+   "start": "06:00",
+   "first_needed": "09:00",
+   "deficit_mw": 10.76,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G4",
+   "start": "07:30",
+   "first_needed": "10:30",
+   "deficit_mw": 2.23,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G5",
+   "start": "08:30",
+   "first_needed": "09:00",
+   "deficit_mw": 10.76,
+   "reason": "DIPERLUKAN_START_PALING_LAMBAT_LEGAL:export_range"
+  },
+  {
+   "unit": "G9",
+   "start": "05:00",
+   "first_needed": "05:30",
+   "deficit_mw": 6.97,
+   "reason": "REQUIRED_START_PALING_LAMBAT_LEGAL:export_range"
+  }
+ ],
+ "events": [
+  "G1+06:00",
+  "G1-16:30",
+  "G4+07:30",
+  "G5+08:30",
+  "G5-18:30",
+  "G9+05:00",
+  "S1+11:00"
+ ],
+ "rows": 48,
+ "payload_hash": "b3252f0a02baf9b70f715230_mr",
+ "job_input_hash": "8c91727f6a12810c0998914d5c472cc056ab0b6e3f36a53a0823ab7e220b068d",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t3",
+ "wall_s": 98.63,
+ "cpu_s": 75.57,
+ "max_rss_kb": 542416,
+ "phase_timing": [
+  {
+   "stage": "final_bundle_comparator",
+   "s": 0.003
+  },
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.008
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.033
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.015
+  },
+  {
+   "stage": "gate",
+   "s": 0.069
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": 60,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/b3252f0a02baf9b70f715230_mr.json"
+}

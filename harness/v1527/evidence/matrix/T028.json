@@ -1,0 +1,85 @@
+{
+ "id": "T028",
+ "group": "A",
+ "title": "Konfigurasi Initial Stop + Simulation + Hold dipindahkan ke G8",
+ "fixture": "A0_actual",
+ "baseline_version": "V15.25 (debf01f)",
+ "build": "V15.26",
+ "mode": "Fastest",
+ "expected": "EITHER",
+ "note": "",
+ "env": {},
+ "status": "EXPECTED_REJECTION",
+ "published": false,
+ "terminal_proof": "TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32",
+ "engine_status": "TERMINAL_INFEASIBLE",
+ "checks": [
+  "OK tidak dipublikasikan; terminal proof: TERMINAL_INFEASIBLE:TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada beban maksimum -> Export maksimum -108.32; status TERMINAL_INFEASIBLE; msg TERMINAL_INFEASIBLE_EXPORT_ROW_1: Row 1 (05-Oct-26 00:30): unit yang dapat berbeban hanya Last Data Running & tersedia (G2 31 MW, B2 120 MW, S2 16.03 MW) pada b"
+ ],
+ "cp": 120.8509,
+ "econ_cp": null,
+ "hr": 9330.11,
+ "gas_bbtud": 65.9534,
+ "gas_quota_bbtud": 65.46,
+ "gas_deviation_bbtud": -15.2079,
+ "daily_export_mwh": 622.99,
+ "distillate_l": 422105,
+ "hard_validation": "FAIL",
+ "release_gate": "FAIL",
+ "c1_c4_stg": "FAIL",
+ "proof_binding": true,
+ "event_proof_status": null,
+ "first_needed": [],
+ "events": [
+  "G1+01:00",
+  "G1-12:30",
+  "G3+01:00",
+  "G3-15:30",
+  "G4+09:30",
+  "G4-17:30",
+  "G5+06:30",
+  "G5-19:30",
+  "G6+01:00",
+  "G8+01:00",
+  "G9+01:00",
+  "S1+04:30",
+  "S3+08:00"
+ ],
+ "rows": 48,
+ "payload_hash": "56405b56ec86ac7707e3a878",
+ "job_input_hash": "fb19efedcbacc2dd43c9ef836ea6d89a6d6ff8ef23fb358868976f82f4cca39e",
+ "run_cached": false,
+ "php": "7.4.33",
+ "affinity": "Cpus_allowed_list:\t1",
+ "wall_s": 0.87,
+ "cpu_s": 0.8500000000000001,
+ "max_rss_kb": 41904,
+ "phase_timing": [
+  {
+   "stage": "pre_gate_misc",
+   "s": 0.01
+  },
+  {
+   "stage": "gate_acceptance_review",
+   "s": 0.004
+  },
+  {
+   "stage": "gate_hpa",
+   "s": 0.118
+  },
+  {
+   "stage": "gate_merit",
+   "s": 0.022
+  },
+  {
+   "stage": "gate",
+   "s": 0.207
+  },
+  {
+   "stage": "validate_final",
+   "s": 0.002
+  }
+ ],
+ "tightening_evals": null,
+ "evidence": "../../../../../../tmp/w/mx27k/runs/56405b56ec86ac7707e3a878.json"
+}
