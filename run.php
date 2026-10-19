@@ -461,7 +461,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.26-PRIORITY-ACTUALGAS-CONSOLIDATION-20261018';
+const PP_ENGINE_BUILD_ID = 'V15.27-ECON-OBJECTIVE-START-POINTS-20261019';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -4261,6 +4261,13 @@ function pp_v1517_ie_warm(string $id, array $inputAsli): ?array {
         'alasan_invalidasi' => 'FIX_LOAD_USER_BERUBAH -> review commitment penuh (hasil identik dengan run dingin)']; return null; }
     if (($B['ie_hash'] ?? '') === $h && !$actChanged && !$fixChanged && ($GLOBALS['ppActAdjDl'] ?? null) === null) { /* V15.22: mode adjustment -> lanjut warm (reproduksi basis, validasi penuh) */ $GLOBALS['__pp_ie_warm_rep'] = $rep + ['cache' => 'SAME_IE', 'alasan_invalidasi' => 'IE_DAN_ACTUAL_TIDAK_BERUBAH_KONTEKS_LAIN_DITANGANI_MEMO']; return null; }
     $aff = []; foreach ($s['eff'] as $i => $v) if (abs($v - (float)($B['ie_eff'][$i] ?? NAN)) > 1e-6 || !isset($B['ie_eff'][$i])) $aff[] = $i + 1;
+    $rep['ie_rows_changed'] = $aff;
+    /* V15.27 (root cause F: hasil bergantung riwayat cache): warm IE mempertahankan commitment basis dan melewati V8 + tightening. Terukur T216
+     * (IE +15 dari basis IE +30): warm 102,5194 (dengan tightening 101,7826) vs dingin 101,3333 — commitment basis memuat unit yang tidak
+     * diperlukan. IE berubah -> review commitment penuh (warm == dingin). Actual Gas saja tetap jalur warm (rencana jangkar, terbukti
+     * dingin == warm). PP_V1527_IE_COLD=0 -> jalur warm IE V15.26. */
+    if ($aff && (string)getenv('PP_V1527_IE_COLD') !== '0') { $GLOBALS['__pp_ie_warm_rep'] = $GLOBALS['ppIeWarmInfo'] = $rep + ['cache' => 'HIT', 'basis_file' => basename($f),
+        'alasan_invalidasi' => 'IE_BERUBAH -> review commitment penuh (hasil identik dengan run dingin)']; return null; }
     /* Actual Gas berubah: row aktual yang berubah + jendela MAJU sampai 00:00 (sisa kuota harian didistribusikan ulang ke row mendatang) */
     $affAct = [];
     if ($actChanged) { $BA = (array)($B['act'] ?? []); foreach (['p', 'j', 'm'] as $kA) foreach ((array)$act[$kA] as $i => $v) if ((string)$v !== (string)($BA[$kA][$i] ?? '')) $affAct[$i + 1] = true;

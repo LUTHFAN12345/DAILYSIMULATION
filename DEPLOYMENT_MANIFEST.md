@@ -1,9 +1,17 @@
-# Deployment Manifest — XAMPP_START_PRIORITY V15.26 (Prioritas per row, Actual Gas dua arah, konsolidasi blok)
+# Deployment Manifest — XAMPP_START_PRIORITY V15.27 (objective ekonomi dulu, titik awal tightening ganda, sertifikat envelope gas)
 
-Source runtime lengkap, basis V15.25 (`debf01f`). Tidak termasuk: config/db.php, secret, jobs/, saved/, input_data.json, output_data.json, profiler, fixture, harness, test evidence.
-Diubah terhadap V15.25: `run.php`, `worker02.php`, `CHECKPOINT.md`, `DEPLOYMENT_MANIFEST.md`, `SHA256SUMS.txt`. `index.php`, `saved_data_store.php`, `worker_functions.php`, `weekly.php`, `weekly_ui.php`, `database/*`, `install/*`, `config/*` tidak diubah (skema MySQL tetap `pp-report-mysql-1`).
-Engine build: `V15.26-PRIORITY-ACTUALGAS-CONSOLIDATION-20261018`. Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah). Folder jobs/ boleh dibersihkan (`install/clean_stale_jobs.php`). Run pertama dengan Actual Gas pada state yang belum punya rencana jangkar menghitung rencana jangkar sekali (setara satu run tanpa Actual Gas).
+Source runtime lengkap, basis V15.26 (`6e03d39`). Tidak termasuk: config/db.php, secret, jobs/, saved/, input_data.json, output_data.json, profiler, fixture, harness, test evidence.
+Diubah terhadap V15.26: `run.php`, `worker02.php`, `worker_functions.php`, `CHECKPOINT.md`, `DEPLOYMENT_MANIFEST.md`, `SHA256SUMS.txt`. `index.php`, `saved_data_store.php`, `weekly.php`, `weekly_ui.php`, `database/*`, `install/*`, `config/*` tidak diubah (skema MySQL tetap `pp-report-mysql-1`).
+Engine build: `V15.27-ECON-OBJECTIVE-START-POINTS-20261019`. Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah). Folder jobs/ boleh dibersihkan (`install/clean_stale_jobs.php`).
 Tidak ada perubahan konfigurasi Apache/PHP. Target platform tetap PHP 7.4.33.
 
-Flag rollback (env) V15.26: `PP_V1526_ECON_PROOF=1` (EKONOMIS kembali menjadi pengecualian prioritas), `PP_V1526_FIX_GUARD=0`, `PP_V1526_INV_GATE=0` (gerbang invariant), `PP_V1526_MR_FINAL_CMP=0` (Maximum Review comparator V15.25), `PP_V1526_ACT_ANCHOR=0` (jangkar jam actual), `PP_V1526_ACT_FF=0` (estimasi per row jam actual / FF rencana jangkar), `PP_V1526_LOCK_GE=0`, `PP_V1526_MM_ACT_TRIM=0`, `PP_V1526_ACT_MM_STAGE=0`, `PP_V1526_CONSOL_PLAN=0`, `PP_V1526_CONSOL_FALLBACK=0`, `PP_V1526_CONSOL_GAS_LAND=0`, `PP_V1526_CONSOL_ALL=0`, `PP_V1526_CONSOL_CMP=0`, `PP_V1526_ARP_BOTH=0`, `PP_V1526_CONSOL_USER=0`, `PP_V1526_CONSOL_OWN=1` (aktifkan tier latest legal start alternatif), `PP_V1526_LLF_USER=0`, `PP_V1526_XBLOCK_COMPLETE=0`, `PP_V1526_DECOMMIT_COMPLETE=0`; flag V15.25 / V15.24 tetap berlaku.
+Flag rollback (env) V15.27:
+- `PP_V1527_ECON_FIRST=0` — objective V15.26 (inversi prioritas / headroom sebelum CP ekonomi; EKONOMIS bukan pengecualian).
+- `PP_V1527_TIGHT_INV=0` — tanpa titik awal tightening urutan prioritas; `PP_V1527_TIGHT_PREV8=0` — tanpa titik awal sebelum V8.
+- `PP_V1527_CLOSURE_INV=0` / `PP_V1527_CLOSURE_PRIO=0` — closure bukti event hanya langkah ekonomi terbaik (V15.26).
+- `PP_V1527_FIX_COLD=0` — Fix Load berubah memakai jalur warm V15.26.
+- `PP_V1527_ENV_FAST=0` — sertifikat envelope gas tidak dicoba di jalur Fastest; `PP_V1527_ENV_DIST=0` — envelope mengecualikan kasus distillate (V15.26).
+- `PP_V1527_SUP_STAG1=0` — pencarian window supplier PGN berhenti sesudah dua langkah stagnan (V15.26).
+- `PP_V1527_OFF_DUP=0` — pencarian offset kuota JBBK tanpa penghentian probe berulang; `PP_V1527_HS_SKIP=0` — pemeriksaan HRSG stop per feeder selalu dipanggil.
+Flag V15.26 / V15.25 / V15.24 tetap berlaku (lihat manifest V15.26 di paket dokumentasi).
 Lihat CHECKPOINT.md dan REPORT.md (paket dokumentasi) untuk root cause, perbaikan, matrix, benchmark, dan keterbatasan.
