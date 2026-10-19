@@ -5216,7 +5216,33 @@ function pp_job_run_economic_review(string $id, array $input): array {
     if (is_array($rf['output']['info']['Run Status'] ?? null)) $rf['output']['info']['Run Status']['mode_selected_by_maximum_review'] = 'FASTEST_CANDIDATE';
     $rf['mode'] = $r['mode'] ?? ($rf['mode'] ?? null); return $rf;
 }
+/* V15.28 USE DISTILLATE = IZIN/FALLBACK, BUKAN KEWAJIBAN (T236): dengan aksi Use Distillate tanpa liter user, shaper memakai distillate begitu
+ * kekurangan gas lokal muncul dan kandidat gas-only (aksi none) tidak pernah dibandingkan (A1 gas cukup: 4569 l CP 71,42 vs gas-only 68,29). Bila
+ * hasil final memakai distillate untuk shortage kecil (<= PP_V1528_GASONLY_MAX_BBTUD, default 0,5) job gas-only juga dijalankan; dipilih yang lebih
+ * baik menurut objective final (pp_sp_final_cmp) di antara hasil yang lolos gerbang publish. Liter user eksplisit = intent user -> tidak diganggu.
+ * PP_V1528_GASONLY=0 -> perilaku V15.27. */
 function pp_job_run_economic_review_v1524(string $id, array $input): array {
+    $r = pp_job_run_economic_review_v1524_core($id, $input);
+    $m = (array)($input['data3']['modeling'] ?? []); $act = strtolower(trim((string)($m['gas_shortage_action'] ?? 'none'))); $lim = $m['distillate_user_limit_litres'] ?? null;
+    $o = is_array($r['output'] ?? null) ? $r['output'] : null; $i = (array)($o['info'] ?? []);
+    $dl = (float)($i['Distillate Used (l)'] ?? ($i['Distillate Fuel Total (l)'] ?? 0)); $sh = (float)($i['Gas Shortage (BBTUD)'] ?? 0);
+    $pubA = !empty($r['publish_allowed']) || !empty($o['publish_allowed']);
+    if ((string)getenv('PP_V1528_GASONLY') === '0' || !$o || $act !== 'use_distillate' || ($lim !== null && $lim !== '' && (float)$lim > 0) || $dl <= 0.0 || !$pubA
+        || $sh > (float)(getenv('PP_V1528_GASONLY_MAX_BBTUD') ?: 0.5) || count((array)($o['data'] ?? [])) !== 48) return $r;
+    $snap = []; foreach ($GLOBALS as $k => $v) if ($k !== 'GLOBALS' && is_string($k) && !preg_match('/^_[A-Z]/', $k)) $snap[$k] = $v;
+    $in2 = $input; $in2['data3']['modeling']['gas_shortage_action'] = 'none'; unset($in2['data3']['modeling']['__fuel_decision_mode']);
+    $t2 = microtime(true); $r2 = null;
+    try { if (function_exists('pp_tl_clean_globals')) pp_tl_clean_globals(); $r2 = pp_job_run_economic_review_v1524_core($id, $in2); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $r2 = null; }
+    $o2 = is_array($r2['output'] ?? null) ? $r2['output'] : null; $pubB = $o2 && (!empty($r2['publish_allowed']) || !empty($o2['publish_allowed']));
+    $rep = ['rule' => 'Use Distillate = izin; kandidat gas-only dibandingkan dengan objective final', 'distillate_l' => round($dl, 1), 'shortage_bbtud' => round($sh, 4),
+            'cp_distillate' => $i['Cost Production (USD/MWh)'] ?? null, 'cp_gas_only' => $o2['info']['Cost Production (USD/MWh)'] ?? null, 'gas_only_publishable' => $pubB, 'wall_s' => round(microtime(true) - $t2, 2)];
+    $useG = false; if ($pubB) { try { $useG = pp_sp_final_cmp(pp_sp_final_rank($in2, $o2 + ['publish_allowed' => true]), pp_sp_final_rank($input, $o + ['publish_allowed' => true])) < 0; } catch (Throwable $e) { $useG = false; } }
+    if ($useG) { $rep['selected'] = 'GAS_ONLY'; $r2['output']['info']['Use Distillate Gas-Only Review'] = $rep; return $r2; }
+    foreach (array_keys($GLOBALS) as $k) if ($k !== 'GLOBALS' && is_string($k) && !preg_match('/^_[A-Z]/', $k) && !array_key_exists($k, $snap)) unset($GLOBALS[$k]);
+    foreach ($snap as $k => $v) $GLOBALS[$k] = $v;
+    $rep['selected'] = 'DISTILLATE'; $r['output']['info']['Use Distillate Gas-Only Review'] = $rep; return $r;
+}
+function pp_job_run_economic_review_v1524_core(string $id, array $input): array {
     unset($GLOBALS['ppV1525BalActive']);
     $input = pp_v1517_engine_input($input);
     if (empty($input['_v1526_anchor_inner']) && is_array($A26 = $GLOBALS['ppV1526ActAnchor'] ?? null)) $input = pp_v1526_act_lock($input, $A26['data'], pp_v1526_act_rows($input));
@@ -8786,10 +8812,14 @@ function pp_v1523_cmp(array $a, array $b): int {
             if ((string)getenv('PP_V1525_BAL_CP') === '0' || $lo['econ_cp'] <= $hi['econ_cp'] + 0.0002 * min($a['econ_cp'], $b['econ_cp'])) {
                 return $a['bal3x1'] <=> $b['bal3x1']; } }
         if (pp_v1527_econ_first() && empty($GLOBALS['ppV1527InvSearch'])) {   // V15.27: startup tak-wajib / blok baru dieliminasi -> CP ekonomi (band 0,02 %) -> HR -> inversi prioritas (tie-break)
-            foreach (['startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
+            /* V15.28: urutan objective user — CP ekonomi -> HR (band) -> startup tak perlu -> blok baru -> inversi. Startup tambahan yang
+             * membuat CP ekonomi lebih rendah tidak dikalahkan oleh jumlah startup (T118/T121). PP_V1528_STARTUP_AFTER_CP=0 -> V15.27. */
+            $sa = (string)getenv('PP_V1528_STARTUP_AFTER_CP') !== '0';
+            if (!$sa) foreach (['startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
             $band = 0.0002 * min($a['econ_cp'], $b['econ_cp']);
             if (abs($a['econ_cp'] - $b['econ_cp']) > $band) return $a['econ_cp'] <=> $b['econ_cp'];
             if (abs($a['hr'] - $b['hr']) > 1e-6) return $a['hr'] <=> $b['hr'];
+            if ($sa) foreach (['startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
             if ($a['inv'] !== $b['inv']) return $a['inv'] <=> $b['inv'];
         } else {
         foreach (['inv', 'startups_nm', 'new_blocks'] as $k) if ($a[$k] !== $b[$k]) return $a[$k] <=> $b[$k];
