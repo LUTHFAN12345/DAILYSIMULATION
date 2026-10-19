@@ -4482,6 +4482,7 @@ function dpDeriveBranchState(srcInput,branch){
   m.actual_pgn_total=Array(48).fill('');
   m.actual_energy_jababeka=Array(48).fill('');
   m.actual_energy_mm2100=Array(48).fill('');
+  delete m.actual_gas_snapshots;                            // V15.31: snapshot kumulatif milik cabang Monitoring sendiri
   if(branch==='plan'){
     m.monitoring_daily_plan={enabled:false};
     delete m.actual_data;                                   // §6.2: Plan bersih dari locked rows/upload actual
@@ -4506,7 +4507,16 @@ function dpRebuildUI(){
   if(typeof refreshOverview==='function') refreshOverview();
   if(typeof refreshPills==='function') refreshPills();
   if(typeof refreshGasDecision==='function') refreshGasDecision();
+  ppAgRefreshCanon();
 }
+/* V15.31: header Actual Gas dari resolver backend untuk state input saat ini (reload / reopen / pindah cabang / tanpa OUTPUT). */
+async function ppAgRefreshCanon(){
+  try{ const m=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{}; if(!(typeof dpMon==='function'&&dpMon()&&m.actual_gas_snapshots)) return;
+    const key=ppAgSnapKey(m); if(window.PP_AG_CANON&&window.PP_AG_CANON.key===key){ ppAgPaintHeader(window.PP_AG_CANON.canon); return; }
+    const r=await fetch('run.php?mode=ag_canonical',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data1:INPUT.data1,data2:INPUT.data2,data3:{modeling:{actual_gas_snapshots:m.actual_gas_snapshots}}})});
+    const j=await r.json().catch(()=>null); if(j&&j.ok&&j.actual_canonical&&ppAgSnapKey(m)===key){ window.PP_AG_CANON={key:key,canon:j.actual_canonical}; ppAgPaintHeader(j.actual_canonical); } }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>{ try{ ppAgRefreshCanon(); }catch(e){} },400); });
 function setDpBranch(b){
   const mon=b==='monitoring';
   const cur=dpActiveBranch();
@@ -4546,9 +4556,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('change',e=>{
   const t=e.target;
   if(!(t&&t.classList&&t.classList.contains('tp-sel'))) return;
-  const ri=+t.dataset.tprow;
+  const ri=+t.dataset.tprow; const cut0=mdpCutoff();
   mdpSetCutoff(t.value==='Y'?ri+1:ri);                                          // Y@r -> cutoff r+1; N@r -> cutoff r
   if(typeof OUTPUT!=='undefined'&&OUTPUT&&OUTPUT.data) renderResult(OUTPUT);    // semua cell recolor hijau/merah
+  /* V15.31: UNLOCK RESMI (TIME PASSED dikembalikan ke N) dipersist segera sebagai state tersimpan + jejak audit; backend hanya mengizinkan
+   * perubahan row yang cutoff tersimpannya sudah diturunkan lewat operasi ini (row Y lain tetap ditolak). */
+  if(dpMon()&&mdpCutoff()<cut0){ try{ const p=assembleInput(); p._tp_unlock={from_cutoff:cut0,to_cutoff:mdpCutoff(),at:new Date().toISOString()};
+    fetch('run.php?mode=save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>r.json()).then(j=>{ window.PP_TP_UNLOCK_LAST=j; }).catch(()=>{}); }catch(e){} }
 });
 function autoNamePlan(){
   const pd=$('f-plan_date'), rk=$('f-plan_remark'), np=$('f-name_plan');

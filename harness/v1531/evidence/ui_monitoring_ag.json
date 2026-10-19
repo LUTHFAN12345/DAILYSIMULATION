@@ -1,0 +1,290 @@
+{
+ "results": [
+  {
+   "id": "PRE",
+   "desc": "Run Monitoring FINAL (basis)",
+   "status": "PASS",
+   "detail": "FINAL · Fastest - Default · 133,4 detik · kandidat 80 / valid 3 · CP 68.294 USD/MWh · HR 8,396.51 BTU/kWh"
+  },
+  {
+   "id": "T01",
+   "desc": "PGN 0,13 @01:00 Save -> row 00:30/01:00 = Y, row lain N",
+   "status": "PASS",
+   "detail": {
+    "sv": {
+     "state": "FINAL",
+     "code": null,
+     "adjust": true,
+     "rid": "monitoring-2-mvfbnq7s",
+     "elapsed_s": 6.68,
+     "cutoff_before": 0,
+     "cutoff_after": 2
+    },
+    "cut": 2,
+    "tp": "YYNNNNNN"
+   }
+  },
+  {
+   "id": "T17",
+   "desc": "header PGN = 0,13 langsung setelah Save",
+   "status": "PASS",
+   "detail": {
+    "pgn": 0.13,
+    "ffj": 0,
+    "ffm": 0
+   }
+  },
+  {
+   "id": "T07",
+   "desc": "row Y terkunci: sel Actual PGN 01:00 disabled",
+   "status": "PASS",
+   "detail": [
+    "pgn0",
+    "ffj0",
+    "ffm0"
+   ]
+  },
+  {
+   "id": "T09",
+   "desc": "PGN 0,13@01:00 + 0,30@02:00 -> header 0,30 (bukan 0,43); 0,13 tetap tersimpan terkunci",
+   "status": "PASS",
+   "detail": {
+    "sv": {
+     "state": "FINAL",
+     "code": null,
+     "adjust": true,
+     "rid": "monitoring-3-mvfbnvf6",
+     "elapsed_s": 10.34,
+     "cutoff_before": 2,
+     "cutoff_after": 4
+    },
+    "hdr": {
+     "pgn": 0.3,
+     "ffj": 0,
+     "ffm": 0
+    },
+    "cells": {
+     "pgn0": {
+      "v": 0.13,
+      "dis": true
+     },
+     "pgn2": {
+      "v": 0.3,
+      "dis": true
+     }
+    },
+    "cut": 4
+   }
+  },
+  {
+   "id": "T10",
+   "desc": "hasil dihitung dengan latest row saja (Actual Gas Canonical engine = 0,30 row 3)",
+   "status": "PASS",
+   "detail": null
+  },
+  {
+   "id": "T02",
+   "desc": "Jababeka @03:00 Save -> seluruh row s/d 03:00 = Y",
+   "status": "PASS",
+   "detail": {
+    "cut": 6,
+    "tp": "YYYYYYNN",
+    "sv": {
+     "state": "FINAL",
+     "code": null,
+     "adjust": true,
+     "rid": "monitoring-4-mvfbo3ed",
+     "elapsed_s": 2.56,
+     "cutoff_before": 4,
+     "cutoff_after": 6
+    }
+   }
+  },
+  {
+   "id": "T16",
+   "desc": "header Jababeka 6,18 langsung setelah Save (bukan 0)",
+   "status": "PASS",
+   "detail": {
+    "pgn": 0.3,
+    "ffj": 6.18,
+    "ffm": 0
+   }
+  },
+  {
+   "id": "T03",
+   "desc": "MM2100 @04:00 -> cutoff maju ke 8",
+   "status": "PASS",
+   "detail": {
+    "cut": 8,
+    "sv": {
+     "state": "FINAL",
+     "code": null,
+     "adjust": true,
+     "rid": "monitoring-5-mvfbo5ef",
+     "elapsed_s": 2.61,
+     "cutoff_before": 6,
+     "cutoff_after": 8
+    }
+   }
+  },
+  {
+   "id": "T04",
+   "desc": "row sesudah cutoff tetap N",
+   "status": "PASS",
+   "detail": "YYYYYYYYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+  },
+  {
+   "id": "T18",
+   "desc": "header MM2100 latest 0 (nol sah -> cutoff tetap maju); PGN 0,30; Jababeka 6,18 (supplier independen)",
+   "status": "PASS",
+   "detail": {
+    "pgn": 0.3,
+    "ffj": 6.18,
+    "ffm": 0
+   }
+  },
+  {
+   "id": "T14",
+   "desc": "ketiga supplier terisi pada timestamp berbeda, seluruh Save FINAL",
+   "status": "PASS",
+   "detail": {
+    "state": "FINAL",
+    "code": null,
+    "adjust": true,
+    "rid": "monitoring-5-mvfbo5ef",
+    "elapsed_s": 2.61,
+    "cutoff_before": 6,
+    "cutoff_after": 8
+   }
+  },
+  {
+   "id": "T26",
+   "desc": "Save tanpa perubahan -> tanpa rerun (hasil FINAL sesi dipakai)",
+   "status": "PASS",
+   "detail": {
+    "state": "FINAL",
+    "code": null,
+    "adjust": false,
+    "rid": null,
+    "elapsed_s": 0.24,
+    "cutoff_before": 8
+   }
+  },
+  {
+   "id": "T08",
+   "desc": "backend menolak edit Actual Gas row Y di luar UI (HTTP 409 TIME_PASSED_LOCKED)",
+   "status": "PASS",
+   "detail": {
+    "http": 409,
+    "code": "TIME_PASSED_LOCKED",
+    "msg": "Row TIME PASSED = Y terkunci (termasuk Actual Gas): 1 perubahan ditolak. Set TIME PASSED = N lebih dulu."
+   }
+  },
+  {
+   "id": "T20a",
+   "desc": "applySimViewMode/Full Screen tidak menghapus kunci row Y",
+   "status": "PASS",
+   "detail": [
+    "pgn0",
+    "ffj0",
+    "ffm0",
+    "pgn2",
+    "ffj2",
+    "ffm2",
+    "pgn4",
+    "ffj4",
+    "ffm4",
+    "pgn6",
+    "ffj6",
+    "ffm6"
+   ]
+  },
+  {
+   "id": "T19",
+   "desc": "unlock resmi + hapus latest -> header PGN kembali ke 0,13 (latest prior)",
+   "status": "FAIL",
+   "detail": {
+    "hdr": {
+     "pgn": 0.13,
+     "ffj": 6.18,
+     "ffm": 0
+    },
+    "sv": {
+     "state": "TERMINAL",
+     "code": "DEADLINE_REACHED",
+     "adjust": true,
+     "rid": "monitoring-6-mvfbo85a",
+     "elapsed_s": 1.83,
+     "cutoff_before": 2,
+     "cutoff_after": 8
+    },
+    "cut": 8
+   }
+  },
+  {
+   "id": "T11",
+   "desc": "sesudah unlock resmi, edit diterima dan kanonik dihitung ulang",
+   "status": "FAIL",
+   "detail": {
+    "state": "TERMINAL",
+    "code": "DEADLINE_REACHED",
+    "adjust": true,
+    "rid": "monitoring-6-mvfbo85a",
+    "elapsed_s": 1.83,
+    "cutoff_before": 2,
+    "cutoff_after": 8
+   }
+  },
+  {
+   "id": "T05",
+   "desc": "reload mempertahankan TIME PASSED (cutoff 8) dan snapshot historis",
+   "status": "PASS",
+   "detail": {
+    "cut": 8,
+    "snap": {
+     "pgn": [
+      0.13,
+      "",
+      "",
+      ""
+     ],
+     "ffj": [
+      "",
+      "",
+      "",
+      "",
+      6.18,
+      ""
+     ],
+     "ffm": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      0,
+      ""
+     ]
+    },
+    "diag": {
+     "out": false,
+     "snap": true,
+     "mon": true
+    }
+   }
+  },
+  {
+   "id": "T20b",
+   "desc": "reload: header tetap kanonik",
+   "status": "PASS",
+   "detail": {
+    "pgn": 0.13,
+    "ffj": 6.18,
+    "ffm": 0
+   }
+  }
+ ],
+ "pass": 17,
+ "fail": 2
+}

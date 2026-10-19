@@ -8765,8 +8765,11 @@ function pp_v8_eval_all(array $orig, array $W, array $C, float $dl, int $cap, bo
         try { pp_v4_work_publish($jid, $orig, ['kind' => 'tasks', 'tasks' => $tasks, 'dl' => $dl]); pp_v4_cooperate($jid, $orig, $tasks, $dl); } catch (Throwable $e) {}
     }
     foreach ($sim as $i) {
-        if (microtime(true) >= $dl - 0.5) { $R[$i] = ['skipped' => 'BATAS_WAKTU_REVIEW']; continue; }
-        $L = pp_tl_land_commitment($force ? pp_v9_force_start_overlay($orig, $C[$i]['stops']) : $orig, [], $C[$i]['stops'], $dl, 3); $a = $L['a'] ?? null;
+        /* V15.31: kandidat bukti WAJIB (counterfactual DECOMMIT unit tak diminta / koreksi Unit Priority) tidak dipotong jam anggaran review —
+         * tanpanya Aturan A gagal (UNREQUESTED_START_NO_EVIDENCE) walau start terbukti di basis (warm Actual Gas A1). Pengaman 60 s per kandidat. */
+        $dlI = !empty($C[$i]['mandatory']) ? max($dl, microtime(true) + 60.0) : $dl;
+        if (microtime(true) >= $dlI - 0.5) { $R[$i] = ['skipped' => 'BATAS_WAKTU_REVIEW']; continue; }
+        $L = pp_tl_land_commitment($force ? pp_v9_force_start_overlay($orig, $C[$i]['stops']) : $orig, [], $C[$i]['stops'], $dlI, 3); $a = $L['a'] ?? null;
         if ($a === null) { $R[$i] = ['skipped' => 'BATAS_WAKTU_REVIEW']; continue; }
         if ($force && is_array($a['output'] ?? null)) { $oF = $a['output']; $a = pp_tl_assess($origA, $oF); $a['output'] = $oF; }
         if (empty($a['valid']) && is_array($a['output'] ?? null)) $a['deficit'] = pp_v8_deficit_rows($orig, $a['output'], $C[$i]['unit']);
@@ -9650,7 +9653,7 @@ function pp_v8_priority_review(array $input, array $out, ?float $dl = null): arr
                          * lolos prasaring kapasitas Export (tanpa unit Export tetap cukup) -> kebutuhannya non-Export (mis. window gas / BusFlow) dan
                          * hanya dapat dibuktikan simulasi penuh 48 row. */
                         $xbDec = (string)getenv('PP_SP_XBLOCK_PROOF') !== '0' && ($c['kind'] ?? '') === 'DECOMMIT' && !in_array(strtolower((string)$c['unit']), $reqU0, true);
-                        if ($isPrioSwap($i) || $xbDec) { $cap++; $batch[] = $i; continue; }   // pemeriksaan wajib: menambah jatah, tidak memakan jatah kandidat ekonomi
+                        if ($isPrioSwap($i) || $xbDec) { $cap++; $batch[] = $i; $C[$i]['mandatory'] = (string)getenv('PP_V1531_MANDATORY_DL') !== '0'; continue; }   // pemeriksaan wajib: menambah jatah, tidak memakan jatah kandidat ekonomi
                         if ($nSim + count($batch) >= $cap) { $rec($i, ['skipped' => 'BATAS_KANDIDAT_REVIEW']); continue; }
                         $batch[] = $i;
                     }
@@ -11398,9 +11401,15 @@ if (!is_array($input)) pp_fail(400, 'Body must be a JSON object.');
  * (termasuk Actual Gas) untuk request di luar UI. Tanpa snapshot (data lama) tidak ada perubahan. */
 if (function_exists('pp_actual_gas_apply_snapshots')) {
     if (in_array((string)($_GET['mode'] ?? ''), ['run', 'save', 'ag_precheck'], true) && function_exists('sds_ctx') && function_exists('sds_latest_input') && (string)getenv('PP_V1531_TP_LOCK') !== '0') {
-        $uidL = (string)(sds_ctx($input)['uid'] ?? ''); $lv = $uidL !== '' ? pp_actual_gas_lock_violations(sds_latest_input($uidL), $input) : [];
+        $uidL = (string)(sds_ctx($input)['uid'] ?? ''); $prL = $uidL !== '' ? sds_latest_input($uidL) : null; $lv = is_array($prL) ? pp_actual_gas_lock_violations($prL['input'] ?? null, $input) : [];
         if ($lv) pp_fail(409, 'Row TIME PASSED = Y terkunci (termasuk Actual Gas): ' . count($lv) . ' perubahan ditolak. Set TIME PASSED = N lebih dulu.', ['code' => 'TIME_PASSED_LOCKED', 'violations' => array_slice($lv, 0, 12)]); }
     pp_actual_gas_apply_snapshots($input); }
+/* V15.31: nilai kanonik Actual Gas (header) untuk state input — resolver backend yang sama dengan engine/precheck, tanpa simulasi. */
+if (($_GET['mode'] ?? '') === 'ag_canonical') {
+    if (function_exists('ob_get_level')) { while (ob_get_level() > 0) ob_end_clean(); }
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => true, 'actual_canonical' => pp_actual_gas_canonical((array)($input['data3']['modeling'] ?? []))], JSON_UNESCAPED_SLASHES); exit;
+}
 if (empty($input['data1']) || !is_array($input['data1'])) pp_fail(400, 'data1 (IE rows) is missing or empty.');
 if (empty($input['data2']) || !is_array($input['data2'])) pp_fail(400, 'data2 (dispatch rows) is missing or empty.');
 if (empty($input['data3']) || !is_array($input['data3'])) pp_fail(400, 'data3 is missing.');
