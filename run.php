@@ -3153,6 +3153,32 @@ function pp_sp_prof(string $k, float $t0, array $x = []): void {
  * disimpan dan dinyatakan INCONCLUSIVE_DEADLINE (tidak pernah menang). Registry: kunci = hash konteks kanonik (seluruh payload ternormalisasi
  * + sidik jari engine, pp_cs_key) + vektor kandidat + hash dispatch mentah + versi semantik -> kandidat yang sama tidak dihitung ulang. */
 function pp_sp_bundle_dir(): string { $d = pp_job_root() . DIRECTORY_SEPARATOR . '_spbundle'; if (!is_dir($d)) @mkdir($d, 0777, true); return $d; }
+/* V15.28 REDISPATCH FINAL COMMITMENT YANG SAMA (root cause E, alokasi beban): commitment final yang sama dengan pemenang V15.25 dapat berakhir
+ * dengan pembagian beban berbeda karena lintasan tahap (T046: G5/G8 rows 13–31, +0,147; T136 rows 22–36). Commitment final (jendela stop) didaratkan
+ * ulang SEKALI oleh core (shaper ekonomi + gas window), lalu diterima hanya bila commitment identik, valid penuh, dan lebih baik menurut comparator
+ * ekonomi (stage guard). Event proof tidak berubah (commitment sama). PP_V1528_RECORE=0 -> mati. */
+function pp_v1528_recore(array $inputAsli, array $o, callable $clean): array {
+    if ((string)getenv('PP_V1528_RECORE') === '0' || count((array)($o['data'] ?? [])) !== 48 || !function_exists('pp_tl_land_commitment')) return $o;
+    $t0 = microtime(true); $rows = array_values((array)$o['data']); $orig = pp_v1523_orig($inputAsli); $L = null;
+    $saved = []; foreach ($GLOBALS as $gk => $gv) if (is_string($gk) && strpos($gk, '__pp_') === 0) $saved[$gk] = $gv;
+    try { $origN = $orig; $origN['data3']['modeling']['__v9_nopolish'] = true; $L = pp_tl_land_commitment($origN, [], pp_v3_stops($rows), microtime(true) + 60.0, 1); }
+    catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $L = null; }
+    finally { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; }
+    $o2 = is_array($L) ? ($L['a']['output'] ?? null) : null; $rec = ['applied' => false, 's' => null, 'landed' => is_array($o2), 'land_keys' => is_array($L) ? array_keys($L) : null,
+        'same_commitment' => is_array($o2) ? json_encode(pp_v8_masks($rows)) === json_encode(pp_v8_masks(array_values((array)($o2['data'] ?? [])))) : null, 'cp_recore' => is_array($o2) ? ($o2['info']['Cost Production (USD/MWh)'] ?? null) : null];
+    $nSt = function (array $rw): int { $n = 0; foreach (pp_tl_gt_units() as $u) { $U = strtoupper($u); $p = 0.0; foreach ($rw as $r) { $v = (float)($r[$U] ?? 0); if ($v > 0.01 && $p <= 0.01) $n++; $p = $v; } } return $n; };
+    if (is_array($o2) && count((array)($o2['data'] ?? [])) === 48 && $nSt(array_values((array)$o2['data'])) <= $nSt($rows)) {
+        foreach ((array)($o['info'] ?? []) as $k => $v) if (!array_key_exists($k, (array)($o2['info'] ?? []))) $o2['info'][$k] = $v;
+        foreach (['Commitment Event Proof', 'Commitment Tightening', 'V8 Priority Review', 'Comparator Invariant Guard', 'Block Consolidation Review', 'Run Status', 'Fastest Unit Priority Fix'] as $k) if (isset($o['info'][$k])) $o2['info'][$k] = $o['info'][$k];
+        $clean(); $aR = pp_sp_assess($orig, $o2); $clean(); $rec['valid'] = !empty($aR['valid']);
+        $g = !empty($aR['valid']) ? pp_v1523_stage_guard('FINAL_RECORE_SAME_COMMITMENT', $inputAsli, $o, $o2) : $o; $clean();
+        if (json_encode($g['data'] ?? null) !== json_encode($o['data'] ?? null)) { $o0 = $o; $o = $g; $rec['applied'] = true;
+            /* commitment berubah -> bukti event + closure dihitung ulang pada dispatch baru (proof wajib milik commitment final) */
+            if (!$rec['same_commitment']) { $clean(); $o = pp_v1524_event_closure($inputAsli, $o, 60.0); $clean(); $rec['event_proof_recomputed'] = true;
+                $aE = pp_sp_assess($orig, $o); $clean(); if (empty($aE['valid'])) { $o = $o0; $rec['applied'] = false; $rec['reverted'] = 'TIDAK_VALID_SESUDAH_CLOSURE'; } } } }
+    $rec['s'] = round(microtime(true) - $t0, 2); $o['info']['Final Recore Same Commitment'] = $rec; if (function_exists('pp_sp_prof')) pp_sp_prof('final_recore', $t0);
+    return $o;
+}
 /* V15.27 TITIK AWAL TIGHTENING GANDA (root cause E: local search bergantung lintasan). Tightening greedy dapat berhenti pada optimum lokal yang
  * lebih buruk menurut objective ekonomi daripada lintasan lain dari titik yang sama: (1) V8 diterima karena sedikit lebih ekonomis menutup
  * lintasan yang jauh lebih ekonomis dari dispatch sebelum V8 (T017); (2) urutan langkah ekonomi-dulu memilih langkah pertama yang menutup
@@ -3232,7 +3258,7 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
          * stop-lebih-awal / swap yang tadinya tidak valid menjadi valid. Uji bukti dijalankan pada dispatch FINAL; bila ada langkah VALID dan LEBIH
          * BAIK (comparator V15.24), langkah terbaik (deterministik: comparator + nama uji) diterapkan lewat stage guard, pelengkap bukti C4 diulang,
          * lalu bukti dihitung ulang — maks. PP_V1524_CLOSURE_MAX (3) iterasi. Seluruh langkah dicatat di 'closure'. */
-        $clean(); $o = pp_v1524_event_closure($inputAsli, $o, $em); $clean();
+        $clean(); $o = pp_v1524_event_closure($inputAsli, $o, $em); $clean(); $o = pp_v1528_recore($inputAsli, $o, $clean);
         if (is_array($plan) && $cand !== null) $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan['plan'], $cand, $o, $plan['tried']);
         if (is_array($consol)) $o['info']['Block Consolidation Review'] = $consol;
         if (is_array($GLOBALS['ppV1523Tight'] ?? null)) $o['info']['Commitment Tightening'] = $GLOBALS['ppV1523Tight'];
@@ -5397,7 +5423,7 @@ function pp_job_run_economic_review_v1524_core(string $id, array $input): array 
         pp_job_progress($id, 'PERBAIKAN_UNIT_PRIORITY_C1_C4', 80.0);
         $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v15_fast_priority_fix($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} $output = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPreJ, $output); pp_sp_prof('priority_fix', $tSp);
         $tSp = microtime(true); try { $output = pp_sp_proof_completion($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('proof_completion_c4', $tSp);
-        $output = pp_v1524_event_closure($inputAsli, $output, 30.0);   // V15.24: bukti event + penutupan pada dispatch final (juga jalur warm / Maximum Review)
+        $output = pp_v1524_event_closure($inputAsli, $output, 30.0); $output = pp_v1528_recore($inputAsli, $output, function () { pp_tl_clean_globals(); if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); });   // V15.24: bukti event + penutupan pada dispatch final (juga jalur warm / Maximum Review)
         } }
     if (pp_v10_fast()) { try { $output['info']['V10 Screening Summary'] = pp_v10_screening_summary($output, is_array($v7R) ? 'DELTA' : ((is_array($incR) && is_array($incR['output'] ?? null)) ? 'INCREMENTAL' : 'EXACT')); } catch (Throwable $e) {} }
     /* V11: penghitung kandidat satu sumber (folder state x job, ditulis pemilik & pembantu) + invarian. */
