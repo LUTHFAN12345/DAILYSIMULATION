@@ -461,7 +461,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.27-ECON-OBJECTIVE-START-POINTS-20261019';
+const PP_ENGINE_BUILD_ID = 'V15.28-RC-GASONLY-STARTUP-ORDER-20261019';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -5253,8 +5253,8 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
     $o = is_array($r['output'] ?? null) ? $r['output'] : null; $i = (array)($o['info'] ?? []);
     $dl = (float)($i['Distillate Used (l)'] ?? ($i['Distillate Fuel Total (l)'] ?? 0)); $sh = (float)($i['Gas Shortage (BBTUD)'] ?? 0);
     $pubA = !empty($r['publish_allowed']) || !empty($o['publish_allowed']);
-    if ((string)getenv('PP_V1528_GASONLY') === '0' || !$o || $act !== 'use_distillate' || ($lim !== null && $lim !== '' && (float)$lim > 0) || $dl <= 0.0 || !$pubA
-        || $sh > (float)(getenv('PP_V1528_GASONLY_MAX_BBTUD') ?: 0.5) || count((array)($o['data'] ?? [])) !== 48) return $r;
+    if ((string)getenv('PP_V1528_GASONLY') === '0' || !$o || $act !== 'use_distillate' || ($lim !== null && $lim !== '' && (float)$lim > 0) || $dl <= 0.0
+        || ($pubA && $sh > (float)(getenv('PP_V1528_GASONLY_MAX_BBTUD') ?: 0.5)) || count((array)($o['data'] ?? [])) !== 48) return $r;
     $snap = []; foreach ($GLOBALS as $k => $v) if ($k !== 'GLOBALS' && is_string($k) && !preg_match('/^_[A-Z]/', $k)) $snap[$k] = $v;
     $in2 = $input; $in2['data3']['modeling']['gas_shortage_action'] = 'none'; unset($in2['data3']['modeling']['__fuel_decision_mode']);
     $t2 = microtime(true); $r2 = null;
@@ -5262,7 +5262,7 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
     $o2 = is_array($r2['output'] ?? null) ? $r2['output'] : null; $pubB = $o2 && (!empty($r2['publish_allowed']) || !empty($o2['publish_allowed']));
     $rep = ['rule' => 'Use Distillate = izin; kandidat gas-only dibandingkan dengan objective final', 'distillate_l' => round($dl, 1), 'shortage_bbtud' => round($sh, 4),
             'cp_distillate' => $i['Cost Production (USD/MWh)'] ?? null, 'cp_gas_only' => $o2['info']['Cost Production (USD/MWh)'] ?? null, 'gas_only_publishable' => $pubB, 'wall_s' => round(microtime(true) - $t2, 2)];
-    $useG = false; if ($pubB) { try { $useG = pp_sp_final_cmp(pp_sp_final_rank($in2, $o2 + ['publish_allowed' => true]), pp_sp_final_rank($input, $o + ['publish_allowed' => true])) < 0; } catch (Throwable $e) { $useG = false; } }
+    $useG = $pubB && !$pubA; if ($pubB && $pubA) { try { $useG = pp_sp_final_cmp(pp_sp_final_rank($in2, $o2 + ['publish_allowed' => true]), pp_sp_final_rank($input, $o + ['publish_allowed' => true])) < 0; } catch (Throwable $e) { $useG = false; } }
     if ($useG) { $rep['selected'] = 'GAS_ONLY'; $r2['output']['info']['Use Distillate Gas-Only Review'] = $rep; return $r2; }
     foreach (array_keys($GLOBALS) as $k) if ($k !== 'GLOBALS' && is_string($k) && !preg_match('/^_[A-Z]/', $k) && !array_key_exists($k, $snap)) unset($GLOBALS[$k]);
     foreach ($snap as $k => $v) $GLOBALS[$k] = $v;
