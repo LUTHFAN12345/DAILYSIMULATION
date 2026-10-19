@@ -4,7 +4,7 @@
 set -e
 OUT=${1:?outdir}; PFX=${2:-XAMPP_FINAL_VALIDATED}; REPO=/home/user/DAILYSIMULATION; PHP74=/opt/php74/bin/php
 mkdir -p "$OUT"; mkdir -p /tmp/w; W=$(mktemp -d /tmp/w/packXXXX)
-RUNTIME="CHECKPOINT.md DEPLOYMENT_MANIFEST.md INSTALL.md SHA256SUMS.txt config/.htaccess config/db.example.php database/README_MYSQL_SETUP.md database/migrate_fix_load_1.sql database/migrate_legacy_reports.php database/schema.sql index.php install/clean_stale_jobs.php install/input_data.template.json run.php saved_data_store.php weekly.php weekly_ui.php worker02.php worker_functions.php"
+RUNTIME="CHECKPOINT.md CHECKPOINT_RECOVERY.md REPORT_RECOVERY.md DEPLOYMENT_MANIFEST.md INSTALL.md SHA256SUMS.txt config/.htaccess config/db.example.php database/README_MYSQL_SETUP.md database/migrate_fix_load_1.sql database/migrate_legacy_reports.php database/schema.sql index.php install/clean_stale_jobs.php install/input_data.template.json run.php saved_data_store.php weekly.php weekly_ui.php worker02.php worker_functions.php"
 PATCH="CHECKPOINT.md DEPLOYMENT_MANIFEST.md SHA256SUMS.txt run.php worker02.php worker_functions.php"
 cd "$REPO"
 for f in $RUNTIME; do [ "$f" = SHA256SUMS.txt ] || sha256sum "$f"; done > SHA256SUMS.txt

@@ -2,7 +2,7 @@
 
 Source runtime lengkap, basis V15.26 (`6e03d39`). Tidak termasuk: config/db.php, secret, jobs/, saved/, input_data.json, output_data.json, profiler, fixture, harness, test evidence.
 Diubah terhadap V15.26: `run.php`, `worker02.php`, `worker_functions.php`, `CHECKPOINT.md`, `DEPLOYMENT_MANIFEST.md`, `SHA256SUMS.txt`. `index.php`, `saved_data_store.php`, `weekly.php`, `weekly_ui.php`, `database/*`, `install/*`, `config/*` tidak diubah (skema MySQL tetap `pp-report-mysql-1`).
-Engine build: `V15.27-ECON-OBJECTIVE-START-POINTS-20261019`. Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah). Folder jobs/ boleh dibersihkan (`install/clean_stale_jobs.php`).
+Engine build: `V15.28-RC-GASONLY-STARTUP-ORDER-20261019` (V15.28: lihat CHECKPOINT_RECOVERY.md; flag `PP_V1528_GASONLY=0`, `PP_V1528_STARTUP_AFTER_CP=0`, `PP_V1528_RECORE=0`). Sesudah deploy: cache job lama tidak dipakai ulang (sidik jari engine berubah). Folder jobs/ boleh dibersihkan (`install/clean_stale_jobs.php`).
 Tidak ada perubahan konfigurasi Apache/PHP. Target platform tetap PHP 7.4.33.
 
 Flag rollback (env) V15.27:
