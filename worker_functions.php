@@ -2,6 +2,54 @@
 /* Satu sumber toleransi langkah startup (optimizer & validator). */
 
 /* ==============================================================================================
+ * V15.31 ACTUAL GAS KUMULATIF (Monitoring Daily Plan) — RESOLVER KANONIK TUNGGAL.
+ * Input Monitoring `modeling.actual_gas_snapshots` = {pgn|ffj|ffm: 48 nilai}: setiap nilai adalah TOTAL KUMULATIF actual
+ * supplier itu sampai row tersebut (snapshot), bukan konsumsi per interval. Per supplier (independen): nilai kanonik =
+ * nilai pada row TERISI PALING AKHIR; snapshot sebelumnya disimpan untuk audit tetapi tidak pernah dijumlahkan. 0 = nilai
+ * sah (berbeda dengan kosong). Jam tercakup = jam 1..h (h = jam row terakhir terisi).
+ * Representasi engine (array per jam actual_pgn_total / actual_energy_jababeka / actual_energy_mm2100, indeks genap)
+ * diturunkan DETERMINISTIK dari snapshot: total kumulatif dibagi rata ke jam 1..h (jumlah = nilai kanonik, immutable,
+ * tidak bergantung dispatch), jam sesudah h kosong (estimasi). Akibatnya Total harian = kanonik + estimasi jam sesudah h,
+ * kuota/window sisa = target - kanonik, dan seluruh jalur engine/validator/warm memakai angka yang sama.
+ * Payload tanpa snapshot (data lama per jam) tidak diubah. Dipakai: job, route HTTP, validator, precheck/header, guard Report.
+ * ============================================================================================== */
+function pp_actual_gas_fields(): array { return ['pgn' => 'actual_pgn_total', 'ffj' => 'actual_energy_jababeka', 'ffm' => 'actual_energy_mm2100']; }
+function pp_actual_gas_canonical(array $model): array {
+    $S = is_array($model['actual_gas_snapshots'] ?? null) ? $model['actual_gas_snapshots'] : null; $res = ['semantics' => $S !== null ? 'cumulative_snapshot' : 'legacy_hourly', 'suppliers' => [], 'cutoff_row' => 0];
+    foreach (pp_actual_gas_fields() as $s => $k) {
+        $arr = array_values((array)($S !== null ? ($S[$s] ?? []) : ($model[$k] ?? []))); $last = null; $sum = 0.0; $hist = [];
+        foreach ($arr as $i => $v) { if ($i >= 48 || $v === '' || $v === null || !is_numeric($v)) continue; $last = $i; $sum += (float)$v; $hist[] = ['row' => $i + 1, 'value' => (float)$v]; }
+        $val = $last === null ? null : ($S !== null ? (float)$arr[$last] : $sum);
+        $endRow = $last === null ? 0 : 2 * (intdiv($last, 2) + 1);
+        $res['suppliers'][$s] = ['field' => $k, 'value' => $val, 'latest_row' => $last === null ? null : $last + 1, 'covered_rows' => $endRow, 'snapshots' => count($hist),
+                                 'ignored_historical' => $S !== null ? array_slice($hist, 0, max(0, count($hist) - 1)) : []];
+        $res['cutoff_row'] = max($res['cutoff_row'], $endRow); }
+    return $res;
+}
+/* Turunkan array engine dari snapshot (idempoten: selalu dihitung ulang dari snapshot). */
+function pp_actual_gas_apply_snapshots(array &$input): void {
+    if (!isset($input['data3']['modeling']) || !is_array($input['data3']['modeling']) || !is_array($input['data3']['modeling']['actual_gas_snapshots'] ?? null)) return;
+    $m = &$input['data3']['modeling']; $C = pp_actual_gas_canonical($m);
+    foreach (pp_actual_gas_fields() as $s => $k) { $a = array_fill(0, 48, ''); $c = $C['suppliers'][$s];
+        if ($c['value'] !== null) { $H = intdiv((int)$c['covered_rows'], 2); $per = (float)$c['value'] / $H; for ($h = 0; $h < $H; $h++) $a[2 * $h] = $per; }
+        $m[$k] = $a; }
+    unset($m);
+}
+/* Row Time Passed = Y terkunci, termasuk tiga Actual Gas: snapshot pada row < cutoff tersimpan tidak boleh berubah kecuali cutoff resmi
+ * diturunkan (TIME PASSED = N). Dibandingkan per supplier/row terhadap state tersimpan terakhir; kosong vs 0 dibedakan. */
+function pp_actual_gas_lock_violations(?array $prev, array $new): array {
+    if (!is_array($prev)) return [];
+    $mp = (array)($prev['data3']['modeling'] ?? []); $mn = (array)($new['data3']['modeling'] ?? []);
+    $cp = (int)($mp['monitoring_daily_plan']['time_passed_cutoff_row'] ?? 0); $cn = (int)($mn['monitoring_daily_plan']['time_passed_cutoff_row'] ?? 0);
+    if (empty($mp['monitoring_daily_plan']['enabled']) || $cp <= 0 || !is_array($mp['actual_gas_snapshots'] ?? null)) return [];
+    foreach (['plan_date', 'name_plan', 'plan_name'] as $kk) if ((string)($mp[$kk] ?? '') !== (string)($mn[$kk] ?? '')) return [];   // report/tanggal lain = state lain
+    $lim = min($cp, max(0, $cn)); $v = []; $norm = fn($x) => ($x === '' || $x === null || !is_numeric($x)) ? null : round((float)$x, 9);
+    foreach (array_keys(pp_actual_gas_fields()) as $s) { $a = array_values((array)($mp['actual_gas_snapshots'][$s] ?? [])); $b = array_values((array)($mn['actual_gas_snapshots'][$s] ?? []));
+        for ($i = 0; $i < $lim; $i++) if ($norm($a[$i] ?? null) !== $norm($b[$i] ?? null)) $v[] = ['supplier' => $s, 'row' => $i + 1, 'saved' => $norm($a[$i] ?? null), 'requested' => $norm($b[$i] ?? null)]; }
+    return $v;
+}
+
+/* ==============================================================================================
  * OPT — SAKELAR VERIFIKASI MEMO (default MATI di produksi, biaya nol).
  *
  * Setiap memoisasi hasil yang dipasang pada rilis ini menyediakan mode verifikasi: hit memo tetap

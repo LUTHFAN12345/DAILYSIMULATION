@@ -4810,6 +4810,8 @@ function assembleInput(){
   if(aP.length){for(let i=0;i<SLOTS;i++)if(aP[i]===undefined)aP[i]='';m.actual_pgn_total=aP;}
   if(aJ.length){for(let i=0;i<SLOTS;i++)if(aJ[i]===undefined)aJ[i]='';m.actual_energy_jababeka=aJ;}
   if(aM.length){for(let i=0;i<SLOTS;i++)if(aM[i]===undefined)aM[i]='';m.actual_energy_mm2100=aM;}
+  /* V15.31: Monitoring = snapshot kumulatif per supplier; backend menurunkan array engine (resolver kanonik). Plan tidak menyentuh snapshot. */
+  if((aP.length||aJ.length||aM.length)&&typeof dpMon==='function'&&dpMon()) m.actual_gas_snapshots={pgn:agFill(aP),ffj:agFill(aJ),ffm:agFill(aM)};
   return out;
 }
 
@@ -7191,12 +7193,15 @@ function ppBuildSimTable(rows, o, forceNoMonitoring){
         const lockedHr=MON&&(ri+2)<=tpCut;
         /* V15.21 SAVE/RELOAD: nilai actual yang tersimpan di INPUT (draft per user) tetap tampil walau OUTPUT yang dirender
          * belum membawanya (mis. sesudah reload) — tanpa ini sel kosong lalu Save/Run berikutnya MENGHAPUS actual tersimpan. */
-        if((v==null||v==='')&&!forceNoMonitoring){ try{ const mI=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{};
+        { const mS=(INPUT&&INPUT.data3&&INPUT.data3.modeling&&INPUT.data3.modeling.actual_gas_snapshots)||null;
+          /* V15.31: Monitoring menampilkan snapshot kumulatif yang diinput (bukan echo per jam turunan engine) */
+          if(MON&&mS){ const sa=(mS[key]||[]), c=x=>(x===''||x==null||!isFinite(+x))?null:+x; const b=c(sa[ri+1]), a=c(sa[ri]); v=b!==null?b:a; } }
+        if((v==null||v==='')&&!forceNoMonitoring&&!(MON&&INPUT&&INPUT.data3&&INPUT.data3.modeling&&INPUT.data3.modeling.actual_gas_snapshots)){ try{ const mI=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{};
           const arr=key==='pgn'?mI.actual_pgn_total:(key==='ffj'?mI.actual_energy_jababeka:mI.actual_energy_mm2100);
           const a=(arr||[])[ri], b=(arr||[])[ri+1]; const na=(a===''||a==null||!isFinite(+a))?null:+a, nb=(b===''||b==null||!isFinite(+b))?null:+b;
           if(na!==null||nb!==null) v=(na!==null&&nb!==null)?na+nb:(na!==null?na:nb); }catch(e){} }
         return `<td class="g-actual g-actual-hr" rowspan="2"><input class="actin no-spinner" type="number" step="0.0001" data-act="${key}" data-hour="${ri/2}" data-row="${ri}" `+
-               `value="${v==null?'':v}" placeholder="${fmt(estPair,3)}"${lockedHr?' disabled':''} title="${lockedHr?'TIME PASSED = Y — actual 1 jam locked (tetap dihitung ke total)':'Manual actual per 1 JAM ('+hm(r.Time)+'–'+hm(rNext.Time||r.Time)+') — leave blank to use estimation'}"></td>`;
+               `value="${v==null?'':v}" placeholder="${fmt(estPair,3)}"${lockedHr?' disabled':''} title="${lockedHr?'TIME PASSED = Y — snapshot kumulatif terkunci (audit; simulasi memakai row terisi paling akhir)':(MON?'Cumulative actual total s/d '+hm(rNext.Time||r.Time)+' — isi snapshot terbaru di row ini, row lama tidak dijumlahkan':'Manual actual per 1 JAM ('+hm(r.Time)+'–'+hm(rNext.Time||r.Time)+') — leave blank to use estimation')}"></td>`;
       }
       // decimals by group (Revisi Sec.4): GTG/GE=1, gas=3, others=2
       let dec=2;
@@ -7362,6 +7367,8 @@ function renderResult(o){
     if(gp) gp.textContent=fmt(info['Actual Total Gas PGN (BBTUD)']||0,3);
     if(gj) gj.textContent=fmt(info['Actual Energy Total Fixed Flow Jababeka (BBTUD)']||0,3);
     if(gm) gm.textContent=fmt(info['Actual Energy Total Fixed Flow MM2100 (BBTUD)']||0,3);
+    /* V15.31: canonical backend (latest populated row per supplier) menang bila tersedia untuk state input saat ini */
+    ppAgPaintHeader(ppAgCanonForInput()||info['Actual Gas Canonical']||null);
   }catch(e){}
   const okPln=info['PLN Export Compliance']==='OK', okGas=info['Gas Quota Status']==='WITHIN QUOTA';
   let html='';
@@ -8096,17 +8103,34 @@ const AG_STAGE={SAVING_INPUT:'Saving actual gas...',ADJUSTING:'Adjustment runnin
 /* Konteks kanonik tampilan: dari state cabang (monitoring_daily_plan.enabled), BUKAN dari label UI. */
 function ppViewMode(){ return (typeof dpMon==='function'&&dpMon())?'monitoring':'plan'; }
 function agFill(a){ a=Array.isArray(a)?a.slice():[]; for(let i=0;i<SLOTS;i++) if(a[i]===undefined||a[i]===null) a[i]=''; return a.slice(0,SLOTS); }
+/* V15.31 ACTUAL GAS KUMULATIF: sel Actual Gas Monitoring = snapshot total kumulatif (modeling.actual_gas_snapshots). Nilai kanonik dan
+ * cutoff Time Passed SELALU dari resolver backend (pp_actual_gas_canonical; respons ag_precheck / info 'Actual Gas Canonical') — klien tidak
+ * menjumlahkan atau menghitung total sendiri. */
+function ppAgSnapKey(m){ try{ return JSON.stringify((m&&m.actual_gas_snapshots)||null); }catch(e){ return ''; } }
+function ppAgCanonForInput(){ const c=window.PP_AG_CANON; const m=(INPUT&&INPUT.data3&&INPUT.data3.modeling)||{};
+  return (c&&c.key===ppAgSnapKey(m)&&m.actual_gas_snapshots)?c.canon:null; }
+function ppAgPaintHeader(canon){ if(!canon||!canon.suppliers) return;
+  const v=s=>{ const x=canon.suppliers[s]; return x&&x.value!=null?+x.value:0; };
+  const set=(id,val)=>{ const e=document.getElementById(id); if(e) e.textContent=fmt(val,3); };
+  set('gm-pgn',v('pgn')); set('gm-ffj',v('ffj')); set('gm-ffm',v('ffm')); }
 /* Sel actual per JAM (index genap pasangan; ganjil ''), sama dengan format engine. */
 function agReadActualCells(){
   const aP=[],aJ=[],aM=[]; let n=0;
   document.querySelectorAll('#tbl-result .actin').forEach(el=>{ n++;
     const ri=+el.dataset.row,key=el.dataset.act,val=el.value===''?'':num(el.value);
     const T=key==='pgn'?aP:(key==='ffj'?aJ:aM); T[ri]=val; T[ri+1]=''; });
-  return n?{p:agFill(aP),j:agFill(aJ),m:agFill(aM)}:null;
+  return n?{p:agFill(aP),j:agFill(aJ),m:agFill(aM)}:null;   // V15.31: di Monitoring nilai sel = snapshot kumulatif (lihat saveActualGas)
 }
 /* Hasil dihitung dengan Actual Gas input ini? (echo engine Act_* per jam) — aturan yang sama dengan rs_final_guard server. */
 function agEchoMatches(out,mod){
   const rows=(out&&out.data)||[]; if(rows.length!==48) return false;
+  /* V15.31: snapshot kumulatif -> hasil wajib dihitung dengan canonical yang sama (row terisi terakhir + nilainya, per supplier) */
+  if(mod&&mod.actual_gas_snapshots){ const C=((out.info||{})['Actual Gas Canonical'])||null; if(!C||C.semantics!=='cumulative_snapshot') return false;
+    for(const s of ['pgn','ffj','ffm']){ const arr=mod.actual_gas_snapshots[s]||[]; let li=null; for(let i=0;i<48;i++){ const x=arr[i]; if(!(x===''||x==null||!isFinite(+x))) li=i; }
+      const g=C.suppliers&&C.suppliers[s]; if(!g) return false;
+      if((li===null)!==(g.latest_row==null)) return false;
+      if(li!==null&&(g.latest_row!==li+1||Math.abs(+arr[li]-(+g.value))>1e-9)) return false; }
+    return true; }
   const cell=(a,i)=>{ const v=(a||[])[i]; return (v===''||v==null||!isFinite(+v))?null:+v; };
   const pairs=[['actual_pgn_total','Act_PGN'],['actual_energy_jababeka','Act_FF_J'],['actual_energy_mm2100','Act_FF_M']];
   for(const [k,col] of pairs){ const arr=(mod&&mod[k])||[];
@@ -8183,7 +8207,8 @@ async function saveActualGas(opts){
     try{ if(typeof flushPendingEdits==='function') flushPendingEdits(); }catch(e){}
     if(!INPUT.data3) INPUT.data3={}; if(!INPUT.data3.modeling) INPUT.data3.modeling={};
     const m=INPUT.data3.modeling;
-    if(op.view==='monitoring'){ const a=agReadActualCells(); if(a){ m.actual_pgn_total=a.p; m.actual_energy_jababeka=a.j; m.actual_energy_mm2100=a.m; } }
+    if(op.view==='monitoring'){ const a=agReadActualCells(); if(a){ m.actual_pgn_total=a.p; m.actual_energy_jababeka=a.j; m.actual_energy_mm2100=a.m;
+      m.actual_gas_snapshots={pgn:a.p.slice(),ffj:a.j.slice(),ffm:a.m.slice()}; } }
     /* Plan: kolom actual tidak tampil dan tidak dibaca — nilai di INPUT dibiarkan apa adanya (schema/payload tidak dihapus). */
     op.actual_hash=JSON.stringify([agFill(m.actual_pgn_total),agFill(m.actual_energy_jababeka),agFill(m.actual_energy_mm2100)]);
     /* Tanpa rerun HANYA bila OUTPUT adalah hasil FINAL run sesi ini (bukan output awal halaman / salinan cabang lain),
@@ -8199,6 +8224,12 @@ async function saveActualGas(opts){
       const rP=await fetch('run.php?mode=ag_precheck',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pl)});
       pre=await rP.json().catch(()=>null); }catch(e){ pre=null; }
     op.precheck=pre;
+    /* V15.31: header + TIME PASSED langsung dari resolver backend (latest populated row per supplier); cutoff hanya maju (row actual
+     * terbaru yang disimpan beserta seluruh row sebelumnya = Y, terkunci termasuk Actual Gas). */
+    if(pre&&pre.ok===true&&op.view==='monitoring'&&pre.actual_canonical&&m.actual_gas_snapshots){
+      window.PP_AG_CANON={key:ppAgSnapKey(m),canon:pre.actual_canonical}; ppAgPaintHeader(pre.actual_canonical);
+      const cut=+pre.actual_canonical.cutoff_row||0; op.cutoff_before=mdpCutoff();
+      if(cut>op.cutoff_before){ mdpSetCutoff(cut); op.cutoff_after=cut; try{ if(OUTPUT&&OUTPUT.data) renderResult(OUTPUT); }catch(e){} } }
     if(!pre||pre.ok!==true){ agFinish(op,'ERROR','PRECHECK_FAILED','<span style="color:#c0392b"><b>Save GAGAL</b> — pemeriksaan basis FINAL tidak dapat dijalankan. Report tidak diubah. (operation '+esc(op.id)+')</span>'); return; }
     if(!(pre.incumbent===true && pre.structural_match===true)){
       /* ada FINAL sebelumnya (basis untuk konteks ini, atau FINAL yang sedang tampil) -> input struktural berubah sesudah FINAL */
@@ -8732,7 +8763,9 @@ function applySimViewMode(){
      seluruh input/dropdown/tab/Ctrl+Click/Full Screen/Run/Save benar-benar hidup (§8.1). */
   setTimeout(()=>{
     ['btn-run','btn-save','btn-save-actual','btn-reset'].forEach(id=>{ const b=$(id); if(b) b.style.display=''; });
-    document.querySelectorAll('#tbl-result .actin[disabled]').forEach(el=>el.removeAttribute('disabled'));
+    /* V15.31: row TIME PASSED = Y tetap terkunci (termasuk Actual Gas) — hanya sisa kunci di luar cutoff yang dibersihkan */
+    const cutL=(typeof dpMon==='function'&&dpMon()&&typeof mdpCutoff==='function')?mdpCutoff():0;
+    document.querySelectorAll('#tbl-result .actin[disabled]').forEach(el=>{ if(!((+el.dataset.row+2)<=cutL)) el.removeAttribute('disabled'); });
   },0);
 }
 applySimViewMode();

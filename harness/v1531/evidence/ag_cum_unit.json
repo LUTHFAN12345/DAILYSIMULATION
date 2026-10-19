@@ -1,0 +1,154 @@
+{
+    "pass": 16,
+    "fail": 0,
+    "tests": [
+        {
+            "test": "09 PGN 3,0 lalu 4,5 -> kanonik 4,5 (bukan 7,5)",
+            "pass": true,
+            "detail": {
+                "field": "actual_pgn_total",
+                "value": 4.5,
+                "latest_row": 3,
+                "covered_rows": 4,
+                "snapshots": 2,
+                "ignored_historical": [
+                    {
+                        "row": 1,
+                        "value": 3
+                    }
+                ]
+            }
+        },
+        {
+            "test": "10 snapshot 3,0 tersimpan sebagai historis diabaikan",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "Jababeka 1,9 tanpa update -> 1,9",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "13 MM2100 latest row 7 (03:30) independen dari supplier lain",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "03 cutoff = row actual terbaru seluruh supplier (8)",
+            "pass": true,
+            "detail": 8
+        },
+        {
+            "test": "15 nol = nilai sah, kosong = tanpa data",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "21 array engine turunan: jumlah = kanonik, jam sesudah cutoff kosong",
+            "pass": true,
+            "detail": [
+                2.25,
+                "",
+                2.25,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "test": "resolver idempoten",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "snapshot lama tidak memengaruhi array engine",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "08 backend menolak edit Actual Gas row Y",
+            "pass": true,
+            "detail": [
+                {
+                    "supplier": "pgn",
+                    "row": 1,
+                    "saved": 3,
+                    "requested": 3.5
+                }
+            ]
+        },
+        {
+            "test": "11 hapus nilai row Y ditolak",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "11 sesudah TIME PASSED resmi = N, edit diizinkan + kanonik dihitung ulang",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "04 row sesudah cutoff boleh diisi (snapshot baru)",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "08 Jababeka row Y juga terkunci",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "24 state hash: snapshot historis tanpa efek bila kanonik sama",
+            "pass": true,
+            "detail": null
+        },
+        {
+            "test": "kunci basis warm tidak berubah karena cutoff Time Passed maju",
+            "pass": true,
+            "detail": null
+        }
+    ]
+}

@@ -9636,6 +9636,7 @@ $info = [
         'Actual Total Gas PGN (BBTUD)' => round($actTotGasPGN, 4),
         'Actual Energy Total Fixed Flow Jababeka (BBTUD)' => round($actEnergyJsum, 4),
         'Actual Energy Total Fixed Flow MM2100 (BBTUD)' => round($actEnergyMsum, 4),
+        'Actual Gas Canonical' => function_exists('pp_actual_gas_canonical') ? pp_actual_gas_canonical((array)$model) : null,   // V15.31 latest populated row per supplier
         'PGN Pipe Total (BBTUD)' => round($pipeUsed, 4),
         'LNG Total (BBTUD)' => round($lngUsed, 4),
         'PEP JBBK Total (BBTUD)' => round($pepU, 4),

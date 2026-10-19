@@ -485,6 +485,7 @@ function rs_final_guard(array $in, array $out): ?array {
     if (($pb['bound_to_rendered'] ?? true) === false) return ['code' => 'PROOF_STALE', 'message' => 'proof tidak terikat ke baris hasil'];
     if (isset($pb['candidate_hash']) && function_exists('pp_v1517_candidate_hash') && !hash_equals((string)$pb['candidate_hash'], pp_v1517_candidate_hash($rows)))
         return ['code' => 'PROOF_STALE', 'message' => 'candidate_hash proof berbeda dengan baris yang disimpan'];
+    if (function_exists('pp_actual_gas_apply_snapshots')) pp_actual_gas_apply_snapshots($in);   // V15.31: echo hasil = array engine turunan snapshot
     $m = (array)($in['data3']['modeling'] ?? []);
     $cell = function ($arr, int $i): ?float { $v = $arr[$i] ?? ''; return ($v === '' || $v === null || !is_numeric($v)) ? null : (float)$v; };
     foreach (['actual_pgn_total' => 'Act_PGN', 'actual_energy_jababeka' => 'Act_FF_J', 'actual_energy_mm2100' => 'Act_FF_M'] as $k => $col) {

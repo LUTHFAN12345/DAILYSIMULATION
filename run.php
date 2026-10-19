@@ -955,6 +955,7 @@ function pp_job_rmdir(string $d): void {
  * PHP-FPM: setsid + nohup + stdin/stdout/stderr dialihkan, sehingga worker tetap hidup setelah
  * request HTTP yang melahirkannya ditutup. */
 function pp_job_start(array $input, string $kind, ?string $requestId, bool $force = false): array {
+    if (function_exists('pp_actual_gas_apply_snapshots')) pp_actual_gas_apply_snapshots($input);   // V15.31: array engine selalu turunan snapshot
     if (!in_array($kind, pp_job_kinds(), true))
         return ['ok' => false, 'error' => 'KIND_TIDAK_DIKENAL: ' . $kind];
     /* V15.16 MULTI-USER: pembuatan job per job-id diserialisasi (flock). Dua user/tab yang menjalankan input identik pada
@@ -1460,6 +1461,7 @@ if (!class_exists('PpJobAborted')) { class PpJobAborted extends RuntimeException
 function pp_tl_dir(): string { return pp_job_root() . DIRECTORY_SEPARATOR . '_tl'; }
 /* Normalisasi aksi bahan bakar atas SALINAN tanpa meninggalkan global keputusan bahan bakar. */
 function pp_normalize_copy(array $input): array {
+    if (function_exists('pp_actual_gas_apply_snapshots')) pp_actual_gas_apply_snapshots($input);
     $keepMode = $GLOBALS['__pp_fuel_decision_mode'] ?? null; $hadMode = array_key_exists('__pp_fuel_decision_mode', $GLOBALS);
     if (function_exists('pp_normalize_fuel_action')) pp_normalize_fuel_action($input);
     if (function_exists('pp_v1518_semantics')) pp_v1518_semantics($input);   // V15.18: validator/proof menilai semantik yang sama dengan engine
@@ -1791,7 +1793,7 @@ function pp_v9_max_near(): int { return pp_v9_canon() ? 16 : PP_V3_MAX_NEAR; }  
 const PP_V3_MAX_CHAIN = 8;                // rantai inkremental maksimum sebelum exact penuh lagi
 /* Field modeling yang hanya label/arsip UI: tidak dibaca engine (terverifikasi dengan grep:
  * `worker` dan `note` hanya dipakai sebagai label keluaran). */
-function pp_v3_meta_keys(): array { return ['name_plan', 'note', 'plan_date', 'plan_name', 'plan_remark', 'plan_type', 'report_planning', 'worker']; }
+function pp_v3_meta_keys(): array { return ['name_plan', 'note', 'plan_date', 'plan_name', 'plan_remark', 'plan_type', 'report_planning', 'worker', 'actual_gas_snapshots']; }   // V15.31: snapshot = arsip; state engine = array turunannya
 function pp_v3_strip_meta(array &$m): void { foreach (pp_v3_meta_keys() as $k) unset($m[$k]); }
 /* Identitas state engine (untuk bukti "payload tersimpan = payload dihitung"). */
 function pp_v3_state_hash(array $input): string {
@@ -4089,8 +4091,19 @@ function pp_v1521_supplier_cert_guarded(array $inputAsli, ?array $given = null):
  * Bila commitment basis tidak lagi feasible (mis. +MW butuh startup) -> alasan dicatat, jalur Fastest penuh
  * (commitment repair) dijalankan. Tidak ada IE lama yang dipakai: hasil selalu dihitung dari input baru.
  * ============================================================================================= */
+/* V15.31: status kunci Time Passed (cutoff, locked_rows, injeksi actual_data _mdp) = salinan dispatch hasil itu sendiri pada row yang sudah lewat,
+ * bukan konteks fisik baru. Save Actual Gas memajukan cutoff setiap kali -> tanpa normalisasi ini basis warm / structural hash tidak pernah cocok
+ * dan Save berikutnya selalu DRAFT. Cabang Plan vs Monitoring tetap dibedakan (enabled). PP_V1531_TP_KEY=0 -> perilaku lama. */
+function pp_v1531_mdp_strip(array &$c): void {
+    if ((string)getenv('PP_V1531_TP_KEY') === '0' || !isset($c['data3']['modeling']) || !is_array($c['data3']['modeling'])) return;
+    $m = &$c['data3']['modeling'];
+    if (isset($m['monitoring_daily_plan']) && is_array($m['monitoring_daily_plan'])) $m['monitoring_daily_plan'] = ['enabled' => !empty($m['monitoring_daily_plan']['enabled'])];
+    if (isset($m['actual_data']['rows']) && is_array($m['actual_data']['rows'])) { $m['actual_data']['rows'] = array_values(array_filter($m['actual_data']['rows'], fn($r) => !(is_array($r) && !empty($r['_mdp']))));
+        if (!$m['actual_data']['rows']) unset($m['actual_data']); }
+    unset($m);
+}
 function pp_v1517_ie_base_key(array $clean): string {
-    $c = $clean; unset($c['data3']['modeling']['ie_adjustments'], $c['data3']['modeling']['ie_adjustment']);
+    $c = $clean; unset($c['data3']['modeling']['ie_adjustments'], $c['data3']['modeling']['ie_adjustment']); pp_v1531_mdp_strip($c);
     /* jumlah bahan bakar (rekomendasi LNG/liter berubah mengikuti IE) bukan bagian konteks basis; AKSI bahan bakar tetap bagian kunci */
     unset($c['data3']['modeling']['additional_lng'], $c['data3']['modeling']['distillate_user_limit_litres'], $c['data3']['modeling']['__fuel_decision_mode']);
     /* V15.17 §6: actual_gas_hash dipisah dari structural_hash — Actual PGN / Fixed Flow JBBK / MM2100 bukan bagian kunci basis */
@@ -4116,7 +4129,7 @@ function pp_v1517_fix_map(array $clean): array { $o = []; foreach (pp_sp_user_fi
  * Mencakup PV/SR, gas quota, Fixed Flow plan, commitment, Required, Start/Stop, SC/CC, availability/trip, Unit Priority,
  * Change Over, karakteristik unit. Tidak mencakup Actual Gas, label/meta, jumlah bahan bakar, metadata request. */
 function pp_v1522_struct_hash(array $clean): string {
-    $c = $clean;
+    $c = $clean; pp_v1531_mdp_strip($c);
     unset($c['data3']['modeling']['additional_lng'], $c['data3']['modeling']['distillate_user_limit_litres'], $c['data3']['modeling']['__fuel_decision_mode']);
     unset($c['data3']['modeling']['actual_pgn_total'], $c['data3']['modeling']['actual_energy_jababeka'], $c['data3']['modeling']['actual_energy_mm2100']);
     if (isset($c['data3']['modeling']) && is_array($c['data3']['modeling'])) pp_v3_strip_meta($c['data3']['modeling']);
@@ -11381,6 +11394,13 @@ if (json_last_error() !== JSON_ERROR_NONE) pp_fail(400, 'Invalid JSON: ' . json_
 
 /* ---- structural validation (reject anything that would corrupt the file) -- */
 if (!is_array($input)) pp_fail(400, 'Body must be a JSON object.');
+/* V15.31 Monitoring Actual Gas: snapshot kumulatif -> array engine (resolver kanonik tunggal); row Time Passed = Y terkunci di backend
+ * (termasuk Actual Gas) untuk request di luar UI. Tanpa snapshot (data lama) tidak ada perubahan. */
+if (function_exists('pp_actual_gas_apply_snapshots')) {
+    if (in_array((string)($_GET['mode'] ?? ''), ['run', 'save', 'ag_precheck'], true) && function_exists('sds_ctx') && function_exists('sds_latest_input') && (string)getenv('PP_V1531_TP_LOCK') !== '0') {
+        $uidL = (string)(sds_ctx($input)['uid'] ?? ''); $lv = $uidL !== '' ? pp_actual_gas_lock_violations(sds_latest_input($uidL), $input) : [];
+        if ($lv) pp_fail(409, 'Row TIME PASSED = Y terkunci (termasuk Actual Gas): ' . count($lv) . ' perubahan ditolak. Set TIME PASSED = N lebih dulu.', ['code' => 'TIME_PASSED_LOCKED', 'violations' => array_slice($lv, 0, 12)]); }
+    pp_actual_gas_apply_snapshots($input); }
 if (empty($input['data1']) || !is_array($input['data1'])) pp_fail(400, 'data1 (IE rows) is missing or empty.');
 if (empty($input['data2']) || !is_array($input['data2'])) pp_fail(400, 'data2 (dispatch rows) is missing or empty.');
 if (empty($input['data3']) || !is_array($input['data3'])) pp_fail(400, 'data3 is missing.');
@@ -11630,7 +11650,8 @@ if (($_GET['mode'] ?? '') === 'ag_precheck') {
     echo json_encode(['ok' => true, 'incumbent' => $okPC, 'structural_hash' => $kPC,
         'current_structural_hash' => $shPC, 'final_incumbent_structural_hash' => $shB !== '' ? $shB : null, 'structural_match' => $okPC && $shB !== '' && hash_equals($shB, $shPC),
         'basis_at' => $okPC && isset($BPC['at']) ? gmdate('c', (int)$BPC['at']) : null,
-        'basis_cp' => $okPC ? ($BPC['cp'] ?? null) : null, 'scope' => $GLOBALS['ppJobOwnerUid'] !== '' ? 'user' : 'anonymous'], JSON_UNESCAPED_SLASHES);
+        'basis_cp' => $okPC ? ($BPC['cp'] ?? null) : null, 'scope' => $GLOBALS['ppJobOwnerUid'] !== '' ? 'user' : 'anonymous',
+        'actual_canonical' => function_exists('pp_actual_gas_canonical') ? pp_actual_gas_canonical((array)($input['data3']['modeling'] ?? [])) : null], JSON_UNESCAPED_SLASHES);
     exit;
 }
 if (($_GET['mode'] ?? '') === 'save' && function_exists('sds_ctx') && sds_ctx($input)['uid'] !== '' && (string)getenv('PP_V1516_SCOPED_SAVE') !== '0') {
