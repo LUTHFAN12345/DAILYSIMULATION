@@ -3153,6 +3153,26 @@ function pp_sp_prof(string $k, float $t0, array $x = []): void {
  * disimpan dan dinyatakan INCONCLUSIVE_DEADLINE (tidak pernah menang). Registry: kunci = hash konteks kanonik (seluruh payload ternormalisasi
  * + sidik jari engine, pp_cs_key) + vektor kandidat + hash dispatch mentah + versi semantik -> kandidat yang sama tidak dihitung ulang. */
 function pp_sp_bundle_dir(): string { $d = pp_job_root() . DIRECTORY_SEPARATOR . '_spbundle'; if (!is_dir($d)) @mkdir($d, 0777, true); return $d; }
+/* V15.27 DUA TITIK AWAL TIGHTENING (category E, urutan local search): V8 yang diterima karena sedikit lebih ekonomis dapat menutup lintasan
+ * tightening yang jauh lebih ekonomis dari dispatch sebelum V8 (T017: V8 103,656 -> 103,312, tightening sesudahnya 101,584; tightening dari
+ * dispatch sebelum V8 99,216). Bila V8 mengubah dispatch, dispatch sebelum V8 juga di-tightening dan hasil yang lebih baik menurut comparator
+ * pencarian yang sama (pp_v1523_cmp) diteruskan. Dipakai jalur bundle Fastest dan jalur job (warm / Maximum Review). PP_V1527_TIGHT_PREV8=0 -> mati. */
+function pp_v1527_tighten_pre_v8(array $inputAsli, array $o, array $oPreV8, array $oPostV8, callable $clean): array {
+    if ((string)getenv('PP_V1527_TIGHT_PREV8') === '0' || json_encode(array_values((array)($oPreV8['data'] ?? []))) === json_encode(array_values((array)($oPostV8['data'] ?? [])))) return $o;
+    $tT2 = microtime(true); $oB = null; $tightA = $GLOBALS['ppV1523Tight'] ?? null;
+    try { $oB = pp_v1523_tighten($inputAsli, $oPreV8); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $oB = null; } pp_sp_prof('commitment_tightening_pre_v8', $tT2); $clean();
+    $dual = ['rule' => 'tightening dari dispatch sesudah V8 dan sebelum V8; yang lebih baik (pp_v1523_cmp) diteruskan', 'post_v8' => null, 'pre_v8' => null, 'selected' => 'POST_V8'];
+    if (is_array($oB) && count((array)($oB['data'] ?? [])) === 48) {
+        $orD = pp_v1523_orig($inputAsli); $KD = pp_v1523_classes($orD); $aA = pp_sp_assess($orD, $o); $clean(); $aB = pp_sp_assess($orD, $oB); $clean();
+        $mA = !empty($aA['valid']) ? pp_v1523_metrics($orD, $o, $KD) : null; $mB = !empty($aB['valid']) ? pp_v1523_metrics($orD, $oB, $KD) : null;
+        $dual['post_v8'] = $mA; $dual['pre_v8'] = $mB;
+        if ($mB !== null && ($mA === null || pp_v1523_cmp($mB, $mA) < 0)) {
+            foreach (['V8 Priority Review', 'Stop Family Evidence'] as $kD) if (isset($o['info'][$kD])) $oB['info'][$kD] = $o['info'][$kD];
+            $o = $oB; $tightA = $o['info']['Commitment Tightening'] ?? null; $dual['selected'] = 'PRE_V8'; } }
+    if (is_array($tightA)) $tightA['start_points'] = $dual;
+    $GLOBALS['ppV1523Tight'] = $tightA; if (is_array($tightA)) $o['info']['Commitment Tightening'] = $tightA;
+    return $o;
+}
 function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $oRaw, $cand): array {
     unset($GLOBALS['ppV1525BalActive']);   // V15.25: preferensi 2+2 hanya sesudah tahap Auto Balance menerapkannya pada job ini
     $plan = $GLOBALS['ppV1518StartupPlan'] ?? null; $ctx = $inputAsli; unset($ctx['harness_tag']);
@@ -3173,13 +3193,14 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
         $GLOBALS['ppSpBlockConsol'] = $svK; $clean();
         unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Tight2'], $GLOBALS['ppV1523Guard'], $GLOBALS['ppV1525Bal']);
         $GLOBALS['__pp_v8_job'] = $id; $GLOBALS['__pp_v8_fast_wall'] = min((float)(getenv('PP_V8_FAST_SAFETY_S') ?: $em), $em);
-        $oPre = $o; $tV = microtime(true); try { $o = pp_v8_priority_review($inputAsli, $o); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall']); pp_sp_prof('bundle_v8_priority_review', $tV); }
-        $clean(); $o = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPre, $o);
+        $oPre = $o; $oPreV8 = $o; $tV = microtime(true); try { $o = pp_v8_priority_review($inputAsli, $o); } finally { unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall']); pp_sp_prof('bundle_v8_priority_review', $tV); }
+        $clean(); $o = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPre, $o); $oPostV8 = $o;
         foreach ((array)(($o['info']['V8 Priority Review'] ?? [])['final_candidates'] ?? []) as $vc) if (strpos(json_encode($vc), 'BATAS_WAKTU_REVIEW') !== false) { $emHit[] = 'V8'; break; }
         if (!empty(($o['info']['V8 Priority Review'] ?? [])['truncated'])) $emHit[] = 'V8';
         $clean(); $oPre = $o; $tV = microtime(true); try { $o = pp_v1518_family_evidence($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_family_evidence', $tV);
         $clean(); $o = pp_v1523_stage_guard('FAMILY_STOP_HOLD', $inputAsli, $oPre, $o);
-        $clean(); $tT = microtime(true); try { $o = pp_v1523_tighten($inputAsli, $o); $GLOBALS['ppV1523Tight'] = $o['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tT); $clean(); $tB2 = microtime(true); try { $o = pp_v1525_balance_2x2($inputAsli, $o); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Block Balance 2x2'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('block_balance_2x2', $tB2);
+        $clean(); $tT = microtime(true); try { $o = pp_v1523_tighten($inputAsli, $o); $GLOBALS['ppV1523Tight'] = $o['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tT); $clean();
+        $o = pp_v1527_tighten_pre_v8($inputAsli, $o, $oPreV8, $oPostV8, $clean); $tB2 = microtime(true); try { $o = pp_v1525_balance_2x2($inputAsli, $o); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $o['info']['Block Balance 2x2'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('block_balance_2x2', $tB2);
         $clean(); $oPre = $o; $tV = microtime(true); try { $o = pp_v15_fast_priority_fix($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_priority_fix', $tV);
         $clean(); $o = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPre, $o);
         $clean(); $tV = microtime(true); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_proof_completion', $tV);
@@ -5304,11 +5325,12 @@ function pp_job_run_economic_review_v1524(string $id, array $input): array {
             $GLOBALS['ppIeWarmInfo']['v8_wall_s'] = round($GLOBALS['__pp_v8_fast_wall'], 3); $GLOBALS['ppIeWarmInfo']['target_s'] = $tgtW; }
         if ($fastJ && ($lvA = pp_v1521_adj_left()) !== null) $GLOBALS['__pp_v8_fast_wall'] = min((float)($GLOBALS['__pp_v8_fast_wall'] ?? 45.0), max(1.0, $lvA));   // V15.21: sisa anggaran adjustment
         unset($GLOBALS['ppV1523Tight'], $GLOBALS['ppV1523Guard'], $GLOBALS['ppV1525Bal']);
-        $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v8_priority_review($inputAsli, $output); $output = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPreJ, $output); } finally { pp_sp_prof('v8_priority_review', $tSp); unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall'], $GLOBALS['ppIeWarmV8Cap']); }
+        $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v8_priority_review($inputAsli, $output); $output = pp_v1523_stage_guard('V8_PRIORITY_REVIEW', $inputAsli, $oPreJ, $output); $oPostJ = $output; } finally { pp_sp_prof('v8_priority_review', $tSp); unset($GLOBALS['__pp_v8_job'], $GLOBALS['__pp_v8_fast_wall'], $GLOBALS['__pp_v8_max_wall'], $GLOBALS['ppIeWarmV8Cap']); }
         if (function_exists('pp_v1518_family_evidence')) { pp_job_progress($id, 'FAMILY_STOP_ATAU_HOLD', 75.0); $tSp = microtime(true); try { $output = pp_v1518_family_evidence($inputAsli, $output, microtime(true) + (($lvF = pp_v1521_adj_left()) !== null ? max(1.0, min(30.0, $lvF)) : 30.0)); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('family_evidence', $tSp); }
         /* V15.15: setiap rencana final job (Fastest dan Maximum Review) wajib C1-C4 FAIL = 0: temuan Unit Priority tanpa alasan diselesaikan
          * atau dibuktikan numerik (pass yang sama). */
         if (empty($GLOBALS['__pp_ie_warm_done'])) { $tSp = microtime(true); try { $output = pp_v1523_tighten($inputAsli, $output); $GLOBALS['ppV1523Tight'] = $output['info']['Commitment Tightening'] ?? null; } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $output['info']['Commitment Tightening'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('commitment_tightening', $tSp);
+            if (isset($oPostJ)) $output = pp_v1527_tighten_pre_v8($inputAsli, $output, $oPreJ, $oPostJ, function () { pp_tl_clean_globals(); if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); });
             $tSp = microtime(true); try { $output = pp_v1525_balance_2x2($inputAsli, $output); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $output['info']['Block Balance 2x2'] = ['status' => 'ERROR', 'error' => $e->getMessage()]; } pp_sp_prof('block_balance_2x2', $tSp); }
         pp_job_progress($id, 'PERBAIKAN_UNIT_PRIORITY_C1_C4', 80.0);
         $tSp = microtime(true); $oPreJ = $output; try { $output = pp_v15_fast_priority_fix($inputAsli, $output, microtime(true) + 30.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} $output = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPreJ, $output); pp_sp_prof('priority_fix', $tSp);
