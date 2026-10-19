@@ -1,4 +1,40 @@
-# REPORT RECOVERY — V15.29 RC
+# REPORT RECOVERY — V15.30 (root cause CP dan runtime)
+
+## CP root cause (lineage trace / replay; dump per panggilan tightening, replay offline V15.25 vs V15.30)
+| test | titik pertama kandidat V15.25 hilang | file / fungsi / caller | alasan | fix generik |
+|---|---|---|---|---|
+| T017 | titik awal tightening | `run.php` `pp_v1527_tighten_pre_v8` <- `pp_sp_final_bundle` | lintasan V15.25 = dispatch sebelum V8 + urutan prioritas; V15.27 hanya urutan prioritas dari dispatch sesudah V8 | titik awal PRE_V8_PRIO_ORDER |
+| T115 | cache evaluasi tightening | `run.php` `pp_v1523_tighten` (`$GLOBALS['ppV1527TCache']`) | kunci = signature commitment saja, padahal evaluasi = redispatch jendela lokal terhadap dispatch incumbent ronde; run urutan prioritas memakai hasil lintasan ekonomi (bukti: sharing mati -> 99,4146 = V15.25) | kunci = signature + hash dispatch incumbent + jenis evaluasi; cache lokal per run (semantik V15.25) |
+| T174 | pemilihan titik awal | `run.php` `pp_v1527_tighten_pre_v8` (score) | dinilai pada CP sesudah Unit Priority Fix (tahap antara), bukan objective final; tightening/2+2/Unit Priority Fix identik V15.25 (replay 97,8302 -> 95,9327), closure menurunkan lintasan lain lebih jauh | rantai final (pelengkap bukti + bukti event/closure) untuk kandidat dalam band 1 %; hasil pemenang dipakai ulang bundle; dedup dispatch identik |
+| T046 (=T057/T199/T202) | Block Consolidation | `run.php` `pp_sp_block_consolidation` <- `pp_sp_final_bundle` | alternatif s2:ONLY_G5 kini valid (fallback V15.26) dan lebih murah (78,29 vs 81,27); lintasan V15.25 = V8 pada incumbent (81,27 -> 74,86) lalu tightening; commitment final sama, dispatch berbeda row 13–31 (row di luar jendela terkunci pada dispatch lintasan) | BELUM: titik awal sebelum konsolidasi tanpa V8 diuji (73,82 / 76,35) dan dibuang; meniru lintasan butuh V8 tambahan (+10–30 s per kasus) |
+| T136 | Actual Gas warm (dibekukan) | — | basis A0 berbeda (V15.25 93,4567, sekarang 93,0321) | tidak disentuh |
+
+## Hasil targeted (PHP 7.4.33, 1 CPU per run, 4 run paralel; seluruh hasil valid: assess valid, 0 pelanggaran hard, Priority Invariants PASS)
+| test | V15.25 CP / s | V15.29 CP | V15.30 CP / s |
+|---|---|---|---|
+| T017 | 97,2551 / 34,8 | 97,5898 | **97,2551** / 88,4 |
+| T115 | 99,4146 / 46,2 | 99,4367 | **90,2185** / 89,6 (Distillate 261 395 -> 178 223 l; start G9 row 10) |
+| T174 | 94,905 / 89,8 | 95,1197 | **94,2979** / 163,6* (HR 8506,0 vs 8485,7; CP lebih rendah di luar band) |
+| T046 | 71,8566 / 18,2 | 72,004 | 72,004 / 85,6* (belum) |
+| T236 | — | 68,294 / 0 l / 144,9 | 68,294 / 0 l / 140,9 |
+| T118 / T121 | 93,1327 / 93,1548 | 92,9735 / 92,7266 | 92,9735 / 92,7266 (108,7 / 115,1 s; V15.28 72–82 / 89–102 s) |
+| A0 | 93,4567 / 48,2 | 93,0321 / 54,2 | 93,0321 / 76,0 |
+| A1 gas-cukup | 68,4413 / 113 | 68,294 / 136 | 68,294 / 166* |
+| Fix Load (warm g2 r20=25) | 92,8227 / 30,4 | 92,8227 / 61,7 | 92,8227 / 61,0 |
+(* run dengan titik awal pra-konsolidasi yang kemudian dibuang — waktu final source lebih rendah, belum diukur ulang.)
+
+## Runtime root cause (counter simulasi core identik, `harness/v1530/instr.py`; `evidence/simprof_*.txt`)
+Simulasi core = ~90 % runtime; tidak ada input simulasi duplikat (memo once bekerja). Biaya tambahan terbesar vs V15.25:
+1. Gas-cukup A1 / gas-only T236: `pp_sp_block_consolidation` -> `consol_run_fallback` (V15.26): 194 sim / 57,6 s; fallback NO_ADDITIONAL_PEER 96 sim / 29,7 s tidak valid (no-op). A1 393 -> 497 sim.
+2. Fix Load: `PP_V1527_FIX_COLD` (review penuh dingin) + titik awal tightening `pp_v1527_tighten_pre_v8` 110 sim / 24,5 s (30,4 -> 61 s; CP sama).
+3. Cold: titik awal tightening ganda + scoring Unit Priority Fix per kandidat (T017 +31,7 s; T118 pre_v8 18,6 s + score 36,9 s); V15.30 menambah run urutan prioritas yang kini evaluasi nyata (sebelumnya hit cache tercemar, A0 0,16 -> 13,7 s) dan rantai closure kandidat kalah (A0 7,8 s).
+Per simulasi: profil Xdebug (PHP 8, relatif) — `pp_shape_final_dispatch`, `pp_recompute_stgs` (23 752 panggilan, sudah dimemoisasi), closure `worker_functions.php:12187`.
+
+## Limitation
+Gate runtime GAGAL (seluruh kasus lebih lambat dari V15.25; V15.30 menambah biaya demi CP). T046 kelompok belum. Full matrix, Actual Gas suite dan Maximum Review
+tidak diuji ulang pada V15.30 (path tightening/bundle berubah -> wajib sebelum FINAL). Tidak ada ZIP V15.30.
+
+# Riwayat V15.29 RC
 
 ## V15.29 (sprint ini)
 | item | V15.28 | V15.29 |

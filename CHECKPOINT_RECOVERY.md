@@ -1,4 +1,14 @@
-# CHECKPOINT RECOVERY — V15.29 RC (basis V15.28 `0da0397`; riwayat V15.28 di bawah)
+# CHECKPOINT RECOVERY — V15.30 RC (root cause CP & runtime; basis V15.29 `52c0b4b`; riwayat di bawah)
+
+## V15.30 (belum dipaketkan — targeted CP lulus, gate runtime GAGAL)
+- Engine build `V15.30-RC-ROOTCAUSE-CP-20261019`; file berubah: `run.php` saja (`pp_v1527_tighten_pre_v8`, `pp_v1523_tighten`, `pp_sp_final_bundle`).
+- Fix CP generik (flag rollback): `PP_V1530_PREV8_INV=0` (titik awal urutan prioritas dari dispatch sebelum V8), `PP_V1530_TCACHE_KEY=0`
+  (kunci cache tightening bersama = signature saja, V15.27), `PP_V1530_SP_FINAL=0` (titik awal dinilai sesudah Unit Priority Fix, V15.27),
+  `PP_V1530_SP_BAND` (band rantai final, default 0,01). Diagnostik: `PP_V1530_TCACHE_SHARE=0`, `PP_V1523_DUMP=<prefix>` (dump per panggilan).
+- Hasil targeted: lihat REPORT_RECOVERY.md dan `harness/v1530/evidence/targeted.json`. Tidak ada ZIP baru (gate runtime belum lulus).
+- Belum: T046 kelompok (lineage V15.25 = V8 pada incumbent sebelum konsolidasi), seluruh target runtime, full matrix.
+
+# Riwayat V15.29 RC (basis V15.28 `0da0397`; riwayat V15.28 di bawah)
 
 ## V15.29
 - Engine build `V15.29-RC-GASONLY-FIRST-20261019`; file berubah: `run.php` (`pp_job_run_economic_review_v1524` saja).

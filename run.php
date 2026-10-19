@@ -461,7 +461,7 @@ function pp_job_dir(string $id): string { return pp_job_root() . '/' . $id; }
 const PP_SYNC_CLOSING_RESERVE_S = 6.0;
 /* V13.4 deployment identity. Simulation logic is unchanged; this invalidates stale jobs/memo
  * produced by prior failed Change Over builds. */
-const PP_ENGINE_BUILD_ID = 'V15.29-RC-GASONLY-FIRST-20261019';
+const PP_ENGINE_BUILD_ID = 'V15.30-RC-ROOTCAUSE-CP-20261019';
 
 function pp_job_kinds(): array { return ['economic_review', 'validated_options', 'legal_branch_exact', 'validated_option_distillate']; }
 /* Identitas job = kind + hash input BERSIH. Dua request identik memakai job yang sama
@@ -3198,9 +3198,18 @@ function pp_v1527_tighten_pre_v8(array $inputAsli, array $o, array $oPreV8, arra
         $tT2 = microtime(true); $oB = null;
         try { $oB = pp_v1523_tighten($inputAsli, $oPreV8); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $oB = null; } pp_sp_prof('commitment_tightening_pre_v8', $tT2); $clean();
         if (is_array($oB) && count((array)($oB['data'] ?? [])) === 48) { foreach (['V8 Priority Review', 'Stop Family Evidence'] as $kD) if (isset($o['info'][$kD])) $oB['info'][$kD] = $o['info'][$kD];
-            $cands['PRE_V8'] = $oB; $tight['PRE_V8'] = $oB['info']['Commitment Tightening'] ?? null; } }
+            $cands['PRE_V8'] = $oB; $tight['PRE_V8'] = $oB['info']['Commitment Tightening'] ?? null; }
+        /* V15.30: urutan prioritas juga dari titik awal sebelum V8 (lintasan V15.25 = V8 tidak mengubah dispatch + urutan prioritas-dulu;
+         * T017/T046/T174: kandidat ekonomis itu hanya tercapai dari dispatch sebelum V8). Cache evaluasi dibagi dengan PRE_V8 (baseline sama). */
+        if ((string)getenv('PP_V1527_TIGHT_INV') !== '0' && (string)getenv('PP_V1530_PREV8_INV') !== '0') {
+            $tI2 = microtime(true); $oBI = null; $GLOBALS['ppV1527InvSearch'] = true;
+            try { $oBI = pp_v1523_tighten($inputAsli, $oPreV8); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $oBI = null; } finally { unset($GLOBALS['ppV1527InvSearch']); }
+            pp_sp_prof('commitment_tightening_pre_v8_prio_order', $tI2); $clean();
+            if (is_array($oBI) && count((array)($oBI['data'] ?? [])) === 48 && !array_filter($cands, fn($c) => json_encode($c['data'] ?? null) === json_encode($oBI['data']))) {
+                foreach (['V8 Priority Review', 'Stop Family Evidence'] as $kD) if (isset($o['info'][$kD])) $oBI['info'][$kD] = $o['info'][$kD];
+                $cands['PRE_V8_PRIO_ORDER'] = $oBI; $tight['PRE_V8_PRIO_ORDER'] = $oBI['info']['Commitment Tightening'] ?? null; } } }
     if (count($cands) < 2) return $o;
-    $tS = microtime(true); $orD = pp_v1523_orig($inputAsli); $KD = pp_v1523_classes($orD); $rec = []; $best = null; $bestM = null;
+    $tS = microtime(true); $orD = pp_v1523_orig($inputAsli); $KD = pp_v1523_classes($orD); $rec = []; $best = null; $bestM = null; $scored = []; unset($GLOBALS['ppV1530ChainMemo']);
     foreach ($cands as $id => $c) {
         $aC = pp_sp_assess($orD, $c); $clean(); if (empty($aC['valid'])) { $rec[$id] = ['valid' => false]; continue; }
         /* rantai tahap berikutnya yang sama: 2+2 sebelum 3+1 (bila ada baris 3+1 otomatis) lalu Unit Priority Fix */
@@ -3211,8 +3220,25 @@ function pp_v1527_tighten_pre_v8(array $inputAsli, array $o, array $oPreV8, arra
         $mT = pp_v1523_metrics($orD, $c, $KD); $mF = pp_v1523_metrics($orD, $use, $KD);
         if (pp_v1523_cmp($mF, $mT) > 0) { $mF = $mT; $use = $c; }   // sama dengan stage guard UNIT_PRIORITY_FIX
         $rec[$id] = ['valid' => true, 'econ_cp_after_tightening' => $mT['econ_cp'], 'econ_cp_after_priority_fix' => $mF['econ_cp'], 'inv_after_priority_fix' => $mF['inv']];
-        if ($bestM === null || pp_v1523_cmp($mF, $bestM) < 0) { $best = $id; $bestM = $mF; $GLOBALS['ppV1527FixMemo'] = ['key' => md5(json_encode($c['data'])) . md5(json_encode($inputAsli)), 'out' => $f];
-            $GLOBALS['ppV1527BalMemo'] = ['key' => md5(json_encode($c2['data'])) . md5(json_encode($inputAsli)), 'out' => $bq, 'bal' => $balQ]; } }
+        $scored[$id] = ['mF' => $mF, 'use' => $use, 'f' => $f, 'c' => $c, 'c2' => $c2, 'bq' => $bq, 'bal' => $balQ]; }
+    /* V15.30 (root cause T174): titik awal dinilai pada objective FINAL — rantai tahap berikutnya yang sama dengan bundle (pelengkap bukti C4 lalu
+     * bukti event + closure) dijalankan pada setiap kandidat valid yang CP ekonominya sesudah Unit Priority Fix berada dalam band PP_V1530_SP_BAND
+     * (default 1 %) dari yang terbaik; T174: lintasan urutan prioritas 95,93 sesudah Unit Priority Fix tetapi 95,34 sesudah closure (< 95,55).
+     * Hasil rantai pemenang dipakai ulang bundle (fungsi deterministik dispatch -> hasil). PP_V1530_SP_FINAL=0 -> nilai sesudah Unit Priority Fix (V15.27). */
+    $bestF = null; foreach ($scored as $sc) if ($bestF === null || $sc['mF']['econ_cp'] < $bestF) $bestF = $sc['mF']['econ_cp'];
+    $band = (float)(getenv('PP_V1530_SP_BAND') ?: 0.01); $fin = (string)getenv('PP_V1530_SP_FINAL') !== '0' && count($scored) > 1; $chain = [];
+    $chainBy = [];
+    foreach ($scored as $id => $sc) { $mS = $sc['mF']; $hU = md5(json_encode($sc['use']['data'] ?? null));
+        if ($fin && isset($chainBy[$hU])) { [$mS, $pD] = $chainBy[$hU]; if (is_array($pD)) $chain[$id] = $pD; $rec[$id]['final_chain_reused'] = true; }   // dispatch identik -> rantai identik
+        elseif ($fin && $sc['mF']['econ_cp'] <= $bestF * (1.0 + $band)) { $p = $sc['use']; $tC = microtime(true);
+            try { $p = pp_sp_proof_completion($inputAsli, $p, microtime(true) + 600.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} $clean();
+            try { $p = pp_v1524_event_closure($inputAsli, $p, 600.0); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) { $p = null; } $clean();
+            if (is_array($p) && count((array)($p['data'] ?? [])) === 48) { $aP = pp_sp_assess($orD, $p); $clean();
+                if (!empty($aP['valid'])) { $mS = pp_v1523_metrics($orD, $p, $KD); $chain[$id] = $p; $rec[$id]['econ_cp_final_chain'] = $mS['econ_cp']; $rec[$id]['inv_final_chain'] = $mS['inv']; } }
+            $rec[$id]['final_chain_s'] = round(microtime(true) - $tC, 2); $chainBy[$hU] = [$mS, $chain[$id] ?? null]; }
+        if ($bestM === null || pp_v1523_cmp($mS, $bestM) < 0) { $best = $id; $bestM = $mS; $GLOBALS['ppV1527FixMemo'] = ['key' => md5(json_encode($sc['c']['data'])) . md5(json_encode($inputAsli)), 'out' => $sc['f']];
+            $GLOBALS['ppV1527BalMemo'] = ['key' => md5(json_encode($sc['c2']['data'])) . md5(json_encode($inputAsli)), 'out' => $sc['bq'], 'bal' => $sc['bal']];
+            if (isset($chain[$id])) $GLOBALS['ppV1530ChainMemo'] = ['key' => md5(json_encode($sc['use']['data'])) . md5(json_encode($inputAsli)), 'out' => $chain[$id]]; else unset($GLOBALS['ppV1530ChainMemo']); } }
     unset($GLOBALS['ppV1525Bal'], $GLOBALS['ppV1525BalActive']);
     pp_sp_prof('tightening_start_points_score', $tS);
     if ($best === null) return $o;
@@ -3253,12 +3279,15 @@ function pp_sp_final_bundle(string $id, array $inputAsli, array $input, array $o
         if (is_array($fxM) && $fxM['key'] === md5(json_encode($o['data'] ?? null)) . md5(json_encode($inputAsli)) && is_array($fxM['out'] ?? null)) { $o = $fxM['out']; foreach ((array)($oPre['info'] ?? []) as $kM => $vM) if (!array_key_exists($kM, (array)($o['info'] ?? []))) $o['info'][$kM] = $vM; }
         else { try { $o = pp_v15_fast_priority_fix($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} } pp_sp_prof('bundle_priority_fix', $tV);
         $clean(); $o = pp_v1523_stage_guard('UNIT_PRIORITY_FIX', $inputAsli, $oPre, $o);
-        $clean(); $tV = microtime(true); try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} pp_sp_prof('bundle_proof_completion', $tV);
+        $chM = $GLOBALS['ppV1530ChainMemo'] ?? null; unset($GLOBALS['ppV1530ChainMemo']);
+        $chHit = is_array($chM) && $chM['key'] === md5(json_encode($o['data'] ?? null)) . md5(json_encode($inputAsli)) && is_array($chM['out'] ?? null);
+        if ($chHit) { $oC = $chM['out']; foreach ((array)($o['info'] ?? []) as $kM => $vM) if (!array_key_exists($kM, (array)($oC['info'] ?? []))) $oC['info'][$kM] = $vM; $o = $oC; }
+        $clean(); $tV = microtime(true); if (!$chHit) { try { $o = pp_sp_proof_completion($inputAsli, $o, microtime(true) + $em); } catch (PpJobAborted $e) { throw $e; } catch (Throwable $e) {} } pp_sp_prof('bundle_proof_completion', $tV);
         /* V15.24 BUKTI EVENT + PENUTUPAN PADA DISPATCH FINAL: Unit Priority Fix / pelengkap bukti sesudah Tightening dapat membuat tunda-start /
          * stop-lebih-awal / swap yang tadinya tidak valid menjadi valid. Uji bukti dijalankan pada dispatch FINAL; bila ada langkah VALID dan LEBIH
          * BAIK (comparator V15.24), langkah terbaik (deterministik: comparator + nama uji) diterapkan lewat stage guard, pelengkap bukti C4 diulang,
          * lalu bukti dihitung ulang — maks. PP_V1524_CLOSURE_MAX (3) iterasi. Seluruh langkah dicatat di 'closure'. */
-        $clean(); $o = pp_v1524_event_closure($inputAsli, $o, $em); $clean(); $o = pp_v1528_recore($inputAsli, $o, $clean);
+        $clean(); if (!$chHit) $o = pp_v1524_event_closure($inputAsli, $o, $em); $clean(); $o = pp_v1528_recore($inputAsli, $o, $clean);
         if (is_array($plan) && $cand !== null) $o['info']['Startup Timing Proof'] = pp_v1518_startup_proof($plan['plan'], $cand, $o, $plan['tried']);
         if (is_array($consol)) $o['info']['Block Consolidation Review'] = $consol;
         if (is_array($GLOBALS['ppV1523Tight'] ?? null)) $o['info']['Commitment Tightening'] = $GLOBALS['ppV1523Tight'];
@@ -9231,7 +9260,7 @@ function pp_v1525_balance_2x2(array $input, array $out): array {
     return $W;
 }
 function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
-    if (($dump = (string)getenv('PP_V1523_DUMP')) !== '') @file_put_contents($dump, json_encode(['input' => $input, 'out' => $out]));   // harness
+    if (($dump = (string)getenv('PP_V1523_DUMP')) !== '') { $GLOBALS['ppV1523DumpN'] = ($GLOBALS['ppV1523DumpN'] ?? 0) + 1; @file_put_contents($dump . '.' . $GLOBALS['ppV1523DumpN'], json_encode(['input' => $input, 'out' => $out, 'inv' => !empty($GLOBALS['ppV1527InvSearch']), 'g' => array_filter($GLOBALS, fn($k) => is_string($k) && preg_match('/^(ppV15|__pp_)/', $k), ARRAY_FILTER_USE_KEY)], JSON_PARTIAL_OUTPUT_ON_ERROR)); }   // harness
     if ((string)getenv('PP_V1523_TIGHTEN') === '0' || count((array)($out['data'] ?? [])) !== 48 || !function_exists('pp_tl_land_commitment')) return $out;
     $t0 = microtime(true); $orig = pp_v1523_orig($input); $m = (array)$orig['data3']['modeling']; $d3 = (array)$orig['data3'];
     if (!empty($m['change_over']['enabled'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'CHANGE_OVER']; return $out; }
@@ -9241,8 +9270,13 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
     $restore = function () use ($saved) { pp_tl_clean_globals(); foreach ($saved as $gk => $gv) $GLOBALS[$gk] = $gv; if (function_exists('pp_v1518_stg_memo_reset')) pp_v1518_stg_memo_reset(); };
     /* V15.27: dua titik awal tightening pada baseline yang sama (urutan ekonomi & urutan prioritas) berbagi cache evaluasi commitment yang sama
      * (semantik cache lintas ronde yang sudah berlaku di dalam satu tightening); ronde pertama start kedua tidak dievaluasi ulang. */
-    if ((string)getenv('PP_V1527_TIGHT_INV') !== '0') { $ck = md5(json_encode([$input['data3'] ?? null, $input['data'] ?? null, array_values((array)$out['data'])]));
-        $cache = &$GLOBALS['ppV1527TCache'][$ck]; if (!is_array($cache)) $cache = []; } else $cache = [];
+    /* V15.30 (root cause T115): evaluasi kandidat = redispatch jendela lokal terhadap dispatch incumbent ronde ($W), sehingga kunci signature
+     * commitment saja tidak lengkap untuk berbagi lintas tightening (lintasan lain = incumbent lain). Cache lokal per tightening tetap
+     * (semantik V15.25); berbagi lintas titik awal hanya bila signature + dispatch incumbent + jenis evaluasi identik. PP_V1530_TCACHE_KEY=0 -> V15.27. */
+    $cache = []; $shr = null; $wKey = (string)getenv('PP_V1530_TCACHE_KEY') !== '0';
+    if ((string)getenv('PP_V1527_TIGHT_INV') !== '0' && (string)getenv('PP_V1530_TCACHE_SHARE') !== '0') { $ck = md5(json_encode([$input['data3'] ?? null, $input['data'] ?? null, array_values((array)$out['data'])]));
+        if ($wKey) { $shr = &$GLOBALS['ppV1527TCache'][$ck]; if (!is_array($shr)) $shr = []; }
+        else { $cache = &$GLOBALS['ppV1527TCache'][$ck]; if (!is_array($cache)) $cache = []; } }
     $nEval = 0; $nHit = 0; $log = [];
     $restore(); $aW = pp_sp_assess($orig, $out); $restore();
     if (empty($aW['valid'])) { $out['info']['Commitment Tightening'] = ['status' => 'SKIPPED', 'reason' => 'INCUMBENT_TIDAK_VALID', 'failed_checks' => array_keys(array_filter((array)($aW['checks'] ?? []), fn($x) => $x === false))]; return $out; }
@@ -9260,9 +9294,11 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
      * Bukti (proof) selalu evaluasi segar. PP_V1524_REUSE=0 -> evaluasi penuh setiap ronde. */
     $bGen = 0; $bHist = []; $dmap = []; $nReuse = 0; $reuse = (string)getenv('PP_V1524_REUSE') !== '0';
     $pcache = []; $nBound = 0;
-    $ev = function (array $X, bool $proof = false, bool $compound = false, bool $bound = true) use (&$cache, &$pcache, &$nBound, &$nEval, &$nHit, &$W, &$XW, &$mW, $cap, $proofCap, $dl, $orig, $K, $restore, &$truncated, &$bGen, &$bHist, &$dmap, &$nReuse, $reuse) {
+    $ev = function (array $X, bool $proof = false, bool $compound = false, bool $bound = true) use (&$cache, &$shr, &$pcache, &$nBound, &$nEval, &$nHit, &$W, &$XW, &$mW, $cap, $proofCap, $dl, $orig, $K, $restore, &$truncated, &$bGen, &$bHist, &$dmap, &$nReuse, $reuse) {
         $sig = pp_v3_sig(pp_v8_stops($X));
         if (isset($cache[$sig])) { $nHit++; return $cache[$sig]; }
+        $skey = is_array($shr) ? $sig . '|' . md5(json_encode($W['data'] ?? null)) . '|' . (int)$proof . (int)$compound . (int)$bound : null;
+        if ($skey !== null && isset($shr[$skey])) { $nHit++; return $cache[$sig] = $shr[$skey]; }
         /* V15.25 prescreen batas atas kapasitas Export (sound, tanpa simulasi); bukti & jalur BACKFILL (butuh row defisit simulasi) dikecualikan */
         if ($bound && !$proof) { if (!array_key_exists($sig, $pcache)) { $cb = pp_v1525_cap_bound($orig, $W, $X);
                 $pcache[$sig] = $cb ? ['o' => null, 'valid' => false, 'met' => null, 'attempts' => [], 'cap_bound' => $cb,
@@ -9285,6 +9321,7 @@ function pp_v1523_tighten(array $input, array $out, array $opt = []): array {
         $na = count((array)($res['attempts'] ?? [])); $GLOBALS['ppV1524AttStat'][!empty($res['valid']) ? 'valid_at_' . $na : 'invalid_after_' . $na] = ($GLOBALS['ppV1524AttStat'][!empty($res['valid']) ? 'valid_at_' . $na : 'invalid_after_' . $na] ?? 0) + 1;
         if (is_array($res) && !$proof) { $lo = 48; $hi = 1; foreach ((array)($res['attempts'] ?? []) as $at) { $lo = min($lo, (int)$at['window'][0]); $hi = max($hi, (int)$at['window'][1]); }
             $dmap[$dk] = ['gen' => $bGen, 'lo' => $lo, 'hi' => $hi, 'R' => $res, 'mW' => $mW]; }
+        if ($skey !== null) $shr[$skey] = $res;
         return $cache[$sig] = $res;
     };
     /* catat perubahan baseline (unit & row) -> dasar pemakaian ulang verdict */

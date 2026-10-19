@@ -1,0 +1,14 @@
+A sims 393 time 107.5 unique 363 dup 30 dup_time 8.7
+B sims 497 time 129.5 unique 485 dup 12 dup_time 1.7
+   +8.9s  n  24-> 53  t    9.3->  18.2  dupIn 0->0  pp_v13f_pipeline_run < pp_sp_cand_run < pp_sp_block_consolidation
+   +8.0s  n  31-> 62  t    8.1->  16.1  dupIn 0->0  pp_actual_gas_compensation_raw < pp_actual_gas_compensation < pp_v13f_pipeline_run
+   +3.3s  n  21-> 31  t    7.7->  11.1  dupIn 0->0  pp_v1518_isolated_core_inner < pp_v1518_isolated_core < pp_v13f_pipeline_run
+   +2.5s  n  44-> 54  t   15.1->  17.6  dupIn 26->0  pp_jbbk_quota_offset_search < pp_v13f_pipeline_run < pp_sp_cand_run
+   +1.6s  n  10-> 16  t    3.8->   5.3  dupIn 0->0  pp_v13f_pipeline_run < pp_sp_cand_run < pp_v13f_pipeline_core
+   +1.6s  n  28-> 36  t    7.7->   9.3  dupIn 0->0  pp_tl_eval_inner < pp_tl_land_commitment_one < pp_tl_land_commitment
+   +1.4s  n   0->  4  t    0.0->   1.4  dupIn 0->0  pp_sup_flat_lookahead < pp_actual_gas_compensation_raw < pp_actual_gas_compensation
+   +1.4s  n   8-> 24  t    0.9->   2.3  dupIn 0->0  pp_v3_frozen_eval < pp_v6_priority_polish < pp_v13f_pipeline_run
+   +0.9s  n  16-> 19  t    2.6->   3.5  dupIn 0->0  pp_v1523_local_eval < pp_v1524_event_proof < pp_v1524_event_closure
+   +0.8s  n   3-> 11  t    0.3->   1.0  dupIn 0->0  pp_v3_frozen_eval < pp_v15_fast_priority_fix_pass < pp_v15_fast_priority_fix_body
+   +0.7s  n  17-> 21  t    7.1->   7.8  dupIn 0->0  pp_v1518_isolated_core_inner < pp_v1518_isolated_core < pp_jbbk_quota_offset_search
+   +0.5s  n   1->  6  t    0.1->   0.6  dupIn 0->0  pp_v10_fz < pp_v10_review_eval < pp_v11_consolidation_sweep

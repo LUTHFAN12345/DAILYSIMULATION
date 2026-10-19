@@ -1,0 +1,14 @@
+A sims 182 time 43.9 unique 182 dup 0 dup_time 0.0
+B sims 195 time 49.5 unique 195 dup 0 dup_time 0.0
+   +2.5s  n   9-> 14  t    4.3->   6.8  dupIn 0->0  pp_v13f_pipeline_run < pp_sp_cand_run < pp_sp_block_consolidation
+   +1.6s  n  79-> 82  t   19.9->  21.5  dupIn 0->0  pp_v1523_local_eval < pp_v1523_tighten < pp_sp_final_bundle
+   +1.3s  n   8-> 11  t    3.3->   4.6  dupIn 0->0  pp_tl_eval_inner < pp_tl_land_commitment_one < pp_tl_land_commitment
+   +0.7s  n   2->  3  t    1.0->   1.7  dupIn 0->0  pp_export_minimization_two_phase < pp_v13f_pipeline_run < pp_sp_cand_run
+   +0.1s  n   0->  1  t    0.0->   0.1  dupIn 0->0  pp_v1523_local_eval < pp_v1523_tighten < pp_v1527_tighten_pre_v8
+   +0.1s  n   2->  2  t    0.2->   0.3  dupIn 0->0  pp_v10_fz < pp_v10_review_eval < pp_v11_consolidation_sweep
+   +0.0s  n   1->  1  t    0.1->   0.1  dupIn 0->0  pp_v3_frozen_eval < pp_v1523_fuel_assess < pp_v13f_pipeline_core
+   +0.0s  n   1->  1  t    0.1->   0.1  dupIn 0->0  pp_v10_fz < pp_v11_consolidate_eval < pp_v11_consolidation_sweep
+   +0.0s  n   6->  6  t    0.6->   0.6  dupIn 0->0  pp_v10_fz < pp_v10_land < pp_v11_consolidate_eval
+   -0.0s  n   2->  2  t    0.2->   0.2  dupIn 0->0  pp_v3_frozen_eval < pp_v15_fast_llf_trim < pp_v15_fast_priority_fix_body
+   -0.1s  n   2->  2  t    1.0->   0.9  dupIn 0->0  pp_v1518_isolated_core_inner < pp_v1518_isolated_core < pp_v13f_pipeline_run
+   -0.1s  n  10-> 10  t    0.9->   0.8  dupIn 0->0  pp_v3_frozen_eval < pp_v15_fast_priority_fix_pass < pp_v15_fast_priority_fix_body

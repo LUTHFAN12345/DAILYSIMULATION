@@ -1,0 +1,14 @@
+A sims 126 time 27.0 unique 126 dup 0 dup_time 0.0
+B sims 268 time 55.7 unique 268 dup 0 dup_time 0.0
+  +24.5s  n   0->110  t    0.0->  24.5  dupIn 0->0  pp_v1523_local_eval < pp_v1523_tighten < pp_v1527_tighten_pre_v8
+   +2.5s  n  12-> 18  t    4.7->   7.2  dupIn 0->0  pp_v13f_pipeline_run < pp_sp_cand_run < pp_sp_block_consolidation
+   +1.6s  n  12-> 32  t    1.0->   2.6  dupIn 0->0  pp_v3_frozen_eval < pp_v15_fast_priority_fix_pass < pp_v15_fast_priority_fix_body
+   +1.0s  n   8-> 16  t    0.9->   1.9  dupIn 0->0  pp_v3_frozen_eval < pp_v6_priority_polish < pp_v13f_pipeline_run
+   +0.5s  n   2->  3  t    0.9->   1.4  dupIn 0->0  pp_v1518_isolated_core_inner < pp_v1518_isolated_core < pp_v13f_pipeline_run
+   +0.5s  n   9-> 10  t    3.5->   4.0  dupIn 0->0  pp_tl_eval_inner < pp_tl_land_commitment_one < pp_tl_land_commitment
+   +0.3s  n   3->  7  t    0.3->   0.6  dupIn 0->0  pp_v3_frozen_eval < pp_v15_fast_llf_trim < pp_v15_fast_priority_fix_body
+   +0.3s  n   3->  4  t    1.2->   1.5  dupIn 0->0  pp_export_minimization_two_phase < pp_v13f_pipeline_run < pp_sp_cand_run
+   +0.2s  n   0->  1  t    0.0->   0.2  dupIn 0->0  pp_v1523_local_eval < pp_v1525_balance_2x2 < pp_v1527_tighten_pre_v8
+   +0.0s  n   2->  2  t    0.2->   0.3  dupIn 0->0  pp_v10_fz < pp_v10_review_eval < pp_v11_consolidation_sweep
+   -0.0s  n   8->  8  t    0.9->   0.9  dupIn 0->0  pp_v3_frozen_eval < pp_v6_priority_polish < pp_v8_priority_review
+   -0.0s  n   1->  1  t    0.1->   0.1  dupIn 0->0  pp_v10_fz < pp_v11_consolidate_eval < pp_v11_consolidation_sweep

@@ -1,0 +1,434 @@
+{
+ "T017": {
+  "v1525": {
+   "cp": 97.2551,
+   "hr": 8518.61,
+   "publish": true,
+   "wall_s": 34.75,
+   "distillate_l": 242096.6,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 97.2551,
+   "hr": 8518.61,
+   "publish": true,
+   "wall_s": 88.36,
+   "distillate_l": 242096.6,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 101.5841,
+      "econ_cp_after_priority_fix": 100.7459,
+      "inv_after_priority_fix": 48
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 99.3519,
+      "econ_cp_after_priority_fix": 98.065,
+      "inv_after_priority_fix": 52,
+      "econ_cp_final_chain": 98.065,
+      "inv_final_chain": 52,
+      "final_chain_s": 4.5
+     },
+     "PRE_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 99.2155,
+      "econ_cp_after_priority_fix": 97.7298,
+      "inv_after_priority_fix": 49,
+      "econ_cp_final_chain": 97.7298,
+      "inv_final_chain": 49,
+      "final_chain_s": 5.6
+     }
+    },
+    "selected": "PRE_V8_PRIO_ORDER"
+   }
+  }
+ },
+ "T115": {
+  "v1525": {
+   "cp": 99.4146,
+   "hr": 8543.02,
+   "publish": true,
+   "wall_s": 46.16,
+   "distillate_l": 261395.3,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 90.2185,
+   "hr": 8479.19,
+   "publish": true,
+   "wall_s": 89.61,
+   "distillate_l": 178222.6,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 100.892,
+      "econ_cp_after_priority_fix": 100.2617,
+      "inv_after_priority_fix": 18,
+      "econ_cp_final_chain": 90.6588,
+      "inv_final_chain": 17,
+      "final_chain_s": 21.35
+     },
+     "POST_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 100.618,
+      "econ_cp_after_priority_fix": 99.844,
+      "inv_after_priority_fix": 18,
+      "econ_cp_final_chain": 99.844,
+      "inv_final_chain": 18,
+      "final_chain_s": 4.56
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "T174": {
+  "v1525": {
+   "cp": 94.905,
+   "hr": 8485.71,
+   "publish": true,
+   "wall_s": 89.81,
+   "distillate_l": 222153.4,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 94.2979,
+   "hr": 8506,
+   "publish": true,
+   "wall_s": 163.59,
+   "distillate_l": 214674.1,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 96.7363,
+      "econ_cp_after_priority_fix": 95.5528,
+      "inv_after_priority_fix": 15,
+      "econ_cp_final_chain": 95.5528,
+      "inv_final_chain": 15,
+      "final_chain_s": 5.73
+     },
+     "POST_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 97.3225,
+      "econ_cp_after_priority_fix": 95.9327,
+      "inv_after_priority_fix": 23,
+      "econ_cp_final_chain": 95.9327,
+      "inv_final_chain": 23,
+      "final_chain_s": 6.27
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 95.9527,
+      "econ_cp_after_priority_fix": 95.9527,
+      "inv_after_priority_fix": 21,
+      "econ_cp_final_chain": 94.7334,
+      "inv_final_chain": 17,
+      "final_chain_s": 13.25
+     },
+     "PRE_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 98.9858,
+      "econ_cp_after_priority_fix": 98.9858,
+      "inv_after_priority_fix": 22
+     },
+     "PRE_CONSOL": {
+      "valid": true,
+      "econ_cp_after_tightening": 97.5215,
+      "econ_cp_after_priority_fix": 96.8218,
+      "inv_after_priority_fix": 25
+     },
+     "PRE_CONSOL_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 98.1358,
+      "econ_cp_after_priority_fix": 97.4139,
+      "inv_after_priority_fix": 24
+     }
+    },
+    "selected": "PRE_V8"
+   }
+  }
+ },
+ "T046": {
+  "v1525": {
+   "cp": 71.8566,
+   "hr": 8610.32,
+   "publish": true,
+   "wall_s": 18.18,
+   "distillate_l": 10592.4,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 72.004,
+   "hr": 8612.39,
+   "publish": true,
+   "wall_s": 85.61,
+   "distillate_l": 11630.9,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 73.1331,
+      "econ_cp_after_priority_fix": 72.4315,
+      "inv_after_priority_fix": 23,
+      "econ_cp_final_chain": 72.4315,
+      "inv_final_chain": 23,
+      "final_chain_s": 4.42
+     },
+     "POST_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 74.4701,
+      "econ_cp_after_priority_fix": 73.7622,
+      "inv_after_priority_fix": 21
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 73.1408,
+      "econ_cp_after_priority_fix": 72.4348,
+      "inv_after_priority_fix": 23,
+      "econ_cp_final_chain": 72.4348,
+      "inv_final_chain": 23,
+      "final_chain_s": 2.52
+     },
+     "PRE_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 74.4687,
+      "econ_cp_after_priority_fix": 73.7609,
+      "inv_after_priority_fix": 21
+     },
+     "PRE_CONSOL": {
+      "valid": true,
+      "econ_cp_after_tightening": 74.5376,
+      "econ_cp_after_priority_fix": 73.8192,
+      "inv_after_priority_fix": 27
+     },
+     "PRE_CONSOL_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 76.3519,
+      "econ_cp_after_priority_fix": 76.3519,
+      "inv_after_priority_fix": 9
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "T236": {
+  "v1525": null,
+  "v1530": {
+   "cp": 68.294,
+   "hr": 8396.51,
+   "publish": true,
+   "wall_s": 140.89,
+   "distillate_l": 0,
+   "start_points": null
+  }
+ },
+ "T118": {
+  "v1525": null,
+  "v1530": {
+   "cp": 92.9735,
+   "hr": 8501,
+   "publish": true,
+   "wall_s": 108.72,
+   "distillate_l": 202563.2,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 94.8728,
+      "econ_cp_after_priority_fix": 93.4543,
+      "inv_after_priority_fix": 23,
+      "econ_cp_final_chain": 93.4543,
+      "inv_final_chain": 23,
+      "final_chain_s": 7.15
+     },
+     "POST_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 94.9443,
+      "econ_cp_after_priority_fix": 93.6141,
+      "inv_after_priority_fix": 24,
+      "econ_cp_final_chain": 93.6141,
+      "inv_final_chain": 24,
+      "final_chain_s": 5.06
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 96.8169,
+      "econ_cp_after_priority_fix": 95.6665,
+      "inv_after_priority_fix": 39
+     },
+     "PRE_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 97.3624,
+      "econ_cp_after_priority_fix": 96.2722,
+      "inv_after_priority_fix": 38
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "T121": {
+  "v1525": null,
+  "v1530": {
+   "cp": 92.7266,
+   "hr": 8492.92,
+   "publish": true,
+   "wall_s": 115.06,
+   "distillate_l": 200705.2,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 95.2333,
+      "econ_cp_after_priority_fix": 94.2674,
+      "inv_after_priority_fix": 25,
+      "econ_cp_final_chain": 93.2075,
+      "inv_final_chain": 22,
+      "final_chain_s": 13.29
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 96.5335,
+      "econ_cp_after_priority_fix": 95.639,
+      "inv_after_priority_fix": 37
+     },
+     "PRE_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 96.7586,
+      "econ_cp_after_priority_fix": 95.8008,
+      "inv_after_priority_fix": 39
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "A0": {
+  "v1525": {
+   "cp": 93.4567,
+   "hr": 8481.93,
+   "publish": true,
+   "wall_s": 48.22,
+   "distillate_l": 208636.7,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 93.0321,
+   "hr": 8481.88,
+   "publish": true,
+   "wall_s": 76.01,
+   "distillate_l": 204606.1,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 94.5702,
+      "econ_cp_after_priority_fix": 93.4682,
+      "inv_after_priority_fix": 15,
+      "econ_cp_final_chain": 93.4682,
+      "inv_final_chain": 15,
+      "final_chain_s": 7.61
+     },
+     "POST_V8_PRIO_ORDER": {
+      "valid": true,
+      "econ_cp_after_tightening": 95.0575,
+      "econ_cp_after_priority_fix": 93.8921,
+      "inv_after_priority_fix": 15,
+      "econ_cp_final_chain": 93.8921,
+      "inv_final_chain": 15,
+      "final_chain_s": 7.84
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "A1": {
+  "v1525": {
+   "cp": 68.4413,
+   "hr": 8421.89,
+   "publish": true,
+   "wall_s": 113,
+   "distillate_l": 0,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 68.294,
+   "hr": 8396.51,
+   "publish": true,
+   "wall_s": 166.16,
+   "distillate_l": 0,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 68.7297,
+      "econ_cp_after_priority_fix": 68.7297,
+      "inv_after_priority_fix": 17,
+      "econ_cp_final_chain": 68.7297,
+      "inv_final_chain": 17,
+      "final_chain_s": 4.61
+     },
+     "PRE_CONSOL": {
+      "valid": true,
+      "econ_cp_after_tightening": 69.4652,
+      "econ_cp_after_priority_fix": 69.4498,
+      "inv_after_priority_fix": 36
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ },
+ "FixLoad": {
+  "v1525": {
+   "cp": 92.8227,
+   "hr": 8481.22,
+   "publish": true,
+   "wall_s": 30.38,
+   "distillate_l": 202483.8,
+   "start_points": null
+  },
+  "v1530": {
+   "cp": 92.8227,
+   "hr": 8481.22,
+   "publish": true,
+   "wall_s": 61,
+   "distillate_l": 202483.8,
+   "start_points": {
+    "rule": "kandidat tightening dinilai sesudah Unit Priority Fix dengan comparator ekonomi pp_v1523_cmp",
+    "candidates": {
+     "POST_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 94.5889,
+      "econ_cp_after_priority_fix": 93.2592,
+      "inv_after_priority_fix": 18,
+      "econ_cp_final_chain": 93.2592,
+      "inv_final_chain": 18,
+      "final_chain_s": 4.79
+     },
+     "PRE_V8": {
+      "valid": true,
+      "econ_cp_after_tightening": 95.8204,
+      "econ_cp_after_priority_fix": 94.2341,
+      "inv_after_priority_fix": 26
+     }
+    },
+    "selected": "POST_V8"
+   }
+  }
+ }
+}
