@@ -1,4 +1,21 @@
-# CHECKPOINT RECOVERY — V15.30 RC (root cause CP & runtime; basis V15.29 `52c0b4b`; riwayat di bawah)
+# CHECKPOINT RECOVERY — V15.31 (Monitoring Actual Gas kumulatif, Time Passed, dependency GTG–STG; basis V15.30 `1d3f4e9`)
+
+## V15.31 (belum dipaketkan — gate runtime belum lulus)
+- Engine build `V15.31-RC-MONITORING-CUMULATIVE-DEP-20261019`. File: `run.php`, `worker02.php`, `worker_functions.php`, `saved_data_store.php`, `index.php`.
+- Actual Gas Monitoring = snapshot kumulatif (`modeling.actual_gas_snapshots` {pgn, ffj, ffm}); resolver tunggal `pp_actual_gas_canonical` (row terisi
+  paling akhir per supplier, tidak dijumlahkan; 0 ≠ kosong) dan `pp_actual_gas_apply_snapshots` (array engine turunan, idempoten) dipakai route
+  HTTP, `pp_job_start`, `pp_normalize_copy`, guard Report, header (`ag_precheck` / `ag_canonical`) dan info engine `Actual Gas Canonical`.
+  Payload tanpa snapshot (data lama per jam) tidak berubah.
+- Save Monitoring: cutoff TIME PASSED maju ke row actual terbaru (dari resolver backend), seluruh row Y terkunci termasuk tiga Actual Gas
+  (UI, Full Screen/applySimViewMode, backend 409 `TIME_PASSED_LOCKED`); unlock resmi (TIME PASSED = N) dipersist + jejak `_tp_unlock`.
+  Status Time Passed tidak lagi masuk kunci basis warm / structural hash (`pp_v1531_mdp_strip`). Flag: `PP_V1531_TP_LOCK=0`, `PP_V1531_TP_KEY=0`.
+- Warm Actual Gas (A1 gas-cukup): kandidat bukti WAJIB review V8 (counterfactual DECOMMIT unit tak diminta) tidak dipotong deadline anggaran
+  (V15.29 gagal UNREQUESTED_START_NO_EVIDENCE). Flag `PP_V1531_MANDATORY_DL=0`.
+- Dependency GTG–STG di resolver yang sama (`pp_v1518_semantics`): lead GTG wajib CC + legal, fallback dengan reason code, GTG CC -> STG
+  (Simulation/sequence + Stop Status Continuous untuk lead tunggal), GTG SC tidak memicu STG; preview backend `mode=sem_preview`. Flag `PP_V1531_DEP=0`.
+- Evidence: `harness/v1531/evidence/`. Detail: REPORT_RECOVERY.md.
+
+# Riwayat V15.30 RC (root cause CP & runtime; basis V15.29 `52c0b4b`; riwayat di bawah)
 
 ## V15.30 (belum dipaketkan — targeted CP lulus, gate runtime GAGAL)
 - Engine build `V15.30-RC-ROOTCAUSE-CP-20261019`; file berubah: `run.php` saja (`pp_v1527_tighten_pre_v8`, `pp_v1523_tighten`, `pp_sp_final_bundle`).
