@@ -2042,6 +2042,9 @@ function pp_jbbk_quota_offset_search(array $input, array $out): array {
         if ($best['dev'] <= 1e-9 && $best['hard'] === 0) break;   // sudah masuk window dan valid
         if ((microtime(true) - $searchT0) > $searchCap) break;    // anggaran pencarian habis
         if ($highOff !== null && abs($highOff - $lowOff) < 0.02) break;   // bracket sudah rapat
+        /* V15.27 RUNTIME (eksak): probe berikut sama dengan offset yang sudah dicoba (plafon probe 3,0 pada sisi kurang: min(3, 3*2,5) = 3)
+         * -> input kandidat identik, hasil identik, dan kandidat hanya diterima bila LEBIH BAIK -> tidak dapat mengubah hasil. PP_V1527_OFF_DUP=0 -> lama. */
+        if ((string)getenv('PP_V1527_OFF_DUP') !== '0') { $dupP = false; foreach ($ladder as $lq) if (abs((float)$lq['offset'] - $probe) < 1e-9) { $dupP = true; break; } if ($dupP) break; }
         /* DETEKSI DINI WINDOW TAK TERJANGKAU: bila satu langkah offset membuat gas MELOMPATI
          * seluruh window (respons dispatch diskret lebih lebar dari window 0.04), pencarian
          * lebih lanjut hanya membuang waktu. Hentikan dan simpan bukti. */
