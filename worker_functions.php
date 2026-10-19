@@ -3127,6 +3127,8 @@ function pp_recompute_stgs(array &$gen, array $d3, array $model, int $row1, ?arr
      * (nilai unit_present tidak pernah dimutasi dalam satu request) — menghindari dua panggilan fungsi per STG per hitung penuh. */
     static $prGen = null, $prM = [];
     $prQ = (int)($GLOBALS['__pp_req_gen'] ?? 0); if ($prQ !== $prGen) { $prM = []; $prGen = $prQ; }
+    /* V15.27 RUNTIME (eksak): tanpa hrsg_stop / hrsg_stop_time, pp_is_hrsg_stopped selalu false -> panggilan per feeder dilewati. */
+    $noHs = empty($model['hrsg_stop']) && empty($model['hrsg_stop_time']) && (string)getenv('PP_V1527_HS_SKIP') !== '0';
     foreach (['s1', 's2', 's3'] as $s) {
         if (!isset($d3[$s])) continue;
         /* FIX PRESENCE STG: sebelumnya hanya isset() yang diperiksa, sehingga STG dengan
@@ -3142,7 +3144,7 @@ function pp_recompute_stgs(array &$gen, array $d3, array $model, int $row1, ?arr
             // contributes 0 to the STG — calc_stg must not take it as a valid input (Sec.5.1/12).
             $mcc  = $d3[$g]['min_ccload'] ?? null;
             if ($mcc !== null && $load > 0 && $load < $mcc - 1e-6) continue;
-            if ($load > 0 && !pp_is_hrsg_stopped($model, $h, $row1)) $feed[$g] = $load;   // PROMPT ISOLASI: feed BER-NAMA -> koefisien per-kombo
+            if ($load > 0 && ($noHs || !pp_is_hrsg_stopped($model, $h, $row1))) $feed[$g] = $load;   // PROMPT ISOLASI: feed BER-NAMA -> koefisien per-kombo
         }
         $gen[$s] = $feed ? calc_stg($d3, $s, $feed) : 0.0;
         /* ADDENDUM FINAL Bagian 6: STG start-up delay window (Cold/Warm/Hot). Selama window start
