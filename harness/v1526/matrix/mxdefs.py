@@ -510,17 +510,17 @@ def define(G):
     T('N', 'Backward scheduling S1 target first load 06:00: GTG start mundur 7 row (same day)', A0, tgt('s1', '06:00'), 'EITHER', std + [lambda r: (r.first_on('s1') == 12 and ((r.i.get('Startup Continuation') or {}).get('s1') or {}).get('mode') == 'BACKWARD_START_SAME_DAY', f"S1 first {r.first_on('s1')} info {json.dumps((r.i.get('Startup Continuation') or {}).get('s1'))[:200]}")])
     T('N', 'Backward scheduling S1 target 02:00 (sebelum lag): kelanjutan dari kemarin, S1 berbeban row 4', A0, tgt('s1', '02:00'), 'EITHER', std + [cont_ok('s1', 4)])
     T('N', 'Kelanjutan cross-day selesai kemarin (elapsed >= lag): unit & STG Running sejak row 1', A0, cont('s1', 9, ['g6'], {'G6': 'Start Up CC'}), 'EITHER', std + [lambda r: (r.on('s1', 1) and r.on('g6', 1), f"S1 row1 {r.mw('s1', 1)} G6 row1 {r.mw('g6', 1)}")])
-    def cmp_final(a, b):   # reimplementasi pp_sp_final_cmp (objective final Fastest = Maximum Review, V15.26)
+    def cmp_final(a, b):   # reimplementasi pp_sp_final_cmp (objective final Fastest = Maximum Review, V15.27: ekonomi dulu, headroom = tie-break)
         for k in ('hard_pass', 'release_pass', 'stg_pass'):
             if a[k] != b[k]: return -1 if a[k] > b[k] else 1
         for k in ('c1_c4_fail', 'hpa_unresolved', 'priority_penalty'):
             if a[k] != b[k]: return -1 if a[k] < b[k] else 1
-        if abs(a['unused_legal_hp_headroom_mw'] - b['unused_legal_hp_headroom_mw']) > 0.05: return -1 if a['unused_legal_hp_headroom_mw'] < b['unused_legal_hp_headroom_mw'] else 1
         if abs(float(a['econ_cp']) - float(b['econ_cp'])) > 1e-4: return -1 if a['econ_cp'] < b['econ_cp'] else 1
         ca, cb = float(a['cp']), float(b['cp'])
         if abs(ca - cb) > 0.002 * min(ca, cb): return -1 if ca < cb else 1
         if abs(float(a['hr']) - float(b['hr'])) > 1e-6: return -1 if a['hr'] < b['hr'] else 1
         if abs(ca - cb) > 1e-6: return -1 if ca < cb else 1
+        if abs(a['unused_legal_hp_headroom_mw'] - b['unused_legal_hp_headroom_mw']) > 0.05: return -1 if a['unused_legal_hp_headroom_mw'] < b['unused_legal_hp_headroom_mw'] else 1
         for k in ('startups', 'online_unit_rows', 'fragmentation'):
             if a[k] != b[k]: return -1 if a[k] < b[k] else 1
         if a['start_rows_sum'] != b['start_rows_sum']: return -1 if a['start_rows_sum'] > b['start_rows_sum'] else 1
